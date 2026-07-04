@@ -1,0 +1,138 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Deal;
+use App\Models\PriceHistory;
+use App\Models\Tag;
+use App\Events\DealIngested;
+use App\Jobs\PublishDealToTelegramJob;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
+class DealIngestionController
+{
+    /**
+     * Handles the payload from the Python Local Worker.
+     */
+    public function store(Request $request)
+    {
+        // 1. Validate the Request
+        // Note: In production, you would also use middleware to check the Bearer token.
+        $validated = $request->validate([
+            'title' => 'required|string',
+            'original_price' => 'required|numeric',
+            'discounted_price' => 'required|numeric',
+            'url' => 'required|url',
+            'category_id' => 'required|integer',
+            'merchant_id' => 'required|integer',
+            'ai_caption' => 'required|string',
+            'image_base64' => 'required|string',
+            'promo_code' => 'nullable|string',
+            'brand' => 'nullable|string',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string'
+        ]);
+
+        // 2. Process Base64 Image
+        $imagePath = null;
+        if (preg_match('/^data:image\/(\w+);base64,/', $validated['image_base64'], $type)) {
+            $data = substr($validated['image_base64'], strpos($validated['image_base64'], ',') + 1);
+            $type = strtolower($type[1]); // jpg, png, etc.
+
+            $data = base64_decode($data);
+            
+            if ($data !== false) {
+                $fileName = Str::uuid() . '.' . $type;
+                // Store directly in public folder for easy access without symlinks
+                $path = public_path('deals');
+                if (!file_exists($path)) {
+                    mkdir($path, 0755, true);
+                }
+                file_put_contents($path . '/' . $fileName, $data);
+                $imagePath = 'deals/' . $fileName;
+            }
+        }
+
+        if (!$imagePath) {
+            return response()->json(['error' => 'Invalid image payload'], 400);
+        }
+
+        // 3. Create or Update Deal
+        $deal = Deal::updateOrCreate(
+            ['url' => $validated['url']],
+            [
+                'category_id' => $validated['category_id'],
+                'merchant_id' => $validated['merchant_id'],
+                'title' => $validated['title'],
+                'original_price' => $validated['original_price'],
+                'discounted_price' => $validated['discounted_price'],
+                'promo_code' => $validated['promo_code'] ?? null,
+                'brand' => $validated['brand'] ?? null,
+                'image_path' => $imagePath,
+                'status' => 'active',
+            ]
+        );
+
+        // Process Tags
+        
+        // Generate TinyURL if we don't have a short_url
+        if (empty($deal->short_url)) {
+            try {
+                $context = stream_context_create([
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                    ],
+                ]);
+                $tinyUrl = file_get_contents('https://tinyurl.com/api-create.php?url=' . urlencode($deal->affiliate_url), false, $context);
+                if ($tinyUrl && filter_var($tinyUrl, FILTER_VALIDATE_URL)) {
+                    $deal->update(['short_url' => $tinyUrl]);
+                }
+            } catch (\Exception $e) {
+                // Ignore TinyUrl failure
+            }
+        }
+        if (!empty($validated['tags'])) {
+            $tagIds = [];
+            foreach ($validated['tags'] as $tagName) {
+                $tag = Tag::firstOrCreate([
+                    'slug' => Str::slug($tagName)
+                ], [
+                    'name' => $tagName
+                ]);
+                $tagIds[] = $tag->id;
+            }
+            $deal->tags()->sync($tagIds);
+        }
+
+        // 4. Log Price History
+        PriceHistory::create([
+            'deal_id' => $deal->id,
+            'price' => $validated['discounted_price'],
+            'recorded_at' => now(),
+        ]);
+
+        // 5. Trigger the Retention Engine Listener
+        event(new DealIngested($deal));
+
+        // 6. Trigger the Publishing Engine Queue Job (if configured for auto-publishing)
+        // PublishDealToTelegramJob::dispatch($deal);
+
+        return response()->json([
+            'message' => 'Deal ingested successfully',
+            'deal_id' => $deal->id
+        ], 201);
+    }
+
+    /**
+     * Marks a deal as expired. Called by the Python Worker.
+     */
+    public function expire(Deal $deal)
+    {
+        $deal->update(['status' => 'expired']);
+        return response()->json(['message' => 'Deal expired successfully']);
+    }
+}

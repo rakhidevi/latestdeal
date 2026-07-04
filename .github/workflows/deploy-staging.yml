@@ -1,0 +1,52 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  web-deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
+        coverage: none
+
+    - name: Install Composer Dependencies
+      run: |
+        cd backend
+        composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install NPM Dependencies & Build
+      run: |
+        cd backend
+        npm install
+        npm run build
+
+    - name: Sync files via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_STAGING_USERNAME }}
+        password: ${{ secrets.FTP_STAGING_PASSWORD }}
+        local-dir: ./backend/
+        server-dir: ./
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          tests/**
+          .env

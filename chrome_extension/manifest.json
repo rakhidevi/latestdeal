@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "LatestDeal Auto-Finder",
+  "version": "1.0",
+  "description": "Automatically finds better deals on LatestDeal while you shop on Amazon or Flipkart.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": [
+    "*://*.amazon.in/*",
+    "*://*.flipkart.com/*",
+    "*://localhost/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.amazon.in/*", "*://*.flipkart.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LatestDeal"
+  }
+}

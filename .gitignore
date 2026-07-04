@@ -1,0 +1,27 @@
+# Laravel
+/backend/vendor/
+/backend/node_modules/
+/backend/public/build/
+/backend/public/hot
+/backend/public/storage
+/backend/storage/*.key
+/backend/.env
+/backend/.env.backup
+/backend/.phpunit.result.cache
+/backend/Homestead.json
+/backend/Homestead.yaml
+/backend/npm-debug.log
+/backend/yarn-error.log
+/backend/.idea
+/backend/.vscode
+/backend/database/database.sqlite
+
+# Worker
+/worker/venv/
+/worker/__pycache__/
+/worker/*.pyc
+/worker/.env
+
+# OS Files
+.DS_Store
+Thumbs.db
