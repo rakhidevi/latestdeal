@@ -25,11 +25,11 @@ class MetricsController
             ]);
         }
         
-        $totalClicks = Click::where('user_id', $user->id)->count();
+        $totalClicks = Click::where('publisher_id', $user->id)->count();
         
         // Group by day for the last 30 days
         $dailyClicks = Click::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
-            ->where('user_id', $user->id)
+            ->where('publisher_id', $user->id)
             ->where('created_at', '>=', now()->subDays(30))
             ->groupBy('date')
             ->orderBy('date', 'asc')
