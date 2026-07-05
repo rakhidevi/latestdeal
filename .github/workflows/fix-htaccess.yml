@@ -22,8 +22,8 @@ jobs:
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
+        username: ${{ secrets.FTP_PRODUCTION_USERNAME }}
+        password: ${{ secrets.FTP_PRODUCTION_PASSWORD }}
         local-dir: ./deploy_dist/
         server-dir: /public_html/
         dangerous-clean-slate: false
