@@ -16,7 +16,12 @@ use App\Http\Controllers\RedirectController;
 
 Route::get('/setup-scraper', function () {
     \App\Models\Category::firstOrCreate(['id' => 1], ['name' => 'Electronics', 'slug' => 'electronics']);
-    \App\Models\Merchant::firstOrCreate(['id' => 1], ['name' => 'Amazon', 'website' => 'https://amazon.in']);
+    \App\Models\Merchant::firstOrCreate(['id' => 1], [
+        'name' => 'Amazon', 
+        'domain' => 'amazon.in',
+        'affiliate_param_key' => 'tag',
+        'store_id' => 'kridaymart-21'
+    ]);
     return "Category #1 and Merchant #1 created! Your Python Worker will now work perfectly.";
 });
 
