@@ -23,7 +23,9 @@ jobs:
     - name: Install Composer Dependencies
       run: |
         cd backend
+        cp .env.example .env
         composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+        php artisan key:generate
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
