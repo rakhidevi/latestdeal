@@ -98,6 +98,9 @@ async def process_queue():
                 "category_id": 1, # Placeholder
                 "merchant_id": 1, # Placeholder
                 "ai_caption": caption_text,
+                "features": caption_data.get('features', []),
+                "verdict": caption_data.get('verdict', ''),
+                "trust_metrics": caption_data.get('trust_metrics', ''),
                 "image_base64": base64_image,
                 "brand": caption_data.get('brand_name')
             }

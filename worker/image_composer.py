@@ -12,7 +12,8 @@ def compose_image(image_url: str, original_price: float, discounted_price: float
     """
     try:
         # 1. Download image
-        response = requests.get(image_url, stream=True)
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+        response = requests.get(image_url, stream=True, headers=headers)
         response.raise_for_status()
         base_img = Image.open(response.raw).convert("RGBA")
         

@@ -33,7 +33,11 @@ class DealIngestionController
             'promo_code' => 'nullable|string',
             'brand' => 'nullable|string',
             'tags' => 'nullable|array',
-            'tags.*' => 'string'
+            'tags.*' => 'string',
+            'features' => 'nullable|array',
+            'features.*' => 'string',
+            'verdict' => 'nullable|string',
+            'trust_metrics' => 'nullable|string'
         ]);
 
         // 2. Process Base64 Image
@@ -69,8 +73,12 @@ class DealIngestionController
                 'title' => $validated['title'],
                 'original_price' => $validated['original_price'],
                 'discounted_price' => $validated['discounted_price'],
-                'promo_code' => $validated['promo_code'] ?? null,
+                'coupon_code' => $validated['promo_code'] ?? null,
                 'brand' => $validated['brand'] ?? null,
+                'features' => $validated['features'] ?? null,
+                'verdict' => $validated['verdict'] ?? null,
+                'trust_metrics' => $validated['trust_metrics'] ?? null,
+                'ai_caption' => $validated['ai_caption'] ?? null,
                 'image_path' => $imagePath,
                 'status' => 'active',
             ]

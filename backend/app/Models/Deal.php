@@ -9,7 +9,12 @@ class Deal extends Model
 {
     protected $fillable = [
         'category_id', 'merchant_id', 'title', 'original_price', 
-        'discounted_price', 'coupon_code', 'promo_code', 'url', 'short_url', 'image_path', 'status', 'brand'
+        'discounted_price', 'coupon_code', 'promo_code', 'url', 'short_url', 'image_path', 'status', 'brand',
+        'features', 'verdict', 'trust_metrics', 'ai_caption'
+    ];
+
+    protected $casts = [
+        'features' => 'array',
     ];
 
     public function merchant()
