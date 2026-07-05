@@ -69,31 +69,8 @@ jobs:
         
         # We purposely do not copy .htaccess here. It is inside deploy.zip and will be extracted correctly.
 
-    - name: Upload ZIP via FTP
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+    - name: Upload Zip as Artifact
+      uses: actions/upload-artifact@v4
       with:
-        server: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_STAGING_USERNAME }}
-        password: ${{ secrets.FTP_STAGING_PASSWORD }}
-        local-dir: ./deploy_dist/
-        server-dir: /public_html/staging/
-        state-name: .deploy-sync-state.json
-        dangerous-clean-slate: true
-
-    - name: Execute Unzip on Server
-      run: |
-        # Trigger the PHP script on the server to unzip the files instantly
-        HTTP_STATUS=$(curl -s -w "%{http_code}" https://latestdeal.in/staging/unzip.php)
-        
-        if [[ "$HTTP_STATUS" == *"SUCCESS"* ]]; then
-            echo "Unzip completed successfully!"
-        else
-            echo "Unzip response: $HTTP_STATUS"
-            # It might return just a 200 HTTP code depending on curl behavior, check if it's 200
-            if [[ "$HTTP_STATUS" == *"200"* ]]; then
-                echo "Assume success based on HTTP 200"
-            else
-                echo "Failed to execute unzipper"
-                exit 1
-            fi
-        fi
+        name: deploy-staging-zip
+        path: deploy_dist/deploy.zip
