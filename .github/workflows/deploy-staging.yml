@@ -27,17 +27,6 @@ jobs:
         composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
         php artisan key:generate
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-
-    - name: Install NPM Dependencies & Build
-      run: |
-        cd backend
-        npm install
-        npm run build
-
     - name: Sync files via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
