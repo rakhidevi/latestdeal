@@ -16,5 +16,6 @@
 
     # Rewrite all requests to the public/ folder if they don't already start with public/
     RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^((?!public/).*)$ public/$1 [L,NC]
 </IfModule>
