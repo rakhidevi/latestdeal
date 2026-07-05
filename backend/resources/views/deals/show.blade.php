@@ -13,13 +13,13 @@
     
     <script type="application/ld+json">
     {
-      "@context": "https://schema.org/",
-      "@type": "Product",
+      "@@context": "https://schema.org/",
+      "@@type": "Product",
       "name": "{{ addslashes($deal->title) }}",
       "image": "{{ asset($deal->image_path) }}",
       "description": "Get {{ addslashes($deal->title) }} at a discounted price.",
       "offers": {
-        "@type": "Offer",
+        "@@type": "Offer",
         "url": "{{ route('deal.show', $deal->id) }}",
         "priceCurrency": "INR",
         "price": "{{ $deal->discounted_price }}",
