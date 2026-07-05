@@ -65,6 +65,9 @@ jobs:
         cd backend
         zip -rq ../deploy_dist/deploy.zip . -x "*.git*" "tests/*" "node_modules/*"
         cd ..
+        
+        # Copy .htaccess directly so it gets uploaded to the root and fixes the old broken redirect rule!
+        cp backend/.htaccess deploy_dist/.htaccess
 
     - name: Upload ZIP via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
