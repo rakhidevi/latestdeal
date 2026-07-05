@@ -78,23 +78,7 @@ class DealIngestionController
 
         // Process Tags
         
-        // Generate TinyURL if we don't have a short_url
-        if (empty($deal->short_url)) {
-            try {
-                $context = stream_context_create([
-                    'ssl' => [
-                        'verify_peer' => false,
-                        'verify_peer_name' => false,
-                    ],
-                ]);
-                $tinyUrl = file_get_contents('https://tinyurl.com/api-create.php?url=' . urlencode($deal->affiliate_url), false, $context);
-                if ($tinyUrl && filter_var($tinyUrl, FILTER_VALIDATE_URL)) {
-                    $deal->update(['short_url' => $tinyUrl]);
-                }
-            } catch (\Exception $e) {
-                // Ignore TinyUrl failure
-            }
-        }
+        // Removed TinyURL generation as per user request
         if (!empty($validated['tags'])) {
             $tagIds = [];
             foreach ($validated['tags'] as $tagName) {

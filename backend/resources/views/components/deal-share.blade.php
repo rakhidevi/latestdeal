@@ -9,7 +9,7 @@
     $formattedShareText = "🔥 *" . $deal->title . "* 🔥\n\n" .
                           "💰 *Deal Price:* ₹" . number_format($deal->discounted_price) . "\n" .
                           ($discount > 0 ? "❌ *Regular Price:* ₹" . number_format($deal->original_price) . " (" . $discount . "% OFF)\n\n" : "\n") .
-                          "🛒 *Buy it Now:*\n" . ($deal->short_url ?? route('deal.redirect', $deal->id)) . "\n\n" .
+                          "🛒 *Buy it Now:*\n" . route('deal.redirect', $deal->id) . "\n\n" .
                           "👇 *View Deal Details:*\n" . route('deal.show', $deal->id);
 @endphp
 
