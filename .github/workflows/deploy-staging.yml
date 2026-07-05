@@ -76,7 +76,7 @@ jobs:
         username: ${{ secrets.FTP_STAGING_USERNAME }}
         password: ${{ secrets.FTP_STAGING_PASSWORD }}
         local-dir: ./deploy_dist/
-        server-dir: ./
+        server-dir: /public_html/staging/
         state-name: .deploy-sync-state.json
         dangerous-clean-slate: true
 
