@@ -1,0 +1,29 @@
+name: Fix Production Htaccess
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  fix-htaccess:
+    name: Fix Production Htaccess
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Prepare Htaccess
+      run: |
+        mkdir -p deploy_dist
+        cp backend/.htaccess deploy_dist/.htaccess
+
+    - name: Upload Htaccess via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./deploy_dist/
+        server-dir: ./
+        dangerous-clean-slate: false
