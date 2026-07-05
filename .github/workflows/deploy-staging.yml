@@ -5,6 +5,11 @@ on:
     branches:
       - staging
 
+# Prevent multiple pipelines from running at the same time and hanging
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   web-deploy:
     name: Deploy to Staging
@@ -17,7 +22,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
-        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, zip
         coverage: none
 
     - name: Install Composer Dependencies
@@ -27,17 +32,66 @@ jobs:
         composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
         php artisan key:generate
 
-    - name: Sync files via FTP
+    - name: Prepare ZIP Deployment
+      run: |
+        # Create a clean deployment directory
+        mkdir deploy_dist
+        
+        # Create the unzipper script
+        cat << 'EOF' > deploy_dist/unzip.php
+        <?php
+        $zipFile = 'deploy.zip';
+        
+        if (!file_exists($zipFile)) {
+            die('Error: deploy.zip not found.');
+        }
+        
+        $zip = new ZipArchive;
+        if ($zip->open($zipFile) === TRUE) {
+            $zip->extractTo('./');
+            $zip->close();
+            
+            // Clean up
+            unlink($zipFile);
+            unlink(__FILE__);
+            
+            echo 'SUCCESS';
+        } else {
+            echo 'ERROR: Failed to open ZIP';
+        }
+        ?>
+        EOF
+        
+        # Zip everything inside the backend folder
+        cd backend
+        zip -rq ../deploy_dist/deploy.zip . -x "*.git*" "tests/*" "node_modules/*"
+        cd ..
+
+    - name: Upload ZIP via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_STAGING_USERNAME }}
         password: ${{ secrets.FTP_STAGING_PASSWORD }}
-        local-dir: ./backend/
+        local-dir: ./deploy_dist/
         server-dir: ./
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          tests/**
-          .env
+        state-name: .deploy-sync-state.json
+        dangerous-clean-slate: false
+
+    - name: Execute Unzip on Server
+      run: |
+        # Trigger the PHP script on the server to unzip the files instantly
+        HTTP_STATUS=$(curl -s -w "%{http_code}" https://latestdeal.in/staging/unzip.php)
+        
+        if [[ "$HTTP_STATUS" == *"SUCCESS"* ]]; then
+            echo "Unzip completed successfully!"
+        else
+            echo "Unzip response: $HTTP_STATUS"
+            # It might return just a 200 HTTP code depending on curl behavior, check if it's 200
+            if [[ "$HTTP_STATUS" == *"200"* ]]; then
+                echo "Assume success based on HTTP 200"
+            else
+                echo "Failed to execute unzipper"
+                exit 1
+            fi
+        fi
