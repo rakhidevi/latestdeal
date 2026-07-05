@@ -34,12 +34,12 @@ jobs:
     - name: Prepare ZIP Deployment
       run: |
         # Create a clean deployment directory
-        mkdir -p deploy_dist/public
+        mkdir deploy_dist
         
-        # Create the unzipper script INSIDE public to bypass .htaccess!
-        cat << 'EOF' > deploy_dist/public/unzip.php
+        # Create the unzipper script
+        cat << 'EOF' > deploy_dist/unzip.php
         <?php
-        $zipFile = '../deploy.zip';
+        $zipFile = 'deploy.zip';
         
         if (!file_exists($zipFile)) {
             die('Error: deploy.zip not found.');
@@ -47,7 +47,7 @@ jobs:
         
         $zip = new ZipArchive;
         if ($zip->open($zipFile) === TRUE) {
-            $zip->extractTo('../');
+            $zip->extractTo('./');
             $zip->close();
             
             // Clean up
@@ -66,8 +66,7 @@ jobs:
         zip -rq ../deploy_dist/deploy.zip . -x "*.git*" "tests/*" "node_modules/*"
         cd ..
         
-        # Copy .htaccess directly so it gets uploaded to the root and fixes the old broken redirect rule!
-        cp backend/.htaccess deploy_dist/.htaccess
+        # We purposely do not copy .htaccess here. It is inside deploy.zip and will be extracted correctly.
 
     - name: Upload ZIP via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -78,12 +77,12 @@ jobs:
         local-dir: ./deploy_dist/
         server-dir: ./
         state-name: .deploy-sync-state.json
-        dangerous-clean-slate: false
+        dangerous-clean-slate: true
 
     - name: Execute Unzip on Server
       run: |
         # Trigger the PHP script on the server to unzip the files instantly
-        HTTP_STATUS=$(curl -s -w "%{http_code}" https://latestdeal.in/public/unzip.php)
+        HTTP_STATUS=$(curl -s -w "%{http_code}" https://latestdeal.in/unzip.php)
         
         if [[ "$HTTP_STATUS" == *"SUCCESS"* ]]; then
             echo "Unzip completed successfully!"

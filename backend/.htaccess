@@ -14,8 +14,7 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Rewrite all requests to the public/ folder, unless the file exists in the root
-    RewriteCond %{REQUEST_URI} !^/public/
+    # Rewrite all requests to the public/ folder if they don't already start with public/
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^(.*)$ public/$1 [L]
+    RewriteRule ^((?!public/).*)$ public/$1 [L,NC]
 </IfModule>
