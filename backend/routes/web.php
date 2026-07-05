@@ -14,6 +14,12 @@ use App\Http\Controllers\RedirectController;
 |
 */
 
+Route::get('/setup-scraper', function () {
+    \App\Models\Category::firstOrCreate(['id' => 1], ['name' => 'Electronics', 'slug' => 'electronics']);
+    \App\Models\Merchant::firstOrCreate(['id' => 1], ['name' => 'Amazon', 'website' => 'https://amazon.in']);
+    return "Category #1 and Merchant #1 created! Your Python Worker will now work perfectly.";
+});
+
 // The Redirect Engine Endpoint
 Route::get('/go/{deal}', [RedirectController::class, 'redirect'])->name('deal.redirect');
 
