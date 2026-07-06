@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: latestdeal_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: latestdeal
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: dev_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: latestdeal_backend
+    restart: unless-stopped
+    ports:
+      - "9000:8000"
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: latestdeal
+      DB_USERNAME: admin
+      DB_PASSWORD: dev_password
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - mysql
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: latestdeal_worker
+    restart: unless-stopped
+    environment:
+      LARAVEL_API_URL: http://backend:8000/api/v1
+      LARAVEL_API_KEY: dev_secret_bearer_token_here
+      # Assuming Ollama is running on the host machine natively
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    volumes:
+      - ./worker:/app
+    depends_on:
+      - backend
+    # Needed to reach host.docker.internal on Linux (works natively on Mac/Windows Docker Desktop)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  mysql_data:

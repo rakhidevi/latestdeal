@@ -3,70 +3,46 @@ name: Deploy Production
 on:
   push:
     branches:
-      - staging
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  web-deploy:
-    name: Deploy to Production
+  deploy:
+    name: Deploy to Production (FTP)
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
-        coverage: none
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, zip
+          coverage: none
 
-    - name: Install Composer Dependencies
-      run: |
-        cd backend
-        cp .env.example .env
-        composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
-        php artisan key:generate
+      - name: Install Composer Dependencies
+        run: |
+          cd backend
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-    - name: Prepare ZIP Deployment
-      run: |
-        # Create a clean deployment directory
-        mkdir -p deploy_dist/public
-        
-        # Create the unzipper script INSIDE public to bypass .htaccess!
-        cat << 'EOF' > deploy_dist/public/unzip.php
-        <?php
-        $zipFile = '../deploy.zip';
-        $extractTo = '../';
-
-        if (!file_exists($zipFile)) {
-            die("ZIP file not found: " . $zipFile);
-        }
-
-        $zip = new ZipArchive;
-        if ($zip->open($zipFile) === TRUE) {
-            $zip->extractTo($extractTo);
-            $zip->close();
-            unlink($zipFile);
-            unlink(__FILE__);
-            echo "SUCCESS: Extracted successfully.";
-        } else {
-            die("Failed to open the ZIP file.");
-        }
-        EOF
-        
-        # Zip everything inside the backend folder
-        cd backend
-        zip -rq ../deploy_dist/deploy.zip . -x "*.git*" "tests/*" "node_modules/*"
-        cd ..
-        
-        # We purposely do not copy .htaccess here. It is inside deploy.zip and will be extracted correctly.
-
-    - name: Upload Zip as Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: deploy-production-zip
-        path: deploy_dist/deploy.zip
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_PRODUCTION_USERNAME }}
+          password: ${{ secrets.FTP_PRODUCTION_PASSWORD }}
+          # Deploying only the backend code to the FTP server. 
+          # Modify this if you need to deploy the worker or extension as well.
+          local-dir: ./backend/
+          # Change server-dir if your production folder is different (e.g. /public_html/)
+          server-dir: /
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            .github/**
