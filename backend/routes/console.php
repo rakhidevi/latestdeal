@@ -32,6 +32,10 @@ Artisan::command('deals:prune {--days=30}', function () {
 Schedule::command('deals:prune --days=30')->daily();
 Schedule::command('queue:prune-failed --hours=168')->daily();
 
+// Deal Automation Scripts
+Schedule::command(\App\Console\Commands\PublishDealsCommand::class)->hourly();
+Schedule::command(\App\Console\Commands\ExpireDealsCommand::class)->daily();
+
 // Aggressive Image Pruning
 Artisan::command('images:prune {--hours=72}', function () {
     $hours = $this->option('hours');

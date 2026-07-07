@@ -1,158 +1,113 @@
 @extends('layouts.app')
 
-@section('meta')
-    <meta name="description" content="Discover the best curated deals, discounts, and offers on the internet. Updated hourly by AI.">
-    
-    @if($deals->isNotEmpty())
-    <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@type": "ItemList",
-      "itemListElement": [
-        @foreach($deals as $index => $deal)
-        {
-          "@@type": "ListItem",
-          "position": {{ $index + 1 }},
-          "item": {
-            "@@type": "Product",
-            "name": "{{ addslashes($deal->title) }}",
-            "image": "{{ asset($deal->image_path) }}",
-            "offers": {
-              "@@type": "Offer",
-              "price": "{{ $deal->discounted_price }}",
-              "priceCurrency": "INR",
-              "availability": "https://schema.org/InStock",
-              "url": "{{ route('deal.redirect', ['deal' => $deal->id]) }}"
-            }
-          }
-        }@if(!$loop->last),@endif
-        @endforeach
-      ]
-    }
-    </script>
-    @endif
-@endsection
-
 @section('content')
-    <div class="mb-10 text-center">
-        <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
-            Today's <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-400">Hottest</span> Deals
+<section class="space-y-6">
+  <div class="panel overflow-hidden bg-gradient-to-br from-red-500 via-rose-500 to-red-400 p-0 text-white">
+    <div class="grid gap-6 p-6 md:grid-cols-2 md:p-8">
+      <div>
+        <h1 class="text-3xl font-extrabold leading-tight">
+          Find real global deals in seconds
         </h1>
-        <p class="mt-4 text-lg leading-8 text-gray-600 max-w-2xl mx-auto">
-            Our AI engine scans the web 24/7 to bring you the highest-value discounts before they expire.
+        <p class="mt-2 text-sm text-red-50">
+          AI-scored discounts from global marketplaces.
         </p>
-    </div>
-
-    <div class="flex flex-col lg:flex-row gap-8">
-        <!-- Sidebar Navigation & Filters -->
-        <aside class="w-full lg:w-72 flex-shrink-0">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
-                <form action="/" method="GET" class="mb-6">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">Search</h3>
-                    <div class="relative">
-                        <input type="text" name="q" value="{{ request('q') }}" placeholder="Search deals..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm transition">
-                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                </form>
-
-                <div class="mb-6">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center justify-between">
-                        Categories
-                        @if(request('category'))
-                            <a href="/" class="text-xs text-red-500 hover:text-red-700 font-medium">Clear</a>
-                        @endif
-                    </h3>
-                    <div class="space-y-2">
-                        @foreach($categories as $category)
-                            <a href="/?category={{ $category->slug }}" class="block px-3 py-2 rounded-lg text-sm font-medium transition {{ request('category') === $category->slug ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50' }}">
-                                {{ $category->name }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center justify-between">
-                        Brands
-                        @if(request('brand'))
-                            <a href="/" class="text-xs text-red-500 hover:text-red-700 font-medium">Clear</a>
-                        @endif
-                    </h3>
-                    <div class="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                        @foreach($brands as $brand)
-                            <a href="/?brand={{ urlencode($brand) }}" class="block px-3 py-2 rounded-lg text-sm font-medium transition {{ request('brand') === $brand ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50' }}">
-                                {{ $brand }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">Trending Tags</h3>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach($tags as $t)
-                            <a href="/?tag={{ $t->slug }}" class="px-3 py-1 rounded-full text-xs font-semibold transition {{ request('tag') === $t->slug ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
-                                #{{ $t->name }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
+        <form action="/" method="GET" class="mt-5 flex gap-2">
+          <input
+            name="q"
+            value="{{ request('q') }}"
+            placeholder="Search products, brands, categories"
+            class="input-base border-0 text-gray-900"
+          />
+          <button class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white">Search</button>
+        </form>
+        <div class="mt-4 flex flex-wrap gap-2 text-xs text-red-100">
+            @foreach(['Laptops under ₹60k', 'Smartphones', 'Kitchen offers', 'Monitors', 'Headphones'] as $chip)
+            <a href="/?q={{ urlencode($chip) }}" class="rounded-full bg-white/20 px-3 py-1 hover:bg-white/30">
+              {{ $chip }}
+            </a>
+            @endforeach
+        </div>
+      </div>
+      <div class="space-y-4">
+        <!-- KPI Strip Equivalent -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="rounded-xl bg-white/10 p-3 text-center backdrop-blur">
+                <div class="text-2xl font-black">24/7</div>
+                <div class="text-[10px] uppercase tracking-wider text-red-100">Scanning</div>
             </div>
-        </aside>
+            <div class="rounded-xl bg-white/10 p-3 text-center backdrop-blur">
+                <div class="text-2xl font-black">100%</div>
+                <div class="text-[10px] uppercase tracking-wider text-red-100">Verified</div>
+            </div>
+            <div class="rounded-xl bg-white/10 p-3 text-center backdrop-blur">
+                <div class="text-2xl font-black">AI</div>
+                <div class="text-[10px] uppercase tracking-wider text-red-100">Scored</div>
+            </div>
+            <div class="rounded-xl bg-white/10 p-3 text-center backdrop-blur">
+                <div class="text-2xl font-black">Free</div>
+                <div class="text-[10px] uppercase tracking-wider text-red-100">Access</div>
+            </div>
+        </div>
 
-        <!-- Main Content -->
-        <div class="flex-1">
-            <!-- Top Ad Slot -->
-            <x-ad-slot type="horizontal" class="mb-8" />
+        <div class="rounded-2xl bg-white/15 p-4 text-sm backdrop-blur">
+          <p class="font-semibold">Live Signals</p>
+          <ul class="mt-3 space-y-2 text-red-50">
+            <li>• Continuous crawling every 15 minutes</li>
+            <li>• Verified discount scoring</li>
+            <li>• Auto-publish top opportunities</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 
-            @if($deals->isEmpty())
-                <div class="bg-white rounded-2xl border border-gray-100 text-center py-24">
-                    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <h3 class="mt-4 text-lg font-bold text-gray-900">No deals found</h3>
-                    <p class="mt-2 text-sm text-gray-500">Try adjusting your filters or search query.</p>
-                    <a href="/" class="mt-6 inline-block bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition">View All Deals</a>
-                </div>
-            @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                    @foreach($deals as $index => $deal)
-                        <x-deal-card :deal="$deal" />
-                        
-                        <!-- Inline Ad Slot every 6th deal -->
-                        @if(($index + 1) % 6 == 0)
-                            <div class="sm:col-span-2 xl:col-span-3">
-                                <x-ad-slot type="infeed" class="my-4" />
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
+  <div class="surface">
+    <h2 class="text-lg font-bold">Top Categories</h2>
+    <div class="mt-3 flex flex-wrap gap-2 text-sm">
+        @foreach([
+            ['Electronics', 'electronics'],
+            ['Mobiles', 'mobiles'],
+            ['Laptops', 'laptops'],
+            ['TV', 'tv'],
+            ['Audio', 'audio']
+        ] as $cat)
+        <a href="/?category={{ $cat[1] }}" class="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-red-700">
+            {{ $cat[0] }}
+        </a>
+        @endforeach
+    </div>
+  </div>
 
-                <div class="mt-12 flex justify-center">
-                    {{ $deals->links() }}
-                </div>
-            @endif
+  <div class="space-y-4">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h2 class="section-title">Featured Deals</h2>
+            <p class="section-subtitle">Global opportunities selected by scoring engine.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="/assistant" class="btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center">
+                <i data-lucide="sparkles" class="w-4 h-4 mr-2"></i> AI Assistant
+            </a>
+            <a href="/?category=all" class="btn-secondary">View all deals</a>
         </div>
     </div>
 
-    <!-- Newsletter Subscription -->
-    <div class="mt-16 bg-white border border-gray-200 rounded-2xl shadow-sm px-6 py-10 sm:px-12 sm:py-16 overflow-hidden relative">
-        <div class="relative max-w-2xl mx-auto text-center">
-            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Never miss a massive price drop.</h2>
-            <p class="mt-4 text-lg leading-6 text-gray-500">Subscribe to our weekly newsletter to get the absolute best, hand-picked deals delivered straight to your inbox.</p>
-            <form action="{{ route('subscribe') }}" method="POST" class="mt-8 sm:flex justify-center">
-                @csrf
-                <label for="email" class="sr-only">Email address</label>
-                <input id="email" name="email" type="email" autocomplete="email" required class="w-full px-5 py-3 border border-gray-300 shadow-sm placeholder-gray-400 focus:ring-1 focus:ring-accent focus:border-accent sm:max-w-xs rounded-md" placeholder="Enter your email">
-                <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3 sm:flex-shrink-0">
-                    <button type="submit" class="w-full flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-accent hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent">
-                        Notify me
-                    </button>
-                </div>
-            </form>
-            @if(session('success'))
-                <p class="mt-3 text-sm text-green-600 font-medium">{{ session('success') }}</p>
-            @endif
-        </div>
-    </div>
+    @if($deals->isEmpty())
+      <div class="rounded-2xl border border-dashed border-gray-300 p-12 text-center dark:border-slate-700">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">No deals available yet</h3>
+        <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">Scraper is running. Fresh deals will appear shortly.</p>
+      </div>
+    @else
+      <div class="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        @foreach($deals as $deal)
+          <x-deal-card :deal="$deal" />
+        @endforeach
+      </div>
+      
+      <div class="mt-12 flex justify-center">
+        {{ $deals->links() }}
+      </div>
+    @endif
+  </div>
+</section>
 @endsection

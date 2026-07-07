@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Merchant extends Model
 {
-    protected $fillable = ['name', 'domain', 'store_id', 'affiliate_param_key'];
+    protected $fillable = ['name', 'domain', 'store_id', 'affiliate_param_key', 'status'];
 
     public function deals()
     {

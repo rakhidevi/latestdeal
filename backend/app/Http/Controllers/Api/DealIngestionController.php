@@ -11,6 +11,7 @@ use App\Events\DealIngested;
 use App\Jobs\PublishDealToTelegramJob;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\Setting;
 
 class DealIngestionController
 {
@@ -64,6 +65,10 @@ class DealIngestionController
             return response()->json(['error' => 'Invalid image payload'], 400);
         }
 
+        // 2.5 Determine initial status based on Pipeline Setting
+        $pipelineEnabled = Setting::where('key', 'deal_approval_pipeline')->value('value') === 'enabled';
+        $initialStatus = $pipelineEnabled ? 'pending' : 'active';
+
         // 3. Create or Update Deal
         $deal = Deal::updateOrCreate(
             ['url' => $validated['url']],
@@ -80,7 +85,7 @@ class DealIngestionController
                 'trust_metrics' => $validated['trust_metrics'] ?? null,
                 'ai_caption' => $validated['ai_caption'] ?? null,
                 'image_path' => $imagePath,
-                'status' => 'active',
+                'status' => $initialStatus,
             ]
         );
 

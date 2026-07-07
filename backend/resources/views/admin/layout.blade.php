@@ -15,7 +15,7 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        primary: { 500: '#3B82F6', 600: '#2563EB', 900: '#0f172a' },
+                        primary: { 500: '#ef4444', 600: '#dc2626', 900: '#0f172a' },
                         surface: '#ffffff',
                     },
                     animation: {
@@ -51,7 +51,7 @@
         <!-- Sidebar -->
         <div class="w-72 sidebar-gradient text-white flex-shrink-0 flex flex-col shadow-2xl relative z-20">
             <div class="h-20 flex items-center px-8 bg-black/10 border-b border-white/5">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg mr-4">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-500 to-orange-400 flex items-center justify-center shadow-lg mr-4">
                     <i data-lucide="zap" class="text-white w-6 h-6"></i>
                 </div>
                 <span class="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">LatestDeal</span>
@@ -59,29 +59,29 @@
             
             <nav class="flex-1 px-4 py-8 space-y-2 overflow-y-auto">
                 <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-2">Overview</p>
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600/20 text-blue-400 shadow-inner border border-blue-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.dashboard') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                     <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
                 
                 <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-8">Management</p>
-                <a href="{{ route('admin.deals') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.deals') ? 'bg-blue-600/20 text-blue-400 shadow-inner border border-blue-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                <a href="{{ route('admin.deals') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.deals') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                     <i data-lucide="shopping-bag" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
                     <span class="font-medium">Deals Catalog</span>
                 </a>
                 
-                <a href="{{ route('admin.merchants') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.merchants') ? 'bg-blue-600/20 text-blue-400 shadow-inner border border-blue-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                <a href="{{ route('admin.merchants') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.merchants') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                     <i data-lucide="store" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
                     <span class="font-medium">Merchants</span>
                 </a>
                 
-                <a href="{{ route('admin.users') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.users') ? 'bg-blue-600/20 text-blue-400 shadow-inner border border-blue-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                <a href="{{ route('admin.users') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.users') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                     <i data-lucide="users" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
                     <span class="font-medium">Publishers</span>
                 </a>
                 
                 <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-8">Tools</p>
-                <a href="{{ route('admin.links') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.links') ? 'bg-blue-600/20 text-blue-400 shadow-inner border border-blue-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                <a href="{{ route('admin.links') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.links') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                     <i data-lucide="link" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
                     <span class="font-medium">Link Generator</span>
                 </a>
@@ -101,8 +101,8 @@
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col relative overflow-hidden bg-slate-50">
             <!-- Decorative background elements -->
-            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-blue-400/10 blur-3xl pointer-events-none"></div>
-            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-purple-400/10 blur-3xl pointer-events-none"></div>
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-red-400/10 blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-orange-400/10 blur-3xl pointer-events-none"></div>
 
             <!-- Top Header -->
             <header class="h-20 glass-panel sticky top-0 z-10 flex items-center justify-between px-10 shadow-[0_4px_20px_-15px_rgba(0,0,0,0.1)]">
@@ -112,13 +112,13 @@
                 </div>
                 
                 <div class="flex items-center space-x-5">
-                    <button class="p-2.5 bg-white rounded-full shadow-sm border border-slate-100 text-slate-400 hover:text-blue-600 transition-colors relative">
+                    <button class="p-2.5 bg-white rounded-full shadow-sm border border-slate-100 text-slate-400 hover:text-red-600 transition-colors relative">
                         <i data-lucide="bell" class="w-5 h-5"></i>
                         <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                     </button>
                     <div class="h-8 w-px bg-slate-200"></div>
                     <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 border-2 border-white shadow-sm flex items-center justify-center text-blue-700 font-bold">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-red-100 to-rose-100 border-2 border-white shadow-sm flex items-center justify-center text-red-700 font-bold">
                             {{ substr(auth()->user()->name, 0, 1) }}
                         </div>
                         <div class="ml-3 hidden md:block">

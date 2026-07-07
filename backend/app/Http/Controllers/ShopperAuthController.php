@@ -16,6 +16,7 @@ class ShopperAuthController extends Controller
 
     public function login(Request $request)
     {
+        $request->merge(['email' => trim($request->email)]);
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],

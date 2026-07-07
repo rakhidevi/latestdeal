@@ -38,7 +38,7 @@
     
     <p class="mt-10 text-center text-sm text-gray-500">
       Not a publisher?
-      <a href="{{ url('/publisher/register') }}" class="font-semibold leading-6 text-primary hover:text-blue-500">Register here</a>
+      <a href="{{ url('/publisher/register') }}" class="font-semibold leading-6 text-primary hover:text-red-500">Register here</a>
     </p>
   </div>
 </div>

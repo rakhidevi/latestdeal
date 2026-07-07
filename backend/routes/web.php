@@ -31,38 +31,71 @@ Route::get('/go/{deal}', [RedirectController::class, 'redirect'])->name('deal.re
 // Deal Detail Page
 Route::get('/deal/{deal}', [\App\Http\Controllers\DealController::class, 'show'])->name('deal.show');
 
+// AI Shopping Assistant
+Route::get('/assistant', function () {
+    $deals = \Illuminate\Support\Facades\Cache::remember('deals.assistant', 300, function () {
+        return \App\Models\Deal::where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->limit(120)
+            ->get()
+            ->map(function ($deal) {
+                return [
+                    'id' => $deal->id,
+                    'title' => $deal->title,
+                    'price' => (float) $deal->discounted_price,
+                    'original_price' => (float) $deal->original_price,
+                    'discount_pct' => $deal->original_price > 0 ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) : 0,
+                    'url' => $deal->url,
+                    'image_path' => $deal->image_path,
+                    'merchant' => $deal->merchant->name ?? 'Marketplace',
+                    'category' => $deal->category->name ?? 'General',
+                ];
+            });
+    });
+
+    return view('shopper.assistant', compact('deals'));
+})->name('shopper.assistant');
+
 // The frontend Vue/Blade entrypoint
 Route::get('/', function (\Illuminate\Http\Request $request) {
-    $query = \App\Models\Deal::where('status', 'active');
-
-    if ($request->has('q') && $request->q) {
-        $query->where('title', 'like', '%' . $request->q . '%');
-    }
-
-    if ($request->has('tag') && $request->tag) {
-        $query->whereHas('tags', function($q) use ($request) {
-            $q->where('slug', $request->tag);
-        });
-    }
-
-    if ($request->has('category') && $request->category) {
-        $query->whereHas('category', function($q) use ($request) {
-            $q->where('slug', $request->category);
-        });
-    }
-
-    if ($request->has('brand') && $request->brand) {
-        $query->where('brand', $request->brand);
-    }
-
-    $deals = $query->orderBy('created_at', 'desc')->paginate(12)->withQueryString();
+    // Generate a unique cache key based on the query parameters
+    $cacheKey = 'deals.welcome.' . md5(json_encode($request->query()));
     
-    // For the Sidebar
-    $categories = \App\Models\Category::has('deals')->get();
-    $brands = \App\Models\Deal::whereNotNull('brand')->select('brand')->distinct()->pluck('brand');
-    $tags = \App\Models\Tag::has('deals')->get();
+    // Cache the entire payload for 5 minutes
+    $payload = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($request) {
+        $query = \App\Models\Deal::where('status', 'active');
 
-    return view('welcome', compact('deals', 'categories', 'brands', 'tags'));
+        if ($request->has('q') && $request->q) {
+            $query->where('title', 'like', '%' . $request->q . '%');
+        }
+
+        if ($request->has('tag') && $request->tag) {
+            $query->whereHas('tags', function($q) use ($request) {
+                $q->where('slug', $request->tag);
+            });
+        }
+
+        if ($request->has('category') && $request->category) {
+            $query->whereHas('category', function($q) use ($request) {
+                $q->where('slug', $request->category);
+            });
+        }
+
+        if ($request->has('brand') && $request->brand) {
+            $query->where('brand', $request->brand);
+        }
+
+        $deals = $query->orderBy('created_at', 'desc')->paginate(12)->withQueryString();
+        
+        // For the Sidebar
+        $categories = \App\Models\Category::has('deals')->get();
+        $brands = \App\Models\Deal::whereNotNull('brand')->select('brand')->distinct()->pluck('brand');
+        $tags = \App\Models\Tag::has('deals')->get();
+
+        return compact('deals', 'categories', 'brands', 'tags');
+    });
+
+    return view('welcome', $payload);
 });
 
 // SEO Engine
@@ -120,7 +153,10 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/deals', [\App\Http\Controllers\AdminController::class, 'deals'])->name('admin.deals');
+    Route::put('/deals/{deal}/status', [\App\Http\Controllers\AdminController::class, 'updateDealStatus'])->name('admin.deals.status');
     Route::get('/merchants', [\App\Http\Controllers\AdminController::class, 'merchants'])->name('admin.merchants');
+    Route::post('/merchants', [\App\Http\Controllers\AdminController::class, 'storeMerchant'])->name('admin.merchants.store');
+    Route::put('/merchants/{merchant}', [\App\Http\Controllers\AdminController::class, 'updateMerchant'])->name('admin.merchants.update');
     Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('admin.users');
     Route::get('/links', [\App\Http\Controllers\AdminController::class, 'links'])->name('admin.links');
     Route::post('/links/generate', [\App\Http\Controllers\AdminController::class, 'generateLink'])->name('admin.links.generate');
@@ -128,6 +164,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/queue/work', [\App\Http\Controllers\AdminController::class, 'workQueue'])->name('admin.queue.work');
     Route::post('/queue/clear', [\App\Http\Controllers\AdminController::class, 'clearFailedJobs'])->name('admin.queue.clear');
     
+    Route::post('/settings/toggle', [\App\Http\Controllers\AdminController::class, 'toggleSetting'])->name('admin.settings.toggle');
+
+    Route::post('/scraper/start', [\App\Http\Controllers\AdminController::class, 'startScraper'])->name('admin.scraper.start');
+    Route::post('/scraper/stop', [\App\Http\Controllers\AdminController::class, 'stopScraper'])->name('admin.scraper.stop');
+    Route::get('/scraper/status', [\App\Http\Controllers\AdminController::class, 'scraperStatus'])->name('admin.scraper.status');
+
     Route::get('/social-accounts', [\App\Http\Controllers\AdminController::class, 'socialAccounts'])->name('admin.social-accounts');
     Route::post('/social-accounts', [\App\Http\Controllers\AdminController::class, 'storeSocialAccount'])->name('admin.social-accounts.store');
 });

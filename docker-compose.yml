@@ -41,6 +41,7 @@ services:
       dockerfile: Dockerfile
     container_name: latestdeal_worker
     restart: unless-stopped
+    command: python -u daemon.py
     environment:
       LARAVEL_API_URL: http://backend:8000/api/v1
       LARAVEL_API_KEY: dev_secret_bearer_token_here

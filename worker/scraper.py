@@ -1,5 +1,5 @@
 from playwright.sync_api import sync_playwright
-from playwright_stealth import Stealth
+from playwright_stealth import stealth
 import time
 import random
 import os
@@ -137,7 +137,7 @@ def extract_deal_data_fallback(url: str) -> dict:
     with sync_playwright() as p:
         browser = setup_browser(p)
         page = browser.new_page()
-        Stealth().use_sync(page)
+        stealth(page)
         
         try:
             # Navigate to the URL

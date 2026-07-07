@@ -2,7 +2,7 @@
 
 @php
     $classes = [
-        'primary' => 'bg-primary hover:bg-blue-700 text-white',
+        'primary' => 'bg-primary hover:bg-red-700 text-white',
         'secondary' => 'bg-gray-200 hover:bg-gray-300 text-gray-800',
         'danger' => 'bg-accent hover:bg-red-700 text-white',
     ][$variant];

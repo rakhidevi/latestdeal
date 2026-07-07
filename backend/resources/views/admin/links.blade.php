@@ -27,7 +27,7 @@
             <input type="text" id="sub_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm border py-2 px-3" placeholder="e.g. email_campaign_v2">
         </div>
 
-        <button type="button" onclick="generateLink()" class="w-full bg-primary text-white px-4 py-2 rounded shadow hover:bg-blue-700 font-medium">Generate Link</button>
+        <button type="button" onclick="generateLink()" class="w-full bg-primary text-white px-4 py-2 rounded shadow hover:bg-red-700 font-medium">Generate Link</button>
     </form>
     
     <div class="mt-8 pt-6 border-t hidden" id="resultBox">

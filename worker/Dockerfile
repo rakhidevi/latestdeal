@@ -1,10 +1,9 @@
-FROM python:3.11-slim
+FROM mcr.microsoft.com/playwright/python:v1.61.0-jammy
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y gcc
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Keep container running indefinitely so you can bash in or run tests locally
-# Alternatively, you can change this to CMD ["python", "main.py"]
+# Keep container running indefinitely
 CMD ["tail", "-f", "/dev/null"]

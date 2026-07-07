@@ -56,7 +56,7 @@
     
     <p class="mt-10 text-center text-sm text-gray-500">
       Already registered?
-      <a href="{{ url('/publisher/login') }}" class="font-semibold leading-6 text-primary hover:text-blue-500">Sign in</a>
+      <a href="{{ url('/publisher/login') }}" class="font-semibold leading-6 text-primary hover:text-red-500">Sign in</a>
     </p>
   </div>
 </div>

@@ -24,7 +24,7 @@
             <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
             <input type="password" name="password_confirmation" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2">
         </div>
-        <button type="submit" class="w-full bg-primary text-white py-2 rounded-md font-medium hover:bg-blue-700">Register</button>
+        <button type="submit" class="w-full bg-primary text-white py-2 rounded-md font-medium hover:bg-red-700">Register</button>
     </form>
     <div class="mt-4 text-center text-sm text-gray-600">
         Already have an account? <a href="{{ route('shopper.login') }}" class="text-primary hover:underline">Login</a>

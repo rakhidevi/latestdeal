@@ -21,6 +21,9 @@ use App\Http\Controllers\Api\MetricsController;
 Route::post('/deals/ingest', [DealIngestionController::class, 'store']);
 Route::post('/deals/{deal}/expire', [DealIngestionController::class, 'expire']);
 
+// Shopper AI Engine
+Route::post('/assistant/chat', [\App\Http\Controllers\Api\ShopperAssistantController::class, 'chat']);
+
 // Protected APIs (Requires Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/deals/active', function () {

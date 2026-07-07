@@ -126,13 +126,13 @@
             </div>
             <div class="mt-5 flex gap-3">
                 <input type="text" x-model="rawUrl" placeholder="https://amazon.in/dp/B08N5W4NNB..." class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6">
-                <button @click="generate" type="button" class="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                <button @click="generate" type="button" class="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
                     Generate
                 </button>
             </div>
             <div x-show="generatedUrl" class="mt-4 p-4 bg-gray-50 rounded border flex items-center justify-between" style="display: none;">
                 <code class="text-sm text-gray-800 break-all" x-text="generatedUrl"></code>
-                <button @click="copy" class="ml-4 text-primary hover:text-blue-500 text-sm font-semibold">Copy</button>
+                <button @click="copy" class="ml-4 text-primary hover:text-red-500 text-sm font-semibold">Copy</button>
             </div>
         </div>
     </div>

@@ -30,7 +30,7 @@
         <div class="bg-white p-6 rounded-xl shadow-sm border">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold">Price Alerts</h2>
-                <button x-data @click="$dispatch('open-alert-modal')" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded">New Alert</button>
+                <button x-data @click="$dispatch('open-alert-modal')" class="text-sm bg-red-100 text-red-700 px-3 py-1 rounded">New Alert</button>
             </div>
             @if($priceAlerts->isEmpty())
                 <p class="text-gray-500">You don't have any active price alerts.</p>
