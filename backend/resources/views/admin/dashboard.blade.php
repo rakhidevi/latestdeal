@@ -176,6 +176,15 @@
                     <button @click="stopScraper" x-show="isRunning" class="text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded shadow transition">Stop</button>
                 </div>
             </div>
+
+            <!-- Manual Scrape Form -->
+            <div class="bg-gray-800 p-3 border-b border-gray-700 flex space-x-2">
+                <input type="url" x-model="scrapeUrlInput" placeholder="Enter Amazon/Flipkart URL to scrape..." class="flex-1 bg-gray-900 border border-gray-600 text-white text-xs rounded px-3 py-2 focus:outline-none focus:border-green-500">
+                <button @click="submitScrape" :disabled="!isRunning || isSubmitting" class="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-4 py-2 rounded shadow transition flex items-center">
+                    <span x-show="!isSubmitting">Scrape</span>
+                    <span x-show="isSubmitting">Loading...</span>
+                </button>
+            </div>
             
             <!-- Logs output -->
             <div class="bg-gray-900 text-green-400 font-mono text-xs p-4 h-64 overflow-y-auto rounded-b-lg border border-gray-800 shadow-inner" id="terminal-output">
@@ -216,6 +225,8 @@
             isRunning: false,
             logs: [],
             pollInterval: null,
+            scrapeUrlInput: '',
+            isSubmitting: false,
             init() {
                 this.fetchStatus();
                 // Poll every 1 second
@@ -276,6 +287,25 @@
                     this.fetchStatus();
                 } catch (e) {
                     console.error("Failed to stop scraper", e);
+                }
+            },
+            async submitScrape() {
+                if (!this.scrapeUrlInput) return;
+                this.isSubmitting = true;
+                try {
+                    await fetch('{{ route("admin.scraper.scrape") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url: this.scrapeUrlInput })
+                    });
+                    this.scrapeUrlInput = '';
+                } catch (e) {
+                    console.error("Failed to submit scrape", e);
+                } finally {
+                    this.isSubmitting = false;
                 }
             }
         }

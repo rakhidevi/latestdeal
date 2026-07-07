@@ -58,7 +58,8 @@ class AdminController
     public function startScraper()
     {
         try {
-            Http::timeout(5)->post('http://worker:8001/start');
+            $workerIp = gethostbyname('worker');
+            Http::timeout(5)->post("http://{$workerIp}:8001/start");
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
@@ -68,7 +69,8 @@ class AdminController
     public function stopScraper()
     {
         try {
-            Http::timeout(5)->post('http://worker:8001/stop');
+            $workerIp = gethostbyname('worker');
+            Http::timeout(5)->post("http://{$workerIp}:8001/stop");
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
@@ -78,10 +80,23 @@ class AdminController
     public function scraperStatus()
     {
         try {
-            $response = Http::timeout(3)->get('http://worker:8001/status');
+            $workerIp = gethostbyname('worker');
+            $response = Http::timeout(3)->get("http://{$workerIp}:8001/status");
             return response()->json($response->json());
         } catch (\Exception $e) {
             return response()->json(['running' => false, 'logs' => ["Worker daemon unreachable: " . $e->getMessage()]]);
+        }
+    }
+
+    public function scrapeUrl(Request $request)
+    {
+        $request->validate(['url' => 'required|url']);
+        try {
+            $workerIp = gethostbyname('worker');
+            $response = Http::timeout(5)->post("http://{$workerIp}:8001/scrape", ['url' => $request->url]);
+            return response()->json(['success' => true, 'message' => $response->json('status')]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 

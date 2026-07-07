@@ -169,6 +169,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/scraper/start', [\App\Http\Controllers\AdminController::class, 'startScraper'])->name('admin.scraper.start');
     Route::post('/scraper/stop', [\App\Http\Controllers\AdminController::class, 'stopScraper'])->name('admin.scraper.stop');
     Route::get('/scraper/status', [\App\Http\Controllers\AdminController::class, 'scraperStatus'])->name('admin.scraper.status');
+    Route::post('/scraper/scrape', [\App\Http\Controllers\AdminController::class, 'scrapeUrl'])->name('admin.scraper.scrape');
 
     Route::get('/social-accounts', [\App\Http\Controllers\AdminController::class, 'socialAccounts'])->name('admin.social-accounts');
     Route::post('/social-accounts', [\App\Http\Controllers\AdminController::class, 'storeSocialAccount'])->name('admin.social-accounts.store');

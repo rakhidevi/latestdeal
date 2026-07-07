@@ -43,6 +43,25 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({"status": msg}).encode())
+        elif self.path == '/scrape':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                url = data.get('url')
+                if url:
+                    from database import add_to_queue
+                    add_to_queue(url)
+                    msg = "URL added to queue"
+                else:
+                    msg = "Missing URL"
+            except Exception as e:
+                msg = f"Error: {str(e)}"
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": msg}).encode())
         else:
             self.send_response(404)
             self.end_headers()

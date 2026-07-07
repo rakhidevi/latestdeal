@@ -205,11 +205,9 @@ async def main():
     init_db()
     print("Worker Initialized.")
     
-    # Run all three tasks concurrently
     await asyncio.gather(
         process_queue(),
-        expiry_checker(),
-        listen_to_websockets()
+        expiry_checker()
     )
 
 if __name__ == "__main__":
