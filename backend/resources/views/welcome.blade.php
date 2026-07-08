@@ -3,31 +3,31 @@
 @section('content')
 <section class="space-y-6">
   <div class="panel overflow-hidden bg-gradient-to-br from-red-500 via-rose-500 to-red-400 p-0 text-white">
-    <div class="grid gap-6 p-5 sm:p-6 md:grid-cols-2 md:p-8">
-      <div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight">
+    <div class="grid gap-6 p-4 sm:p-6 md:grid-cols-2 md:p-8">
+      <div class="min-w-0"> <!-- Added min-w-0 to prevent grid blowout -->
+        <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight break-words">
           Find real global deals in seconds
         </h1>
         <p class="mt-1 sm:mt-2 text-xs sm:text-sm text-red-50 hidden sm:block">
           AI-scored discounts from global marketplaces.
         </p>
-        <form action="/" method="GET" class="mt-4 sm:mt-5 space-y-3">
-          <div class="flex gap-2">
+        <form action="/" method="GET" class="mt-4 sm:mt-5 space-y-3 w-full">
+          <div class="flex gap-2 w-full">
             <input
               name="q"
               value="{{ request('q') }}"
-              placeholder="Search products, brands, categories"
-              class="input-base border-0 text-gray-900 flex-1"
+              placeholder="Search products, brands..."
+              class="input-base border-0 text-gray-900 flex-1 min-w-0"
             />
-            <button class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800">Search</button>
+            <button class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 flex-shrink-0">Search</button>
           </div>
-          <div class="flex flex-wrap gap-2 items-center">
-            <div class="flex items-center gap-2 w-full sm:w-auto">
-                <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 flex-1 sm:w-24 placeholder-gray-500" />
+          <div class="flex flex-col sm:flex-row flex-wrap gap-2 sm:items-center w-full">
+            <div class="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center">
+                <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-full sm:w-24 placeholder-gray-500 min-w-0" />
                 <span class="text-white/80 hidden sm:inline">-</span>
-                <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 flex-1 sm:w-24 placeholder-gray-500" />
+                <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-full sm:w-24 placeholder-gray-500 min-w-0" />
             </div>
-            <select name="min_discount" onchange="this.form.submit()" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-full sm:w-36">
+            <select name="min_discount" onchange="this.form.submit()" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-full sm:w-36 flex-shrink-0">
                 <option value="">Any Discount</option>
                 <option value="10" {{ request('min_discount') == '10' ? 'selected' : '' }}>10%+ Off</option>
                 <option value="25" {{ request('min_discount') == '25' ? 'selected' : '' }}>25%+ Off</option>
@@ -38,7 +38,7 @@
         </form>
         <div class="mt-4 flex flex-wrap gap-2 text-xs text-red-100">
             @foreach(['Laptops under ₹60k', 'Smartphones', 'Kitchen offers', 'Monitors', 'Headphones'] as $chip)
-            <a href="/?q={{ urlencode($chip) }}" class="rounded-full bg-white/20 px-3 py-1 hover:bg-white/30">
+            <a href="/?q={{ urlencode($chip) }}" class="rounded-full bg-white/20 px-3 py-1 hover:bg-white/30 whitespace-nowrap">
               {{ $chip }}
             </a>
             @endforeach
