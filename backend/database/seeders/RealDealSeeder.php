@@ -14,7 +14,7 @@ class RealDealSeeder extends Seeder
     {
         $merchant = Merchant::firstOrCreate(
             ['name' => 'Amazon India'],
-            ['website' => 'https://amazon.in', 'logo_url' => 'https://logo.clearbit.com/amazon.in', 'affiliate_param_key' => 'tag', 'store_id' => 'latestdeal-21']
+            ['domain' => 'amazon.in', 'affiliate_param_key' => 'tag', 'store_id' => 'latestdeal-21']
         );
 
         $dealsData = [
