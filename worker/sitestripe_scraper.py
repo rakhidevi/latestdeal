@@ -104,6 +104,11 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             try:
                 page.wait_for_selector("#amzn-ss-text-link", timeout=10000)
             except Exception:
+                # Check for "Frequently Returned Item" which disables the Get Link button
+                page_text = page.content()
+                if "Frequently Returned Item" in page_text or "lower return rates" in page_text:
+                    print("Deal REJECTED: Frequently Returned Item (SiteStripe 'Get Link' disabled)")
+                    return False
                 raise Exception("SiteStripe bar not found! Make sure you are logged in and Affiliate account is active.")
                 
             sitestripe_text_btn = page.locator("#amzn-ss-text-link").first
