@@ -35,7 +35,8 @@ Route::get('/deal/{deal}', [\App\Http\Controllers\DealController::class, 'show']
 // AI Shopping Assistant
 Route::get('/assistant', function () {
     $deals = \Illuminate\Support\Facades\Cache::remember('deals.assistant', 300, function () {
-        return \App\Models\Deal::where('status', 'active')
+        return \App\Models\Deal::with(['merchant', 'category'])
+            ->where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->limit(120)
             ->get()

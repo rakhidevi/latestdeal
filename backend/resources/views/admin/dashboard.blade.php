@@ -100,99 +100,45 @@
                         <p class="text-xs text-slate-500">{{ $stat->domain }}</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-lg font-black text-red-600">{{ number_format($stat->click_count) }}</p>
-                        <p class="text-xs text-slate-500">clicks</p>
+                        <p class="font-black text-emerald-600">{{ $stat->click_count }}</p>
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest">Clicks</p>
                     </div>
                 </div>
             @empty
-                <div class="text-center p-6 text-slate-500">
-                    <p>No click data available yet.</p>
+                <div class="p-6 text-center text-slate-500 italic bg-slate-50 rounded-xl">
+                    No clicks recorded yet.
                 </div>
             @endforelse
         </div>
     </div>
 
-    <!-- Scraper Monitoring -->
-    <div class="glass-panel rounded-3xl p-8 shadow-lg flex flex-col">
+    <!-- Top Clicked Products -->
+    <div class="glass-panel rounded-3xl p-8 shadow-lg">
         <div class="flex items-center justify-between mb-6 border-b border-slate-200 pb-4">
             <div>
-                <h3 class="text-xl font-bold text-slate-800">Scraper Control Center</h3>
-                <p class="text-sm text-slate-500 mt-1">Realtime ingestion metrics & live terminal</p>
+                <h3 class="text-xl font-bold text-slate-800">Top Products</h3>
+                <p class="text-sm text-slate-500 mt-1">Most clicked deals</p>
             </div>
-            <i data-lucide="activity" class="w-8 h-8 text-slate-300"></i>
+            <i data-lucide="mouse-pointer-2" class="w-8 h-8 text-slate-300"></i>
         </div>
         
-        <div class="mb-6">
-            <div class="p-6 bg-red-50 rounded-xl border border-red-100 flex items-center space-x-4">
-                <div class="p-3 bg-white rounded-lg shadow-sm text-red-600">
-                    <i data-lucide="settings" class="w-6 h-6"></i>
+        <div class="space-y-4 max-h-80 overflow-y-auto pr-2">
+            @forelse($topProducts as $product)
+                <div class="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors gap-3">
+                    <img src="{{ $product->image_path ? asset($product->image_path) : 'https://picsum.photos/seed/deal-'.$product->id.'/100/100' }}" alt="Product" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-slate-800 text-sm truncate" title="{{ $product->title }}">{{ $product->title }}</p>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <p class="font-black text-emerald-600">{{ $product->click_count }}</p>
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest">Clicks</p>
+                    </div>
                 </div>
-                <div class="flex-1">
-                    <h4 class="font-bold text-gray-900">Deal Approval Pipeline</h4>
-                    <p class="text-sm text-gray-500">Require manual review before deals go live.</p>
+            @empty
+                <div class="p-6 text-center text-slate-500 italic bg-slate-50 rounded-xl">
+                    No product clicks recorded yet.
                 </div>
-                <div>
-                    <!-- Toggle Switch -->
-                    <form action="{{ route('admin.settings.toggle') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="key" value="deal_approval_pipeline">
-                        <input type="hidden" name="value" value="{{ $pipelineEnabled ? 'disabled' : 'enabled' }}">
-                        <button type="submit" class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 {{ $pipelineEnabled ? 'bg-red-600' : 'bg-gray-200' }}" role="switch" aria-checked="{{ $pipelineEnabled ? 'true' : 'false' }}">
-                            <span aria-hidden="true" class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 {{ $pipelineEnabled ? 'translate-x-5' : 'translate-x-0' }}"></span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-4 mb-6 text-center">
-            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <p class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">1H Ingest</p>
-                <p class="text-2xl font-black text-slate-800">{{ $scraperStats['ingested_1h'] }}</p>
-            </div>
-            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <p class="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">24H Ingest</p>
-                <p class="text-2xl font-black text-slate-800">{{ $scraperStats['ingested_24h'] }}</p>
-            </div>
-            <div class="p-4 rounded-xl bg-red-50 border border-red-100">
-                <p class="text-xs text-red-500 uppercase font-bold tracking-wider mb-1">24H Publish</p>
-                <p class="text-2xl font-black text-red-600">{{ $scraperStats['published_24h'] }}</p>
-            </div>
-        </div>
-
-        <h4 class="text-sm font-bold text-slate-700 mb-3">Live Terminal</h4>
-        <div x-data="scraperTerminal()" x-init="init()" class="flex-1 flex flex-col">
-            <!-- Controls -->
-            <div class="flex items-center justify-between bg-gray-800 text-gray-200 p-2 rounded-t-lg border-b border-gray-700">
-                <div class="flex items-center space-x-2 px-2">
-                    <span class="relative flex h-3 w-3">
-                        <span x-show="isRunning" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3" :class="isRunning ? 'bg-green-500' : 'bg-gray-500'"></span>
-                    </span>
-                    <span class="text-xs font-mono font-bold" x-text="isRunning ? 'Running' : 'Idle'"></span>
-                </div>
-                <div class="flex space-x-2">
-                    <button @click="startScraper" x-show="!isRunning" class="text-xs bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded shadow transition">Start</button>
-                    <button @click="stopScraper" x-show="isRunning" class="text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded shadow transition">Stop</button>
-                </div>
-            </div>
-
-            <!-- Manual Scrape Form -->
-            <div class="bg-gray-800 p-3 border-b border-gray-700 flex space-x-2">
-                <input type="url" x-model="scrapeUrlInput" placeholder="Enter Amazon/Flipkart URL to scrape..." class="flex-1 bg-gray-900 border border-gray-600 text-white text-xs rounded px-3 py-2 focus:outline-none focus:border-green-500">
-                <button @click="submitScrape" :disabled="!isRunning || isSubmitting" class="text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-4 py-2 rounded shadow transition flex items-center">
-                    <span x-show="!isSubmitting">Scrape</span>
-                    <span x-show="isSubmitting">Loading...</span>
-                </button>
-            </div>
-            
-            <!-- Logs output -->
-            <div class="bg-gray-900 text-green-400 font-mono text-xs p-4 h-64 overflow-y-auto rounded-b-lg border border-gray-800 shadow-inner" id="terminal-output">
-                <template x-for="(log, index) in logs" :key="index">
-                    <div x-text="log" class="whitespace-pre-wrap break-words"></div>
-                </template>
-                <div x-show="logs.length === 0" class="text-gray-500 italic">Waiting for logs...</div>
-            </div>
+            @endforelse
         </div>
     </div>
 

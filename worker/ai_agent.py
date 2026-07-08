@@ -12,6 +12,7 @@ class DealCaptionSchema(BaseModel):
     trust_metrics: str = Field(description="Format the star rating, review count, and brand name nicely (e.g. '⭐️ 4.5/5 (10k+ reviews) | 🏷️ Brand: Apple')")
     promo_code: Optional[str] = Field(default=None, description="The promo or coupon code if one is available")
     tags: List[str] = Field(default_factory=list, description="3-5 relevant tags for the deal (e.g. Electronics, Fashion)")
+    ai_score: int = Field(description="Score this deal out of 100 based on price drop, brand value, and features. Be realistic (e.g., 75-99).")
 
 # The Fallback Chain - utilizing local Ollama models (like qwen2.5-coder or llama3)
 MODELS = ["qwen2.5-coder:7b", "llama3.1", "phi3"]

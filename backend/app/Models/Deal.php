@@ -10,7 +10,7 @@ class Deal extends Model
     protected $fillable = [
         'category_id', 'merchant_id', 'title', 'original_price', 
         'discounted_price', 'coupon_code', 'promo_code', 'url', 'short_url', 'image_path', 'status', 'brand',
-        'features', 'verdict', 'trust_metrics', 'ai_caption'
+        'features', 'verdict', 'trust_metrics', 'ai_caption', 'ai_score'
     ];
 
     protected $casts = [

@@ -2,9 +2,9 @@ import sys
 import io
 
 if sys.stdout.encoding.lower() != 'utf-8':
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
 if sys.stderr.encoding.lower() != 'utf-8':
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
 
 import time
 import os
@@ -12,22 +12,24 @@ import asyncio
 import json
 import websockets
 from dotenv import load_dotenv
+import argparse
 
-from database import init_db, get_next_pending, mark_status, add_to_queue
+from database import init_db, get_next_pending, mark_status, add_to_queue, update_job_data
 from scraper import extract_deal_data
 from ai_agent import generate_caption
 from image_composer import compose_image
-from api_client import push_to_production
+from api_client import push_to_production, create_job, update_job
 from deal_evaluator import evaluate_deal
 import requests
 
-load_dotenv()
+load_dotenv(override=True)
 
 async def process_queue():
     """Processes items in the local SQLite queue."""
-    print("Checking queue for pending deals...")
+    worker_mode = os.getenv("WORKER_MODE", "server")
+    print(f"Checking queue for pending deals... (Mode: {worker_mode})")
     while True:
-        deal_item = get_next_pending()
+        deal_item = get_next_pending(worker_mode)
         
         if not deal_item:
             await asyncio.sleep(5) # Wait before checking again
@@ -37,9 +39,55 @@ async def process_queue():
         item_id = deal_item['id']
         print(f"Processing ID {item_id}: {url}")
         
+        print(f"[{deal_item['id']}] Processing {deal_item['type']} job for: {url}")
+        
+        job_id = create_job(f"Scrape Deal: {url}", deal_item['type'])
+        
+        if deal_item.get('type') == 'sitestripe_automation':
+            try:
+                from sitestripe_importer import import_sitestripe_deal
+                # Must run in a thread since it uses sync_playwright
+                success = await asyncio.to_thread(import_sitestripe_deal, url)
+                if success:
+                    mark_status(deal_item['id'], 'completed')
+                    update_job(job_id, status='success')
+                else:
+                    raise Exception("SiteStripe import returned False")
+            except Exception as e:
+                print(f"SiteStripe automation failed: {e}")
+                mark_status(deal_item['id'], 'failed')
+                update_job(job_id, status='failed', error_log=str(e))
+            finally:
+                await asyncio.sleep(5)
+                continue
+
+        job_logs = []
+        def add_log(msg):
+            print(msg)
+            job_logs.append(msg)
+            update_job(job_id, logs=[msg])
+            
         try:
-            # 1. Scrape the URL
-            raw_data = await asyncio.to_thread(extract_deal_data, url)
+            # --- PHASE 1: EXTRACTION ---
+            if worker_mode == "server" and deal_item['status'] == 'ready_for_publish':
+                add_log("Loading raw data provided by Desktop Worker...")
+                raw_data = json.loads(deal_item['data'])
+                scraper_engine = raw_data.get('scraper_type', 'Desktop Playwright')
+            elif worker_mode == "desktop" and deal_item['status'] == 'needs_desktop_processing':
+                add_log("Desktop Worker executing physical browser fallback extraction...")
+                raw_data = await asyncio.to_thread(extract_deal_data, url)
+                # Desktop worker saves data and hands it back to the Server worker
+                update_job_data(item_id, json.dumps(raw_data), 'ready_for_publish')
+                add_log("Extraction complete. Handing job back to Server for publishing.")
+                continue
+            else:
+                add_log("Starting extraction...")
+                raw_data = await asyncio.to_thread(extract_deal_data, url)
+                scraper_engine = raw_data.get('scraper_type', 'Unknown')
+                add_log(f"Extraction successful using: {scraper_engine}")
+            
+            # Update job type to include the scraper engine for better visibility
+            update_job(job_id, type=f"ingestion ({scraper_engine})")
             
             import re
             def clean_price(val):
@@ -49,10 +97,12 @@ async def process_queue():
                 except: return 0
 
             # 1.5 Evaluate Deal
+            add_log("Evaluating deal metrics...")
             evaluation = evaluate_deal(raw_data)
             if not evaluation["is_approved"]:
-                print(f"Deal {url} REJECTED by Evaluator. Reason: {evaluation['reason']}")
+                add_log(f"Deal REJECTED: {evaluation['reason']}")
                 mark_status(item_id, 'failed')
+                update_job(job_id, status="failure")
                 continue
                 
             metrics = evaluation["metrics"]
@@ -60,6 +110,7 @@ async def process_queue():
             raw_data["metrics"] = metrics
 
             # 2. Generate Caption via Ollama
+            add_log("Generating AI Caption...")
             try:
                 caption_data = generate_caption(raw_data, os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"))
                 
@@ -68,12 +119,13 @@ async def process_queue():
                 caption_data['discounted_price'] = clean_price(caption_data.get('discounted_price'))
                 
                 affiliate_url = url
-                if "amazon" in url:
+                # Don't append tags to amzn.to shortlinks as they already have them baked in
+                if "amazon" in url and "amzn.to" not in url:
                     affiliate_url = url + ("&" if "?" in url else "?") + "tag=kridaymart-21"
                 
                 caption_text = f"🚨 {caption_data['title']} \n\n" + "\n".join(caption_data.get('features', [])) + f"\n\n👉🏻 Buy Now: {affiliate_url}"
             except Exception as ai_e:
-                print(f"AI Generation failed: {ai_e}. Using fallback template.")
+                add_log(f"AI Generation failed: {ai_e}. Using fallback template.")
                 caption_data = {
                     'title': raw_data.get('raw_title', 'Awesome Deal'),
                     'original_price': metrics["original_price"],
@@ -81,12 +133,13 @@ async def process_queue():
                 }
                 
                 affiliate_url = url
-                if "amazon" in url:
+                if "amazon" in url and "amzn.to" not in url:
                     affiliate_url = url + ("&" if "?" in url else "?") + "tag=kridaymart-21"
                 
                 caption_text = f"🔥 NEW DEAL 🔥\n{caption_data['title']}\n\n{caption_data.get('trust_metrics', '')}\n\n💰 Price: {caption_data['discounted_price']} (Was {caption_data['original_price']})\n\nGrab it here: {affiliate_url}"
             
             # 3. Create Composite Image
+            add_log("Composing deal image...")
             base64_image = compose_image(raw_data.get('image_url', ''), caption_data['original_price'], caption_data['discounted_price'])
             
             # 4. Construct Final Payload
@@ -101,21 +154,33 @@ async def process_queue():
                 "features": caption_data.get('features', []),
                 "verdict": caption_data.get('verdict', ''),
                 "trust_metrics": caption_data.get('trust_metrics', ''),
+                "ai_score": caption_data.get('ai_score', None),
                 "image_base64": base64_image,
                 "brand": caption_data.get('brand_name')
             }
             
             # 5. Push to Laravel
+            add_log("Pushing final payload to Laravel...")
             success = push_to_production(payload)
             
             if success:
                 mark_status(item_id, 'completed')
+                add_log("Deal successfully pushed and saved!")
+                update_job(job_id, status="success")
             else:
                 mark_status(item_id, 'failed')
+                add_log("Failed to push to Laravel API.")
+                update_job(job_id, status="failure")
                 
         except Exception as e:
-            print(f"Failed to process {url}: {e}")
-            mark_status(item_id, 'failed')
+            if str(e) == "needs_desktop_processing":
+                add_log("Delegating job to Desktop Worker due to CAPTCHA/bot block.")
+                mark_status(item_id, 'needs_desktop_processing')
+                update_job(job_id, logs=job_logs + ["Delegated to Desktop Worker"])
+            else:
+                add_log(f"Fatal error processing {url}: {e}")
+                mark_status(item_id, 'failed')
+                update_job(job_id, status="failure")
             
         # Delay before next item to protect home IP
         await asyncio.sleep(5)
@@ -125,6 +190,14 @@ async def expiry_checker():
     print("Starting Expiry Checker Loop...")
     while True:
         try:
+            job_id = create_job("Expiry Check Run", "expiry_check")
+            logs = []
+            def add_log(msg):
+                print(msg)
+                logs.append(msg)
+                update_job(job_id, logs=[msg])
+                
+            add_log("Fetching active deals from backend...")
             # Fetch active deals from the backend
             backend_url = os.getenv("API_URL", "http://localhost:8000/api/v1")
             api_key = os.getenv("API_KEY", "your-secret-token")
@@ -135,10 +208,12 @@ async def expiry_checker():
                 headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
             )
             
+            expired_count = 0
             if response.status_code == 200:
                 active_deals = response.json().get('deals', [])
+                add_log(f"Found {len(active_deals)} active deals to check.")
                 for deal in active_deals:
-                    print(f"Checking expiry for deal: {deal['url']}")
+                    add_log(f"Checking expiry for deal: {deal['url']}")
                     # Re-scrape
                     raw_data = await asyncio.to_thread(extract_deal_data, deal['url'])
                     
@@ -150,15 +225,23 @@ async def expiry_checker():
                         is_expired = True
                         
                     if is_expired:
-                        print(f"🚨 Deal Expired: {deal['url']}. Notifying backend...")
+                        add_log(f"🚨 Deal Expired: {deal['url']}. Notifying backend...")
                         requests.post(
                             f"{backend_url}/deals/{deal['id']}/expire",
                             headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
                         )
+                        expired_count += 1
                     
                     # Sleep to avoid banning IP during expiry checks
                     await asyncio.sleep(10)
+                add_log(f"Completed expiry check. Removed {expired_count} expired deals.")
+                update_job(job_id, status="success")
+            else:
+                add_log("Failed to fetch active deals.")
+                update_job(job_id, status="failure")
         except Exception as e:
+            if 'job_id' in locals():
+                update_job(job_id, logs=[f"Expiry checker error: {e}"], status="failure")
             print(f"Expiry checker error: {e}")
             
         # Run the full expiry check loop every hour
@@ -191,8 +274,9 @@ async def listen_to_websockets():
                     if data.get('event') == 'App\\Events\\DealScrapeRequested':
                         payload = json.loads(data.get('data', '{}'))
                         url = payload.get('url')
-                        print(f"⚡ Received instant scrape request via WS: {url}")
-                        add_to_queue(url)
+                        job_type = payload.get('type', 'ingestion')
+                        print(f"⚡ Received instant scrape request via WS: {url} ({job_type})")
+                        add_to_queue(url, job_type)
                         
         except websockets.exceptions.ConnectionClosed:
             print("WebSocket connection closed. Reconnecting in 5s...")
@@ -202,13 +286,30 @@ async def listen_to_websockets():
             await asyncio.sleep(5)
 
 async def main():
-    init_db()
-    print("Worker Initialized.")
+    env_mode = os.getenv('WORKER_MODE', 'server')
+    parser = argparse.ArgumentParser(description='LatestDeal Worker Daemon')
+    parser.add_argument('--mode', type=str, default=env_mode, choices=['server', 'desktop'], help='Worker execution mode')
+    args = parser.parse_args()
+    os.environ['WORKER_MODE'] = args.mode
     
-    await asyncio.gather(
-        process_queue(),
-        expiry_checker()
-    )
+    # Worker mode is set, use .env for API URLs
+    if args.mode == 'desktop':
+        pass
+        
+    init_db()
+    print(f"Worker Initialized in {args.mode.upper()} mode.")
+    
+    if args.mode == 'server':
+        await asyncio.gather(
+            process_queue(),
+            expiry_checker(),
+            listen_to_websockets()
+        )
+    else:
+        # Desktop mode only processes the queue
+        await asyncio.gather(
+            process_queue()
+        )
 
 if __name__ == "__main__":
     asyncio.run(main())

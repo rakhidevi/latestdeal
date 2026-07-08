@@ -38,7 +38,8 @@ class DealIngestionController
             'features' => 'nullable|array',
             'features.*' => 'string',
             'verdict' => 'nullable|string',
-            'trust_metrics' => 'nullable|string'
+            'trust_metrics' => 'nullable|string',
+            'ai_score' => 'nullable|integer|min:1|max:100'
         ]);
 
         // 2. Process Base64 Image
@@ -84,6 +85,7 @@ class DealIngestionController
                 'verdict' => $validated['verdict'] ?? null,
                 'trust_metrics' => $validated['trust_metrics'] ?? null,
                 'ai_caption' => $validated['ai_caption'] ?? null,
+                'ai_score' => $validated['ai_score'] ?? null,
                 'image_path' => $imagePath,
                 'status' => $initialStatus,
             ]

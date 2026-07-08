@@ -22,8 +22,9 @@
     <div class="absolute left-3 top-3 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white">{{ $discountPct }}% OFF</div>
     @endif
     
-    <!-- Hardcoded AI score for visual parity, ideally mapped to a DB column later -->
-    <div class="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-gray-700">AI 99</div>
+    @if(isset($deal->ai_score))
+    <div class="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-gray-700 shadow-sm border border-slate-100">AI {{ $deal->ai_score }}</div>
+    @endif
   </div>
 
   <div class="space-y-2 p-3 flex flex-col flex-1">
@@ -48,7 +49,7 @@
       </div>
       <div class="flex gap-1.5">
         <a href="{{ route('deal.show', $deal->id) }}" class="rounded-lg border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-700">Details</a>
-        <a href="{{ $storeUrl }}" target="_blank" rel="noreferrer" class="rounded-lg bg-red-500 px-2 py-1 text-[11px] font-semibold text-white transition hover:bg-red-600">
+        <a href="{{ route('deal.redirect', $deal->id) }}" target="_blank" rel="noreferrer" class="rounded-lg bg-red-500 px-2 py-1 text-[11px] font-semibold text-white transition hover:bg-red-600">
           Visit
         </a>
       </div>

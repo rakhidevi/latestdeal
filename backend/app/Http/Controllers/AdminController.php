@@ -30,6 +30,14 @@ class AdminController
             ->groupBy('merchants.id', 'merchants.name', 'merchants.domain')
             ->orderByDesc('click_count')
             ->get();
+            
+        $topProducts = DB::table('clicks')
+            ->join('deals', 'clicks.deal_id', '=', 'deals.id')
+            ->select('deals.id', 'deals.title', 'deals.image_path', DB::raw('count(*) as click_count'))
+            ->groupBy('deals.id', 'deals.title', 'deals.image_path')
+            ->orderByDesc('click_count')
+            ->limit(10)
+            ->get();
 
         // Task 4: Scraper Monitoring
         $scraperStats = [
@@ -42,7 +50,21 @@ class AdminController
                 ->get()
         ];
 
-        return view('admin.dashboard', compact('queueCount', 'failedJobs', 'metrics', 'clickStats', 'scraperStats', 'pipelineEnabled'));
+        return view('admin.dashboard', compact('queueCount', 'failedJobs', 'metrics', 'clickStats', 'topProducts', 'scraperStats', 'pipelineEnabled'));
+    }
+
+    public function actions()
+    {
+        $jobs = \App\Models\ScraperJob::orderBy('created_at', 'desc')->paginate(20);
+        
+        $metrics = [
+            'total_scraped' => \App\Models\ScraperJob::where('type', 'ingestion')->count(),
+            'accepted' => \App\Models\Deal::where('status', 'active')->count(),
+            'rejected' => \App\Models\Deal::where('status', 'rejected')->count(),
+            'expired' => \App\Models\ScraperJob::where('type', 'expiry_check')->where('status', 'success')->count() // Rough metric for expiry checks
+        ];
+
+        return view('admin.actions', compact('jobs', 'metrics'));
     }
 
     public function toggleSetting(Request $request)
@@ -90,10 +112,14 @@ class AdminController
 
     public function scrapeUrl(Request $request)
     {
-        $request->validate(['url' => 'required|url']);
+        $request->validate([
+            'url' => 'required|url',
+            'type' => 'nullable|string|in:ingestion,sitestripe_automation'
+        ]);
         try {
             $workerIp = gethostbyname('worker');
-            $response = Http::timeout(5)->post("http://{$workerIp}:8001/scrape", ['url' => $request->url]);
+            $payload = ['url' => $request->url, 'type' => $request->type ?? 'ingestion'];
+            $response = Http::timeout(5)->post("http://{$workerIp}:8001/scrape", $payload);
             return response()->json(['success' => true, 'message' => $response->json('status')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
