@@ -75,9 +75,18 @@ class TelegramBotService
         // 3. Send Photo with Caption to Telegram API
         $endpoint = "https://api.telegram.org/bot{$this->botToken}/sendPhoto";
 
+        $imagePath = $deal->image_path;
+        $isUrl = filter_var($imagePath, FILTER_VALIDATE_URL) !== false;
+        $imageContents = $isUrl ? file_get_contents($imagePath) : file_get_contents(public_path($imagePath));
+
+        if ($imageContents === false) {
+            Log::error('Telegram Publish Error: Could not fetch image from ' . $imagePath);
+            return false;
+        }
+
         try {
             $response = Http::attach(
-                'photo', file_get_contents(public_path($deal->image_path)), 'deal.jpg'
+                'photo', $imageContents, 'deal.jpg'
             )->post($endpoint, [
                 'chat_id' => $this->chatId,
                 'caption' => $caption,
@@ -96,7 +105,7 @@ class TelegramBotService
             }
 
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Telegram Publish Exception: ' . $e->getMessage());
             return false;
         }

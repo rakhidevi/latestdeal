@@ -42,8 +42,8 @@ class PublishDealToTelegramJob implements ShouldQueue
             15,
             function () use ($telegramService, $account) {
                 try {
-                    $telegramService->publishDeal($this->deal);
-                } catch (\Exception $e) {
+                    return $telegramService->publishDeal($this->deal);
+                } catch (\Throwable $e) {
                     if (str_contains($e->getMessage(), '(429)') || str_contains($e->getMessage(), '(403)')) {
                         if ($account) {
                             \Illuminate\Support\Facades\Log::warning("Deactivating Telegram account {$account->id} due to API Ban/Rate Limit.");
@@ -52,12 +52,14 @@ class PublishDealToTelegramJob implements ShouldQueue
                             \Illuminate\Support\Facades\Log::warning("Telegram API Ban/Rate Limit hit for default account.");
                         }
                     }
+                    \Illuminate\Support\Facades\Log::error("Telegram Job Error: " . $e->getMessage());
+                    return false;
                 }
             },
             60
         );
 
-        if (! $executed) {
+        if ($executed === false || $executed === null) {
             $this->release(10);
         }
     }
