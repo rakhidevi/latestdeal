@@ -10,6 +10,7 @@
                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Name</th>
                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target ID</th>
                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
@@ -22,6 +23,19 @@
                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $acc->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                         {{ $acc->is_active ? 'Active' : 'Inactive' }}
                     </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
+                    <form action="{{ route('admin.social-accounts.toggle', $acc) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <button type="submit" class="text-blue-600 hover:text-blue-900">{{ $acc->is_active ? 'Disable' : 'Enable' }}</button>
+                    </form>
+                    <span class="text-gray-300">|</span>
+                    <form action="{{ route('admin.social-accounts.delete', $acc) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this account?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                    </form>
                 </td>
             </tr>
             @endforeach

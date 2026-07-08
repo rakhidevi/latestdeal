@@ -275,6 +275,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     Route::get('/social-accounts', [\App\Http\Controllers\AdminController::class, 'socialAccounts'])->name('admin.social-accounts');
     Route::post('/social-accounts', [\App\Http\Controllers\AdminController::class, 'storeSocialAccount'])->name('admin.social-accounts.store');
+    Route::delete('/social-accounts/{socialAccount}', [\App\Http\Controllers\AdminController::class, 'deleteSocialAccount'])->name('admin.social-accounts.delete');
+    Route::put('/social-accounts/{socialAccount}/toggle', [\App\Http\Controllers\AdminController::class, 'toggleSocialAccount'])->name('admin.social-accounts.toggle');
 });
 
 // Setup Route for initializing SQLite Database on Server

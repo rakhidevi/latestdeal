@@ -247,13 +247,28 @@ class AdminController
     public function storeSocialAccount(Request $request)
     {
         $validated = $request->validate([
-            'platform' => 'required|in:telegram,instagram',
+            'platform' => 'required|in:telegram,instagram,facebook,twitter',
             'account_name' => 'required|string',
             'access_token' => 'required|string',
             'target_id' => 'required|string',
         ]);
 
+        $validated['is_active'] = true;
+        $validated['user_id'] = auth()->id();
+
         SocialAccount::create($validated);
-        return back()->with('success', 'Account added!');
+        return back()->with('success', 'Social account added successfully.');
+    }
+
+    public function deleteSocialAccount(SocialAccount $socialAccount)
+    {
+        $socialAccount->delete();
+        return back()->with('success', 'Social account deleted successfully.');
+    }
+
+    public function toggleSocialAccount(SocialAccount $socialAccount)
+    {
+        $socialAccount->update(['is_active' => !$socialAccount->is_active]);
+        return back()->with('success', 'Social account status updated.');
     }
 }
