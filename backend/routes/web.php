@@ -86,7 +86,7 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
             $query->where('brand', $request->brand);
         }
 
-        $deals = $query->orderBy('created_at', 'desc')->paginate(12)->withQueryString();
+        $deals = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
         
         // For the Sidebar
         $categories = \App\Models\Category::has('deals')->get();

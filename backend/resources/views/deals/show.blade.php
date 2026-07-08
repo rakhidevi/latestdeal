@@ -2,11 +2,11 @@
 
 @section('meta')
     <title>{{ $deal->title }} - Latest Deals</title>
-    <meta name="description" content="Get {{ $deal->title }} for just ?{{ $deal->discounted_price }}. Original price: ?{{ $deal->original_price }}.">
+    <meta name="description" content="Get {{ $deal->title }} for just ₹{{ $deal->discounted_price }}. Original price: ₹{{ $deal->original_price }}.">
     
     <!-- Open Graph for WhatsApp/Telegram Previews -->
     <meta property="og:title" content="{{ $deal->title }}">
-    <meta property="og:description" content="Get it for just ?{{ $deal->discounted_price }}! Regular Price: ?{{ $deal->original_price }}.">
+    <meta property="og:description" content="Get it for just ₹{{ $deal->discounted_price }}! Regular Price: ₹{{ $deal->original_price }}.">
     <meta property="og:image" content="{{ asset($deal->image_path) }}">
     <meta property="og:url" content="{{ route('deal.show', $deal->id) }}">
     <meta property="og:type" content="product">
@@ -31,13 +31,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0,0,0,0.02);
-        }
         .pulse-btn {
             animation: pulse-shadow 2s infinite;
         }
@@ -56,7 +49,7 @@
     <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[100px] opacity-20"></div>
 </div>
 
-<div class="max-w-6xl mx-auto surface rounded-3xl p-6 sm:p-10 mb-12 relative overflow-hidden mt-6">
+<div class="max-w-6xl mx-auto surface rounded-3xl p-6 sm:p-10 mb-12 relative overflow-hidden mt-6 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 bg-white/70 backdrop-blur-xl dark:bg-slate-900/80">
     <!-- Decorative top gradient -->
     <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-500 via-rose-400 to-red-500"></div>
 
@@ -67,7 +60,7 @@
                 <img src="{{ asset($deal->image_path) }}" alt="{{ $deal->title }}" class="w-full max-w-sm object-contain drop-shadow-xl transition-transform duration-700 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal" style="max-height: 400px;">
                 @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
                     <div class="absolute top-4 left-4 bg-red-500 text-white text-sm font-black px-3 py-1.5 rounded-full shadow-lg transform -rotate-2 border border-red-400">
-                        ?? {{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF
+                        🔥 {{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF
                     </div>
                 @endif
             </div>
@@ -79,7 +72,7 @@
                     </div>
                     <div class="relative z-10">
                         <h3 class="text-xs font-black text-indigo-700 dark:text-indigo-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                            <span class="text-base">??</span> LatestDeal Pick
+                            <span class="text-base">❤️</span> LatestDeal Pick
                         </h3>
                         <p class="text-slate-700 dark:text-slate-300 font-medium leading-relaxed text-sm">{{ $deal->verdict }}</p>
                     </div>
@@ -116,10 +109,16 @@
                 @endauth
             </div>
             
+            @if($deal->description)
+                <p class="mt-4 text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
+                    {{ $deal->description }}
+                </p>
+            @endif
+            
             <div class="mt-6 flex flex-wrap items-baseline gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 w-fit">
-                <span class="text-4xl sm:text-5xl font-black text-red-600 dark:text-red-500 tracking-tight">?{{ number_format($deal->discounted_price) }}</span>
+                <span class="text-4xl sm:text-5xl font-black text-red-600 dark:text-red-500 tracking-tight">₹{{ number_format($deal->discounted_price) }}</span>
                 @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
-                    <span class="text-lg text-slate-400 dark:text-slate-500 line-through font-medium">M.R.P: ?{{ number_format($deal->original_price) }}</span>
+                    <span class="text-lg text-slate-400 dark:text-slate-500 line-through font-medium">M.R.P: ₹{{ number_format($deal->original_price) }}</span>
                 @endif
             </div>
 
@@ -145,7 +144,7 @@
                             <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Use Code at Checkout</p>
                             <p class="text-2xl font-mono font-bold text-white tracking-wider" id="promo-code">{{ $deal->promo_code ?? $deal->coupon_code }}</p>
                         </div>
-                        <button onclick="copyAndGo()" class="w-full sm:w-auto bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white px-8 py-4 rounded-xl font-bold text-base transition shadow-lg pulse-btn">Copy & Go ?</button>
+                        <button onclick="copyAndGo()" class="w-full sm:w-auto bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white px-8 py-4 rounded-xl font-bold text-base transition shadow-lg pulse-btn">Copy & Go →</button>
                     </div>
                     <script>
                         function copyAndGo() {
@@ -171,7 +170,7 @@
                     </button>
                     <script>
                         function copyCaption() {
-                            const caption = {!! addslashes(str_replace("\n", "\\n", $deal->ai_caption)) !!};
+                            const caption = `{!! addslashes(str_replace("\n", "\\n", $deal->ai_caption)) !!}`;
                             navigator.clipboard.writeText(caption);
                             alert("Social media caption copied to clipboard!");
                         }
@@ -181,7 +180,6 @@
                 @endif
                 
                 <div class="flex items-center gap-3 w-full sm:w-auto justify-center">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Share:</span>
                     <x-deal-share :deal="$deal" />
                 </div>
             </div>        
@@ -190,7 +188,7 @@
 
     <!-- Price History Chart -->
     @if($priceHistory->count() > 1)
-    <div class="mt-16 pt-10 border-t border-gray-100 dark:border-slate-800">
+    <div class="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800">
         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
             <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
             Price Drop History
@@ -206,7 +204,7 @@
                 type: 'line',
                 data: {
                     datasets: [{
-                        label: 'Price (?)',
+                        label: 'Price (₹)',
                         data: data,
                         borderColor: '#ef4444',
                         backgroundColor: 'rgba(239, 68, 68, 0.05)',
