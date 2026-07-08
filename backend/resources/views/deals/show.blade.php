@@ -56,8 +56,8 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <!-- Left Column: Image & AI Verdict -->
         <div class="lg:col-span-5 flex flex-col gap-6">
-            <div class="relative group rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 p-6 flex items-center justify-center border border-slate-100 dark:border-slate-800 min-h-[400px]">
-                <img src="{{ asset($deal->image_path) }}" alt="{{ $deal->title }}" class="w-full max-w-sm object-contain drop-shadow-xl transition-transform duration-700 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal" style="max-height: 400px;">
+            <div class="relative group rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 p-6 flex items-center justify-center border border-slate-100 dark:border-slate-800 min-h-[300px] md:min-h-[400px]">
+                <img src="{{ filter_var($deal->image_path, FILTER_VALIDATE_URL) ? $deal->image_path : asset($deal->image_path) }}" alt="{{ Str::limit($deal->title, 50) }}" class="w-full max-w-sm object-contain drop-shadow-xl transition-transform duration-700 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal" style="max-height: 400px;" onerror="this.style.display='none';">
                 @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
                     <div class="absolute top-4 left-4 bg-red-500 text-white text-sm font-black px-3 py-1.5 rounded-full shadow-lg transform -rotate-2 border border-red-400">
                         🔥 {{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF
@@ -98,7 +98,7 @@
             </div>
 
             <div class="flex justify-between items-start gap-4">
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">{{ $deal->title }}</h1>
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">{{ $deal->title }}</h1>
                 @auth
                     <form action="{{ route('deal.save', $deal->id) }}" method="POST" class="shrink-0 mt-1">
                         @csrf

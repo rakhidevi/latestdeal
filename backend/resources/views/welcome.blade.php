@@ -22,11 +22,12 @@
             <button class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800">Search</button>
           </div>
           <div class="flex flex-wrap gap-2 items-center">
-            <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-24 placeholder-gray-500" />
-            <span class="text-white/80">-</span>
-            <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-24 placeholder-gray-500" />
-            
-            <select name="min_discount" onchange="this.form.submit()" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-36">
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 flex-1 sm:w-24 placeholder-gray-500" />
+                <span class="text-white/80 hidden sm:inline">-</span>
+                <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 flex-1 sm:w-24 placeholder-gray-500" />
+            </div>
+            <select name="min_discount" onchange="this.form.submit()" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-full sm:w-36">
                 <option value="">Any Discount</option>
                 <option value="10" {{ request('min_discount') == '10' ? 'selected' : '' }}>10%+ Off</option>
                 <option value="25" {{ request('min_discount') == '25' ? 'selected' : '' }}>25%+ Off</option>
@@ -90,16 +91,16 @@
   <x-ad-banner slot="home-top" />
 
   <div class="space-y-4">
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
         <div>
             <h2 class="section-title">Featured Deals</h2>
             <p class="section-subtitle">Global opportunities selected by scoring engine.</p>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="/assistant" class="btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center">
-                <i data-lucide="sparkles" class="w-4 h-4 mr-2"></i> AI Assistant
+        <div class="flex items-center gap-2 self-start sm:self-auto">
+            <a href="/assistant" class="btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center px-3 py-1.5 text-sm sm:px-4 sm:py-2">
+                <i data-lucide="sparkles" class="w-4 h-4 mr-1.5"></i> AI Assistant
             </a>
-            <a href="/?category=all" class="btn-secondary">View all deals</a>
+            <a href="/?category=all" class="btn-secondary px-3 py-1.5 text-sm sm:px-4 sm:py-2">View all</a>
         </div>
     </div>
 
