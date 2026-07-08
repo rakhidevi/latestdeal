@@ -118,7 +118,9 @@ class DealIngestionController
         event(new DealIngested($deal));
 
         // 6. Trigger the Publishing Engine Queue Job (if configured for auto-publishing)
-        // PublishDealToTelegramJob::dispatch($deal);
+        if ($deal->status === 'active') {
+            PublishDealToTelegramJob::dispatch($deal);
+        }
 
         return response()->json([
             'message' => 'Deal ingested successfully',

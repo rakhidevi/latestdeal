@@ -18,7 +18,7 @@ class TelegramBotService
             $this->chatId = $account->target_id;
         } else {
             $this->botToken = env('TELEGRAM_BOT_TOKEN', 'dummy-token');
-            $this->chatId = env('TELEGRAM_CHAT_ID', '@your_channel_name');
+            $this->chatId = env('TELEGRAM_CHAT_ID', '@latestdealin');
         }
     }
 
@@ -31,15 +31,20 @@ class TelegramBotService
         $trackingUrl = route('deal.redirect', ['deal' => $deal->id]);
 
         // 2. Format the message with MarkdownV2 or HTML
-        // Note: The AI agent should theoretically generate a caption, but we must have a robust fallback
-        // as required by REQ-AI-003
-        $caption = "🚨 {$deal->title} – " . round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) . "% OFF 🖱️💙\n\n" .
-                   "💸 M.R.P.: ₹{$deal->original_price}\n" .
-                   "🔥 Deal Price: ₹{$deal->discounted_price}\n\n" .
-                   "⭐ 4.0/5 Rated\n\n" .
-                   "👉🏻 Buy Now: {$trackingUrl}\n\n" .
-                   "✔️ High Quality\n✔️ Limited Time Offer\n\n" .
-                   "💎 LatestDeal.in Best Value – Don't miss out on this discount!";
+        $caption = $deal->ai_caption;
+        
+        if (empty($caption)) {
+            $caption = "🚨 {$deal->title} – " . round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) . "% OFF 🖱️💙\n\n" .
+                       "💸 M.R.P.: ₹{$deal->original_price}\n" .
+                       "🔥 Deal Price: ₹{$deal->discounted_price}\n\n" .
+                       "⭐ 4.0/5 Rated\n\n" .
+                       "👉🏻 Buy Now: {$trackingUrl}\n\n" .
+                       "✔️ High Quality\n✔️ Limited Time Offer\n\n" .
+                       "💎 LatestDeal.in Best Value – Don't miss out on this discount!";
+        }
+        
+        // Append the Live Environment backlink
+        $caption .= "\n\n🌐 View on LatestDeal:\n" . route('deal.show', $deal->id);
 
         // 3. Send Photo with Caption to Telegram API
         $endpoint = "https://api.telegram.org/bot{$this->botToken}/sendPhoto";
