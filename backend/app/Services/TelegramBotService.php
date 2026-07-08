@@ -40,21 +40,21 @@ class TelegramBotService
         // 1. Construct the Tracking URL (Redirect Engine)
         $trackingUrl = route('deal.redirect', ['deal' => $deal->id]);
 
-        // 2. Format the message with MarkdownV2 or HTML
-        $caption = $deal->ai_caption;
+        // 2. Format the message similar to WhatsApp style
+        $cleanTitle = str_replace(['*', '_', '`', '['], '', $deal->title);
+        $caption = "🔥 *NEW DEAL ALERT* 🔥\n\n";
+        $caption .= "🚨 *" . $cleanTitle . "*\n\n";
+        $caption .= "💰 *Price:* ₹" . $deal->discounted_price . " (was ₹" . $deal->original_price . ")\n\n";
         
-        if (empty($caption)) {
-            $caption = "🚨 {$deal->title} – " . round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) . "% OFF 🖱️💙\n\n" .
-                       "💸 M.R.P.: ₹{$deal->original_price}\n" .
-                       "🔥 Deal Price: ₹{$deal->discounted_price}\n\n" .
-                       "⭐ 4.0/5 Rated\n\n" .
-                       "👉🏻 Buy Now: {$trackingUrl}\n\n" .
-                       "✔️ High Quality\n✔️ Limited Time Offer\n\n" .
-                       "💎 LatestDeal.in Best Value – Don't miss out on this discount!";
+        if (!empty($deal->ai_caption)) {
+            $cleanAiCaption = str_replace(['*', '_', '`', '['], '', $deal->ai_caption);
+            $caption .= $cleanAiCaption . "\n\n";
+        } else {
+            $caption .= "✔️ High Quality\n✔️ Limited Time Offer\n\n";
         }
         
-        // Append the Live Environment backlink
-        $caption .= "\n\n🌐 View on LatestDeal:\n" . route('deal.show', $deal->id);
+        $caption .= "👉 *Buy Here:* " . $trackingUrl . "\n\n";
+        $caption .= "🌐 *View on LatestDeal:*\n" . route('deal.show', $deal->id);
 
         // Truncate to Telegram's 1024 character limit for media captions
         if (mb_strlen($caption) > 1024) {
