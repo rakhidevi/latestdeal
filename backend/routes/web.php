@@ -177,7 +177,8 @@ Route::get('/migrate-fresh', function () {
         }
     }
 
-    \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true, '--seed' => true]);
+    \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
+    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'RealDealSeeder', '--force' => true]);
     
     // Create Admin User
     $u = \App\Models\User::firstOrNew(['email'=>'admin@latestdeal.in']);
