@@ -8,16 +8,29 @@ if (!file_exists($zipFile)) {
     die("Error: deploy.zip not found at {$zipFile}");
 }
 
-$zip = new ZipArchive;
-if ($zip->open($zipFile) === TRUE) {
-    $zip->extractTo($extractPath);
-    $zip->close();
-    
+// Fast extraction using system unzip
+$output = [];
+$return_var = 0;
+exec("unzip -o " . escapeshellarg($zipFile) . " -d " . escapeshellarg($extractPath), $output, $return_var);
+
+if ($return_var === 0) {
     // Self-destruct and cleanup
     @unlink($zipFile);
     @unlink(__FILE__);
     
-    echo "Extraction successful. Cleanup complete.";
+    echo "Extraction successful using system unzip. Cleanup complete.";
 } else {
-    echo "Error: Failed to open deploy.zip";
+    // Fallback to PHP ZipArchive if unzip binary is not available
+    $zip = new ZipArchive;
+    if ($zip->open($zipFile) === TRUE) {
+        $zip->extractTo($extractPath);
+        $zip->close();
+        
+        @unlink($zipFile);
+        @unlink(__FILE__);
+        
+        echo "Extraction successful using ZipArchive. Cleanup complete.";
+    } else {
+        echo "Error: Failed to open deploy.zip";
+    }
 }
