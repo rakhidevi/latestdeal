@@ -135,6 +135,24 @@ Route::get('/debug-env', function () {
     ];
 });
 
+Route::get('/migrate-fresh', function () {
+    $dbPath = database_path('database.sqlite');
+    if (file_exists($dbPath)) {
+        unlink($dbPath);
+    }
+    touch($dbPath);
+    \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true, '--seed' => true]);
+    
+    // Create Admin User
+    $u = \App\Models\User::firstOrNew(['email'=>'admin@latestdeal.in']);
+    $u->name = 'Admin';
+    $u->password = \Illuminate\Support\Facades\Hash::make('password123');
+    $u->role = 'admin';
+    $u->save();
+
+    return "Database recreated and seeded! Admin: admin@latestdeal.in / password123. \n" . \Illuminate\Support\Facades\Artisan::output();
+});
+
 Route::get('/debug-logs', function () {
     $logFile = storage_path('logs/laravel.log');
     if (!file_exists($logFile)) {
