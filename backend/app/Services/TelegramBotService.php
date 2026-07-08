@@ -56,6 +56,11 @@ class TelegramBotService
         // Append the Live Environment backlink
         $caption .= "\n\n🌐 View on LatestDeal:\n" . route('deal.show', $deal->id);
 
+        // Truncate to Telegram's 1024 character limit for media captions
+        if (mb_strlen($caption) > 1024) {
+            $caption = mb_substr($caption, 0, 1020) . '...';
+        }
+
         // 3. Send Photo with Caption to Telegram API
         $endpoint = "https://api.telegram.org/bot{$this->botToken}/sendPhoto";
 
