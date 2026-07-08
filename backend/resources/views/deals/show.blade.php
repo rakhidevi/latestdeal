@@ -2,11 +2,11 @@
 
 @section('meta')
     <title>{{ $deal->title }} - Latest Deals</title>
-    <meta name="description" content="Get {{ $deal->title }} for just ₹{{ $deal->discounted_price }}. Original price: ₹{{ $deal->original_price }}.">
+    <meta name="description" content="Get {{ $deal->title }} for just ?{{ $deal->discounted_price }}. Original price: ?{{ $deal->original_price }}.">
     
     <!-- Open Graph for WhatsApp/Telegram Previews -->
     <meta property="og:title" content="{{ $deal->title }}">
-    <meta property="og:description" content="Get it for just ₹{{ $deal->discounted_price }}! Regular Price: ₹{{ $deal->original_price }}.">
+    <meta property="og:description" content="Get it for just ?{{ $deal->discounted_price }}! Regular Price: ?{{ $deal->original_price }}.">
     <meta property="og:image" content="{{ asset($deal->image_path) }}">
     <meta property="og:url" content="{{ route('deal.show', $deal->id) }}">
     <meta property="og:type" content="product">
@@ -51,66 +51,76 @@
 
 @section('content')
 <!-- Ambient Background Glow -->
-<div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+<div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none dark:hidden">
     <div class="absolute -top-40 -right-40 w-96 h-96 bg-red-400 rounded-full mix-blend-multiply filter blur-[100px] opacity-20"></div>
     <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[100px] opacity-20"></div>
 </div>
 
-<div class="max-w-5xl mx-auto glass-panel rounded-3xl p-6 sm:p-12 mb-12 relative overflow-hidden">
+<div class="max-w-6xl mx-auto surface rounded-3xl p-6 sm:p-10 mb-12 relative overflow-hidden mt-6">
     <!-- Decorative top gradient -->
-    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-500 via-orange-400 to-red-500"></div>
+    <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-500 via-rose-400 to-red-500"></div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <!-- Left Column: Image & AI Verdict -->
-        <div class="space-y-6">
-            <div class="relative group rounded-2xl overflow-hidden bg-white p-4 shadow-sm border border-gray-100">
-                <img src="{{ asset($deal->image_path) }}" alt="{{ $deal->title }}" class="w-full object-contain rounded-xl transition duration-500 group-hover:scale-105" style="max-height: 400px;">
-                @if($deal->original_price > 0)
-                    <div class="absolute top-6 left-6 bg-red-500 text-white text-sm font-black px-4 py-2 rounded-full shadow-lg transform -rotate-2">
-                        🔥 {{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            <div class="relative group rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 p-6 flex items-center justify-center border border-slate-100 dark:border-slate-800 min-h-[400px]">
+                <img src="{{ asset($deal->image_path) }}" alt="{{ $deal->title }}" class="w-full max-w-sm object-contain drop-shadow-xl transition-transform duration-700 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal" style="max-height: 400px;">
+                @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
+                    <div class="absolute top-4 left-4 bg-red-500 text-white text-sm font-black px-3 py-1.5 rounded-full shadow-lg transform -rotate-2 border border-red-400">
+                        ?? {{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF
                     </div>
                 @endif
             </div>
 
             @if($deal->verdict)
-                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-5 border border-indigo-100 shadow-inner relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 text-indigo-200 opacity-50">
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 rounded-2xl p-5 border border-indigo-100 dark:border-indigo-900/50 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 text-indigo-200 dark:text-indigo-900/30 opacity-50">
                         <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </div>
                     <div class="relative z-10">
-                        <h3 class="text-sm font-bold text-indigo-800 uppercase tracking-wider mb-2 flex items-center gap-2">
-                            <span>❤️</span> LatestDeal Pick
+                        <h3 class="text-xs font-black text-indigo-700 dark:text-indigo-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <span class="text-base">??</span> LatestDeal Pick
                         </h3>
-                        <p class="text-gray-800 font-medium leading-relaxed">{{ $deal->verdict }}</p>
+                        <p class="text-slate-700 dark:text-slate-300 font-medium leading-relaxed text-sm">{{ $deal->verdict }}</p>
                     </div>
                 </div>
             @endif
         </div>
         
         <!-- Right Column: Details & Actions -->
-        <div class="flex flex-col justify-center">
+        <div class="lg:col-span-7 flex flex-col justify-center">
             
-            @if($deal->trust_metrics)
-                <div class="inline-flex items-center gap-2 bg-yellow-50 text-yellow-800 px-4 py-1.5 rounded-full text-sm font-semibold border border-yellow-200 mb-4 w-fit">
-                    {{ $deal->trust_metrics }}
-                </div>
-            @endif
+            <div class="flex flex-wrap gap-2 mb-4">
+                @if($deal->trust_metrics)
+                    <span class="inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 px-3 py-1 rounded-full text-xs font-bold border border-amber-200 dark:border-amber-500/20 shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        {{ $deal->trust_metrics }}
+                    </span>
+                @endif
+                @if($deal->brand)
+                    <span class="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700 shadow-sm">
+                        {{ $deal->brand }}
+                    </span>
+                @endif
+            </div>
 
             <div class="flex justify-between items-start gap-4">
-                <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 leading-tight">{{ $deal->title }}</h1>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">{{ $deal->title }}</h1>
                 @auth
-                    <form action="{{ route('deal.save', $deal->id) }}" method="POST" class="shrink-0">
+                    <form action="{{ route('deal.save', $deal->id) }}" method="POST" class="shrink-0 mt-1">
                         @csrf
-                        <button type="submit" class="p-3 bg-white rounded-full shadow-sm border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 transition group" title="Save Deal">
-                            <svg class="w-6 h-6 group-hover:fill-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                        <button type="submit" class="p-2.5 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 hover:border-red-200 transition group" title="Save Deal">
+                            <svg class="w-5 h-5 group-hover:fill-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                         </button>
                     </form>
                 @endauth
             </div>
             
-            <div class="mt-6 flex items-baseline gap-4">
-                <span class="text-5xl font-black text-red-600 tracking-tight">₹{{ number_format($deal->discounted_price) }}</span>
-                <span class="text-xl text-gray-400 line-through font-medium">M.R.P: ₹{{ number_format($deal->original_price) }}</span>
+            <div class="mt-6 flex flex-wrap items-baseline gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 w-fit">
+                <span class="text-4xl sm:text-5xl font-black text-red-600 dark:text-red-500 tracking-tight">?{{ number_format($deal->discounted_price) }}</span>
+                @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
+                    <span class="text-lg text-slate-400 dark:text-slate-500 line-through font-medium">M.R.P: ?{{ number_format($deal->original_price) }}</span>
+                @endif
             </div>
 
             <!-- Features -->
@@ -118,21 +128,24 @@
                 <div class="mt-8 space-y-3">
                     @foreach($deal->features as $feature)
                         <div class="flex items-start gap-3">
-                            <span class="text-gray-700 text-lg leading-snug">{{ $feature }}</span>
+                            <span class="mt-0.5 shrink-0 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full p-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </span>
+                            <span class="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">{{ $feature }}</span>
                         </div>
                     @endforeach
                 </div>
             @endif
 
             <!-- Copy Code & Go -->
-            <div class="mt-10">
+            <div class="mt-8">
                 @if($deal->promo_code || $deal->coupon_code)
-                    <div class="bg-gray-900 rounded-2xl p-2 pl-6 flex items-center justify-between shadow-xl mb-4">
-                        <div>
-                            <p class="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-1">Use Code at Checkout</p>
+                    <div class="bg-slate-900 dark:bg-black rounded-2xl p-2 pl-6 flex flex-col sm:flex-row sm:items-center justify-between shadow-xl gap-4">
+                        <div class="pt-2 sm:pt-0">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Use Code at Checkout</p>
                             <p class="text-2xl font-mono font-bold text-white tracking-wider" id="promo-code">{{ $deal->promo_code ?? $deal->coupon_code }}</p>
                         </div>
-                        <button onclick="copyAndGo()" class="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition shadow-lg pulse-btn">Copy & Go →</button>
+                        <button onclick="copyAndGo()" class="w-full sm:w-auto bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white px-8 py-4 rounded-xl font-bold text-base transition shadow-lg pulse-btn">Copy & Go ?</button>
                     </div>
                     <script>
                         function copyAndGo() {
@@ -142,30 +155,33 @@
                         }
                     </script>
                 @else
-                    <a href="{{ route('deal.redirect', $deal->id) }}" target="_blank" class="block w-full text-center bg-gradient-to-r from-red-600 to-red-500 text-white px-8 py-4 rounded-2xl font-black text-xl hover:from-red-500 hover:to-red-400 transition transform hover:-translate-y-1 pulse-btn">
-                        Get Deal Now 🚀
+                    <a href="{{ route('deal.redirect', $deal->id) }}" target="_blank" class="flex justify-center items-center w-full sm:w-80 bg-gradient-to-r from-red-600 to-rose-500 text-white px-8 py-4 rounded-2xl font-black text-lg hover:from-red-500 hover:to-rose-400 transition-all transform hover:-translate-y-1 shadow-xl hover:shadow-red-500/20 pulse-btn">
+                        Get Deal Now
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </a>
                 @endif
             </div>
 
             <!-- AI Caption Copy & Share Buttons -->
-            <div class="mt-10 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                 @if($deal->ai_caption)
-                    <button onclick="copyCaption()" class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 transition bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                    <button onclick="copyCaption()" class="w-full sm:w-auto flex justify-center items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition bg-slate-100 dark:bg-slate-800 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-200 dark:hover:bg-slate-700">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                         Copy Telegram Post
                     </button>
                     <script>
                         function copyCaption() {
-                            const caption = `{!! addslashes(str_replace("\n", "\\n", $deal->ai_caption)) !!}`;
+                            const caption = {!! addslashes(str_replace("\n", "\\n", $deal->ai_caption)) !!};
                             navigator.clipboard.writeText(caption);
                             alert("Social media caption copied to clipboard!");
                         }
                     </script>
+                @else
+                    <div></div>
                 @endif
                 
-                <div class="flex items-center gap-3">
-                    <span class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Share:</span>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-center">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Share:</span>
                     <x-deal-share :deal="$deal" />
                 </div>
             </div>        
@@ -174,12 +190,12 @@
 
     <!-- Price History Chart -->
     @if($priceHistory->count() > 1)
-    <div class="mt-16 pt-10 border-t border-gray-100">
-        <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+    <div class="mt-16 pt-10 border-t border-gray-100 dark:border-slate-800">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
             <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
             Price Drop History
         </h3>
-        <div class="h-64 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+        <div class="h-64 bg-white dark:bg-slate-900 rounded-2xl p-4 border border-gray-100 dark:border-slate-800 shadow-sm">
             <canvas id="priceChart"></canvas>
         </div>
         <script>
@@ -190,7 +206,7 @@
                 type: 'line',
                 data: {
                     datasets: [{
-                        label: 'Price (₹)',
+                        label: 'Price (?)',
                         data: data,
                         borderColor: '#ef4444',
                         backgroundColor: 'rgba(239, 68, 68, 0.05)',
