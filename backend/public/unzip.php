@@ -19,9 +19,9 @@ if ($return_var === 0) {
     // Run Laravel commands
     $artisan = __DIR__ . '/../artisan';
     if (file_exists($artisan)) {
-        exec("php " . escapeshellarg($artisan) . " view:clear", $output);
-        exec("php " . escapeshellarg($artisan) . " cache:clear", $output);
-        exec("php " . escapeshellarg($artisan) . " migrate --force", $output);
+        exec(PHP_BINARY . " " . escapeshellarg($artisan) . " view:clear", $output);
+        exec(PHP_BINARY . " " . escapeshellarg($artisan) . " cache:clear", $output);
+        exec(PHP_BINARY . " " . escapeshellarg($artisan) . " migrate --force", $output);
     }
     
     // Self-destruct and cleanup
@@ -39,12 +39,12 @@ if ($return_var === 0) {
         @unlink($zipFile);
         @unlink(__FILE__);
         
-        // Run Laravel commands
+        // Run Laravel commands using the correct PHP binary
         $artisan = __DIR__ . '/../artisan';
         if (file_exists($artisan)) {
-            exec("php " . escapeshellarg($artisan) . " view:clear", $output);
-            exec("php " . escapeshellarg($artisan) . " cache:clear", $output);
-            exec("php " . escapeshellarg($artisan) . " migrate --force", $output);
+            exec(PHP_BINARY . " " . escapeshellarg($artisan) . " view:clear", $output);
+            exec(PHP_BINARY . " " . escapeshellarg($artisan) . " cache:clear", $output);
+            exec(PHP_BINARY . " " . escapeshellarg($artisan) . " migrate --force", $output);
         }
         
         echo "Extraction successful using ZipArchive. Migrations and cache clear executed. Cleanup complete.";

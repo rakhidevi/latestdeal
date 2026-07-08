@@ -117,7 +117,14 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'ind
 
 // Legal Pages
 Route::view('/terms', 'terms')->name('terms');
-Route::view('/privacy', 'privacy')->name('privacy');
+Route::get('/privacy', function () {
+    return view('privacy');
+})->name('privacy');
+
+Route::get('/run-migrations', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return "Migrations ran: " . \Illuminate\Support\Facades\Artisan::output();
+});
 
 
 // Newsletter Subscription
