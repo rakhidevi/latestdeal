@@ -81,8 +81,8 @@
 <body x-data="themeSwitcher" class="antialiased">
     
     <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-40 border-b border-red-100/80 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
-      <div class="mx-auto grid max-w-7xl gap-3 px-4 py-3 md:px-6 grid-cols-[auto_1fr_auto] lg:grid-cols-[220px_1fr_auto] items-center">
-        <a href="/" class="flex items-center">
+      <div class="mx-auto grid max-w-7xl gap-3 px-4 sm:px-6 lg:px-8 py-3 grid-cols-[auto_1fr_auto] lg:grid-cols-[220px_1fr_auto] items-center">
+        <a href="/" class="flex items-center justify-start">
           <img src="/images/logo.png" alt="LatestDeal" class="h-8 md:h-10 w-auto block dark:hidden" />
           <img src="/images/logo-white.png" alt="LatestDeal" class="h-8 md:h-10 w-auto hidden dark:block" />
         </a>
@@ -114,7 +114,7 @@
         </div>
       </div>
 
-      <div class="mx-auto hidden lg:flex max-w-7xl items-center gap-6 px-4 pb-3 text-sm font-medium text-gray-600 dark:text-slate-300">
+      <div class="mx-auto hidden lg:flex max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8 pb-3 text-sm font-medium text-gray-600 dark:text-slate-300">
         <a href="/" class="transition hover:text-red-600 dark:hover:text-red-400">Home</a>
         <a href="/" class="transition hover:text-red-600 dark:hover:text-red-400">Today Deals</a>
         <a href="/?sort=discount" class="transition hover:text-red-600 dark:hover:text-red-400">Top Discounts</a>
