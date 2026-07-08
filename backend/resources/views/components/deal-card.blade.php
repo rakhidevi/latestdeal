@@ -36,7 +36,12 @@
       <div>
         <p class="text-[11px] uppercase tracking-wide text-gray-400">Price</p>
         @if(isset($deal->discounted_price))
-          <p class="text-[11px] font-semibold text-gray-900 dark:text-slate-200">₹{{ number_format($deal->discounted_price) }}</p>
+          <p class="text-[11px] font-semibold text-gray-900 dark:text-slate-200">
+            ₹{{ number_format($deal->discounted_price) }}
+            @if(isset($deal->original_price) && $deal->original_price > $deal->discounted_price)
+              <span class="text-[10px] text-gray-400 line-through ml-1">₹{{ number_format($deal->original_price) }}</span>
+            @endif
+          </p>
         @else
           <p class="text-[11px] font-semibold text-gray-900 dark:text-slate-200">Check Site</p>
         @endif
