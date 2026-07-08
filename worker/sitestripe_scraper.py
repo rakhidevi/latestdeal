@@ -133,7 +133,7 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             
             short_url = page.evaluate("navigator.clipboard.readText()")
             
-            if not short_url or "amzn.to" not in short_url:
+            if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
                 raise Exception(f"Failed to extract valid short URL from clipboard. Found: {short_url}")
                 
             print(f"Successfully generated SiteStripe Link: {short_url}")
