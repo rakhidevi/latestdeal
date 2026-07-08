@@ -25,6 +25,11 @@ Route::get('/setup-scraper', function () {
     return "Category #1 and Merchant #1 created! Your Python Worker will now work perfectly.";
 });
 
+Route::get('/run-migrations', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return "Migrations executed! Output: " . \Illuminate\Support\Facades\Artisan::output();
+});
+
 // The Redirect Engine Endpoint
 Route::get('/go/{deal}', [RedirectController::class, 'redirect'])->name('deal.redirect');
 
@@ -101,6 +106,11 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
 // SEO Engine
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index']);
 
+// Legal Pages
+Route::view('/terms', 'terms')->name('terms');
+Route::view('/privacy', 'privacy')->name('privacy');
+
+
 // Newsletter Subscription
 Route::post('/subscribe', [\App\Http\Controllers\Api\SubscriptionController::class, 'store'])->name('subscribe');
 
@@ -152,6 +162,8 @@ Route::middleware('auth')->group(function () {
 // Admin Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/actions', [\App\Http\Controllers\AdminController::class, 'actions'])->name('admin.actions');
+    Route::post('/settings/toggle', [\App\Http\Controllers\AdminController::class, 'toggleSetting'])->name('admin.settings.toggle');
     Route::get('/deals', [\App\Http\Controllers\AdminController::class, 'deals'])->name('admin.deals');
     Route::put('/deals/{deal}/status', [\App\Http\Controllers\AdminController::class, 'updateDealStatus'])->name('admin.deals.status');
     Route::get('/merchants', [\App\Http\Controllers\AdminController::class, 'merchants'])->name('admin.merchants');
