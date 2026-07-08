@@ -91,6 +91,11 @@
                     <i data-lucide="link" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
                     <span class="font-medium">Link Generator</span>
                 </a>
+
+                <a href="{{ route('admin.social-accounts') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.social-accounts') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="share-2" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="font-medium">Social Accounts</span>
+                </a>
             </nav>
             
             <div class="p-4 bg-black/20 border-t border-white/5">
