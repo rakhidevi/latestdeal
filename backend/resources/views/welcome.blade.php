@@ -13,12 +13,12 @@
 
     <script type="application/ld+json">
     {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
+      "@@context": "https://schema.org",
+      "@@type": "WebSite",
       "name": "LatestDeal",
       "url": "{{ url('/') }}",
       "potentialAction": {
-        "@type": "SearchAction",
+        "@@type": "SearchAction",
         "target": "{{ url('/') }}?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
