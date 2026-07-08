@@ -126,6 +126,15 @@ Route::get('/run-migrations', function () {
     return "Migrations ran: " . \Illuminate\Support\Facades\Artisan::output();
 });
 
+Route::get('/debug-env', function () {
+    return [
+        'DB_CONNECTION' => config('database.default'),
+        'DB_DATABASE' => config('database.connections.' . config('database.default') . '.database'),
+        'APP_ENV' => config('app.env'),
+        'APP_DEBUG' => config('app.debug'),
+    ];
+});
+
 
 // Newsletter Subscription
 Route::post('/subscribe', [\App\Http\Controllers\Api\SubscriptionController::class, 'store'])->name('subscribe');
