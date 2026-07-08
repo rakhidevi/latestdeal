@@ -3,9 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LatestDeal - Discover the Best Verified Deals Worldwide</title>
     
-    @yield('meta')
+    @hasSection('meta')
+        @yield('meta')
+    @else
+        <title>LatestDeal - Discover the Best Verified Deals Worldwide</title>
+        <meta name="description" content="LatestDeal is your autonomous global deal discovery engine. We scour the web to find the best discounts, offers, and coupons so you never pay full price.">
+        <link rel="canonical" href="{{ url()->current() }}">
+        <meta property="og:title" content="LatestDeal - Discover the Best Verified Deals Worldwide">
+        <meta property="og:description" content="LatestDeal is your autonomous global deal discovery engine. We scour the web to find the best discounts, offers, and coupons.">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:type" content="website">
+        <meta property="og:image" content="{{ asset('/images/logo.png') }}">
+        <meta name="twitter:card" content="summary_large_image">
+    @endif
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "LatestDeal",
+      "url": "{{ url('/') }}",
+      "logo": "{{ asset('/images/logo.png') }}",
+      "sameAs": [
+        "https://t.me/latestdealofficial"
+      ]
+    }
+    </script>
 
     @if(config('services.google.adsense_id'))
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ config('services.google.adsense_id') }}" crossorigin="anonymous"></script>

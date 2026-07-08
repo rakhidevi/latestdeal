@@ -1,5 +1,31 @@
 @extends('layouts.app')
 
+@section('meta')
+    <title>Find the Best Global Deals, Offers, & Coupons | LatestDeal</title>
+    <meta name="description" content="Discover top discounts, live offers, and verified coupons from global marketplaces like Amazon. Our AI scores deals so you always save money.">
+    <link rel="canonical" href="{{ url()->current() }}">
+    <meta property="og:title" content="Find the Best Global Deals, Offers, & Coupons | LatestDeal">
+    <meta property="og:description" content="Discover top discounts, live offers, and verified coupons from global marketplaces like Amazon. Our AI scores deals so you always save money.">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="{{ asset('/images/logo.png') }}">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "LatestDeal",
+      "url": "{{ url('/') }}",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ url('/') }}?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+@endsection
+
 @section('content')
 <section class="space-y-6">
   <div class="panel overflow-hidden bg-gradient-to-br from-red-500 via-rose-500 to-red-400 p-0 text-white">
