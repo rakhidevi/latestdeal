@@ -141,6 +141,42 @@ Route::get('/migrate-fresh', function () {
         unlink($dbPath);
     }
     touch($dbPath);
+    // Delete old duplicate migration files left on the server
+    $allowed = [
+        '0001_01_01_000000_create_users_table.php',
+        '0001_01_01_000001_create_cache_table.php',
+        '0001_01_01_000002_create_jobs_table.php',
+        '2026_01_01_000001a_create_categories_table.php',
+        '2026_01_01_000001_create_merchants_table.php',
+        '2026_01_01_000002_create_deals_table.php',
+        '2026_01_01_000003_create_price_history_table.php',
+        '2026_01_01_000004_create_clicks_table.php',
+        '2026_01_01_000005_create_subscribers_table.php',
+        '2026_01_01_000006_create_price_alerts_table.php',
+        '2026_01_01_000007_create_publisher_integrations_table.php',
+        '2026_07_03_103016_add_role_to_users_table.php',
+        '2026_07_03_172230_add_promo_code_to_deals_table.php',
+        '2026_07_03_172231_create_tags_tables.php',
+        '2026_07_03_172232_create_publisher_rules_table.php',
+        '2026_07_04_000000_create_saved_deals_table.php',
+        '2026_07_04_000001_create_social_accounts_table.php',
+        '2026_07_04_000003_add_user_id_to_social_accounts_table.php',
+        '2026_07_04_215436_add_brand_to_deals_table.php',
+        '2026_07_04_224608_add_short_url_to_deals_table.php',
+        '2026_07_05_130000_add_ai_metadata_to_deals_table.php',
+        '2026_07_07_021400_add_status_to_merchants_table.php',
+        '2026_07_07_022412_create_settings_table.php',
+        '2026_07_07_145258_create_scraper_jobs_table.php',
+        '2026_07_08_000000_add_ai_score_to_deals_table.php'
+    ];
+    
+    $files = scandir(database_path('migrations'));
+    foreach ($files as $f) {
+        if ($f !== '.' && $f !== '..' && !in_array($f, $allowed)) {
+            @unlink(database_path('migrations/' . $f));
+        }
+    }
+
     \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true, '--seed' => true]);
     
     // Create Admin User
