@@ -35,12 +35,25 @@ class PublishDealToInstagramJob implements ShouldQueue
         $instagramService = new InstagramGraphService($account);
 
         // API Rate Limiting for Graph API
-        Redis::throttle('instagram-publish')
-            ->allow(5)->every(60)
-            ->then(function () use ($instagramService) {
-                $instagramService->publishStory($this->deal);
-            }, function () {
-                $this->release(30);
-            });
+        $executed = \Illuminate\Support\Facades\RateLimiter::attempt(
+            'instagram-publish',
+            5,
+            function () use ($instagramService, $account) {
+                try {
+                    $instagramService->publishStory($this->deal);
+                } catch (\Exception $e) {
+                    if (str_contains($e->getMessage(), 'limit')) {
+                        if ($account) {
+                            $account->update(['is_active' => false]);
+                        }
+                    }
+                }
+            },
+            60
+        );
+
+        if (! $executed) {
+            $this->release(30);
+        }
     }
 }

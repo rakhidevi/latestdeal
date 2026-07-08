@@ -35,13 +35,26 @@ class PublishDealToFacebookJob implements ShouldQueue
         $service = new FacebookGraphService($account);
         $caption = "🚨 {$this->deal->title}\n\nOnly {$this->deal->discounted_price}! Grab it here: " . route('deal.redirect', $this->deal->id);
 
-        // API Rate Limiting for Graph API
-        Redis::throttle('facebook-publish')
-            ->allow(10)->every(60)
-            ->then(function () use ($service, $caption) {
-                $service->publishPost($this->deal, $caption);
-            }, function () {
-                $this->release(30);
-            });
+        // Rate Limiting: Facebook API allows limits
+        $executed = \Illuminate\Support\Facades\RateLimiter::attempt(
+            'facebook-publish',
+            15,
+            function () use ($service, $account, $caption) {
+                try {
+                    $service->publishPost($this->deal, $caption);
+                } catch (\Exception $e) {
+                    if (str_contains($e->getMessage(), 'limit')) {
+                        if ($account) {
+                            $account->update(['is_active' => false]);
+                        }
+                    }
+                }
+            },
+            60
+        );
+
+        if (! $executed) {
+            $this->release(30);
+        }
     }
 }

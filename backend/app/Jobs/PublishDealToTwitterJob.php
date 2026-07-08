@@ -36,12 +36,25 @@ class PublishDealToTwitterJob implements ShouldQueue
         $tweet = "🚨 {$this->deal->title}\n\nOnly {$this->deal->discounted_price}! Grab it here: " . route('deal.redirect', $this->deal->id);
 
         // API Rate Limiting
-        Redis::throttle('twitter-publish')
-            ->allow(5)->every(60)
-            ->then(function () use ($service, $tweet) {
-                $service->publishTweet($this->deal, $tweet);
-            }, function () {
-                $this->release(30);
-            });
+        $executed = \Illuminate\Support\Facades\RateLimiter::attempt(
+            'twitter-publish',
+            5,
+            function () use ($service, $account, $tweet) {
+                try {
+                    $service->publishTweet($this->deal, $tweet);
+                } catch (\Exception $e) {
+                    if (str_contains($e->getMessage(), 'limit')) {
+                        if ($account) {
+                            $account->update(['is_active' => false]);
+                        }
+                    }
+                }
+            },
+            60
+        );
+
+        if (! $executed) {
+            $this->release(30);
+        }
     }
 }

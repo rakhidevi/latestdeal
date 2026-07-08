@@ -286,3 +286,4 @@ Route::get('/setup-db', function () {
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     return 'Database initialized and migrated successfully!';
 });
+Route::get("/run-queue", function () { try { $exitCode = \Illuminate\Support\Facades\Artisan::call("queue:work", ["--stop-when-empty" => true]); return "Queue executed. Exit code: " . $exitCode . "<br>Output:<br><pre>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>"; } catch (\Exception $e) { return "Error: " . $e->getMessage(); } });

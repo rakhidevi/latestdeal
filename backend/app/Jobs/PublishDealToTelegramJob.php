@@ -36,20 +36,29 @@ class PublishDealToTelegramJob implements ShouldQueue
         $telegramService = new \App\Services\TelegramBotService($account);
 
         // Rate Limiting: Telegram allows approx 20 messages per minute to a single group
-        // We use Redis throttling to ensure this job waits if we are hitting limits.
-        Redis::throttle('telegram-publish')
-            ->allow(15)->every(60)
-            ->then(function () use ($telegramService, $account) {
+        // We use RateLimiter which works with any cache driver (unlike Redis which crashes on shared hosting)
+        $executed = \Illuminate\Support\Facades\RateLimiter::attempt(
+            'telegram-publish',
+            15,
+            function () use ($telegramService, $account) {
                 try {
                     $telegramService->publishDeal($this->deal);
                 } catch (\Exception $e) {
                     if (str_contains($e->getMessage(), '(429)') || str_contains($e->getMessage(), '(403)')) {
-                        \Illuminate\Support\Facades\Log::warning("Deactivating Telegram account {$account->id} due to API Ban/Rate Limit.");
-                        $account->update(['is_active' => false]);
+                        if ($account) {
+                            \Illuminate\Support\Facades\Log::warning("Deactivating Telegram account {$account->id} due to API Ban/Rate Limit.");
+                            $account->update(['is_active' => false]);
+                        } else {
+                            \Illuminate\Support\Facades\Log::warning("Telegram API Ban/Rate Limit hit for default account.");
+                        }
                     }
                 }
-            }, function () {
-                $this->release(10);
-            });
+            },
+            60
+        );
+
+        if (! $executed) {
+            $this->release(10);
+        }
     }
 }
