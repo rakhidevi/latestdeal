@@ -84,7 +84,11 @@ class RealDealSeeder extends Seeder
             // Attach tags
             $tagIds = [];
             foreach ($tags as $tagName) {
-                $tag = Tag::firstOrCreate(['name' => strtolower($tagName)]);
+                $tag = Tag::firstOrCreate([
+                    'slug' => \Illuminate\Support\Str::slug($tagName)
+                ], [
+                    'name' => $tagName
+                ]);
                 $tagIds[] = $tag->id;
             }
             $deal->tags()->sync($tagIds);
