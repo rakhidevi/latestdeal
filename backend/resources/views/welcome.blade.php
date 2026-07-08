@@ -149,8 +149,6 @@
       </div>
       
       <x-ad-banner slot="home-bottom" />
-    @endif
-    @endif
   </div>
 </section>
 
