@@ -135,6 +135,16 @@ Route::get('/debug-env', function () {
     ];
 });
 
+Route::get('/debug-logs', function () {
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) {
+        return "No log file found.";
+    }
+    // Return last 200 lines
+    $lines = file($logFile);
+    return implode("", array_slice($lines, -200));
+});
+
 
 // Newsletter Subscription
 Route::post('/subscribe', [\App\Http\Controllers\Api\SubscriptionController::class, 'store'])->name('subscribe');
