@@ -267,6 +267,17 @@ Route::middleware('auth')->group(function () {
     // Saved Deals logic
     Route::post('/deals/{deal}/save', [\App\Http\Controllers\DealController::class, 'saveDeal'])->name('deal.save');
 
+    // Manage Price Alerts
+    Route::delete('/price-alerts/{id}', function (\Illuminate\Http\Request $request, $id) {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $alert = \App\Models\PriceAlert::whereHas('subscriber', function($q) use ($user) {
+            $q->where('email', $user->email);
+        })->findOrFail($id);
+        
+        $alert->delete();
+        return back()->with('success', 'Price alert removed.');
+    })->name('price-alerts.destroy');
+
     Route::get('/publisher/dashboard', [\App\Http\Controllers\PublisherAuthController::class, 'dashboard']);
     Route::post('/publisher/logout', [\App\Http\Controllers\PublisherAuthController::class, 'logout']);
 });

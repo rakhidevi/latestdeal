@@ -39,12 +39,16 @@
                 
                 <form action="/price-alerts" method="POST" class="mt-5 sm:mt-6 space-y-4">
                     @csrf
-                    <div>
-                        <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Email Address</label>
-                        <div class="mt-2">
-                            <input type="email" name="email" id="email" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="you@example.com" required>
+                    @if(Auth::check())
+                        <input type="hidden" name="email" value="{{ Auth::user()->email }}">
+                    @else
+                        <div>
+                            <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Email Address</label>
+                            <div class="mt-2">
+                                <input type="email" name="email" id="email" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="you@example.com" required>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                     <div>
                         <label for="keyword" class="block text-sm font-medium leading-6 text-gray-900">Keyword</label>
                         <div class="mt-2">

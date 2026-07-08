@@ -120,6 +120,13 @@
 
         <div class="hidden lg:flex items-center justify-end gap-2">
           <button @click="toggleDark()" class="btn-secondary px-3" type="button" x-text="isDark ? 'Light' : 'Dark'"></button>
+          
+          @auth
+            <a href="{{ route('shopper.dashboard') }}" class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-red-500 mx-2">Dashboard</a>
+          @else
+            <a href="{{ route('shopper.login') }}" class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-red-500 mx-2">Login</a>
+          @endauth
+
           <a href="/?category=all" class="btn-primary">Browse Deals</a>
         </div>
 
@@ -133,6 +140,13 @@
         <a href="/" class="block font-medium text-gray-800 dark:text-gray-200">Home</a>
         <a href="/?sort=discount" class="block font-medium text-gray-800 dark:text-gray-200">Top Discounts</a>
         <a href="/?merchant=amazon" class="block font-medium text-gray-800 dark:text-gray-200">Amazon Deals</a>
+        
+        @auth
+          <a href="{{ route('shopper.dashboard') }}" class="block font-medium text-red-600 dark:text-red-400">My Dashboard</a>
+        @else
+          <a href="{{ route('shopper.login') }}" class="block font-medium text-gray-800 dark:text-gray-200">Login / Sign up</a>
+        @endauth
+        
         <div class="border-t border-gray-100 dark:border-slate-800 pt-3 flex flex-wrap gap-2">
             <button @click="toggleDark()" class="btn-secondary px-3 w-full sm:w-auto" type="button" x-text="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"></button>
             <a href="/?category=all" class="btn-primary text-center w-full sm:w-auto">Browse Deals</a>
