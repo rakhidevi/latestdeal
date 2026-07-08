@@ -65,6 +65,9 @@ class RealDealSeeder extends Seeder
             
             $promo = $data['promo'];
             unset($data['promo']);
+
+            unset($data['description']);
+            unset($data['expires_at']);
             
             $data['promo_code'] = $promo;
 
