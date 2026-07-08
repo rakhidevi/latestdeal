@@ -70,6 +70,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 data = json.loads(post_data.decode('utf-8'))
                 
                 cmd = ["python", "-u", "hunter.py"]
+                if data.get('mode'):
+                    cmd.extend(["--mode", str(data['mode'])])
                 if data.get('category'):
                     cmd.extend(["--category", str(data['category'])])
                 if data.get('brand'):

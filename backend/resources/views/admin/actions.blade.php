@@ -106,7 +106,7 @@
                 <div class="p-3 bg-[#010409] border-b border-[#30363d] flex flex-col gap-3">
                     <div class="text-xs font-semibold text-[#8b949e] uppercase tracking-wider">Custom Deal Hunter</div>
                     <div class="flex flex-wrap gap-2">
-                        <select x-model="huntCategory" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-48">
+                        <select multiple size="5" x-model="huntCategory" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-64 scrollbar-thin scrollbar-thumb-[#30363d] scrollbar-track-transparent">
                             <option value="">All Categories</option>
                             <option value="Alexa Skills">Alexa Skills</option>
                             <option value="Amazon Devices">Amazon Devices</option>
@@ -153,7 +153,7 @@
                             <option value="Video Games">Video Games</option>
                             <option value="Watches">Watches</option>
                         </select>
-                        <select x-model="huntBrand" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-48">
+                        <select multiple size="5" x-model="huntBrand" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-64 scrollbar-thin scrollbar-thumb-[#30363d] scrollbar-track-transparent">
                             <option value="">Any Brand</option>
                             <option value="Apple">Apple</option>
                             <option value="ASUS">ASUS</option>
@@ -176,7 +176,7 @@
                             <option value="Lumio">Lumio</option>
                             <option value="boAt">boAt</option>
                         </select>
-                        <select x-model="huntDiscount" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-48">
+                        <select multiple size="5" x-model="huntDiscount" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-64 scrollbar-thin scrollbar-thumb-[#30363d] scrollbar-track-transparent">
                             <option value="">Any Discount</option>
                             <option value="10">10% Off or more</option>
                             <option value="25">25% Off or more</option>
@@ -185,14 +185,20 @@
                             <option value="60">60% Off or more</option>
                             <option value="70">70% Off or more</option>
                         </select>
-                        <input type="text" x-model="huntKeyword" placeholder="Additional Keyword (optional)..." class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white placeholder-[#8b949e]">
-                        <button @click="submitHunt" :disabled="!isRunning || isHunting" class="text-xs bg-[#238636] hover:bg-[#2ea043] border border-[rgba(240,246,252,0.1)] disabled:opacity-50 text-white px-4 py-1.5 rounded-md font-semibold transition-colors flex items-center">
-                            <span x-show="!isHunting">Hunt Deals</span>
-                            <span x-show="isHunting" class="flex items-center gap-2">
-                                <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                Hunting...
-                            </span>
-                        </button>
+                        <div class="flex flex-col gap-2 flex-1">
+                            <input type="text" x-model="huntKeyword" placeholder="Additional Keyword (optional)..." class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white placeholder-[#8b949e] w-full">
+                            <select x-model="huntMode" class="bg-[#010409] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-full">
+                                <option value="ingestion">Mode: Standard Bot (Background)</option>
+                                <option value="sitestripe_automation">Mode: SiteStripe (Real Browser)</option>
+                            </select>
+                            <button @click="submitHunt" :disabled="!isRunning || isHunting" class="text-xs bg-[#238636] hover:bg-[#2ea043] border border-[rgba(240,246,252,0.1)] disabled:opacity-50 text-white px-4 py-2 rounded-md font-semibold transition-colors flex justify-center items-center mt-auto w-full">
+                                <span x-show="!isHunting">Hunt Deals</span>
+                                <span x-show="isHunting" class="flex items-center gap-2">
+                                    <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    Hunting...
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -431,10 +437,11 @@
             scrapeUrlInput: '',
             scrapeMode: 'ingestion',
             isSubmitting: false,
-            huntCategory: '',
-            huntBrand: '',
-            huntDiscount: '',
+            huntCategory: [],
+            huntBrand: [],
+            huntDiscount: [],
             huntKeyword: '',
+            huntMode: 'ingestion',
             isHunting: false,
             init() {
                 this.fetchStatus();
@@ -523,7 +530,8 @@
                             category: this.huntCategory,
                             brand: this.huntBrand,
                             discount: this.huntDiscount,
-                            keyword: this.huntKeyword
+                            keyword: this.huntKeyword,
+                            mode: this.huntMode
                         })
                     });
                     

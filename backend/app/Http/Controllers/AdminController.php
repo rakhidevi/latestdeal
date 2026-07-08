@@ -168,7 +168,8 @@ class AdminController
                 'category' => $request->category,
                 'brand' => $request->brand,
                 'discount' => $request->discount,
-                'keyword' => $request->keyword
+                'keyword' => $request->keyword,
+                'mode' => $request->mode
             ];
             $response = Http::timeout(5)->post("http://{$workerIp}:8001/hunt", $payload);
             return response()->json(['success' => true, 'message' => $response->json('status')]);
