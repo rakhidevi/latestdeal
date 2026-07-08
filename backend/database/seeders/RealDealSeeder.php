@@ -17,12 +17,18 @@ class RealDealSeeder extends Seeder
             ['domain' => 'amazon.in', 'affiliate_param_key' => 'tag', 'store_id' => 'latestdeal-21']
         );
 
+        $category = \App\Models\Category::firstOrCreate(
+            ['name' => 'Electronics'],
+            ['slug' => 'electronics']
+        );
+
         $dealsData = [
             [
                 'title' => 'Apple iPhone 15 (128 GB) - Blue',
                 'description' => 'Dynamic Island bubbles up alerts and Live Activities. INNOVATIVE DESIGN — iPhone 15 features a durable color-infused glass and aluminum design.',
                 'original_price' => 79900,
                 'discounted_price' => 69900,
+                'category_id' => $category->id,
                 'merchant_id' => $merchant->id,
                 'url' => 'https://www.amazon.in/dp/B0CHX1W1XY',
                 'image_path' => '/storage/deals/iphone15.jpg',
@@ -36,6 +42,7 @@ class RealDealSeeder extends Seeder
                 'description' => 'Industry Leading Noise Cancellation. Up to 30-hour battery life with quick charging. Ultra-comfortable lightweight design.',
                 'original_price' => 34990,
                 'discounted_price' => 26990,
+                'category_id' => $category->id,
                 'merchant_id' => $merchant->id,
                 'url' => 'https://www.amazon.in/dp/B09Y2MYL5C',
                 'image_path' => '/storage/deals/sony_xm5.jpg',
@@ -49,6 +56,7 @@ class RealDealSeeder extends Seeder
                 'description' => '15.6" FHD 144Hz, Intel Core i5-11400H 11th Gen, RTX 3050 4GB Graphics, 8GB RAM, 512GB SSD, Windows 11',
                 'original_price' => 74990,
                 'discounted_price' => 54990,
+                'category_id' => $category->id,
                 'merchant_id' => $merchant->id,
                 'url' => 'https://www.amazon.in/dp/B09CCW5XW8',
                 'image_path' => '/storage/deals/asus_tuf.jpg',
