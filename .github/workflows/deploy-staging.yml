@@ -29,17 +29,6 @@ jobs:
           cd backend
           composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install NPM Dependencies & Build Assets
-        run: |
-          cd backend
-          npm install
-          npm run build
-
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
