@@ -15,7 +15,13 @@ class TelegramBotService
     {
         if ($account) {
             $this->botToken = preg_replace('/^bot/i', '', trim($account->access_token));
+            
             $chatId = trim($account->target_id);
+            // Defensively handle if user pasted full t.me URL
+            if (preg_match('/t\.me\/([a-zA-Z0-9_]+)/', $chatId, $matches)) {
+                $chatId = $matches[1];
+            }
+            
             if (!str_starts_with($chatId, '@') && !str_starts_with($chatId, '-')) {
                 $chatId = '@' . $chatId;
             }
