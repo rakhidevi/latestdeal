@@ -176,10 +176,10 @@
                 <div>
                     <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Platform</h3>
                     <ul class="space-y-3">
-                        <li><a href="#" class="hover:text-red-500 transition-colors">Today's Deals</a></li>
-                        <li><a href="#" class="hover:text-red-500 transition-colors">Trending</a></li>
-                        <li><a href="#" class="hover:text-red-500 transition-colors">Categories</a></li>
-                        <li><a href="#" class="hover:text-red-500 transition-colors">Stores</a></li>
+                        <li><a href="/?sort=discount" class="hover:text-red-500 transition-colors">Today's Deals</a></li>
+                        <li><a href="/?tag=trending" class="hover:text-red-500 transition-colors">Trending</a></li>
+                        <li><a href="/?category=electronics" class="hover:text-red-500 transition-colors">Categories</a></li>
+                        <li><a href="/?merchant=amazon" class="hover:text-red-500 transition-colors">Stores</a></li>
                     </ul>
                 </div>
 
@@ -187,10 +187,10 @@
                 <div>
                     <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Legal</h3>
                     <ul class="space-y-3">
-                        <li><a href="#" class="hover:text-red-500 transition-colors">Privacy Policy</a></li>
-                        <li><a href="#" class="hover:text-red-500 transition-colors">Terms of Service</a></li>
-                        <li><a href="#" class="hover:text-red-500 transition-colors">Cookie Policy</a></li>
-                        <li><a href="#" class="hover:text-red-500 transition-colors">Contact Us</a></li>
+                        <li><a href="{{ route('privacy') }}" class="hover:text-red-500 transition-colors">Privacy Policy</a></li>
+                        <li><a href="{{ route('terms') }}" class="hover:text-red-500 transition-colors">Terms of Service</a></li>
+                        <li><a href="{{ route('privacy') }}" class="hover:text-red-500 transition-colors">Cookie Policy</a></li>
+                        <li><a href="mailto:support@latestdeal.in" class="hover:text-red-500 transition-colors">Contact Us</a></li>
                     </ul>
                 </div>
             </div>
