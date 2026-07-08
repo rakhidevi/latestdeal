@@ -25,10 +25,6 @@ Route::get('/setup-scraper', function () {
     return "Category #1 and Merchant #1 created! Your Python Worker will now work perfectly.";
 });
 
-Route::get('/run-migrations', function () {
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    return "Migrations executed! Output: " . \Illuminate\Support\Facades\Artisan::output();
-});
 
 // The Redirect Engine Endpoint
 Route::get('/go/{deal}', [RedirectController::class, 'redirect'])->name('deal.redirect');
