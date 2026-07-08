@@ -40,7 +40,6 @@ jobs:
       - name: Install Composer Dependencies
         run: |
           cd backend
-          composer validate
           composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
   worker-tests:

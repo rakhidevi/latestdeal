@@ -39,7 +39,7 @@ jobs:
           # Modify this if you need to deploy the worker or extension as well.
           local-dir: ./backend/
           # Change server-dir if your production folder is different (e.g. /public_html/)
-          server-dir: /
+          server-dir: /public_html/
           exclude: |
             **/.git*
             **/.git*/**
