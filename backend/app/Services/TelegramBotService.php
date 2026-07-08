@@ -14,10 +14,14 @@ class TelegramBotService
     public function __construct(\App\Models\SocialAccount $account = null)
     {
         if ($account) {
-            $this->botToken = $account->access_token;
-            $this->chatId = $account->target_id;
+            $this->botToken = preg_replace('/^bot/i', '', trim($account->access_token));
+            $chatId = trim($account->target_id);
+            if (!str_starts_with($chatId, '@') && !str_starts_with($chatId, '-')) {
+                $chatId = '@' . $chatId;
+            }
+            $this->chatId = $chatId;
         } else {
-            $this->botToken = env('TELEGRAM_BOT_TOKEN', 'dummy-token');
+            $this->botToken = preg_replace('/^bot/i', '', env('TELEGRAM_BOT_TOKEN', 'dummy-token'));
             $this->chatId = env('TELEGRAM_CHAT_ID', '@latestdealin');
         }
     }
