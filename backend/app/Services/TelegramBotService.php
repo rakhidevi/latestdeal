@@ -40,8 +40,8 @@ class TelegramBotService
         // 1. Construct the Tracking URL (Redirect Engine)
         $trackingUrl = route('deal.redirect', ['deal' => $deal->id]);
 
-        // 2. Format the message similar to WhatsApp style
-        $cleanTitle = str_replace(['*', '_', '`', '['], '', $deal->title);
+        // 2. Format the message (HTML mode)
+        $cleanTitle = htmlspecialchars($deal->title);
         
         // Calculate discount safely to avoid division by zero
         $discountPercent = 0;
@@ -49,17 +49,17 @@ class TelegramBotService
             $discountPercent = round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100);
         }
 
-        $caption = "🔥 *NEW DEAL ALERT* 🔥\n\n";
-        $caption .= "🚨 *" . $cleanTitle . "*\n\n";
+        $caption = "🔥 <b>NEW DEAL ALERT</b> 🔥\n\n";
+        $caption .= "🚨 <b>" . $cleanTitle . "</b>\n\n";
         
         if ($discountPercent > 0) {
-            $caption .= "💰 *Price:* ₹" . $deal->discounted_price . " (was ₹" . $deal->original_price . ")  ✅ *" . $discountPercent . "% OFF!*\n\n";
+            $caption .= "💰 <b>Price:</b> ₹" . $deal->discounted_price . " (was ₹" . $deal->original_price . ")  ✅ <b>" . $discountPercent . "% OFF!</b>\n\n";
         } else {
-            $caption .= "💰 *Price:* ₹" . $deal->discounted_price . "\n\n";
+            $caption .= "💰 <b>Price:</b> ₹" . $deal->discounted_price . "\n\n";
         }
         
         if (!empty($deal->ai_caption)) {
-            $cleanAiCaption = str_replace(['*', '_', '`', '['], '', $deal->ai_caption);
+            $cleanAiCaption = htmlspecialchars($deal->ai_caption);
             // Keep AI caption much shorter so it's not a wall of text
             if (mb_strlen($cleanAiCaption) > 250) {
                 $cleanAiCaption = mb_substr($cleanAiCaption, 0, 247) . '...';
@@ -69,18 +69,27 @@ class TelegramBotService
             $caption .= "✔️ Premium Quality\n✔️ Limited Time Offer\n\n";
         }
         
-        $caption .= "🏃‍♂️ *Hurry! Grab it here:* " . $trackingUrl . "\n\n";
-        $caption .= "🌐 *For all LatestDeal: Visit*\nhttps://latestdeal.in/";
+        $caption .= "🏃‍♂️ <b>Hurry! Grab it here:</b> " . $trackingUrl . "\n\n";
+        $caption .= "🌐 <b>For all LatestDeal: Visit</b>\nhttps://latestdeal.in/";
 
         // 3. Send Photo with Caption to Telegram API
         $endpoint = "https://api.telegram.org/bot{$this->botToken}/sendPhoto";
 
         $imagePath = $deal->image_path;
         $isUrl = filter_var($imagePath, FILTER_VALIDATE_URL) !== false;
-        $imageContents = $isUrl ? file_get_contents($imagePath) : file_get_contents(public_path($imagePath));
-
-        if ($imageContents === false) {
-            Log::error('Telegram Publish Error: Could not fetch image from ' . $imagePath);
+        
+        try {
+            if ($isUrl) {
+                $imgResponse = Http::timeout(10)->get($imagePath);
+                if (!$imgResponse->successful()) {
+                    throw new \Exception("HTTP status " . $imgResponse->status());
+                }
+                $imageContents = $imgResponse->body();
+            } else {
+                $imageContents = file_get_contents(public_path($imagePath));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Telegram Publish Error: Could not fetch image from ' . $imagePath . '. Error: ' . $e->getMessage());
             return false;
         }
 
@@ -90,7 +99,7 @@ class TelegramBotService
             )->post($endpoint, [
                 'chat_id' => $this->chatId,
                 'caption' => $caption,
-                'parse_mode' => 'Markdown',
+                'parse_mode' => 'HTML',
             ]);
 
             if (!$response->successful()) {
