@@ -40,6 +40,7 @@ jobs:
           local-dir: ./backend/
           # Change server-dir if your production folder is different (e.g. /public_html/)
           server-dir: /
+          timeout: 1800000
           exclude: |
             **/.git*
             **/.git*/**
