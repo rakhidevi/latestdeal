@@ -37,8 +37,8 @@ def evaluate_deal(raw_data: dict) -> dict:
     review_count = clean_number(raw_data.get("review_count", 0), return_type=int)
     brand_name = raw_data.get("brand_name", "").strip()
     
-    # Rule 1: Discount Threshold (Must be > 40%)
-    if discount_percent < 40:
+    # Rule 1: Discount Threshold (Must be > 20%)
+    if discount_percent < 20:
         return {"is_approved": False, "reason": f"Discount too low ({discount_percent:.1f}%)"}
         
     # Rule 2: Trust Factor (Must be > 4.0 stars)

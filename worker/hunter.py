@@ -4,30 +4,41 @@ import random
 from playwright.sync_api import sync_playwright
 from playwright_stealth import Stealth
 from database import add_to_queue
+import argparse
 
 def setup_browser(p):
-    """Sets up the Playwright browser with session caching and stealth."""
+    """Launches a persistent browser session (visible) to store cookies/auth."""
     user_data_dir = os.path.join(os.path.dirname(__file__), 'browser_profile')
     os.makedirs(user_data_dir, exist_ok=True)
+    
+    # Launch Chrome visibly so the user can log in if needed
     browser = p.chromium.launch_persistent_context(
         user_data_dir=user_data_dir,
-        headless=True,
+        headless=False,
+        channel="chrome", # Use real Chrome
         args=["--disable-blink-features=AutomationControlled"]
     )
     return browser
 
-def hunt_amazon_deals():
+def hunt_amazon_deals(job_type='ingestion'):
     """Navigates to Amazon Deals and extracts product URLs into the queue."""
     url = "https://www.amazon.in/deals"
-    print(f"Hunting for deals on: {url}")
+    print(f"Hunting for deals on: {url} (Target Queue: {job_type})")
     
     with sync_playwright() as p:
-        browser = setup_browser(p)
-        page = browser.new_page()
+        context = setup_browser(p)
+        page = context.new_page()
         Stealth().use_sync(page)
         
         try:
             page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            
+            # Check if user needs to log in
+            if page.locator("text='Sign in'").count() > 0 or page.locator("text='Sign In'").count() > 0:
+                print("\n🚨 [ACTION REQUIRED] Please log into Amazon in the browser window! 🚨")
+                input("Press ENTER here after you have successfully logged in...")
+                page.goto(url, wait_until="domcontentloaded", timeout=60000)
+                
             print("Page loaded. Waiting for human delay...")
             time.sleep(random.uniform(5.0, 10.0))
             
@@ -36,21 +47,20 @@ def hunt_amazon_deals():
                 page.mouse.wheel(0, random.randint(500, 1000))
                 time.sleep(random.uniform(1.0, 2.5))
                 
+            page.screenshot(path="hunter_debug.png", full_page=True)
+                
             # Extract links from deal cards
             print("Extracting deal links...")
             deal_links = []
             
-            # Selector for Amazon deal grid items
-            elements = page.locator("a.a-link-normal.DealLink-module__dealLink_3v4naPUXGZ_w_z37wzL_i").all()
-            if not elements:
-                elements = page.locator("a.a-link-normal").all() # Fallback
+            # Find all links on the page that contain /dp/ (Amazon products)
+            elements = page.locator("a[href*='/dp/']").all()
                 
             for el in elements:
                 try:
                     href = el.get_attribute("href")
-                    if href and "/dp/" in href:
-                        # Clean URL
-                        clean_href = href.split("?")[0]
+                    if href:
+                        clean_href = href.split("?")[0].split("ref=")[0]
                         if not clean_href.startswith("http"):
                             clean_href = "https://www.amazon.in" + clean_href
                         deal_links.append(clean_href)
@@ -64,7 +74,7 @@ def hunt_amazon_deals():
             added = 0
             for link in deal_links:
                 try:
-                    add_to_queue(link)
+                    add_to_queue(link, job_type)
                     added += 1
                 except:
                     pass
@@ -74,7 +84,14 @@ def hunt_amazon_deals():
         except Exception as e:
             print(f"Error while hunting deals: {e}")
         finally:
-            browser.close()
+            if 'page' in locals():
+                page.close()
+            if 'context' in locals():
+                context.close()
 
 if __name__ == "__main__":
-    hunt_amazon_deals()
+    parser = argparse.ArgumentParser(description='Hunt Amazon Deals')
+    parser.add_argument('--mode', type=str, default='ingestion', choices=['ingestion', 'sitestripe_automation'], help='The extraction mode to queue the deals for')
+    args = parser.parse_args()
+    
+    hunt_amazon_deals(args.mode)

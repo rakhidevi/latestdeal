@@ -18,8 +18,13 @@ use App\Http\Controllers\Api\MetricsController;
 */
 
 // Deal Ingestion Engine (Called by local Python Worker)
-Route::post('/deals/ingest', [DealIngestionController::class, 'store']);
-Route::post('/deals/{deal}/expire', [DealIngestionController::class, 'expire']);
+Route::post('/deals/ingest', [\App\Http\Controllers\Api\DealIngestionController::class, 'store']);
+Route::get('/deals/active', [\App\Http\Controllers\Api\DealIngestionController::class, 'activeDeals']);
+Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionController::class, 'expire']);
+
+// Scraper Job Tracking
+Route::post('/scraper/jobs', [\App\Http\Controllers\Api\ScraperJobController::class, 'store']);
+Route::put('/scraper/jobs/{job}', [\App\Http\Controllers\Api\ScraperJobController::class, 'update']);
 
 // Shopper AI Engine
 Route::post('/assistant/chat', [\App\Http\Controllers\Api\ShopperAssistantController::class, 'chat']);

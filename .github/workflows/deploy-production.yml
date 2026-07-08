@@ -29,21 +29,21 @@ jobs:
           cd backend
           composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-      - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_PRODUCTION_USERNAME }}
-          password: ${{ secrets.FTP_PRODUCTION_PASSWORD }}
-          # Deploying only the backend code to the FTP server. 
-          # Modify this if you need to deploy the worker or extension as well.
-          local-dir: ./backend/
-          # Change server-dir if your production folder is different (e.g. /public_html/)
-          server-dir: /
-          timeout: 1800000
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/tests/**
-            .github/**
+      - name: Zip Application
+        run: |
+          cd backend
+          zip -rq ../deploy.zip . -x "**/.git*" "**/node_modules/**" "**/tests/**" "*.log"
+          cd ..
+          
+      - name: Upload to FTP
+        run: |
+          # Upload deploy.zip to the root folder
+          curl -T deploy.zip ftp://${{ secrets.FTP_SERVER }}/ --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+          
+          # Upload unzip.php to the public folder so it can be hit via web
+          curl -T backend/public/unzip.php ftp://${{ secrets.FTP_SERVER }}/public/unzip.php --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+
+      - name: Trigger Extraction
+        run: |
+          echo "Triggering extraction on the server..."
+          curl -s https://latestdeal.in/unzip.php

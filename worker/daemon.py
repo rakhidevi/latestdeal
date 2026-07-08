@@ -49,9 +49,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             try:
                 data = json.loads(post_data.decode('utf-8'))
                 url = data.get('url')
+                job_type = data.get('type', 'ingestion')
                 if url:
                     from database import add_to_queue
-                    add_to_queue(url)
+                    add_to_queue(url, job_type)
                     msg = "URL added to queue"
                 else:
                     msg = "Missing URL"
