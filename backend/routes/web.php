@@ -76,7 +76,7 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
             });
         }
 
-        if ($request->has('category') && $request->category) {
+        if ($request->has('category') && $request->category && $request->category !== 'all') {
             $query->whereHas('category', function($q) use ($request) {
                 $q->where('slug', $request->category);
             });
@@ -86,7 +86,19 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
             $query->where('brand', $request->brand);
         }
 
-        $deals = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        if ($request->has('merchant') && $request->merchant) {
+            $query->whereHas('merchant', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->merchant . '%');
+            });
+        }
+
+        if ($request->has('sort') && $request->sort === 'discount') {
+            $query->orderByRaw('(original_price - discounted_price) DESC');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $deals = $query->paginate(15)->withQueryString();
         
         // For the Sidebar
         $categories = \App\Models\Category::has('deals')->get();

@@ -91,9 +91,9 @@
       </div>
       <div class="mx-auto hidden max-w-7xl items-center gap-6 px-4 pb-3 text-sm font-medium text-gray-600 md:flex md:px-6 dark:text-slate-300">
         <a href="/" class="transition hover:text-red-600">Home</a>
-        <a href="/?tag=today" class="transition hover:text-red-600">Today Deals</a>
+        <a href="/" class="transition hover:text-red-600">Today Deals</a>
         <a href="/?sort=discount" class="transition hover:text-red-600">Top Discounts</a>
-        <a href="/?brand=amazon" class="transition hover:text-red-600">Amazon Deals</a>
+        <a href="/?merchant=amazon" class="transition hover:text-red-600">Amazon Deals</a>
         <a href="/?category=electronics" class="transition hover:text-red-600">Electronics</a>
         <a href="/?category=fashion" class="transition hover:text-red-600">Fashion</a>
       </div>

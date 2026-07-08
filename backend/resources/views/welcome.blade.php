@@ -64,15 +64,9 @@
   <div class="surface">
     <h2 class="text-lg font-bold">Top Categories</h2>
     <div class="mt-3 flex flex-wrap gap-2 text-sm">
-        @foreach([
-            ['Electronics', 'electronics'],
-            ['Mobiles', 'mobiles'],
-            ['Laptops', 'laptops'],
-            ['TV', 'tv'],
-            ['Audio', 'audio']
-        ] as $cat)
-        <a href="/?category={{ $cat[1] }}" class="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-red-700">
-            {{ $cat[0] }}
+        @foreach($categories as $cat)
+        <a href="/?category={{ $cat->slug }}" class="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-red-700 transition hover:bg-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+            {{ $cat->name }}
         </a>
         @endforeach
     </div>
