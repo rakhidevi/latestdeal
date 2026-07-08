@@ -39,6 +39,19 @@ class AdminController
             ->limit(10)
             ->get();
 
+        $categoryStats = DB::table('clicks')
+            ->join('deals', 'clicks.deal_id', '=', 'deals.id')
+            ->join('categories', 'deals.category_id', '=', 'categories.id')
+            ->select(
+                'categories.name', 
+                'categories.commission_rate', 
+                DB::raw('count(clicks.id) as click_count'),
+                DB::raw('SUM(deals.discounted_price * (categories.commission_rate / 100) * 0.03) as estimated_revenue')
+            )
+            ->groupBy('categories.id', 'categories.name', 'categories.commission_rate')
+            ->orderByDesc('click_count')
+            ->get();
+
         // Task 4: Scraper Monitoring
         $scraperStats = [
             'ingested_1h' => Deal::where('created_at', '>=', now()->subHour())->count(),
@@ -50,7 +63,7 @@ class AdminController
                 ->get()
         ];
 
-        return view('admin.dashboard', compact('queueCount', 'failedJobs', 'metrics', 'clickStats', 'topProducts', 'scraperStats', 'pipelineEnabled'));
+        return view('admin.dashboard', compact('queueCount', 'failedJobs', 'metrics', 'clickStats', 'categoryStats', 'topProducts', 'scraperStats', 'pipelineEnabled'));
     }
 
     public function actions()
@@ -65,6 +78,27 @@ class AdminController
         ];
 
         return view('admin.actions', compact('jobs', 'metrics'));
+    }
+
+    public function runAction(Request $request)
+    {
+        $request->validate([
+            'command' => 'required|string|in:cache:clear,config:clear,view:clear,optimize:clear,queue:flush,migrate'
+        ]);
+
+        try {
+            if ($request->command === 'migrate') {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            } else {
+                \Illuminate\Support\Facades\Artisan::call($request->command);
+            }
+            
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            
+            return back()->with('success', "Command executed successfully: {$request->command}")->with('action_output', $output);
+        } catch (\Exception $e) {
+            return back()->with('error', "Failed to execute command: {$e->getMessage()}");
+        }
     }
 
     public function toggleSetting(Request $request)

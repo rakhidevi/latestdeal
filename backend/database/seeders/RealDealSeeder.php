@@ -7,6 +7,8 @@ use App\Models\Deal;
 use App\Models\Merchant;
 use App\Models\Tag;
 use App\Models\PriceHistory;
+use App\Models\Category;
+use Illuminate\Support\Str;
 
 class RealDealSeeder extends Seeder
 {
@@ -66,6 +68,54 @@ class RealDealSeeder extends Seeder
                 'promo' => null
             ]
         ];
+
+        $categoriesData = [
+            ['name' => 'Apparel & Accessories', 'commission_rate' => 10.0],
+            ['name' => 'Shoes', 'commission_rate' => 10.0],
+            ['name' => 'Luggage & Bags', 'commission_rate' => 10.0],
+            ['name' => 'Watches', 'commission_rate' => 10.0],
+            ['name' => 'Beauty', 'commission_rate' => 10.0],
+            ['name' => 'Kitchen', 'commission_rate' => 5.0],
+            ['name' => 'Furniture', 'commission_rate' => 5.0],
+            ['name' => 'Home', 'commission_rate' => 5.0],
+            ['name' => 'Grocery', 'commission_rate' => 4.7],
+            ['name' => 'Amazon Fresh', 'commission_rate' => 4.7],
+            ['name' => 'Health and Personal Care', 'commission_rate' => 4.7],
+            ['name' => 'Echo & Alexa Devices', 'commission_rate' => 5.0],
+            ['name' => 'Fire TV Devices', 'commission_rate' => 5.0],
+            ['name' => 'Pet Products', 'commission_rate' => 4.7],
+            ['name' => 'Mobile Accessories', 'commission_rate' => 4.0],
+            ['name' => 'Books', 'commission_rate' => 5.9],
+            ['name' => 'Toys', 'commission_rate' => 5.9],
+            ['name' => 'Personal Care Appliances', 'commission_rate' => 5.9],
+            ['name' => 'Baby Products', 'commission_rate' => 5.9],
+            ['name' => 'Automotive', 'commission_rate' => 5.9],
+            ['name' => 'Sports', 'commission_rate' => 5.9],
+            ['name' => 'BISS', 'commission_rate' => 3.5],
+            ['name' => 'Lawn & Garden', 'commission_rate' => 3.5],
+            ['name' => 'Video Games', 'commission_rate' => 3.5],
+            ['name' => 'Large Appliances', 'commission_rate' => 3.5],
+            ['name' => 'Televisions', 'commission_rate' => 3.5],
+            ['name' => 'Personal Computers', 'commission_rate' => 3.5],
+            ['name' => 'Smart Watches', 'commission_rate' => 3.5],
+            ['name' => 'Electronics', 'commission_rate' => 3.5],
+            ['name' => 'Bicycles & Heavy Gym Equipment', 'commission_rate' => 2.5],
+            ['name' => 'Tyres & Rims', 'commission_rate' => 2.5],
+            ['name' => 'Data Storage Devices', 'commission_rate' => 2.0],
+            ['name' => 'Mobile Phones', 'commission_rate' => 1.0],
+            ['name' => 'Bill Payment & Recharges', 'commission_rate' => 0.0], // Flat max up to INR 3, handling this as 0% for now or special logic later
+            ['name' => 'All Other Categories', 'commission_rate' => 5.0],
+        ];
+
+        foreach ($categoriesData as $cat) {
+            Category::updateOrCreate(
+                ['slug' => Str::slug($cat['name'])],
+                [
+                    'name' => $cat['name'],
+                    'commission_rate' => $cat['commission_rate']
+                ]
+            );
+        }
 
         foreach ($dealsData as $data) {
             $tags = $data['tags'];

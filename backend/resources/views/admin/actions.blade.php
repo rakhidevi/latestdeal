@@ -114,6 +114,136 @@
                 </div>
             </div>
 
+            <!-- System Actions -->
+            <div class="border border-[#30363d] rounded-md bg-[#0d1117] mb-6">
+                <div class="bg-[#161b22] px-4 py-3 border-b border-[#30363d] rounded-t-md">
+                    <span class="text-sm font-semibold text-white">System Actions</span>
+                </div>
+                <div class="p-6">
+                    @if(session('action_output'))
+                        <div class="mb-4 bg-green-900/30 border border-green-500/50 p-4 rounded-md">
+                            <h4 class="text-green-400 font-bold mb-2">Success Output:</h4>
+                            <pre class="text-green-300 font-mono text-xs overflow-x-auto">{{ session('action_output') }}</pre>
+                        </div>
+                    @endif
+                    @if(session('error'))
+                        <div class="mb-4 bg-red-900/30 border border-red-500/50 p-4 rounded-md">
+                            <h4 class="text-red-400 font-bold mb-2">Error:</h4>
+                            <pre class="text-red-300 font-mono text-xs overflow-x-auto">{{ session('error') }}</pre>
+                        </div>
+                    @endif
+                    <div class="overflow-x-auto border border-[#30363d] rounded-md">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-[#8b949e] uppercase bg-[#161b22] border-b border-[#30363d]">
+                                <tr>
+                                    <th class="px-4 py-3">Action</th>
+                                    <th class="px-4 py-3">Command Executed</th>
+                                    <th class="px-4 py-3 text-right">Execute</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-[#30363d]">
+                                <tr class="hover:bg-[#161b22] transition-colors">
+                                    <td class="px-4 py-4 font-semibold text-white">Clear Application Cache</td>
+                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan cache:clear</td>
+                                    <td class="px-4 py-4 text-right">
+                                        <form method="POST" action="{{ route('admin.actions.run') }}">
+                                            @csrf
+                                            <input type="hidden" name="command" value="cache:clear">
+                                            <button type="submit" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-[#161b22] transition-colors">
+                                    <td class="px-4 py-4 font-semibold text-white">Clear Config Cache</td>
+                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan config:clear</td>
+                                    <td class="px-4 py-4 text-right">
+                                        <form method="POST" action="{{ route('admin.actions.run') }}">
+                                            @csrf
+                                            <input type="hidden" name="command" value="config:clear">
+                                            <button type="submit" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-[#161b22] transition-colors">
+                                    <td class="px-4 py-4 font-semibold text-white">Clear View Cache</td>
+                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan view:clear</td>
+                                    <td class="px-4 py-4 text-right">
+                                        <form method="POST" action="{{ route('admin.actions.run') }}">
+                                            @csrf
+                                            <input type="hidden" name="command" value="view:clear">
+                                            <button type="submit" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-[#161b22] transition-colors">
+                                    <td class="px-4 py-4 font-semibold text-white">Optimize Platform (Cache All)</td>
+                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan optimize:clear</td>
+                                    <td class="px-4 py-4 text-right">
+                                        <form method="POST" action="{{ route('admin.actions.run') }}">
+                                            @csrf
+                                            <input type="hidden" name="command" value="optimize:clear">
+                                            <button type="submit" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-[#161b22] transition-colors">
+                                    <td class="px-4 py-4 font-semibold text-white">Flush Failed Jobs</td>
+                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan queue:flush</td>
+                                    <td class="px-4 py-4 text-right">
+                                        <form method="POST" action="{{ route('admin.actions.run') }}">
+                                            @csrf
+                                            <input type="hidden" name="command" value="queue:flush">
+                                            <button type="submit" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-[#161b22] transition-colors">
+                                    <td class="px-4 py-4 font-semibold text-white">Run Database Migrations</td>
+                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan migrate --force</td>
+                                    <td class="px-4 py-4 text-right">
+                                        <form method="POST" action="{{ route('admin.actions.run') }}" onsubmit="return confirm('Are you sure you want to run migrations on the live database?');">
+                                            @csrf
+                                            <input type="hidden" name="command" value="migrate">
+                                            <button type="submit" class="bg-[#da3633] hover:bg-[#f85149] border border-[rgba(240,246,252,0.1)] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Documentation -->
+                    <div class="mt-8 pt-6 border-t border-[#30363d]">
+                        <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-[#58a6ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            System Actions Documentation
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-[#8b949e]">
+                            <div>
+                                <h4 class="text-[#c9d1d9] font-medium mb-1">Clear Application Cache</h4>
+                                <p class="mb-4 leading-relaxed">Flushes the Redis/File cache. Use this if the homepage deals list or metrics seem stuck or are not updating after running the scraper.</p>
+                                
+                                <h4 class="text-[#c9d1d9] font-medium mb-1">Clear Config Cache</h4>
+                                <p class="mb-4 leading-relaxed">Flushes the cached configuration. If you edit your <code class="bg-[#161b22] px-1 py-0.5 rounded border border-[#30363d] font-mono text-xs">.env</code> file (e.g. adding AdSense keys, changing database creds), you MUST run this action to apply the changes.</p>
+                                
+                                <h4 class="text-[#c9d1d9] font-medium mb-1">Clear View Cache</h4>
+                                <p class="leading-relaxed">Flushes compiled Blade templates. Use this if you make modifications to the UI files and the changes are not showing up on the frontend.</p>
+                            </div>
+                            <div>
+                                <h4 class="text-[#c9d1d9] font-medium mb-1">Optimize Platform</h4>
+                                <p class="mb-4 leading-relaxed">A macro command that runs all clearing commands simultaneously. The safest general-purpose reset command when things behave unexpectedly.</p>
+                                
+                                <h4 class="text-[#c9d1d9] font-medium mb-1">Flush Failed Jobs</h4>
+                                <p class="mb-4 leading-relaxed">Cleans up the database table of failed queue jobs. Useful for database maintenance if the background worker encounters frequent timeouts.</p>
+                                
+                                <h4 class="text-[#c9d1d9] font-medium mb-1">Run Database Migrations</h4>
+                                <p class="leading-relaxed">Executes pending schema changes. Only run this after deploying an update to the server that introduces new database columns or tables.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- List Box -->
             <div class="border border-[#30363d] rounded-md bg-[#0d1117]">
                 

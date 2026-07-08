@@ -93,6 +93,19 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
             });
         }
 
+        if ($request->filled('min_price') && is_numeric($request->min_price)) {
+            $query->where('discounted_price', '>=', $request->min_price);
+        }
+
+        if ($request->filled('max_price') && is_numeric($request->max_price)) {
+            $query->where('discounted_price', '<=', $request->max_price);
+        }
+
+        if ($request->filled('min_discount') && is_numeric($request->min_discount)) {
+            $query->where('original_price', '>', 0)
+                  ->whereRaw('((original_price - discounted_price) * 100.0 / original_price) >= ?', [$request->min_discount]);
+        }
+
         if ($request->has('sort') && $request->sort === 'discount') {
             $query->orderByRaw('(original_price - discounted_price) DESC');
         } else {
@@ -253,6 +266,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/actions', [\App\Http\Controllers\AdminController::class, 'actions'])->name('admin.actions');
+    Route::post('/actions/run', [\App\Http\Controllers\AdminController::class, 'runAction'])->name('admin.actions.run');
     Route::post('/settings/toggle', [\App\Http\Controllers\AdminController::class, 'toggleSetting'])->name('admin.settings.toggle');
     Route::get('/deals', [\App\Http\Controllers\AdminController::class, 'deals'])->name('admin.deals');
     Route::put('/deals/{deal}/status', [\App\Http\Controllers\AdminController::class, 'updateDealStatus'])->name('admin.deals.status');

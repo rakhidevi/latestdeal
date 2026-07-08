@@ -187,6 +187,8 @@
             </div>        
         </div>
     </div>
+    
+    <x-ad-banner slot="deal-middle" />
 
     <!-- Price History Chart -->
     @if($priceHistory->count() > 1)
@@ -232,5 +234,22 @@
         </script>
     </div>
     @endif
+
+    <!-- Similar Deals Section -->
+    @if(isset($similarDeals) && $similarDeals->count() > 0)
+    <div class="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            Compare Similar Deals
+        </h3>
+        <div class="grid gap-4 grid-cols-2 md:grid-cols-4">
+            @foreach($similarDeals as $similarDeal)
+                <x-deal-card :deal="$similarDeal" />
+            @endforeach
+        </div>
+    </div>
+    @endif
+    
+    <x-ad-banner slot="deal-bottom" />
 </div>
 @endsection

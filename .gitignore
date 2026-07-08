@@ -25,3 +25,6 @@
 # OS Files
 .DS_Store
 Thumbs.db
+
+/worker/browser_profile/
+

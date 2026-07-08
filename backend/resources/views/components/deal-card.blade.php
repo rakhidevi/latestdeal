@@ -48,7 +48,7 @@
         @endif
       </div>
       <div class="flex gap-1.5">
-        <a href="{{ route('deal.show', $deal->id) }}" class="rounded-lg border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-700">Details</a>
+        <a href="{{ route('deal.show', $deal->id) }}" class="rounded-lg border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 dark:border-slate-700 dark:bg-slate-800 dark:text-red-400 dark:hover:bg-slate-700 transition">Details</a>
         <a href="{{ route('deal.redirect', $deal->id) }}" target="_blank" rel="noreferrer" class="rounded-lg bg-red-500 px-2 py-1 text-[11px] font-semibold text-white transition hover:bg-red-600">
           Visit
         </a>

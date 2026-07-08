@@ -1,3 +1,5 @@
-2026/07/08-11:52:39.247 959c Reusing MANIFEST K:\WhatsAppUtility\LatestDeal\worker\browser_profile\Default\Local Storage\leveldb/MANIFEST-000001
-2026/07/08-11:52:39.261 959c Recovering log #86
-2026/07/08-11:52:39.266 959c Reusing old log K:\WhatsAppUtility\LatestDeal\worker\browser_profile\Default\Local Storage\leveldb/000086.log 
+2026/07/08-20:01:23.115 98dc Reusing MANIFEST K:\WhatsAppUtility\LatestDeal\worker\browser_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/07/08-20:01:23.123 98dc Recovering log #23
+2026/07/08-20:01:23.125 98dc Level-0 table #26: started
+2026/07/08-20:01:23.138 98dc Level-0 table #26: 179389 bytes OK
+2026/07/08-20:01:23.145 98dc Delete type=0 #23

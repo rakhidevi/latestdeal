@@ -3,22 +3,37 @@
 @section('content')
 <section class="space-y-6">
   <div class="panel overflow-hidden bg-gradient-to-br from-red-500 via-rose-500 to-red-400 p-0 text-white">
-    <div class="grid gap-6 p-6 md:grid-cols-2 md:p-8">
+    <div class="grid gap-6 p-5 sm:p-6 md:grid-cols-2 md:p-8">
       <div>
-        <h1 class="text-3xl font-extrabold leading-tight">
+        <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight">
           Find real global deals in seconds
         </h1>
-        <p class="mt-2 text-sm text-red-50">
+        <p class="mt-1 sm:mt-2 text-xs sm:text-sm text-red-50 hidden sm:block">
           AI-scored discounts from global marketplaces.
         </p>
-        <form action="/" method="GET" class="mt-5 flex gap-2">
-          <input
-            name="q"
-            value="{{ request('q') }}"
-            placeholder="Search products, brands, categories"
-            class="input-base border-0 text-gray-900"
-          />
-          <button class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white">Search</button>
+        <form action="/" method="GET" class="mt-4 sm:mt-5 space-y-3">
+          <div class="flex gap-2">
+            <input
+              name="q"
+              value="{{ request('q') }}"
+              placeholder="Search products, brands, categories"
+              class="input-base border-0 text-gray-900 flex-1"
+            />
+            <button class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800">Search</button>
+          </div>
+          <div class="flex flex-wrap gap-2 items-center">
+            <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-24 placeholder-gray-500" />
+            <span class="text-white/80">-</span>
+            <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-24 placeholder-gray-500" />
+            
+            <select name="min_discount" onchange="this.form.submit()" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-36">
+                <option value="">Any Discount</option>
+                <option value="10" {{ request('min_discount') == '10' ? 'selected' : '' }}>10%+ Off</option>
+                <option value="25" {{ request('min_discount') == '25' ? 'selected' : '' }}>25%+ Off</option>
+                <option value="50" {{ request('min_discount') == '50' ? 'selected' : '' }}>50%+ Off</option>
+                <option value="75" {{ request('min_discount') == '75' ? 'selected' : '' }}>75%+ Off</option>
+            </select>
+          </div>
         </form>
         <div class="mt-4 flex flex-wrap gap-2 text-xs text-red-100">
             @foreach(['Laptops under ₹60k', 'Smartphones', 'Kitchen offers', 'Monitors', 'Headphones'] as $chip)
@@ -28,7 +43,7 @@
             @endforeach
         </div>
       </div>
-      <div class="space-y-4">
+      <div class="space-y-4 hidden md:block">
         <!-- KPI Strip Equivalent -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div class="rounded-xl bg-white/10 p-3 text-center backdrop-blur">
@@ -72,6 +87,8 @@
     </div>
   </div>
 
+  <x-ad-banner slot="home-top" />
+
   <div class="space-y-4">
     <div class="flex items-center justify-between mb-4">
         <div>
@@ -101,6 +118,8 @@
       <div class="mt-12 flex justify-center">
         {{ $deals->links() }}
       </div>
+      
+      <x-ad-banner slot="home-bottom" />
     @endif
   </div>
 </section>

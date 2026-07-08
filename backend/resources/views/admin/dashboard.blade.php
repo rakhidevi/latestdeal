@@ -163,6 +163,46 @@
             @endforelse
         </div>
     </div>
+
+    <!-- Monetization Stats -->
+    <div class="glass-panel rounded-3xl p-8 shadow-lg lg:col-span-3">
+        <div class="flex items-center justify-between mb-6 border-b border-slate-200 pb-4">
+            <div>
+                <h3 class="text-xl font-bold text-slate-800">Category Monetization & Clicks</h3>
+                <p class="text-sm text-slate-500 mt-1">Potential earnings tracking based on a 3% conversion rate (For Admin Only)</p>
+            </div>
+            <i data-lucide="indian-rupee" class="w-8 h-8 text-slate-300"></i>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-xs">
+                    <tr>
+                        <th class="px-4 py-3 rounded-l-lg">Category</th>
+                        <th class="px-4 py-3 text-right">Commission Rate</th>
+                        <th class="px-4 py-3 text-right">Clicks</th>
+                        <th class="px-4 py-3 text-right rounded-r-lg">Estimated Revenue</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($categoryStats as $stat)
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-4 py-4 font-semibold text-slate-800">{{ $stat->name }}</td>
+                            <td class="px-4 py-4 text-right">
+                                <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md text-xs font-bold">{{ $stat->commission_rate }}%</span>
+                            </td>
+                            <td class="px-4 py-4 text-right font-black text-slate-700">{{ $stat->click_count }}</td>
+                            <td class="px-4 py-4 text-right font-black text-emerald-600">₹{{ number_format($stat->estimated_revenue, 2) }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="px-4 py-8 text-center text-slate-500 italic">No category clicks recorded yet.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
