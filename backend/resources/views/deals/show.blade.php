@@ -170,7 +170,9 @@
                     </button>
                     <script>
                         function copyCaption() {
-                            const caption = `{!! addslashes(str_replace("\n", "\\n", $deal->ai_caption)) !!}`;
+                            let caption = @js($deal->ai_caption);
+                            // Ensure literal \n strings from the LLM are converted to actual newlines
+                            caption = caption.replace(/\\n/g, '\n');
                             navigator.clipboard.writeText(caption);
                             alert("Social media caption copied to clipboard!");
                         }
