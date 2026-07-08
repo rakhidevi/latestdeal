@@ -1,15 +1,27 @@
 @extends('layouts.app')
 
 @section('meta')
-    <title>{{ $deal->title }} - Latest Deals</title>
+    @php
+        $discountPercent = 0;
+        if ($deal->original_price > 0 && $deal->original_price > $deal->discounted_price) {
+            $discountPercent = round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100);
+        }
+    @endphp
+    <title>{{ $deal->title }} | {{ $discountPercent > 0 ? "Save {$discountPercent}%" : 'Best Price' }} | LatestDeal.in</title>
     <meta name="description" content="Get {{ $deal->title }} for just ₹{{ $deal->discounted_price }}. Original price: ₹{{ $deal->original_price }}.">
     
     <!-- Open Graph for WhatsApp/Telegram Previews -->
-    <meta property="og:title" content="{{ $deal->title }}">
+    <meta property="og:title" content="{{ $deal->title }} | Save {{ $discountPercent }}%">
     <meta property="og:description" content="Get it for just ₹{{ $deal->discounted_price }}! Regular Price: ₹{{ $deal->original_price }}.">
-    <meta property="og:image" content="{{ asset($deal->image_path) }}">
+    <meta property="og:image" content="{{ filter_var($deal->image_path, FILTER_VALIDATE_URL) ? $deal->image_path : asset($deal->image_path) }}">
     <meta property="og:url" content="{{ route('deal.show', $deal->id) }}">
     <meta property="og:type" content="product">
+    
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $deal->title }} | Save {{ $discountPercent }}%">
+    <meta name="twitter:description" content="Get it for just ₹{{ $deal->discounted_price }}!">
+    <meta name="twitter:image" content="{{ filter_var($deal->image_path, FILTER_VALIDATE_URL) ? $deal->image_path : asset($deal->image_path) }}">
     
     <script type="application/ld+json">
     {
