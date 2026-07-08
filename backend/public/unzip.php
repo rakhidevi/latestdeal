@@ -16,11 +16,19 @@ exec("unzip -o " . escapeshellarg($zipFile) . " -d " . escapeshellarg($extractPa
 file_put_contents(__DIR__ . '/unzip_log.txt', "Return var: $return_var\nOutput:\n" . implode("\n", $output));
 
 if ($return_var === 0) {
+    // Run Laravel commands
+    $artisan = __DIR__ . '/../artisan';
+    if (file_exists($artisan)) {
+        exec("php " . escapeshellarg($artisan) . " view:clear", $output);
+        exec("php " . escapeshellarg($artisan) . " cache:clear", $output);
+        exec("php " . escapeshellarg($artisan) . " migrate --force", $output);
+    }
+    
     // Self-destruct and cleanup
     @unlink($zipFile);
     @unlink(__FILE__);
     
-    echo "Extraction successful using system unzip. Cleanup complete.";
+    echo "Extraction successful using system unzip. Migrations and cache clear executed. Cleanup complete.";
 } else {
     // Fallback to PHP ZipArchive if unzip binary is not available
     $zip = new ZipArchive;
@@ -31,7 +39,15 @@ if ($return_var === 0) {
         @unlink($zipFile);
         @unlink(__FILE__);
         
-        echo "Extraction successful using ZipArchive. Cleanup complete.";
+        // Run Laravel commands
+        $artisan = __DIR__ . '/../artisan';
+        if (file_exists($artisan)) {
+            exec("php " . escapeshellarg($artisan) . " view:clear", $output);
+            exec("php " . escapeshellarg($artisan) . " cache:clear", $output);
+            exec("php " . escapeshellarg($artisan) . " migrate --force", $output);
+        }
+        
+        echo "Extraction successful using ZipArchive. Migrations and cache clear executed. Cleanup complete.";
     } else {
         echo "Error: Failed to open deploy.zip";
     }
