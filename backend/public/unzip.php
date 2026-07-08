@@ -11,7 +11,9 @@ if (!file_exists($zipFile)) {
 // Fast extraction using system unzip
 $output = [];
 $return_var = 0;
-exec("unzip -o " . escapeshellarg($zipFile) . " -d " . escapeshellarg($extractPath), $output, $return_var);
+exec("unzip -o " . escapeshellarg($zipFile) . " -d " . escapeshellarg($extractPath) . " 2>&1", $output, $return_var);
+
+file_put_contents(__DIR__ . '/unzip_log.txt', "Return var: $return_var\nOutput:\n" . implode("\n", $output));
 
 if ($return_var === 0) {
     // Self-destruct and cleanup
