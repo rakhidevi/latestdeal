@@ -122,6 +122,15 @@ Route::get('/', function (\Illuminate\Http\Request $request) {
         return compact('deals', 'categories', 'brands', 'tags');
     });
 
+    if ($request->ajax()) {
+        $html = view('partials.deals_grid', ['deals' => $payload['deals']])->render();
+        return response()->json([
+            'html' => $html,
+            'next_page' => $payload['deals']->nextPageUrl(),
+            'has_more' => $payload['deals']->hasMorePages()
+        ]);
+    }
+
     return view('welcome', $payload);
 });
 

@@ -37,7 +37,7 @@
         <p class="mt-1 sm:mt-2 text-xs sm:text-sm text-red-50 hidden sm:block">
           AI-scored discounts from global marketplaces.
         </p>
-        <form action="/" method="GET" class="mt-4 sm:mt-5 space-y-3 w-full">
+        <form action="/" method="GET" class="mt-4 sm:mt-5 space-y-3 w-full" id="filter-form">
           <div class="flex gap-2 w-full">
             <input
               name="q"
@@ -130,24 +130,108 @@
         </div>
     </div>
 
-    @if($deals->isEmpty())
-      <div class="rounded-2xl border border-dashed border-gray-300 p-12 text-center dark:border-slate-700">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">No deals available yet</h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">Scraper is running. Fresh deals will appear shortly.</p>
-      </div>
-    @else
-      <div class="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-        @foreach($deals as $deal)
-          <x-deal-card :deal="$deal" />
-        @endforeach
+      <div class="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5" id="deals-grid">
+        @include('partials.deals_grid')
       </div>
       
-      <div class="mt-12 flex justify-center">
-        {{ $deals->links() }}
+      <div class="mt-12 flex justify-center hidden" id="loading-spinner">
+        <svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+      </div>
+
+      <div class="mt-8 flex justify-center" id="pagination-container">
+        @if($deals->hasMorePages())
+          <button id="load-more-btn" data-url="{{ $deals->nextPageUrl() }}" class="rounded-lg bg-white border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700">Load More</button>
+        @endif
       </div>
       
       <x-ad-banner slot="home-bottom" />
     @endif
+    @endif
   </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.getElementById('filter-form');
+    const dealsGrid = document.getElementById('deals-grid');
+    const spinner = document.getElementById('loading-spinner');
+    const paginationContainer = document.getElementById('pagination-container');
+    
+    function fetchDeals(url, append = false) {
+        if (!append) {
+            dealsGrid.style.opacity = '0.5';
+        }
+        spinner.classList.remove('hidden');
+        if (append && document.getElementById('load-more-btn')) {
+            document.getElementById('load-more-btn').classList.add('hidden');
+        }
+
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (append) {
+                dealsGrid.insertAdjacentHTML('beforeend', data.html);
+            } else {
+                dealsGrid.innerHTML = data.html;
+                dealsGrid.style.opacity = '1';
+                
+                // Update URL without reloading
+                window.history.pushState({}, '', url);
+            }
+
+            // Update Pagination Button
+            if (data.has_more && data.next_page) {
+                paginationContainer.innerHTML = `<button id="load-more-btn" data-url="${data.next_page}" class="rounded-lg bg-white border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700">Load More</button>`;
+                bindLoadMore();
+            } else {
+                paginationContainer.innerHTML = '';
+            }
+        })
+        .finally(() => {
+            spinner.classList.add('hidden');
+        });
+    }
+
+    // Handle Form Submit (Filters)
+    if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(filterForm);
+            const params = new URLSearchParams(formData);
+            
+            // Handle select specifically if needed, but FormData should catch it
+            const url = '/?' + params.toString();
+            fetchDeals(url, false);
+        });
+
+        // Also trigger on select change
+        const selects = filterForm.querySelectorAll('select');
+        selects.forEach(select => {
+            select.addEventListener('change', () => {
+                filterForm.dispatchEvent(new Event('submit'));
+            });
+        });
+    }
+
+    // Handle Load More
+    function bindLoadMore() {
+        const btn = document.getElementById('load-more-btn');
+        if (btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('data-url');
+                if (url) {
+                    fetchDeals(url, true);
+                }
+            });
+        }
+    }
+    bindLoadMore();
+});
+</script>
 @endsection
