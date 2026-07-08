@@ -28,7 +28,7 @@
 
 @section('content')
 <section class="space-y-6">
-  <div class="panel overflow-hidden bg-gradient-to-br from-red-500 via-rose-500 to-red-400 p-0 text-white">
+  <div class="panel overflow-hidden bg-gradient-to-br from-red-500 via-rose-500 to-red-400 p-0 text-white hidden md:block">
     <div class="grid gap-6 p-4 sm:p-6 md:grid-cols-2 md:p-8">
       <div class="min-w-0"> <!-- Added min-w-0 to prevent grid blowout -->
         <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight break-words">
