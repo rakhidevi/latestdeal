@@ -195,3 +195,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/social-accounts', [\App\Http\Controllers\AdminController::class, 'socialAccounts'])->name('admin.social-accounts');
     Route::post('/social-accounts', [\App\Http\Controllers\AdminController::class, 'storeSocialAccount'])->name('admin.social-accounts.store');
 });
+
+// Setup Route for initializing SQLite Database on Server
+Route::get('/setup-db', function () {
+    $dbPath = database_path('database.sqlite');
+    if (!file_exists($dbPath)) {
+        touch($dbPath);
+    }
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return 'Database initialized and migrated successfully!';
+});
