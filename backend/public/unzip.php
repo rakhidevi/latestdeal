@@ -1,4 +1,16 @@
 <?php
+
+if (isset($_GET['migrate'])) {
+    $artisan = __DIR__ . '/../artisan';
+    if (file_exists($artisan)) {
+        exec(PHP_BINARY . " " . escapeshellarg($artisan) . " migrate --force", $output);
+        echo "Migrations executed: " . implode("\n", $output);
+    } else {
+        echo "Artisan not found!";
+    }
+    exit;
+}
+
 // Simple script to extract deploy.zip and self-destruct
 
 $zipFile = __DIR__ . '/../deploy.zip';
@@ -19,6 +31,7 @@ if ($return_var === 0) {
     // Run Laravel commands
     $artisan = __DIR__ . '/../artisan';
     if (file_exists($artisan)) {
+        exec(PHP_BINARY . " " . escapeshellarg($artisan) . " optimize:clear", $output);
         exec(PHP_BINARY . " " . escapeshellarg($artisan) . " view:clear", $output);
         exec(PHP_BINARY . " " . escapeshellarg($artisan) . " cache:clear", $output);
         exec(PHP_BINARY . " " . escapeshellarg($artisan) . " migrate --force", $output);
@@ -42,6 +55,7 @@ if ($return_var === 0) {
         // Run Laravel commands using the correct PHP binary
         $artisan = __DIR__ . '/../artisan';
         if (file_exists($artisan)) {
+            exec(PHP_BINARY . " " . escapeshellarg($artisan) . " optimize:clear", $output);
             exec(PHP_BINARY . " " . escapeshellarg($artisan) . " view:clear", $output);
             exec(PHP_BINARY . " " . escapeshellarg($artisan) . " cache:clear", $output);
             exec(PHP_BINARY . " " . escapeshellarg($artisan) . " migrate --force", $output);
