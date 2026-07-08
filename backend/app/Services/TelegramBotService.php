@@ -42,24 +42,35 @@ class TelegramBotService
 
         // 2. Format the message similar to WhatsApp style
         $cleanTitle = str_replace(['*', '_', '`', '['], '', $deal->title);
+        
+        // Calculate discount safely to avoid division by zero
+        $discountPercent = 0;
+        if ($deal->original_price > 0) {
+            $discountPercent = round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100);
+        }
+
         $caption = "🔥 *NEW DEAL ALERT* 🔥\n\n";
         $caption .= "🚨 *" . $cleanTitle . "*\n\n";
-        $caption .= "💰 *Price:* ₹" . $deal->discounted_price . " (was ₹" . $deal->original_price . ")\n\n";
+        
+        if ($discountPercent > 0) {
+            $caption .= "💰 *Price:* ₹" . $deal->discounted_price . " (was ₹" . $deal->original_price . ")  ✅ *" . $discountPercent . "% OFF!*\n\n";
+        } else {
+            $caption .= "💰 *Price:* ₹" . $deal->discounted_price . "\n\n";
+        }
         
         if (!empty($deal->ai_caption)) {
             $cleanAiCaption = str_replace(['*', '_', '`', '['], '', $deal->ai_caption);
-            $caption .= $cleanAiCaption . "\n\n";
+            // Keep AI caption much shorter so it's not a wall of text
+            if (mb_strlen($cleanAiCaption) > 250) {
+                $cleanAiCaption = mb_substr($cleanAiCaption, 0, 247) . '...';
+            }
+            $caption .= "✨ " . $cleanAiCaption . "\n\n";
         } else {
-            $caption .= "✔️ High Quality\n✔️ Limited Time Offer\n\n";
+            $caption .= "✔️ Premium Quality\n✔️ Limited Time Offer\n\n";
         }
         
-        $caption .= "👉 *Buy Here:* " . $trackingUrl . "\n\n";
-        $caption .= "🌐 *View on LatestDeal:*\n" . route('deal.show', $deal->id);
-
-        // Truncate to Telegram's 1024 character limit for media captions
-        if (mb_strlen($caption) > 1024) {
-            $caption = mb_substr($caption, 0, 1020) . '...';
-        }
+        $caption .= "🏃‍♂️ *Hurry! Grab it here:* " . $trackingUrl . "\n\n";
+        $caption .= "🌐 *For all LatestDeal: Visit*\nhttps://latestdeal.in/";
 
         // 3. Send Photo with Caption to Telegram API
         $endpoint = "https://api.telegram.org/bot{$this->botToken}/sendPhoto";
