@@ -52,3 +52,10 @@ Artisan::command('images:prune {--hours=72}', function () {
 })->purpose('Prune old deal images to save disk space');
 
 Schedule::command('images:prune --hours=72')->daily();
+
+// Shared Hosting Queue Worker Workaround
+// Runs the queue worker every minute and stops when empty.
+// This requires the standard cPanel cron (* * * * * php artisan schedule:run) to be active.
+Schedule::command('queue:work --stop-when-empty')
+    ->everyMinute()
+    ->withoutOverlapping();
