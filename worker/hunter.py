@@ -20,9 +20,22 @@ def setup_browser(p):
     )
     return browser
 
-def hunt_amazon_deals(job_type='ingestion'):
+def hunt_amazon_deals(job_type='ingestion', category=None, brand=None, discount=None, keyword=None):
     """Navigates to Amazon Deals and extracts product URLs into the queue."""
-    url = "https://www.amazon.in/deals"
+    search_terms = []
+    if brand: search_terms.append(brand)
+    if category: search_terms.append(category)
+    if keyword: search_terms.append(keyword)
+    if discount: search_terms.append(f"{discount}% off")
+    
+    if not search_terms:
+        url = "https://www.amazon.in/deals"
+    else:
+        import urllib.parse
+        q = urllib.parse.quote(" ".join(search_terms))
+        # p_n_specials_match:21618256031 forces Amazon to only show active deals
+        url = f"https://www.amazon.in/s?k={q}&rh=p_n_specials_match%3A21618256031"
+        
     print(f"Hunting for deals on: {url} (Target Queue: {job_type})")
     
     with sync_playwright() as p:
@@ -92,6 +105,10 @@ def hunt_amazon_deals(job_type='ingestion'):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Hunt Amazon Deals')
     parser.add_argument('--mode', type=str, default='ingestion', choices=['ingestion', 'sitestripe_automation'], help='The extraction mode to queue the deals for')
+    parser.add_argument('--category', type=str, default=None, help='Filter by category')
+    parser.add_argument('--brand', type=str, default=None, help='Filter by brand')
+    parser.add_argument('--discount', type=str, default=None, help='Filter by discount')
+    parser.add_argument('--keyword', type=str, default=None, help='Filter by custom keyword')
     args = parser.parse_args()
     
-    hunt_amazon_deals(args.mode)
+    hunt_amazon_deals(args.mode, args.category, args.brand, args.discount, args.keyword)

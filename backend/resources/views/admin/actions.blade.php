@@ -102,6 +102,99 @@
                         </span>
                     </button>
                 </div>
+
+                <div class="p-3 bg-[#010409] border-b border-[#30363d] flex flex-col gap-3">
+                    <div class="text-xs font-semibold text-[#8b949e] uppercase tracking-wider">Custom Deal Hunter</div>
+                    <div class="flex flex-wrap gap-2">
+                        <select x-model="huntCategory" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-48">
+                            <option value="">All Categories</option>
+                            <option value="Alexa Skills">Alexa Skills</option>
+                            <option value="Amazon Devices">Amazon Devices</option>
+                            <option value="Amazon Fashion">Amazon Fashion</option>
+                            <option value="Amazon Fresh">Amazon Fresh</option>
+                            <option value="Amazon Pharmacy">Amazon Pharmacy</option>
+                            <option value="Appliances">Appliances</option>
+                            <option value="Apps & Games">Apps & Games</option>
+                            <option value="Audible Audiobooks">Audible Audiobooks</option>
+                            <option value="Baby">Baby</option>
+                            <option value="Beauty">Beauty</option>
+                            <option value="Books">Books</option>
+                            <option value="Car & Motorbike">Car & Motorbike</option>
+                            <option value="Clothing & Accessories">Clothing & Accessories</option>
+                            <option value="Collectibles">Collectibles</option>
+                            <option value="Computers & Accessories">Computers & Accessories</option>
+                            <option value="Deals">Deals</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Furniture">Furniture</option>
+                            <option value="Garden & Outdoors">Garden & Outdoors</option>
+                            <option value="Gift Cards">Gift Cards</option>
+                            <option value="Grocery & Gourmet Foods">Grocery & Gourmet Foods</option>
+                            <option value="Health & Personal Care">Health & Personal Care</option>
+                            <option value="Home & Kitchen">Home & Kitchen</option>
+                            <option value="Industrial & Scientific">Industrial & Scientific</option>
+                            <option value="Jewellery">Jewellery</option>
+                            <option value="Kindle Store">Kindle Store</option>
+                            <option value="Luggage & Bags">Luggage & Bags</option>
+                            <option value="Luxury Beauty">Luxury Beauty</option>
+                            <option value="Movies & TV Shows">Movies & TV Shows</option>
+                            <option value="MP3 Music">MP3 Music</option>
+                            <option value="Music">Music</option>
+                            <option value="Musical Instruments">Musical Instruments</option>
+                            <option value="Office Products">Office Products</option>
+                            <option value="Pet Supplies">Pet Supplies</option>
+                            <option value="Prime Video">Prime Video</option>
+                            <option value="Shoes & Handbags">Shoes & Handbags</option>
+                            <option value="Software">Software</option>
+                            <option value="Sports, Fitness & Outdoors">Sports, Fitness & Outdoors</option>
+                            <option value="Subscribe & Save">Subscribe & Save</option>
+                            <option value="Tools & Home Improvement">Tools & Home Improvement</option>
+                            <option value="Toys & Games">Toys & Games</option>
+                            <option value="Under ₹500">Under ₹500</option>
+                            <option value="Video Games">Video Games</option>
+                            <option value="Watches">Watches</option>
+                        </select>
+                        <select x-model="huntBrand" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-48">
+                            <option value="">Any Brand</option>
+                            <option value="Apple">Apple</option>
+                            <option value="ASUS">ASUS</option>
+                            <option value="HP">HP</option>
+                            <option value="OnePlus">OnePlus</option>
+                            <option value="vivo">vivo</option>
+                            <option value="ECOVACS">ECOVACS</option>
+                            <option value="Samsung">Samsung</option>
+                            <option value="Sleepyhead">Sleepyhead</option>
+                            <option value="Sony">Sony</option>
+                            <option value="PHILIPS">PHILIPS</option>
+                            <option value="atomberg">atomberg</option>
+                            <option value="Insta360">Insta360</option>
+                            <option value="Amazon">Amazon</option>
+                            <option value="Flo">Flo</option>
+                            <option value="Lenovo">Lenovo</option>
+                            <option value="SLOVIC">SLOVIC</option>
+                            <option value="XGIMI">XGIMI</option>
+                            <option value="realme">realme</option>
+                            <option value="Lumio">Lumio</option>
+                            <option value="boAt">boAt</option>
+                        </select>
+                        <select x-model="huntDiscount" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-48">
+                            <option value="">Any Discount</option>
+                            <option value="10">10% Off or more</option>
+                            <option value="25">25% Off or more</option>
+                            <option value="35">35% Off or more</option>
+                            <option value="50">50% Off or more</option>
+                            <option value="60">60% Off or more</option>
+                            <option value="70">70% Off or more</option>
+                        </select>
+                        <input type="text" x-model="huntKeyword" placeholder="Additional Keyword (optional)..." class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white placeholder-[#8b949e]">
+                        <button @click="submitHunt" :disabled="!isRunning || isHunting" class="text-xs bg-[#238636] hover:bg-[#2ea043] border border-[rgba(240,246,252,0.1)] disabled:opacity-50 text-white px-4 py-1.5 rounded-md font-semibold transition-colors flex items-center">
+                            <span x-show="!isHunting">Hunt Deals</span>
+                            <span x-show="isHunting" class="flex items-center gap-2">
+                                <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                Hunting...
+                            </span>
+                        </button>
+                    </div>
+                </div>
                 
                 <div class="bg-[#010409] text-[#c9d1d9] font-mono text-xs p-4 h-48 overflow-y-auto rounded-b-md" id="terminal-output">
                     <template x-for="(log, index) in logs" :key="index">
@@ -338,6 +431,11 @@
             scrapeUrlInput: '',
             scrapeMode: 'ingestion',
             isSubmitting: false,
+            huntCategory: '',
+            huntBrand: '',
+            huntDiscount: '',
+            huntKeyword: '',
+            isHunting: false,
             init() {
                 this.fetchStatus();
                 this.pollInterval = setInterval(() => {
@@ -410,6 +508,31 @@
                     console.error("Failed to submit scrape", e);
                 } finally {
                     this.isSubmitting = false;
+                }
+            },
+            async submitHunt() {
+                this.isHunting = true;
+                try {
+                    await fetch('{{ route("admin.scraper.hunt") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            category: this.huntCategory,
+                            brand: this.huntBrand,
+                            discount: this.huntDiscount,
+                            keyword: this.huntKeyword
+                        })
+                    });
+                    
+                    // Reset fields slightly for visual feedback
+                    this.huntKeyword = '';
+                } catch (e) {
+                    console.error("Failed to submit custom hunt", e);
+                } finally {
+                    this.isHunting = false;
                 }
             }
         }

@@ -160,6 +160,23 @@ class AdminController
         }
     }
 
+    public function customHunt(Request $request)
+    {
+        try {
+            $workerIp = gethostbyname('worker');
+            $payload = [
+                'category' => $request->category,
+                'brand' => $request->brand,
+                'discount' => $request->discount,
+                'keyword' => $request->keyword
+            ];
+            $response = Http::timeout(5)->post("http://{$workerIp}:8001/hunt", $payload);
+            return response()->json(['success' => true, 'message' => $response->json('status')]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function deals(Request $request)
     {
         $status = $request->get('status', 'pending');
