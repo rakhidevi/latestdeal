@@ -17,7 +17,7 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             context = p.chromium.launch_persistent_context(
                 user_data_dir=user_data_dir,
                 headless=False,
-                channel="chrome", # Use real Chrome
+                executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe", # Use REAL local Chrome
                 permissions=["clipboard-read", "clipboard-write"], # Grant clipboard permissions
                 args=["--disable-blink-features=AutomationControlled"]
             )

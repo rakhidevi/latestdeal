@@ -15,7 +15,7 @@ def setup_browser(p):
     browser = p.chromium.launch_persistent_context(
         user_data_dir=user_data_dir,
         headless=False,
-        channel="chrome", # Use real Chrome
+        executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe", # Use REAL local Chrome
         args=["--disable-blink-features=AutomationControlled"]
     )
     return browser
