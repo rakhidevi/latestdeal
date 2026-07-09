@@ -324,3 +324,14 @@ Route::get('/setup-db', function () {
     return 'Database initialized and migrated successfully!';
 });
 Route::get("/run-queue", function () { try { $exitCode = \Illuminate\Support\Facades\Artisan::call("queue:work", ["--stop-when-empty" => true]); return "Queue executed. Exit code: " . $exitCode . "<br>Output:<br><pre>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>"; } catch (\Exception $e) { return "Error: " . $e->getMessage(); } });
+Route::get("/debug-failed-jobs", function () { 
+    try { 
+        $failed = \Illuminate\Support\Facades\DB::table("failed_jobs")->orderBy("id", "desc")->first(); 
+        if ($failed) {
+            return "<pre>" . $failed->exception . "</pre>"; 
+        }
+        return "No failed jobs found.";
+    } catch (\Exception $e) { 
+        return "Error: " . $e->getMessage(); 
+    } 
+});
