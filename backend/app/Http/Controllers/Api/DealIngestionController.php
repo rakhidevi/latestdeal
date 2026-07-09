@@ -119,7 +119,18 @@ class DealIngestionController
 
         // 6. Trigger the Publishing Engine Queue Job (if configured for auto-publishing)
         if ($deal->status === 'active') {
-            PublishDealToTelegramJob::dispatch($deal);
+            $telegramAccounts = \App\Models\SocialAccount::where('platform', 'telegram')
+                ->where('is_active', true)
+                ->get();
+                
+            if ($telegramAccounts->isNotEmpty()) {
+                foreach ($telegramAccounts as $account) {
+                    PublishDealToTelegramJob::dispatch($deal, $account->id);
+                }
+            } else {
+                // Fallback to .env configuration if no database accounts are set up
+                PublishDealToTelegramJob::dispatch($deal, null);
+            }
         }
 
         return response()->json([

@@ -76,7 +76,14 @@ class DealResource extends Resource
                     ->icon('heroicon-o-paper-airplane')
                     ->color('info')
                     ->action(function (Deal $record) {
-                        PublishDealToTelegramJob::dispatch($record);
+                        $telegramAccounts = \App\Models\SocialAccount::where('platform', 'telegram')->where('is_active', true)->get();
+                        if ($telegramAccounts->isNotEmpty()) {
+                            foreach ($telegramAccounts as $account) {
+                                PublishDealToTelegramJob::dispatch($record, $account->id);
+                            }
+                        } else {
+                            PublishDealToTelegramJob::dispatch($record, null);
+                        }
                         Notification::make()->title('Queued for Telegram!')->success()->send();
                     }),
                 Tables\Actions\Action::make('share_to_whatsapp')
