@@ -119,8 +119,8 @@ async def process_queue():
                 caption_data['discounted_price'] = clean_price(caption_data.get('discounted_price'))
                 
                 affiliate_url = url
-                # Don't append tags to amzn.to shortlinks as they already have them baked in
-                if "amazon" in url and "amzn.to" not in url:
+                # Don't append tags to amzn.to or link.amazon shortlinks as they already have them baked in
+                if "amazon" in url and "amzn.to" not in url and "link.amazon" not in url:
                     affiliate_url = url + ("&" if "?" in url else "?") + "tag=kridaymart-21"
                 
                 caption_text = f"🚨 {caption_data['title']} \n\n" + "\n".join(caption_data.get('features', [])) + f"\n\n👉🏻 Buy Now: {affiliate_url}"
@@ -133,7 +133,7 @@ async def process_queue():
                 }
                 
                 affiliate_url = url
-                if "amazon" in url and "amzn.to" not in url:
+                if "amazon" in url and "amzn.to" not in url and "link.amazon" not in url:
                     affiliate_url = url + ("&" if "?" in url else "?") + "tag=kridaymart-21"
                 
                 caption_text = f"🔥 NEW DEAL 🔥\n{caption_data['title']}\n\n{caption_data.get('trust_metrics', '')}\n\n💰 Price: {caption_data['discounted_price']} (Was {caption_data['original_price']})\n\nGrab it here: {affiliate_url}"
