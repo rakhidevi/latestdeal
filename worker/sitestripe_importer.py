@@ -73,7 +73,8 @@ def import_sitestripe_deal(url: str):
             "title": caption_data['title'],
             "original_price": caption_data['original_price'],
             "discounted_price": caption_data['discounted_price'],
-            "url": official_shortlink, # USE THE SITESTRIPE LINK!
+            "url": url, # Original URL for deduplication
+            "short_url": official_shortlink, # Sitestripe Link
             "category_id": 1,
             "merchant_id": 1,
             "ai_caption": caption_text,

@@ -39,7 +39,8 @@ class DealIngestionController
             'features.*' => 'string',
             'verdict' => 'nullable|string',
             'trust_metrics' => 'nullable|string',
-            'ai_score' => 'nullable|integer|min:1|max:100'
+            'ai_score' => 'nullable|integer|min:1|max:100',
+            'short_url' => 'nullable|url'
         ]);
 
         // 2. Process Base64 Image
@@ -88,6 +89,7 @@ class DealIngestionController
                 'ai_score' => $validated['ai_score'] ?? null,
                 'image_path' => $imagePath,
                 'status' => $initialStatus,
+                'short_url' => $validated['short_url'] ?? null,
             ]
         );
 

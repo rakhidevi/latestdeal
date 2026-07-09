@@ -42,6 +42,10 @@ class Deal extends Model
      */
     public function getAffiliateUrlAttribute()
     {
+        if ($this->short_url) {
+            return $this->short_url;
+        }
+
         $url = $this->url;
         
         // Check if it's an Amazon URL
