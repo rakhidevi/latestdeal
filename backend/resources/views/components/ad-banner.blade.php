@@ -6,7 +6,7 @@
         <ins class="adsbygoogle"
              style="display:block"
              data-ad-client="{{ config('services.google.adsense_id') }}"
-             data-ad-slot="{{ $slot }}"
+             data-ad-slot="1289514018"
              data-ad-format="{{ $format }}"
              data-full-width-responsive="true"></ins>
         <script>
