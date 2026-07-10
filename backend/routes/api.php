@@ -28,6 +28,8 @@ Route::put('/scraper/jobs/{job}', [\App\Http\Controllers\Api\ScraperJobControlle
 
 // Shopper AI Engine
 Route::post('/assistant/chat', [\App\Http\Controllers\Api\ShopperAssistantController::class, 'chat']);
+Route::post('/predict-price', [\App\Http\Controllers\Api\PricePredictionController::class, 'predict']);
+Route::get('/smart-search', [\App\Http\Controllers\Api\SmartSearchController::class, 'search']);
 
 // Protected APIs (Requires Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {

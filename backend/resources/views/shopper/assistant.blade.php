@@ -32,10 +32,17 @@
             <form @submit.prevent="onAsk" class="mt-4 flex gap-2 border-t border-slate-200 pt-4">
                 <input
                     x-model="query"
+                    :disabled="isSearching"
                     placeholder="E.g. Best smartphone under ₹30000"
-                    class="input-base w-full rounded-xl bg-slate-50 border-slate-200 focus:bg-white"
+                    class="input-base w-full rounded-xl bg-slate-50 border-slate-200 focus:bg-white disabled:opacity-50"
                 />
-                <button type="submit" class="btn-primary rounded-xl px-6">Ask</button>
+                <button type="submit" class="btn-primary rounded-xl px-6 flex items-center justify-center min-w-[80px]" :disabled="isSearching">
+                    <span x-show="!isSearching">Ask</span>
+                    <svg x-show="isSearching" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
             </form>
             
             <div class="mt-3 flex flex-wrap gap-2 text-xs">
@@ -59,7 +66,8 @@
                 </div>
                 
                 <p class="mt-4 text-sm text-slate-300 bg-white/5 p-3 rounded-xl border border-white/10" 
-                   x-text="bestDeal ? (bestDeal.discount_pct > 40 ? 'Momentum is strong. High confidence this is near the best available price.' : 'Likely to drop soon. Wait for a better entry price.') : 'Select a deal to see AI prediction.'"></p>
+                   :class="{'animate-pulse text-slate-400': predictionLoading}"
+                   x-text="predictionText"></p>
             </div>
 
             <div class="glass-panel rounded-3xl p-6 shadow-lg">
@@ -167,39 +175,53 @@ document.addEventListener('alpine:init', () => {
             keyword: null,
             intent: 'best' // 'best' or 'cheapest'
         },
-        selectedDeal: null,
+        predictionText: 'Select a deal to see AI prediction.',
+        predictionLoading: false,
+
+        init() {
+            this.$watch('bestDeal', value => {
+                if (value) {
+                    this.fetchPrediction(value.id);
+                } else {
+                    this.predictionText = 'Select a deal to see AI prediction.';
+                }
+            });
+            // trigger on load if bestDeal exists
+            if (this.bestDeal) {
+                this.fetchPrediction(this.bestDeal.id);
+            }
+        },
+
+        fetchPrediction(dealId) {
+            this.predictionLoading = true;
+            this.predictionText = 'AI is analyzing price history...';
+            
+            fetch('/api/predict-price', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deal_id: dealId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    this.predictionText = data.data.prediction;
+                } else {
+                    this.predictionText = 'Prediction unavailable.';
+                }
+            })
+            .catch(err => {
+                this.predictionText = 'Error connecting to AI.';
+            })
+            .finally(() => {
+                this.predictionLoading = false;
+            });
+        },
 
         get filteredDeals() {
-            let rows = [...this.rawDeals];
-            
-            if (this.filters.keyword) {
-                const kw = this.filters.keyword.toLowerCase();
-                const synonyms = {
-                    'smartphone': ['phone', 'mobile', 'iphone', 'samsung', 'smartphone'],
-                    'laptop': ['macbook', 'notebook', 'laptop'],
-                    'tv': ['television', 'smart tv', 'tv'],
-                    'earbuds': ['airpods', 'buds', 'earbuds', 'tws']
-                };
-                const searchTerms = synonyms[kw] || [kw];
-                
-                rows = rows.filter(d => {
-                    const title = d.title.toLowerCase();
-                    const cat = d.category ? d.category.toLowerCase() : '';
-                    return searchTerms.some(term => title.includes(term) || cat.includes(term));
-                });
+            if (this.aiSearchResults !== null) {
+                return this.aiSearchResults;
             }
-            if (this.filters.budget) {
-                rows = rows.filter(d => d.price <= this.filters.budget);
-            }
-            
-            if (this.filters.intent === 'cheapest') {
-                rows.sort((a, b) => a.price - b.price);
-            } else {
-                // Approximate 'best' by highest discount pct
-                rows.sort((a, b) => b.discount_pct - a.discount_pct);
-            }
-            
-            return rows.slice(0, 12);
+            return [...this.rawDeals].slice(0, 12);
         },
         
         get comparisonDeals() {
@@ -215,72 +237,57 @@ document.addEventListener('alpine:init', () => {
             this.onAsk();
         },
 
+        aiSearchResults: null,
+        isSearching: false,
+
         onAsk() {
             const text = this.query.trim();
             if (!text) return;
 
-            // Simple NLP parser
-            let nextFilters = { ...this.filters };
-            
-            // Extract budget (under/below X)
-            const budgetMatch = text.match(/(?:under|below|<=?)\s*[₹rs\s]*([\d,]{3,})/i);
-            if (budgetMatch) {
-                nextFilters.budget = Number(budgetMatch[1].replace(/,/g, ''));
-            }
-            
-            // Extract Intent
-            const lower = text.toLowerCase();
-            if (lower.includes('cheapest') || lower.includes('lowest')) {
-                nextFilters.intent = 'cheapest';
-            } else if (lower.includes('best') || lower.includes('top')) {
-                nextFilters.intent = 'best';
-            }
-            
-            // Extract Keyword
-            const keywords = ["smartphone", "airpods", "laptop", "headphone", "tv", "monitor", "earbuds", "kitchen", "mobile", "watch", "shoe"];
-            const foundKw = keywords.find(kw => lower.includes(kw));
-            if (foundKw) {
-                nextFilters.keyword = foundKw;
-            } else {
-                // Try to find a noun if it's not in the list
-                const words = text.toLowerCase().replace(/[^\w\s]/gi, '').split(' ');
-                const stopWords = ['best', 'cheapest', 'under', 'below', 'for', 'with', 'in', 'today', 'deals', 'the', 'a', 'an'];
-                const searchWords = words.filter(w => !stopWords.includes(w) && isNaN(w));
-                if (searchWords.length > 0) {
-                    nextFilters.keyword = searchWords[0];
-                }
-            }
-
-            // Build Assistant Response using real AI
-            this.filters = nextFilters;
             this.messages.push({ id: Date.now(), role: 'user', text });
             
             const aiMessageId = Date.now() + 1;
             this.messages.push({ id: aiMessageId, role: 'assistant', text: '...' });
             
             this.query = '';
+            this.isSearching = true;
+            this.selectedDeal = null;
             
             this.$nextTick(() => {
                 const el = document.getElementById('chat-window');
                 if(el) el.scrollTop = el.scrollHeight;
             });
             
-            fetch('/api/assistant/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    message: text,
-                    deal_ids: this.filteredDeals.map(d => d.id)
-                })
-            })
+            // Step 1: Hit Smart Search API to get deals based on intent
+            fetch('/api/smart-search?q=' + encodeURIComponent(text))
             .then(res => res.json())
+            .then(searchData => {
+                if (searchData.deals && searchData.deals.length > 0) {
+                    this.aiSearchResults = searchData.deals;
+                } else {
+                    this.aiSearchResults = [];
+                }
+                this.isSearching = false;
+
+                // Step 2: Hit Chat API to generate a conversational response
+                return fetch('/api/assistant/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        message: text,
+                        deal_ids: this.aiSearchResults.map(d => d.id)
+                    })
+                });
+            })
+            .then(res => res ? res.json() : null)
             .then(data => {
+                if (!data) return;
                 const msgIndex = this.messages.findIndex(m => m.id === aiMessageId);
                 if (msgIndex !== -1) {
-                    this.messages[msgIndex].text = data.reply || "No response received.";
+                    this.messages[msgIndex].text = data.reply || "I found some deals that match your criteria.";
                 }
                 this.$nextTick(() => {
                     const el = document.getElementById('chat-window');
@@ -288,6 +295,7 @@ document.addEventListener('alpine:init', () => {
                 });
             })
             .catch(err => {
+                this.isSearching = false;
                 const msgIndex = this.messages.findIndex(m => m.id === aiMessageId);
                 if (msgIndex !== -1) {
                     this.messages[msgIndex].text = "Error connecting to AI backend.";
