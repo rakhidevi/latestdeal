@@ -229,8 +229,62 @@ Route::get('/debug-env', function () {
         'DB_DATABASE' => config('database.connections.' . config('database.default') . '.database'),
         'APP_ENV' => config('app.env'),
         'APP_DEBUG' => config('app.debug'),
+        'OLLAMA_BASE_URL' => env('OLLAMA_BASE_URL') ? '✅ SET' : '❌ NOT SET',
+        'GEMINI_API_KEY' => env('GEMINI_API_KEY') ? '✅ SET' : '❌ NOT SET',
     ];
 });
+
+// One-time env setup for AI keys (protected by token)
+Route::get('/setup-ai-keys', function(\Illuminate\Http\Request $request) {
+    $token = $request->query('token');
+    if ($token !== env('APP_KEY')) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+    
+    $geminiKey  = $request->query('gemini_key');
+    $ollamaUrl  = $request->query('ollama_url');
+    $ollamaModel= $request->query('ollama_model', 'llama3');
+    
+    if (!$geminiKey && !$ollamaUrl) {
+        return response()->json(['error' => 'No keys provided. Use ?token=APP_KEY&gemini_key=YOUR_KEY&ollama_url=YOUR_TUNNEL_URL']);
+    }
+    
+    $envPath = base_path('.env');
+    $envContent = file_get_contents($envPath);
+    
+    $updates = [];
+    
+    if ($geminiKey) {
+        if (str_contains($envContent, 'GEMINI_API_KEY=')) {
+            $envContent = preg_replace('/^GEMINI_API_KEY=.*/m', 'GEMINI_API_KEY=' . $geminiKey, $envContent);
+        } else {
+            $envContent .= "\nGEMINI_API_KEY=" . $geminiKey;
+        }
+        $updates[] = 'GEMINI_API_KEY set';
+    }
+    
+    if ($ollamaUrl) {
+        if (str_contains($envContent, 'OLLAMA_BASE_URL=')) {
+            $envContent = preg_replace('/^OLLAMA_BASE_URL=.*/m', 'OLLAMA_BASE_URL=' . $ollamaUrl, $envContent);
+        } else {
+            $envContent .= "\nOLLAMA_BASE_URL=" . $ollamaUrl;
+        }
+        if (str_contains($envContent, 'OLLAMA_MODEL=')) {
+            $envContent = preg_replace('/^OLLAMA_MODEL=.*/m', 'OLLAMA_MODEL=' . $ollamaModel, $envContent);
+        } else {
+            $envContent .= "\nOLLAMA_MODEL=" . $ollamaModel;
+        }
+        $updates[] = 'OLLAMA_BASE_URL set';
+    }
+    
+    file_put_contents($envPath, $envContent);
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    
+    return response()->json(['success' => true, 'updated' => $updates]);
+});
+
+
 
 Route::get('/migrate-fresh', function () {
     $dbPath = database_path('database.sqlite');
