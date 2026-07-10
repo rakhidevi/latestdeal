@@ -261,7 +261,14 @@ Route::get('/debug-logs', function () {
     }
     // Return last 200 lines
     $lines = file($logFile);
+    $lines = file($logFile);
     return implode("", array_slice($lines, -200));
+});
+
+Route::get('/clear-cache', function() {
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    return "Cache cleared.";
 });
 
 Route::get('/debug-error', function() {
