@@ -78,7 +78,38 @@ class Deal extends Model
             return $value;
         }
         
-        return \Illuminate\Support\Str::random(6);
+        // Return ID as fallback to prevent 404s since it isn't saved to DB yet
+        return (string) $this->id;
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === 'slug') {
+            $deal = $this->where('slug', $value)->first();
+            if ($deal) {
+                return $deal;
+            }
+            
+            if (preg_match('/-(\d+)$/', $value, $matches)) {
+                $id = $matches[1];
+                $fallbackDeal = $this->find($id);
+                if ($fallbackDeal && $fallbackDeal->slug === $value) {
+                    return $fallbackDeal;
+                }
+            }
+            
+            if (is_numeric($value)) {
+                return $this->find($value);
+            }
+            
+            return null;
+        }
+        
+        if ($field === 'hash_id') {
+            return $this->where('hash_id', $value)->first() ?? $this->find($value);
+        }
+
+        return parent::resolveRouteBinding($value, $field);
     }
 
     /**
