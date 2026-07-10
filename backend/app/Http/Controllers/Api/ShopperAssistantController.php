@@ -105,7 +105,7 @@ class ShopperAssistantController extends Controller
         }
 
         try {
-            $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $geminiKey;
+            $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' . $geminiKey;
 
             $geminiResponse = Http::timeout(30)->post($geminiUrl, [
                 'contents' => [[
@@ -129,13 +129,22 @@ class ShopperAssistantController extends Controller
 
             // Gemini returned an error — show exact reason
             $errorBody = $geminiResponse->json('error.message') ?? $geminiResponse->body();
+            $msg = "AI service error (Gemini): " . substr($errorBody, 0, 300);
+            if ($ollamaError) {
+                $msg .= " | (Ollama also failed: " . $ollamaError . ")";
+            }
+            
             return response()->json([
-                'reply' => "AI service error (Gemini): " . substr($errorBody, 0, 300)
+                'reply' => $msg
             ], 500);
 
         } catch (\Exception $e) {
+            $msg = "AI service unavailable: " . $e->getMessage();
+            if ($ollamaError) {
+                $msg .= " | (Ollama also failed: " . $ollamaError . ")";
+            }
             return response()->json([
-                'reply' => "AI service unavailable: " . $e->getMessage()
+                'reply' => $msg
             ], 500);
         }
     }
