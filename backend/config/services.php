@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'google' => [
+        'adsense_id' => env('ADSENSE_CLIENT_ID', 'ca-pub-3274200073613804'),
+    ],
+
 ];
