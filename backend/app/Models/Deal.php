@@ -59,6 +59,32 @@ class Deal extends Model
         return $this->belongsToMany(Tag::class);
     }
 
+    /**
+     * Generate a fallback slug for deals missing one in DB.
+     * IMPORTANT: must only 'return', never assign $this->slug or saveQuietly()
+     * to avoid infinite recursion.
+     */
+    public function getSlugAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+        $baseSlug = \Illuminate\Support\Str::slug($this->attributes['title'] ?? '');
+        return ($baseSlug ?: 'deal') . '-' . ($this->attributes['id'] ?? 0);
+    }
+
+    /**
+     * Generate a fallback hash_id for deals missing one in DB.
+     * Returns the numeric ID as string so links don't break.
+     */
+    public function getHashIdAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+        return (string) ($this->attributes['id'] ?? 0);
+    }
+
     public function resolveRouteBinding($value, $field = null)
     {
         if ($field === 'slug') {
