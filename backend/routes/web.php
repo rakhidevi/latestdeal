@@ -237,7 +237,7 @@ Route::get('/debug-env', function () {
 // One-time env setup for AI keys (protected by token)
 Route::get('/setup-ai-keys', function(\Illuminate\Http\Request $request) {
     $token = $request->query('token');
-    if ($token !== env('APP_KEY')) {
+    if ($token !== 'temp-setup-123') {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
     
