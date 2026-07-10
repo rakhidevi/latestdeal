@@ -13,10 +13,12 @@ class ShopperAssistantController extends Controller
     public function chat(Request $request)
     {
         $request->validate([
-            'message' => 'required|string|max:1000'
+            'message' => 'required|string|max:1000',
+            'deal_ids' => 'nullable|array'
         ]);
 
         $userMessage = $request->message;
+        $dealIds = $request->deal_ids ?? [];
         
         // Fetch cached deals (same cache key as web.php)
         $deals = Cache::remember('deals.assistant', 300, function () {
@@ -37,12 +39,17 @@ class ShopperAssistantController extends Controller
                 });
         });
 
-        $systemPrompt = "You are an AI Shopping Assistant. Here are the current active deals available: \n\n" . 
+        if (!empty($dealIds)) {
+            $deals = collect($deals)->whereIn('id', $dealIds)->values();
+        }
+
+        $systemPrompt = "You are an AI Shopping Assistant. Here are the strictly filtered deals available matching the user's budget and criteria: \n\n" . 
                         json_encode($deals) . "\n\n" . 
-                        "The user will ask for a recommendation. Use the JSON data above to answer them. " . 
+                        "The user will ask for a recommendation. You MUST ONLY recommend deals from the JSON list above. " . 
+                        "Do not invent or hallucinate deals, prices, or models. Pay strict attention to the user's budget. " .
                         "Keep your response concise, friendly, and format it nicely in markdown. Mention the prices and merchants.";
 
-        $ollamaUrl = env('OLLAMA_BASE_URL', 'http://host.docker.internal:11434') . '/api/generate';
+        $ollamaUrl = env('OLLAMA_BASE_URL', 'http://127.0.0.1:11434') . '/api/generate';
         $model = env('OLLAMA_MODEL', 'llama3');
 
         try {

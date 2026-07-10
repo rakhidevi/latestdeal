@@ -24,7 +24,7 @@
                 <template x-for="m in messages" :key="m.id">
                     <div :class="m.role === 'user' ? 'ml-auto bg-red-600 text-white' : 'bg-slate-100 text-slate-800'" 
                          class="max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm transition-all transform animate-fade-in-up">
-                        <p x-text="m.text" class="leading-relaxed"></p>
+                        <div x-html="m.role === 'assistant' ? marked.parse(m.text) : m.text" class="leading-relaxed whitespace-pre-wrap [&>strong]:font-bold [&>ul]:list-disc [&>ul]:pl-5 [&>p]:mb-2 [&>a]:text-red-600 [&>a]:underline"></div>
                     </div>
                 </template>
             </div>
@@ -153,6 +153,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.data('assistantApp', () => ({
@@ -173,10 +174,19 @@ document.addEventListener('alpine:init', () => {
             
             if (this.filters.keyword) {
                 const kw = this.filters.keyword.toLowerCase();
-                rows = rows.filter(d => 
-                    d.title.toLowerCase().includes(kw) || 
-                    (d.category && d.category.toLowerCase().includes(kw))
-                );
+                const synonyms = {
+                    'smartphone': ['phone', 'mobile', 'iphone', 'samsung', 'smartphone'],
+                    'laptop': ['macbook', 'notebook', 'laptop'],
+                    'tv': ['television', 'smart tv', 'tv'],
+                    'earbuds': ['airpods', 'buds', 'earbuds', 'tws']
+                };
+                const searchTerms = synonyms[kw] || [kw];
+                
+                rows = rows.filter(d => {
+                    const title = d.title.toLowerCase();
+                    const cat = d.category ? d.category.toLowerCase() : '';
+                    return searchTerms.some(term => title.includes(term) || cat.includes(term));
+                });
             }
             if (this.filters.budget) {
                 rows = rows.filter(d => d.price <= this.filters.budget);
@@ -231,6 +241,14 @@ document.addEventListener('alpine:init', () => {
             const foundKw = keywords.find(kw => lower.includes(kw));
             if (foundKw) {
                 nextFilters.keyword = foundKw;
+            } else {
+                // Try to find a noun if it's not in the list
+                const words = text.toLowerCase().replace(/[^\w\s]/gi, '').split(' ');
+                const stopWords = ['best', 'cheapest', 'under', 'below', 'for', 'with', 'in', 'today', 'deals', 'the', 'a', 'an'];
+                const searchWords = words.filter(w => !stopWords.includes(w) && isNaN(w));
+                if (searchWords.length > 0) {
+                    nextFilters.keyword = searchWords[0];
+                }
             }
 
             // Build Assistant Response using real AI
@@ -253,7 +271,10 @@ document.addEventListener('alpine:init', () => {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ message: text })
+                body: JSON.stringify({ 
+                    message: text,
+                    deal_ids: this.filteredDeals.map(d => d.id)
+                })
             })
             .then(res => res.json())
             .then(data => {
