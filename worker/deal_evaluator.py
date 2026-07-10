@@ -41,10 +41,13 @@ def evaluate_deal(raw_data: dict) -> dict:
     if discount_percent < 20:
         return {"is_approved": False, "reason": f"Discount too low ({discount_percent:.1f}%)"}
         
-    # Rule 2: Trust Factor (Must be > 4.0 stars)
-    # If star_rating is 0, it means it wasn't found or has no reviews. We reject unproven products.
-    if star_rating < 4.0:
+    # Rule 2: Trust Factor (Relaxed for Fashion/Clearance)
+    # Allow >= 3.0 stars. If star_rating is 0 (no reviews found), allow it ONLY if discount is > 60%
+    if star_rating > 0 and star_rating < 3.0:
         return {"is_approved": False, "reason": f"Star rating too low ({star_rating})"}
+        
+    if star_rating == 0 and discount_percent < 60:
+        return {"is_approved": False, "reason": f"No reviews and discount is not high enough ({discount_percent:.1f}%)"}
         
     # Optional: Rule 3: MRP Error / Jackpot Check
     is_jackpot = False

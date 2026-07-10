@@ -261,12 +261,22 @@ def extract_deal_data_fallback(url: str) -> dict:
                     original_price_html = el.text_content().strip()
                     break
                     
-            # 4. Image URL
+            # 4. Image URL (High-res extraction)
             image_url = ""
             img_element = page.locator("#landingImage").first
             if img_element.count() > 0:
-                # High-res image is often stored in data-old-hires or dynamically loaded
-                image_url = img_element.get_attribute("data-old-hires") or img_element.get_attribute("src") or ""
+                dynamic_images = img_element.get_attribute("data-a-dynamic-image")
+                if dynamic_images:
+                    import json
+                    try:
+                        img_dict = json.loads(dynamic_images)
+                        if img_dict:
+                            # Pick the one with the highest resolution sum
+                            image_url = max(img_dict.items(), key=lambda x: x[1][0] + x[1][1])[0]
+                    except:
+                        pass
+                if not image_url:
+                    image_url = img_element.get_attribute("data-old-hires") or img_element.get_attribute("src") or ""
                 
             # 5. Features / Bullet Points
             features = []

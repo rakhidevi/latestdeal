@@ -127,11 +127,27 @@
                 </p>
             @endif
             
-            <div class="mt-6 flex flex-wrap items-baseline gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 w-fit">
-                <span class="text-4xl sm:text-5xl font-black text-red-600 dark:text-red-500 tracking-tight">₹{{ number_format($deal->discounted_price) }}</span>
-                @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
-                    <span class="text-lg text-slate-400 dark:text-slate-500 line-through font-medium">M.R.P: ₹{{ number_format($deal->original_price) }}</span>
-                @endif
+            <div x-data="priceUpdater({{ $deal->id }}, {{ $deal->discounted_price }})"
+                 x-init="listenForUpdates"
+                 class="mt-6 flex flex-col sm:flex-row flex-wrap items-baseline gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 w-fit">
+                
+                <div class="flex items-baseline gap-3">
+                    <span class="text-4xl sm:text-5xl font-black text-red-600 dark:text-red-500 tracking-tight" x-text="'₹' + new Intl.NumberFormat('en-IN').format(currentPrice)">
+                        ₹{{ number_format($deal->discounted_price) }}
+                    </span>
+                    @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
+                        <span class="text-lg text-slate-400 dark:text-slate-500 line-through font-medium">M.R.P: ₹{{ number_format($deal->original_price) }}</span>
+                    @endif
+                </div>
+
+                <!-- Verify Live Price Button -->
+                <button @click="verifyPrice" 
+                        :disabled="isChecking"
+                        class="ml-0 sm:ml-4 text-xs font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-full hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 disabled:opacity-50">
+                    <svg x-show="isChecking" class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <svg x-show="!isChecking" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span x-text="isChecking ? 'Checking Amazon...' : 'Verify Live Price'"></span>
+                </button>
             </div>
 
             <!-- AI Pros & Cons / Features -->
@@ -301,4 +317,42 @@
     
     <x-ad-banner slot="deal-bottom" />
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('priceUpdater', (dealId, initialPrice) => ({
+            dealId: dealId,
+            currentPrice: initialPrice,
+            isChecking: false,
+            verifyPrice() {
+                this.isChecking = true;
+                fetch(`/api/deals/${this.dealId}/refresh-price`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+                }).catch(err => {
+                    this.isChecking = false;
+                });
+                
+                // Fallback timeout just in case python worker is offline
+                setTimeout(() => {
+                    if (this.isChecking) {
+                        this.isChecking = false;
+                        alert('Verification timed out. Desktop Worker might be offline.');
+                    }
+                }, 15000);
+            },
+            listenForUpdates() {
+                if (window.Echo) {
+                    window.Echo.channel(`deals.${this.dealId}`)
+                        .listen('DealUpdated', (e) => {
+                            this.currentPrice = e.new_price;
+                            this.isChecking = false;
+                        });
+                }
+            }
+        }));
+    });
+</script>
+@endpush
 @endsection

@@ -4,26 +4,26 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class DealScrapeRequested implements ShouldBroadcast
+class DealUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $url;
-    public $type;
+    public $deal_id;
+    public $new_price;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($url, $type = 'ingestion')
+    public function __construct($deal_id, $new_price)
     {
-        $this->url = $url;
-        $this->type = $type;
+        $this->deal_id = $deal_id;
+        $this->new_price = $new_price;
     }
 
     /**
@@ -33,8 +33,9 @@ class DealScrapeRequested implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
+        // Broadcast on a public channel so any user viewing the deal gets the update
         return [
-            new PrivateChannel('scraper-worker'),
+            new Channel('deals.' . $this->deal_id),
         ];
     }
 }

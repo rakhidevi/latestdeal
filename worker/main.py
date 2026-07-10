@@ -89,9 +89,28 @@ async def process_queue():
             # Update job type to include the scraper engine for better visibility
             update_job(job_id, type=f"ingestion ({scraper_engine})")
             
-            import re
+            # --- FAST PATH FOR REAL-TIME PRICE UPDATES ---
+            if job_type == 'price_update':
+                add_log(f"Fast path for price update: {url}")
+                new_price = raw_data.get('raw_discounted_price')
+                if new_price:
+                    import re
+                    cleaned_price = re.sub(r'[^\d.]', '', str(new_price))
+                    if cleaned_price:
+                        backend_url = os.getenv("API_URL", "http://localhost:8000/api/v1")
+                        requests.post(
+                            f"{backend_url}/deals/update-price",
+                            json={"url": url, "price": float(cleaned_price)},
+                            headers={"Accept": "application/json"}
+                        )
+                mark_status(item_id, 'completed')
+                update_job(job_id, status="success")
+                continue
+            # ---------------------------------------------
+            
             def clean_price(val):
                 if not val: return 0
+                import re
                 cleaned = re.sub(r'[^\d.]', '', str(val))
                 try: return float(cleaned)
                 except: return 0

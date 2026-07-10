@@ -31,6 +31,10 @@ Route::post('/assistant/chat', [\App\Http\Controllers\Api\ShopperAssistantContro
 Route::post('/predict-price', [\App\Http\Controllers\Api\PricePredictionController::class, 'predict']);
 Route::get('/smart-search', [\App\Http\Controllers\Api\SmartSearchController::class, 'search']);
 
+// Real-Time Price Verification
+Route::post('/deals/{id}/refresh-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'refreshPrice']);
+Route::post('/deals/update-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'updatePrice']);
+
 // Protected APIs (Requires Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/deals/active', function () {

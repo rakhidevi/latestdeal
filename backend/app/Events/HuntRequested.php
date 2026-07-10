@@ -4,26 +4,23 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class DealScrapeRequested implements ShouldBroadcast
+class HuntRequested implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $url;
-    public $type;
+    public $keyword;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($url, $type = 'ingestion')
+    public function __construct($keyword)
     {
-        $this->url = $url;
-        $this->type = $type;
+        $this->keyword = $keyword;
     }
 
     /**
