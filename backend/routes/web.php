@@ -165,14 +165,33 @@ Route::get('/run-migrations', function () {
     return "Migrations ran: " . \Illuminate\Support\Facades\Artisan::output();
 });
 
-Route::get('/run-backfill', function() {
-    $deals = \App\Models\Deal::all();
+Route::get('/run-backfill', function(\Illuminate\Http\Request $request) {
+    $chunkSize = 30;
+    $offset = (int) $request->query('offset', 0);
+    
+    $deals = \App\Models\Deal::whereNull('slug')
+        ->orWhereNull('hash_id')
+        ->orWhere('slug', '')
+        ->orWhere('hash_id', '')
+        ->skip($offset)
+        ->take($chunkSize)
+        ->get();
+    
+    if ($deals->isEmpty()) {
+        $remaining = \App\Models\Deal::where(function($q) {
+            $q->whereNull('slug')->orWhere('slug', '');
+        })->orWhere(function($q) {
+            $q->whereNull('hash_id')->orWhere('hash_id', '');
+        })->count();
+        return response()->json(['done' => true, 'remaining' => $remaining, 'message' => 'Backfill complete!']);
+    }
+    
     $count = 0;
     foreach ($deals as $deal) {
         $updated = false;
-        if (empty($deal->slug)) {
+        if (empty($deal->getRawOriginal('slug'))) {
             $baseSlug = \Illuminate\Support\Str::slug($deal->title);
-            $slug = $baseSlug;
+            $slug = $baseSlug ?: 'deal';
             $c = 1;
             while (\App\Models\Deal::where('slug', $slug)->where('id', '!=', $deal->id)->exists()) {
                 $slug = $baseSlug . '-' . $c++;
@@ -180,7 +199,7 @@ Route::get('/run-backfill', function() {
             $deal->slug = $slug;
             $updated = true;
         }
-        if (empty($deal->hash_id)) {
+        if (empty($deal->getRawOriginal('hash_id'))) {
             $hash = \Illuminate\Support\Str::random(6);
             while (\App\Models\Deal::where('hash_id', $hash)->where('id', '!=', $deal->id)->exists()) {
                 $hash = \Illuminate\Support\Str::random(6);
@@ -189,12 +208,26 @@ Route::get('/run-backfill', function() {
             $updated = true;
         }
         if ($updated) {
-            $deal->save();
+            $deal->saveQuietly();
             $count++;
         }
     }
-    return "Backfilled $count deals.";
+    
+    $remaining = \App\Models\Deal::where(function($q) {
+        $q->whereNull('slug')->orWhere('slug', '');
+    })->orWhere(function($q) {
+        $q->whereNull('hash_id')->orWhere('hash_id', '');
+    })->count();
+    
+    return response()->json([
+        'done' => false,
+        'processed' => $count,
+        'offset' => $offset + $chunkSize,
+        'remaining' => $remaining,
+        'next' => url('/run-backfill?offset=' . ($offset + $chunkSize))
+    ]);
 });
+
 
 Route::get('/debug-env', function () {
     return [
