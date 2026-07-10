@@ -26,21 +26,15 @@ Route::get('/setup-scraper', function () {
 });
 
 
-// Fallback for old integer IDs
+// Fallback for old integer IDs — serve directly, NO redirects (avoids infinite loops)
 Route::get('/go/{id}', function (\Illuminate\Http\Request $request, $id) {
     $deal = \App\Models\Deal::findOrFail($id);
-    if (empty($deal->getRawOriginal('hash_id'))) {
-        return app(\App\Http\Controllers\RedirectController::class)->redirect($request, $deal);
-    }
-    return redirect()->route('deal.redirect', ['deal' => $deal->hash_id], 301);
+    return app(\App\Http\Controllers\RedirectController::class)->redirect($request, $deal);
 })->where('id', '[0-9]+');
 
 Route::get('/deal/{id}', function ($id) {
     $deal = \App\Models\Deal::findOrFail($id);
-    if (empty($deal->getRawOriginal('slug'))) {
-        return app(\App\Http\Controllers\DealController::class)->show($deal);
-    }
-    return redirect()->route('deal.show', ['deal' => $deal->slug], 301);
+    return app(\App\Http\Controllers\DealController::class)->show($deal);
 })->where('id', '[0-9]+');
 
 // The Redirect Engine Endpoint
@@ -307,6 +301,8 @@ Route::get('/debug-logs', function () {
 Route::get('/clear-cache', function() {
     \Illuminate\Support\Facades\Artisan::call('cache:clear');
     \Illuminate\Support\Facades\Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
     return "Cache cleared.";
 });
 
