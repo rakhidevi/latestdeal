@@ -27,19 +27,53 @@
 @endsection
 
 @section('hero')
-  <div class="w-full bg-gradient-to-r from-red-600 via-red-500 to-rose-600 text-white hidden md:block shadow-md">
-    <div class="mx-auto max-w-7xl grid gap-8 p-6 md:grid-cols-[1.2fr_0.8fr] md:p-10 lg:p-12 items-center">
+  <div class="w-full relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-rose-600 text-white hidden md:block shadow-md group">
+    <!-- Animated background accents -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000"></div>
+    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000"></div>
+
+    <div class="mx-auto max-w-7xl grid gap-8 p-6 md:grid-cols-[1.2fr_0.8fr] md:p-10 lg:p-12 items-center relative z-10">
       <div class="min-w-0 flex flex-col justify-center">
-        <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight break-words tracking-tight text-white drop-shadow-sm">
-          Find real global deals in seconds
+        
+        <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight break-words tracking-tight text-white drop-shadow-sm min-h-[3rem] lg:min-h-[3.5rem]" 
+            x-data="{
+                words: ['global deals', 'tech discounts', 'fashion offers', 'hidden gems'],
+                wordIndex: 0,
+                charIndex: 0,
+                isDeleting: false,
+                text: '',
+                type() {
+                    let current = this.words[this.wordIndex];
+                    if(this.isDeleting) {
+                        this.text = current.substring(0, this.charIndex - 1);
+                        this.charIndex--;
+                    } else {
+                        this.text = current.substring(0, this.charIndex + 1);
+                        this.charIndex++;
+                    }
+                    let speed = this.isDeleting ? 40 : 80;
+                    if(!this.isDeleting && this.charIndex === current.length) {
+                        speed = 2500;
+                        this.isDeleting = true;
+                    } else if(this.isDeleting && this.charIndex === 0) {
+                        this.isDeleting = false;
+                        this.wordIndex = (this.wordIndex + 1) % this.words.length;
+                        speed = 400;
+                    }
+                    setTimeout(() => this.type(), speed);
+                }
+            }" 
+            x-init="setTimeout(() => type(), 500)">
+          Find real <span x-text="text" class="text-yellow-300"></span><span class="animate-pulse font-light opacity-70">|</span> <br class="hidden lg:block">in seconds
         </h1>
+        
         <p class="mt-4 text-base lg:text-lg text-red-50 hidden sm:block font-medium max-w-xl">
-          Our AI engines continuously score and verify discounts across global marketplaces 24/7.
+          Our AI engines continuously extract and verify deals from top Indian marketplaces 24/7.
         </p>
         
         <form action="/" method="GET" class="mt-8 space-y-4 w-full max-w-2xl" id="filter-form">
           <!-- Search Bar -->
-          <div class="flex w-full shadow-lg rounded-xl overflow-hidden bg-white focus-within:ring-4 focus-within:ring-white/30 transition-all">
+          <div class="flex w-full shadow-lg rounded-xl overflow-hidden bg-white focus-within:ring-4 focus-within:ring-white/30 transition-all hover:shadow-xl">
             <div class="pl-4 flex items-center text-gray-400">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
@@ -47,17 +81,17 @@
               name="q"
               value="{{ request('q') }}"
               placeholder="Search products, brands, or categories..."
-              class="border-0 bg-transparent text-gray-900 flex-1 py-3.5 px-3 text-base focus:ring-0 placeholder-gray-500"
+              class="border-0 bg-transparent text-gray-900 flex-1 py-3.5 px-3 text-base focus:ring-0 placeholder-gray-400"
             />
-            <button class="bg-gray-900 px-8 py-3.5 text-sm font-bold tracking-wide text-white transition hover:bg-black flex-shrink-0">Search</button>
+            <button class="bg-gray-900 px-8 py-3.5 text-sm font-bold tracking-wide text-white transition hover:bg-black hover:scale-105 transform origin-right flex-shrink-0">Search</button>
           </div>
           
           <!-- Filters Row -->
           <div class="flex flex-col sm:flex-row gap-3 w-full">
-            <div class="flex items-center gap-2 w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20">
-                <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-28 placeholder-gray-500 shadow-sm transition-all" />
+            <div class="flex items-center gap-2 w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors">
+                <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
                 <span class="text-white/80 font-medium px-1">-</span>
-                <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-28 placeholder-gray-500 shadow-sm transition-all" />
+                <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
             </div>
             
             <div class="w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20">
