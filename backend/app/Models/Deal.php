@@ -59,6 +59,42 @@ class Deal extends Model
         return $this->belongsToMany(Tag::class);
     }
 
+    public function getSlugAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+        
+        $baseSlug = \Illuminate\Support\Str::slug($this->title);
+        $slug = $baseSlug ?: 'deal';
+        $count = 1;
+        while (static::where('slug', $slug)->where('id', '!=', $this->id)->exists()) {
+            $slug = $baseSlug . '-' . $count++;
+        }
+        
+        $this->slug = $slug;
+        $this->saveQuietly();
+        
+        return $slug;
+    }
+
+    public function getHashIdAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+        
+        $hash = \Illuminate\Support\Str::random(6);
+        while (static::where('hash_id', $hash)->where('id', '!=', $this->id)->exists()) {
+            $hash = \Illuminate\Support\Str::random(6);
+        }
+        
+        $this->hash_id = $hash;
+        $this->saveQuietly();
+        
+        return $hash;
+    }
+
     /**
      * Helper to get the fully constructed affiliate URL.
      */
