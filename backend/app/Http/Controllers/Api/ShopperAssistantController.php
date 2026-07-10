@@ -60,9 +60,9 @@ class ShopperAssistantController extends Controller
         // ----------------------------------------------------------------
         // Step 1: Try local Ollama if OLLAMA_BASE_URL is set in .env
         // This should be your desktop's Ollama exposed via a tunnel
-        // e.g. OLLAMA_BASE_URL=https://your-name.ngrok-free.app
+        // Try local Ollama if OLLAMA_BASE_URL is set in .env or fallback to the permanent tunnel
         // ----------------------------------------------------------------
-        $ollamaBaseUrl = env('OLLAMA_BASE_URL'); // null if not set
+        $ollamaBaseUrl = env('OLLAMA_BASE_URL', 'https://ai.latestdeal.in');
         $ollamaError   = null;
 
         if ($ollamaBaseUrl) {
