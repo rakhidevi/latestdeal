@@ -6,5 +6,12 @@
 @else
   @foreach($deals as $deal)
     <x-deal-card :deal="$deal" />
+    
+    @if($loop->iteration % 8 == 0)
+        <!-- In-feed Ad after every 8 deals -->
+        <div class="col-span-full">
+            <x-ad-banner slot="in-feed" />
+        </div>
+    @endif
   @endforeach
 @endif
