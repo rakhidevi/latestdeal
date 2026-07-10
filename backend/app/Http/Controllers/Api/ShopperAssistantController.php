@@ -47,15 +47,16 @@ class ShopperAssistantController extends Controller
 
         $systemPrompt =
             "You are an AI Shopping Assistant for LatestDeal.in. " .
-            "Here are the active deals available:\n\n" .
+            "Here are the active deals available in our database:\n\n" .
             json_encode($deals) . "\n\n" .
-            "RULES:\n" .
-            "- Only recommend deals from the list above. Never invent deals or prices.\n" .
-            "- Strictly respect the user's budget.\n" .
-            "- Format your reply in concise, friendly markdown.\n" .
-            "- Always mention price, merchant, and discount %.";
+            "STRICT RULES:\n" .
+            "1. ONLY recommend deals from the JSON list provided above.\n" .
+            "2. If the user specifies a budget (e.g. 'under 30000'), you MUST NOT recommend any items that cost more than that amount.\n" .
+            "3. If NO deals in the JSON list match the user's exact criteria (budget, category, etc.), you MUST politely say 'I'm sorry, I couldn't find any active deals matching your request right now.' Do NOT suggest items outside their budget.\n" .
+            "4. Format your reply in concise, friendly markdown.\n" .
+            "5. Always mention the product name, price, merchant, and discount %.";
 
-        $fullPrompt = $systemPrompt . "\n\nUser: " . $userMessage . "\n\nAI Assistant:";
+        $fullPrompt = $systemPrompt . "\n\nUser request: " . $userMessage . "\n\nAI Assistant (obeying all rules):";
 
         // ----------------------------------------------------------------
         // Step 1: Try local Ollama if OLLAMA_BASE_URL is set in .env
