@@ -5,10 +5,10 @@
         <!-- Google AdSense -->
         <ins class="adsbygoogle"
              style="display:block"
-             data-ad-client="{{ config('services.google.adsense_id') }}"
-             data-ad-slot="1289514018"
-             data-ad-format="{{ $format }}"
-             data-full-width-responsive="true"></ins>
+             data-ad-format="fluid"
+             data-ad-layout-key="-7b+dy+4s-33-8p"
+             data-ad-client="ca-pub-3274200073613804"
+             data-ad-slot="6839590681"></ins>
         <script>
              (adsbygoogle = window.adsbygoogle || []).push({});
         </script>
