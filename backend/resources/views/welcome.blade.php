@@ -62,10 +62,11 @@
             </select>
           </div>
         </form>
-        <div class="mt-4 flex flex-wrap gap-2 text-xs text-red-100">
-            @foreach(['Laptops under ₹60k', 'Smartphones', 'Kitchen offers', 'Monitors', 'Headphones'] as $chip)
-            <a href="/?q={{ urlencode($chip) }}" class="rounded-full bg-white/20 px-3 py-1 hover:bg-white/30 whitespace-nowrap">
-              {{ $chip }}
+        <div class="mt-4 flex flex-wrap gap-2 text-sm text-red-100">
+            <span class="py-1 font-semibold text-white/80">Trending:</span>
+            @foreach($categories as $cat)
+            <a href="/?category={{ $cat->slug }}" class="rounded-full bg-white/20 px-3 py-1 hover:bg-white/30 whitespace-nowrap transition-colors border border-white/10">
+              {{ $cat->name }}
             </a>
             @endforeach
         </div>
@@ -92,25 +93,20 @@
         </div>
 
         <div class="rounded-2xl bg-white/15 p-4 text-sm backdrop-blur">
-          <p class="font-semibold">Live Signals</p>
-          <ul class="mt-3 space-y-2 text-red-50">
-            <li>• Continuous crawling every 15 minutes</li>
-            <li>• Verified discount scoring</li>
-            <li>• Auto-publish top opportunities</li>
+          <p class="font-semibold flex items-center gap-2">
+            <span class="relative flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </span>
+            Live Engine Status
+          </p>
+          <ul class="mt-3 space-y-2 text-red-50 text-xs">
+            <li class="flex justify-between border-b border-white/10 pb-1"><span>Crawling frequency</span> <span class="font-bold text-white">Every 5 mins</span></li>
+            <li class="flex justify-between border-b border-white/10 pb-1"><span>Verification engine</span> <span class="font-bold text-white">Active</span></li>
+            <li class="flex justify-between"><span>Auto-publish</span> <span class="font-bold text-white">Enabled</span></li>
           </ul>
         </div>
       </div>
-    </div>
-  </div>
-
-  <div class="surface">
-    <h2 class="text-lg font-bold">Top Categories</h2>
-    <div class="mt-3 flex flex-wrap gap-2 text-sm">
-        @foreach($categories as $cat)
-        <a href="/?category={{ $cat->slug }}" class="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-red-700 transition hover:bg-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
-            {{ $cat->name }}
-        </a>
-        @endforeach
     </div>
   </div>
 
