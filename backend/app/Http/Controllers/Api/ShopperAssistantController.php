@@ -19,8 +19,8 @@ class ShopperAssistantController extends Controller
 
         $userMessage = $request->message;
         $dealIds = $request->deal_ids ?? [];
-        
-        // Fetch cached deals (same cache key as web.php)
+
+        // Fetch cached deals
         $deals = Cache::remember('deals.assistant', 300, function () {
             return Deal::where('status', 'active')
                 ->orderBy('created_at', 'desc')
@@ -28,13 +28,15 @@ class ShopperAssistantController extends Controller
                 ->get()
                 ->map(function ($deal) {
                     return [
-                        'id' => $deal->id,
-                        'title' => $deal->title,
-                        'price' => (float) $deal->discounted_price,
-                        'original_price' => (float) $deal->original_price,
-                        'discount_pct' => $deal->original_price > 0 ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) : 0,
-                        'url' => $deal->url,
-                        'merchant' => $deal->merchant->name ?? 'Marketplace',
+                        'id'            => $deal->id,
+                        'title'         => $deal->title,
+                        'price'         => (float) $deal->discounted_price,
+                        'original_price'=> (float) $deal->original_price,
+                        'discount_pct'  => $deal->original_price > 0
+                            ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100)
+                            : 0,
+                        'url'           => $deal->url,
+                        'merchant'      => optional($deal->merchant)->name ?? 'Marketplace',
                     ];
                 });
         });
@@ -43,57 +45,98 @@ class ShopperAssistantController extends Controller
             $deals = collect($deals)->whereIn('id', $dealIds)->values();
         }
 
-        $systemPrompt = "You are an AI Shopping Assistant. Here are the strictly filtered deals available matching the user's budget and criteria: \n\n" . 
-                        json_encode($deals) . "\n\n" . 
-                        "The user will ask for a recommendation. You MUST ONLY recommend deals from the JSON list above. " . 
-                        "Do not invent or hallucinate deals, prices, or models. Pay strict attention to the user's budget. " .
-                        "Keep your response concise, friendly, and format it nicely in markdown. Mention the prices and merchants.";
+        $systemPrompt =
+            "You are an AI Shopping Assistant for LatestDeal.in. " .
+            "Here are the active deals available:\n\n" .
+            json_encode($deals) . "\n\n" .
+            "RULES:\n" .
+            "- Only recommend deals from the list above. Never invent deals or prices.\n" .
+            "- Strictly respect the user's budget.\n" .
+            "- Format your reply in concise, friendly markdown.\n" .
+            "- Always mention price, merchant, and discount %.";
 
-        $ollamaUrl = env('OLLAMA_BASE_URL', 'http://127.0.0.1:11434') . '/api/generate';
-        $model = env('OLLAMA_MODEL', 'llama3');
+        $fullPrompt = $systemPrompt . "\n\nUser: " . $userMessage . "\n\nAI Assistant:";
+
+        // ----------------------------------------------------------------
+        // Step 1: Try local Ollama if OLLAMA_BASE_URL is set in .env
+        // This should be your desktop's Ollama exposed via a tunnel
+        // e.g. OLLAMA_BASE_URL=https://your-name.ngrok-free.app
+        // ----------------------------------------------------------------
+        $ollamaBaseUrl = env('OLLAMA_BASE_URL'); // null if not set
+        $ollamaError   = null;
+
+        if ($ollamaBaseUrl) {
+            $ollamaUrl = rtrim($ollamaBaseUrl, '/') . '/api/generate';
+            $model     = env('OLLAMA_MODEL', 'llama3');
+
+            try {
+                $response = Http::timeout(10)->post($ollamaUrl, [
+                    'model'  => $model,
+                    'prompt' => $fullPrompt,
+                    'stream' => false,
+                ]);
+
+                if ($response->successful() && $response->json('response')) {
+                    return response()->json([
+                        'reply'  => $response->json('response'),
+                        'source' => 'ollama',
+                    ]);
+                }
+
+                $ollamaError = 'Ollama HTTP ' . $response->status();
+            } catch (\Exception $e) {
+                // Desktop offline or tunnel down — silently fall through to Gemini
+                $ollamaError = $e->getMessage();
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // Step 2: Gemini fallback (or primary when Ollama isn't configured)
+        // Set GEMINI_API_KEY in your production .env on the server
+        // ----------------------------------------------------------------
+        $geminiKey = env('GEMINI_API_KEY');
+
+        if (!$geminiKey) {
+            $msg = $ollamaBaseUrl
+                ? "Your local Ollama is offline and no Gemini API key is configured on the server. Please check your desktop is running."
+                : "No AI provider is configured. Please set GEMINI_API_KEY in the server .env file.";
+
+            return response()->json(['reply' => $msg], 503);
+        }
 
         try {
-            // Reduced timeout for Ollama so it fails quickly if offline
-            $response = Http::timeout(5)->post($ollamaUrl, [
-                'model' => $model,
-                'prompt' => $systemPrompt . "\n\nUser: " . $userMessage . "\n\nAI Assistant:",
-                'stream' => false
+            $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $geminiKey;
+
+            $geminiResponse = Http::timeout(30)->post($geminiUrl, [
+                'contents' => [[
+                    'parts' => [['text' => $fullPrompt]]
+                ]],
+                'generationConfig' => [
+                    'temperature'     => 0.7,
+                    'maxOutputTokens' => 1024,
+                ],
             ]);
 
-            if ($response->successful()) {
-                $reply = $response->json('response');
-                return response()->json(['reply' => $reply]);
-            }
-            
-            throw new \Exception("Ollama returned an error status.");
-        } catch (\Exception $e) {
-            // Fallback to Gemini API if available
-            $geminiKey = env('GEMINI_API_KEY');
-            if ($geminiKey) {
-                try {
-                    $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $geminiKey;
-                    $geminiResponse = Http::timeout(30)->post($geminiUrl, [
-                        'contents' => [
-                            [
-                                'parts' => [
-                                    ['text' => $systemPrompt . "\n\nUser: " . $userMessage . "\n\nAI Assistant:"]
-                                ]
-                            ]
-                        ]
+            if ($geminiResponse->successful()) {
+                $reply = $geminiResponse->json('candidates.0.content.parts.0.text');
+                if ($reply) {
+                    return response()->json([
+                        'reply'  => $reply,
+                        'source' => 'gemini',
                     ]);
-
-                    if ($geminiResponse->successful()) {
-                        $reply = $geminiResponse->json('candidates.0.content.parts.0.text');
-                        return response()->json(['reply' => $reply]);
-                    }
-                    
-                    return response()->json(['reply' => "I am currently offline or restarting. (Gemini Fallback Error)"], 500);
-                } catch (\Exception $geminiEx) {
-                    return response()->json(['reply' => "I am currently offline or restarting. (Gemini Exception: " . $geminiEx->getMessage() . ")"], 500);
                 }
             }
 
-            return response()->json(['reply' => "I am currently offline or restarting. Please try again in a moment. (" . $e->getMessage() . ")"], 500);
+            // Gemini returned an error — show exact reason
+            $errorBody = $geminiResponse->json('error.message') ?? $geminiResponse->body();
+            return response()->json([
+                'reply' => "AI service error (Gemini): " . substr($errorBody, 0, 300)
+            ], 500);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'reply' => "AI service unavailable: " . $e->getMessage()
+            ], 500);
         }
     }
 }
