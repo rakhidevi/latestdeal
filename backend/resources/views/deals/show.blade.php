@@ -134,18 +134,55 @@
                 @endif
             </div>
 
-            <!-- Features -->
+            <!-- AI Pros & Cons / Features -->
             @if($deal->features && count($deal->features) > 0)
-                <div class="mt-8 space-y-3">
-                    @foreach($deal->features as $feature)
-                        <div class="flex items-start gap-3">
-                            <span class="mt-0.5 shrink-0 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full p-1">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                            </span>
-                            <span class="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">{{ $feature }}</span>
+                @if(isset($deal->features['pros']) || isset($deal->features['cons']))
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @if(isset($deal->features['pros']) && count($deal->features['pros']) > 0)
+                        <div class="bg-green-50 dark:bg-green-900/10 rounded-2xl p-5 border border-green-100 dark:border-green-900/30">
+                            <h3 class="text-green-800 dark:text-green-400 font-bold mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Pros
+                            </h3>
+                            <ul class="space-y-2">
+                                @foreach($deal->features['pros'] as $pro)
+                                    <li class="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                                        <span class="text-green-500 mt-1">•</span> {{ $pro }}
+                                    </li>
+                                @endforeach
+                            </ul>
                         </div>
-                    @endforeach
-                </div>
+                        @endif
+
+                        @if(isset($deal->features['cons']) && count($deal->features['cons']) > 0)
+                        <div class="bg-red-50 dark:bg-red-900/10 rounded-2xl p-5 border border-red-100 dark:border-red-900/30">
+                            <h3 class="text-red-800 dark:text-red-400 font-bold mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                Cons
+                            </h3>
+                            <ul class="space-y-2">
+                                @foreach($deal->features['cons'] as $con)
+                                    <li class="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                                        <span class="text-red-500 mt-1">•</span> {{ $con }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        @endif
+                    </div>
+                @else
+                    <!-- Legacy features list -->
+                    <div class="mt-8 space-y-3">
+                        @foreach($deal->features as $feature)
+                            <div class="flex items-start gap-3">
+                                <span class="mt-0.5 shrink-0 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full p-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </span>
+                                <span class="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">{{ $feature }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             @endif
 
             <!-- Copy Code & Go -->

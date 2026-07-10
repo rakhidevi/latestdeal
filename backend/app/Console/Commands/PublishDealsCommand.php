@@ -60,11 +60,14 @@ class PublishDealsCommand extends Command
                     $score = $result['score'] ?? 0;
 
                     if ($score >= 7) {
+                        $deal->ai_score = $score;
                         $deal->status = 'active';
                         $deal->save();
                         $publishedCount++;
                         Log::info("AI Auto-published deal ID {$deal->id} with score {$score}/10");
                     } else {
+                        $deal->ai_score = $score;
+                        $deal->saveQuietly();
                         Log::info("AI Rejected deal ID {$deal->id}. Score: {$score}/10");
                     }
                 }
