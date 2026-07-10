@@ -27,13 +27,19 @@ Route::get('/setup-scraper', function () {
 
 
 // Fallback for old integer IDs
-Route::get('/go/{id}', function ($id) {
+Route::get('/go/{id}', function (\Illuminate\Http\Request $request, $id) {
     $deal = \App\Models\Deal::findOrFail($id);
+    if (empty($deal->getRawOriginal('hash_id'))) {
+        return app(\App\Http\Controllers\RedirectController::class)->redirect($request, $deal);
+    }
     return redirect()->route('deal.redirect', ['deal' => $deal->hash_id], 301);
 })->where('id', '[0-9]+');
 
 Route::get('/deal/{id}', function ($id) {
     $deal = \App\Models\Deal::findOrFail($id);
+    if (empty($deal->getRawOriginal('slug'))) {
+        return app(\App\Http\Controllers\DealController::class)->show($deal);
+    }
     return redirect()->route('deal.show', ['deal' => $deal->slug], 301);
 })->where('id', '[0-9]+');
 
