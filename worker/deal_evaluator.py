@@ -4,12 +4,17 @@ def clean_number(val, return_type=float):
     """Extracts numeric value from a string."""
     if not val:
         return 0
-    # Remove everything except digits and dot
-    cleaned = re.sub(r'[^\d.]', '', str(val))
-    try:
-        return return_type(cleaned)
-    except:
-        return 0
+    # Remove commas to keep numbers contiguous
+    val_str = str(val).replace(',', '')
+    
+    # Extract the first sequence of digits with an optional decimal
+    match = re.search(r'(\d+(?:\.\d+)?)', val_str)
+    if match:
+        try:
+            return return_type(match.group(1))
+        except:
+            pass
+    return 0
 
 def evaluate_deal(raw_data: dict) -> dict:
     """

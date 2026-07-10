@@ -49,7 +49,7 @@ async def async_crawl4ai_extract(url: str) -> dict:
         ),
         schema=DealExtractionSchema.model_json_schema(),
         extraction_type="schema",
-        instruction="Extract the MAIN product title, original price, discounted price, product features, main product image URL, star rating (e.g. 4.5), review count, and brand name. IMPORTANT: ONLY extract the price for the main product being sold. DO NOT extract prices of related products, sponsored items, or accessories. If the main product is 'Out of Stock' or 'Currently unavailable', set out_of_stock to true and leave the prices as empty strings. If a field is missing, return an empty string or empty list."
+        instruction="Extract the MAIN product title, original price, discounted price, product features, main product image URL, star rating (e.g. 4.5), review count, and brand name. IMPORTANT: ONLY extract the actual selling price and original MRP. DO NOT extract 'per gram', 'per kg', 'per 100g', or any other unit prices. DO NOT extract prices of related products, sponsored items, or accessories. If the main product is 'Out of Stock' or 'Currently unavailable', set out_of_stock to true and leave the prices as empty strings. If a field is missing, return an empty string or empty list."
     )
     
     proxy_server = os.getenv("PROXY_SERVER")
@@ -150,17 +150,12 @@ async def async_crawl4ai_extract(url: str) -> dict:
             raise ValueError("No content extracted by Crawl4AI")
 
 def extract_deal_data(url: str) -> dict:
-    """Primary extraction wrapper: Tries Crawl4AI, falls back to Playwright (unless in server mode)."""
+    print(f"Bypassing Crawl4AI (DOM too large for local LLM). Using manual Playwright scraper for {url}...")
     try:
-        print(f"Attempting primary extraction via Crawl4AI for {url}...")
-        return asyncio.run(async_crawl4ai_extract(url))
-    except Exception as e:
-        if os.getenv("WORKER_MODE") == "server":
-            print(f"Crawl4AI failed: {e}. Worker is in server mode, escalating to desktop processing.")
-            raise Exception("needs_desktop_processing")
-            
-        print(f"Crawl4AI failed: {e}. Falling back to manual Playwright scraper...")
         return extract_deal_data_fallback(url)
+    except Exception as e:
+        print(f"Extraction failed: {e}")
+        raise e
 
 def setup_browser(p):
     """Sets up the Playwright browser with session caching, proxies, and stealth."""
