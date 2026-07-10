@@ -11,7 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Deal::whereNull('slug')->orWhereNull('hash_id')->chunkById(100, function ($deals) {
+        Deal::where(function ($query) {
+            $query->whereNull('slug')->orWhereNull('hash_id');
+        })->chunkById(100, function ($deals) {
             foreach ($deals as $deal) {
                 if (empty($deal->slug)) {
                     $baseSlug = Str::slug($deal->title);
