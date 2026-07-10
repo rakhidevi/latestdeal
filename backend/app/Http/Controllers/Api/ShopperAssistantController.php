@@ -105,7 +105,7 @@ class ShopperAssistantController extends Controller
         }
 
         try {
-            $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $geminiKey;
+            $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=' . $geminiKey;
 
             $geminiResponse = Http::timeout(30)->post($geminiUrl, [
                 'contents' => [[
