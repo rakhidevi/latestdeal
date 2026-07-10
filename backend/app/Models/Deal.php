@@ -59,54 +59,31 @@ class Deal extends Model
         return $this->belongsToMany(Tag::class);
     }
 
-    public function getSlugAttribute($value)
-    {
-        if (!empty($value)) {
-            return $value;
-        }
-        
-        $baseSlug = \Illuminate\Support\Str::slug($this->title);
-        $slug = $baseSlug ?: 'deal';
-        
-        // Return a generated slug without mutating attributes to prevent infinite recursion
-        return $slug . '-' . $this->id;
-    }
-
-    public function getHashIdAttribute($value)
-    {
-        if (!empty($value)) {
-            return $value;
-        }
-        
-        // Return ID as fallback to prevent 404s since it isn't saved to DB yet
-        return (string) $this->id;
-    }
-
     public function resolveRouteBinding($value, $field = null)
     {
         if ($field === 'slug') {
+            // Try exact slug match first
             $deal = $this->where('slug', $value)->first();
             if ($deal) {
                 return $deal;
             }
-            
+            // Fallback: extract trailing ID from slug (e.g. "puma-sneakers-413" -> id 413)
             if (preg_match('/-(\d+)$/', $value, $matches)) {
-                $id = $matches[1];
-                $fallbackDeal = $this->find($id);
-                if ($fallbackDeal && $fallbackDeal->slug === $value) {
-                    return $fallbackDeal;
-                }
+                return $this->find($matches[1]);
             }
-            
-            if (is_numeric($value)) {
-                return $this->find($value);
-            }
-            
             return null;
         }
         
         if ($field === 'hash_id') {
-            return $this->where('hash_id', $value)->first() ?? $this->find($value);
+            $deal = $this->where('hash_id', $value)->first();
+            if ($deal) {
+                return $deal;
+            }
+            // Numeric fallback: treat as ID
+            if (is_numeric($value)) {
+                return $this->find($value);
+            }
+            return null;
         }
 
         return parent::resolveRouteBinding($value, $field);
