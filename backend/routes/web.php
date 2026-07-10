@@ -264,6 +264,17 @@ Route::get('/debug-logs', function () {
     return implode("", array_slice($lines, -200));
 });
 
+Route::get('/debug-error', function() {
+    try {
+        $deal = \App\Models\Deal::whereNull('slug')->orWhere('slug', '')->first();
+        if (!$deal) return "No deals with empty slugs.";
+        $slug = $deal->slug; // Triggers the accessor and saveQuietly
+        return "Success: " . $slug;
+    } catch (\Exception $e) {
+        return get_class($e) . ": " . $e->getMessage() . "\nTrace:\n" . $e->getTraceAsString();
+    }
+});
+
 
 // Newsletter Subscription
 Route::post('/subscribe', [\App\Http\Controllers\Api\SubscriptionController::class, 'store'])->name('subscribe');
