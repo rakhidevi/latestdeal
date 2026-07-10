@@ -32,10 +32,10 @@
     <div class="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000"></div>
     <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000"></div>
 
-    <div class="mx-auto max-w-7xl grid gap-8 p-6 md:grid-cols-[1.2fr_0.8fr] md:p-10 lg:p-12 items-center relative z-10">
+    <div class="mx-auto max-w-7xl grid gap-4 md:gap-6 p-4 md:p-6 lg:p-8 md:grid-cols-[1.2fr_0.8fr] items-center relative z-10">
       <div class="min-w-0 flex flex-col justify-center">
         
-        <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight break-words tracking-tight text-white drop-shadow-sm min-h-[3rem] lg:min-h-[3.5rem]" 
+        <h1 class="text-3xl lg:text-4xl font-bold leading-tight break-words tracking-tight text-white drop-shadow-sm min-h-[2.5rem] lg:min-h-[3rem]" 
             x-data="{
                 words: ['global deals', 'tech discounts', 'fashion offers', 'hidden gems'],
                 wordIndex: 0,
@@ -67,11 +67,11 @@
           Find real <span x-text="text" class="text-yellow-300"></span><span class="animate-pulse font-light opacity-70">|</span> <br class="hidden lg:block">in seconds
         </h1>
         
-        <p class="mt-4 text-base lg:text-lg text-red-50 hidden sm:block font-medium max-w-xl">
+        <p class="mt-2 lg:mt-4 text-sm lg:text-base text-red-50 hidden sm:block font-medium max-w-xl">
           Our AI engines continuously extract and verify deals from top Indian marketplaces 24/7.
         </p>
         
-        <form action="/" method="GET" class="mt-8 space-y-4 w-full max-w-2xl" id="filter-form">
+        <form action="/" method="GET" class="mt-4 md:mt-6 space-y-4 w-full max-w-2xl" id="filter-form">
           <!-- Search Bar -->
           <div class="flex w-full shadow-lg rounded-xl overflow-hidden bg-white focus-within:ring-4 focus-within:ring-white/30 transition-all hover:shadow-xl">
             <div class="pl-4 flex items-center text-gray-400">
