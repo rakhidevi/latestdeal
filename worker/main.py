@@ -97,7 +97,8 @@ async def process_queue():
                     import re
                     cleaned_price = re.sub(r'[^\d.]', '', str(new_price))
                     if cleaned_price:
-                        backend_url = os.getenv("API_URL", "http://localhost:8000/api/v1")
+                        from api_client import get_api_config
+                        backend_url, _ = get_api_config()
                         requests.post(
                             f"{backend_url}/deals/update-price",
                             json={"url": url, "price": float(cleaned_price)},
@@ -289,13 +290,19 @@ async def listen_to_websockets():
                     message = await websocket.recv()
                     data = json.loads(message)
                     
-                    # Ignore pusher internal pings
                     if data.get('event') == 'App\\Events\\DealScrapeRequested':
                         payload = json.loads(data.get('data', '{}'))
                         url = payload.get('url')
                         job_type = payload.get('type', 'ingestion')
                         print(f"⚡ Received instant scrape request via WS: {url} ({job_type})")
                         add_to_queue(url, job_type)
+                        
+                    elif data.get('event') == 'App\\Events\\HuntRequested':
+                        payload = json.loads(data.get('data', '{}'))
+                        keyword = payload.get('keyword')
+                        print(f"⚡ Received instant hunt request via WS for keyword: {keyword}")
+                        import subprocess
+                        subprocess.Popen(["python", "-u", "hunter.py", "--keyword", str(keyword)])
                         
         except websockets.exceptions.ConnectionClosed:
             print("WebSocket connection closed. Reconnecting in 5s...")

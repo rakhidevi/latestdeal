@@ -345,7 +345,7 @@
             listenForUpdates() {
                 if (window.Echo) {
                     window.Echo.channel(`deals.${this.dealId}`)
-                        .listen('DealUpdated', (e) => {
+                        .listen('.DealUpdated', (e) => {
                             this.currentPrice = e.new_price;
                             this.isChecking = false;
                         });

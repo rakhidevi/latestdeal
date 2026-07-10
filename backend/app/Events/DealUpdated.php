@@ -38,4 +38,12 @@ class DealUpdated implements ShouldBroadcast
             new Channel('deals.' . $this->deal_id),
         ];
     }
+
+    /**
+     * The event's broadcast name.
+     */
+    public function broadcastAs(): string
+    {
+        return 'DealUpdated';
+    }
 }
