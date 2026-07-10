@@ -206,9 +206,9 @@
         <svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
       </div>
 
-      <div class="mt-8 flex justify-center" id="pagination-container">
+      <div class="mt-8 flex justify-center h-10" id="pagination-container">
         @if($deals->hasMorePages())
-          <button id="load-more-btn" data-url="{{ $deals->nextPageUrl() }}" class="rounded-lg bg-white border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700">Load More</button>
+          <div id="load-more-trigger" data-url="{{ $deals->nextPageUrl() }}"></div>
         @endif
       </div>
       
@@ -222,15 +222,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const dealsGrid = document.getElementById('deals-grid');
     const spinner = document.getElementById('loading-spinner');
     const paginationContainer = document.getElementById('pagination-container');
+    let isFetching = false;
+    let observer = null;
     
     function fetchDeals(url, append = false) {
+        if (isFetching) return;
+        isFetching = true;
+        
         if (!append) {
             dealsGrid.style.opacity = '0.5';
         }
         spinner.classList.remove('hidden');
-        if (append && document.getElementById('load-more-btn')) {
-            document.getElementById('load-more-btn').classList.add('hidden');
-        }
 
         fetch(url, {
             headers: {
@@ -250,16 +252,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.history.pushState({}, '', url);
             }
 
-            // Update Pagination Button
+            // Update Pagination Trigger
             if (data.has_more && data.next_page) {
-                paginationContainer.innerHTML = `<button id="load-more-btn" data-url="${data.next_page}" class="rounded-lg bg-white border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700">Load More</button>`;
-                bindLoadMore();
+                paginationContainer.innerHTML = `<div id="load-more-trigger" data-url="${data.next_page}"></div>`;
+                bindAutoLoad();
             } else {
                 paginationContainer.innerHTML = '';
             }
         })
         .finally(() => {
             spinner.classList.add('hidden');
+            isFetching = false;
         });
     }
 
@@ -284,20 +287,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Handle Load More
-    function bindLoadMore() {
-        const btn = document.getElementById('load-more-btn');
-        if (btn) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const url = this.getAttribute('data-url');
-                if (url) {
+    // Handle Auto Load (Infinite Scroll)
+    function bindAutoLoad() {
+        const trigger = document.getElementById('load-more-trigger');
+        if (!trigger) return;
+        
+        if (observer) {
+            observer.disconnect();
+        }
+        
+        observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                const url = trigger.getAttribute('data-url');
+                if (url && !isFetching) {
                     fetchDeals(url, true);
                 }
-            });
-        }
+            }
+        }, { rootMargin: '300px' });
+        
+        observer.observe(trigger);
     }
-    bindLoadMore();
+    
+    // Initialize auto load on page load
+    bindAutoLoad();
 });
 </script>
 @endsection
