@@ -19,7 +19,7 @@
                 <div class="space-y-4">
                     @foreach($savedDeals as $deal)
                         <div class="flex items-center justify-between border-b pb-2">
-                            <a href="{{ route('deal.show', $deal->id) }}" class="font-medium hover:text-primary">{{ $deal->title }}</a>
+                            <a href="{{ route('deal.show', $deal->slug) }}" class="font-medium hover:text-primary">{{ $deal->title }}</a>
                             <span class="text-accent font-bold">₹{{ $deal->discounted_price }}</span>
                         </div>
                     @endforeach

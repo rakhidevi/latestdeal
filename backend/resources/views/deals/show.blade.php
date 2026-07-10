@@ -14,7 +14,7 @@
     <meta property="og:title" content="{{ $deal->title }} | Save {{ $discountPercent }}%">
     <meta property="og:description" content="Get it for just ₹{{ $deal->discounted_price }}! Regular Price: ₹{{ $deal->original_price }}.">
     <meta property="og:image" content="{{ filter_var($deal->image_path, FILTER_VALIDATE_URL) ? $deal->image_path : asset($deal->image_path) }}">
-    <meta property="og:url" content="{{ route('deal.show', $deal->id) }}">
+    <meta property="og:url" content="{{ route('deal.show', $deal->slug) }}">
     <meta property="og:type" content="product">
     
     <!-- Twitter Cards -->
@@ -32,7 +32,7 @@
       "description": "Get {{ addslashes($deal->title) }} at a discounted price.",
       "offers": {
         "@@type": "Offer",
-        "url": "{{ route('deal.show', $deal->id) }}",
+        "url": "{{ route('deal.show', $deal->slug) }}",
         "priceCurrency": "INR",
         "price": "{{ $deal->discounted_price }}",
         "itemCondition": "https://schema.org/NewCondition",
@@ -162,11 +162,11 @@
                         function copyAndGo() {
                             navigator.clipboard.writeText("{{ $deal->promo_code ?? $deal->coupon_code }}");
                             alert("Code copied!");
-                            window.open("{{ route('deal.redirect', $deal->id) }}", "_blank");
+                            window.open("{{ route('deal.redirect', $deal->hash_id) }}", "_blank");
                         }
                     </script>
                 @else
-                    <a href="{{ route('deal.redirect', $deal->id) }}" target="_blank" class="flex justify-center items-center w-full sm:w-80 bg-gradient-to-r from-red-600 to-rose-500 text-white px-8 py-4 rounded-2xl font-black text-lg hover:from-red-500 hover:to-rose-400 transition-all transform hover:-translate-y-1 shadow-xl hover:shadow-red-500/20 pulse-btn">
+                    <a href="{{ route('deal.redirect', $deal->hash_id) }}" target="_blank" class="flex justify-center items-center w-full sm:w-80 bg-gradient-to-r from-red-600 to-rose-500 text-white px-8 py-4 rounded-2xl font-black text-lg hover:from-red-500 hover:to-rose-400 transition-all transform hover:-translate-y-1 shadow-xl hover:shadow-red-500/20 pulse-btn">
                         Get Deal Now
                         <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </a>

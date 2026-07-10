@@ -10,8 +10,30 @@ class Deal extends Model
     protected $fillable = [
         'category_id', 'merchant_id', 'title', 'original_price', 
         'discounted_price', 'coupon_code', 'promo_code', 'url', 'short_url', 'image_path', 'status', 'brand',
-        'features', 'verdict', 'trust_metrics', 'ai_caption', 'ai_score'
+        'features', 'verdict', 'trust_metrics', 'ai_caption', 'ai_score', 'slug', 'hash_id'
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($deal) {
+            if (empty($deal->slug)) {
+                $baseSlug = Str::slug($deal->title);
+                $slug = $baseSlug;
+                $count = 1;
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $count++;
+                }
+                $deal->slug = $slug;
+            }
+            if (empty($deal->hash_id)) {
+                $hash = Str::random(6);
+                while (static::where('hash_id', $hash)->exists()) {
+                    $hash = Str::random(6);
+                }
+                $deal->hash_id = $hash;
+            }
+        });
+    }
 
     protected $casts = [
         'features' => 'array',

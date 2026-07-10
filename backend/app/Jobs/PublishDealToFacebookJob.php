@@ -33,7 +33,7 @@ class PublishDealToFacebookJob implements ShouldQueue
         }
 
         $service = new FacebookGraphService($account);
-        $caption = "🚨 {$this->deal->title}\n\nOnly {$this->deal->discounted_price}! Grab it here: " . route('deal.redirect', $this->deal->id);
+        $caption = "🚨 {$this->deal->title}\n\nOnly {$this->deal->discounted_price}! Grab it here: " . route('deal.redirect', $this->deal->hash_id);
 
         // Rate Limiting: Facebook API allows limits
         $executed = \Illuminate\Support\Facades\RateLimiter::attempt(

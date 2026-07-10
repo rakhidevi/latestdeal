@@ -33,7 +33,7 @@ class PublishDealToTwitterJob implements ShouldQueue
         }
 
         $service = new TwitterApiService($account);
-        $tweet = "🚨 {$this->deal->title}\n\nOnly {$this->deal->discounted_price}! Grab it here: " . route('deal.redirect', $this->deal->id);
+        $tweet = "🚨 {$this->deal->title}\n\nOnly {$this->deal->discounted_price}! Grab it here: " . route('deal.redirect', $this->deal->hash_id);
 
         // API Rate Limiting
         $executed = \Illuminate\Support\Facades\RateLimiter::attempt(

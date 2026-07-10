@@ -26,11 +26,22 @@ Route::get('/setup-scraper', function () {
 });
 
 
+// Fallback for old integer IDs
+Route::get('/go/{id}', function ($id) {
+    $deal = \App\Models\Deal::findOrFail($id);
+    return redirect()->route('deal.redirect', ['deal' => $deal->hash_id], 301);
+})->where('id', '[0-9]+');
+
+Route::get('/deal/{id}', function ($id) {
+    $deal = \App\Models\Deal::findOrFail($id);
+    return redirect()->route('deal.show', ['deal' => $deal->slug], 301);
+})->where('id', '[0-9]+');
+
 // The Redirect Engine Endpoint
-Route::get('/go/{deal}', [RedirectController::class, 'redirect'])->name('deal.redirect');
+Route::get('/go/{deal:hash_id}', [\App\Http\Controllers\RedirectController::class, 'redirect'])->name('deal.redirect');
 
 // Deal Detail Page
-Route::get('/deal/{deal}', [\App\Http\Controllers\DealController::class, 'show'])->name('deal.show');
+Route::get('/deal/{deal:slug}', [\App\Http\Controllers\DealController::class, 'show'])->name('deal.show');
 
 // AI Shopping Assistant
 Route::get('/assistant', function () {
@@ -146,6 +157,37 @@ Route::get('/privacy', function () {
 Route::get('/run-migrations', function () {
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     return "Migrations ran: " . \Illuminate\Support\Facades\Artisan::output();
+});
+
+Route::get('/run-backfill', function() {
+    $deals = \App\Models\Deal::all();
+    $count = 0;
+    foreach ($deals as $deal) {
+        $updated = false;
+        if (empty($deal->slug)) {
+            $baseSlug = \Illuminate\Support\Str::slug($deal->title);
+            $slug = $baseSlug;
+            $c = 1;
+            while (\App\Models\Deal::where('slug', $slug)->where('id', '!=', $deal->id)->exists()) {
+                $slug = $baseSlug . '-' . $c++;
+            }
+            $deal->slug = $slug;
+            $updated = true;
+        }
+        if (empty($deal->hash_id)) {
+            $hash = \Illuminate\Support\Str::random(6);
+            while (\App\Models\Deal::where('hash_id', $hash)->where('id', '!=', $deal->id)->exists()) {
+                $hash = \Illuminate\Support\Str::random(6);
+            }
+            $deal->hash_id = $hash;
+            $updated = true;
+        }
+        if ($updated) {
+            $deal->save();
+            $count++;
+        }
+    }
+    return "Backfilled $count deals.";
 });
 
 Route::get('/debug-env', function () {

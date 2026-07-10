@@ -13,7 +13,7 @@ class WhatsAppService
     public function generateShareIntent(Deal $deal): string
     {
         // Construct the Tracking URL (Redirect Engine)
-        $trackingUrl = route('deal.redirect', ['deal' => $deal->id]);
+        $trackingUrl = route('deal.redirect', ['deal' => $deal->hash_id]);
 
         // Format the share text
         $text = "🔥 *NEW DEAL ALERT* 🔥\n\n";

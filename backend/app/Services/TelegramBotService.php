@@ -38,7 +38,7 @@ class TelegramBotService
     public function publishDeal(Deal $deal): bool
     {
         // 1. Construct the Tracking URL (Redirect Engine)
-        $trackingUrl = route('deal.redirect', ['deal' => $deal->id]);
+        $trackingUrl = route('deal.redirect', ['deal' => $deal->hash_id]);
 
         // 2. Format the message (HTML mode)
         $cleanTitle = htmlspecialchars($deal->title);
@@ -69,7 +69,11 @@ class TelegramBotService
             $caption .= "✔️ Premium Quality\n✔️ Limited Time Offer\n\n";
         }
         
-        $caption .= "🏃‍♂️ <b>Hurry! Grab it here:</b> " . $trackingUrl . "\n\n";
+        $readMoreUrl = route('deal.show', ['deal' => $deal->slug]);
+        $buyNowUrl = route('deal.redirect', ['deal' => $deal->hash_id]);
+
+        $caption .= "📖 <b>Read More:</b> " . $readMoreUrl . "\n\n";
+        $caption .= "🛒 <b>Buy Now:</b> " . $buyNowUrl . "\n\n";
         $caption .= "🌐 <b>For all LatestDeal: Visit</b>\nhttps://latestdeal.in/";
 
         // 3. Send Photo with Caption to Telegram API
