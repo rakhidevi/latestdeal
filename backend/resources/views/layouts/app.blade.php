@@ -163,6 +163,8 @@
       </div>
     </header>
 
+    @yield('hero')
+
     <div class="mx-auto flex max-w-[96rem] px-4 py-6 md:px-6 gap-6">
         <!-- Left Sidebar Ad -->
         <aside class="hidden xl:block w-[160px] flex-shrink-0">

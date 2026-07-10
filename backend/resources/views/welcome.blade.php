@@ -26,89 +26,122 @@
     </script>
 @endsection
 
-@section('content')
-<section class="space-y-6">
-  <div class="panel overflow-hidden bg-gradient-to-br from-red-500 via-rose-500 to-red-400 p-0 text-white hidden md:block">
-    <div class="grid gap-6 p-4 sm:p-6 md:grid-cols-2 md:p-8">
-      <div class="min-w-0"> <!-- Added min-w-0 to prevent grid blowout -->
-        <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight break-words">
+@endsection
+
+@section('hero')
+  <div class="w-full bg-gradient-to-br from-red-600 via-rose-500 to-red-500 text-white hidden md:block shadow-inner border-b border-red-700/50">
+    <div class="mx-auto max-w-7xl grid gap-6 p-4 sm:p-6 md:grid-cols-2 md:p-8">
+      <div class="min-w-0 flex flex-col justify-center">
+        <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight break-words tracking-tight">
           Find real global deals in seconds
         </h1>
-        <p class="mt-1 sm:mt-2 text-xs sm:text-sm text-red-50 hidden sm:block">
-          AI-scored discounts from global marketplaces.
+        <p class="mt-2 text-sm sm:text-base text-red-50 hidden sm:block font-medium">
+          Our AI engines score and verify discounts across global marketplaces 24/7.
         </p>
-        <form action="/" method="GET" class="mt-4 sm:mt-5 space-y-3 w-full" id="filter-form">
-          <div class="flex gap-2 w-full">
+        
+        <form action="/" method="GET" class="mt-6 space-y-3 w-full" id="filter-form">
+          <div class="flex gap-2 w-full shadow-lg rounded-xl">
             <input
               name="q"
               value="{{ request('q') }}"
-              placeholder="Search products, brands..."
-              class="input-base border-0 text-gray-900 flex-1 min-w-0"
+              placeholder="Search products, brands, or categories..."
+              class="input-base border-0 text-gray-900 flex-1 min-w-0 py-3 px-4 text-base rounded-l-xl focus:ring-2 focus:ring-red-900"
             />
-            <button class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 flex-shrink-0">Search</button>
+            <button class="rounded-r-xl bg-gray-900 px-6 py-3 text-sm font-bold tracking-wide text-white transition hover:bg-black flex-shrink-0">Search</button>
           </div>
-          <div class="flex flex-col sm:flex-row flex-wrap gap-2 sm:items-center w-full">
-            <div class="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center">
-                <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-full sm:w-24 placeholder-gray-500 min-w-0" />
-                <span class="text-white/80 hidden sm:inline">-</span>
-                <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max ₹" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-full sm:w-24 placeholder-gray-500 min-w-0" />
+          
+          <div class="flex flex-col sm:flex-row flex-wrap gap-2 sm:items-center w-full mt-2">
+            <div class="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center relative">
+                <span class="absolute -top-5 left-1 text-[10px] font-bold uppercase tracking-wider text-red-100/80">Price Limits</span>
+                <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min ₹" class="rounded-lg border-0 bg-white/10 backdrop-blur px-3 py-2 text-sm text-white focus:bg-white focus:text-gray-900 focus:ring-2 focus:ring-gray-900 w-full sm:w-28 placeholder-white/60 transition-colors" />
+                <span class="text-white/50 hidden sm:inline px-1">-</span>
+                <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max ₹" class="rounded-lg border-0 bg-white/10 backdrop-blur px-3 py-2 text-sm text-white focus:bg-white focus:text-gray-900 focus:ring-2 focus:ring-gray-900 w-full sm:w-28 placeholder-white/60 transition-colors" />
             </div>
-            <select name="min_discount" onchange="this.form.submit()" class="rounded-lg border-0 bg-white/90 px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-red-500 w-full sm:w-36 flex-shrink-0">
-                <option value="">Any Discount</option>
-                <option value="10" {{ request('min_discount') == '10' ? 'selected' : '' }}>10%+ Off</option>
-                <option value="25" {{ request('min_discount') == '25' ? 'selected' : '' }}>25%+ Off</option>
-                <option value="50" {{ request('min_discount') == '50' ? 'selected' : '' }}>50%+ Off</option>
-                <option value="75" {{ request('min_discount') == '75' ? 'selected' : '' }}>75%+ Off</option>
-            </select>
+            <div class="w-full sm:w-auto sm:ml-2 relative">
+                <span class="absolute -top-5 left-1 text-[10px] font-bold uppercase tracking-wider text-red-100/80">Discount Cutoff</span>
+                <select name="min_discount" onchange="this.form.submit()" class="rounded-lg border-0 bg-white/10 backdrop-blur px-3 py-2 text-sm text-white focus:bg-white focus:text-gray-900 focus:ring-2 focus:ring-gray-900 w-full sm:w-40 flex-shrink-0 transition-colors appearance-none cursor-pointer">
+                    <option value="" class="text-gray-900">Any Discount %</option>
+                    <option value="10" class="text-gray-900" {{ request('min_discount') == '10' ? 'selected' : '' }}>At least 10% Off</option>
+                    <option value="25" class="text-gray-900" {{ request('min_discount') == '25' ? 'selected' : '' }}>At least 25% Off</option>
+                    <option value="50" class="text-gray-900" {{ request('min_discount') == '50' ? 'selected' : '' }}>At least 50% Off</option>
+                    <option value="75" class="text-gray-900" {{ request('min_discount') == '75' ? 'selected' : '' }}>At least 75% Off (Deep Cuts)</option>
+                </select>
+            </div>
+            
+            @if(request()->hasAny(['q', 'min_price', 'max_price', 'min_discount', 'category']))
+                <a href="/" class="ml-auto text-xs font-semibold text-white bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg transition-colors flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    Clear Filters
+                </a>
+            @endif
           </div>
+          
+          <p class="text-[11px] text-red-100/70 pt-1 leading-snug">
+            * Filters apply globally. Use Price Limits to stick to a budget, and the Discount Cutoff to instantly filter out low-value deals.
+          </p>
         </form>
-        <div class="mt-4 flex flex-wrap gap-2 text-sm text-red-100">
-            <span class="py-1 font-semibold text-white/80">Trending:</span>
+        
+        <div class="mt-5 flex flex-wrap gap-2 text-sm text-red-100">
+            <span class="py-1 font-semibold text-white/90 text-xs uppercase tracking-wider mr-1">Trending:</span>
             @foreach($categories as $cat)
-            <a href="/?category={{ $cat->slug }}" class="rounded-full bg-white/20 px-3 py-1 hover:bg-white/30 whitespace-nowrap transition-colors border border-white/10">
+            <a href="/?category={{ $cat->slug }}" class="rounded-full bg-black/10 hover:bg-black/20 px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors border border-black/5">
               {{ $cat->name }}
             </a>
             @endforeach
         </div>
       </div>
-      <div class="space-y-4 hidden md:block">
-        <!-- KPI Strip Equivalent -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div class="rounded-xl bg-white/10 p-3 text-center backdrop-blur">
-                <div class="text-2xl font-black">24/7</div>
-                <div class="text-[10px] uppercase tracking-wider text-red-100">Scanning</div>
+      
+      <div class="space-y-4 hidden md:flex flex-col justify-center">
+        <!-- KPI Strip -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="rounded-xl bg-black/15 p-4 text-center backdrop-blur shadow-sm border border-white/5">
+                <div class="text-2xl sm:text-3xl font-black">24/7</div>
+                <div class="text-[10px] sm:text-xs uppercase tracking-wider text-red-100 font-bold mt-1">Scanning</div>
             </div>
-            <div class="rounded-xl bg-white/10 p-3 text-center backdrop-blur">
-                <div class="text-2xl font-black">100%</div>
-                <div class="text-[10px] uppercase tracking-wider text-red-100">Verified</div>
+            <div class="rounded-xl bg-black/15 p-4 text-center backdrop-blur shadow-sm border border-white/5">
+                <div class="text-2xl sm:text-3xl font-black">100%</div>
+                <div class="text-[10px] sm:text-xs uppercase tracking-wider text-red-100 font-bold mt-1">Verified</div>
             </div>
-            <div class="rounded-xl bg-white/10 p-3 text-center backdrop-blur">
-                <div class="text-2xl font-black">AI</div>
-                <div class="text-[10px] uppercase tracking-wider text-red-100">Scored</div>
+            <div class="rounded-xl bg-black/15 p-4 text-center backdrop-blur shadow-sm border border-white/5">
+                <div class="text-2xl sm:text-3xl font-black">AI</div>
+                <div class="text-[10px] sm:text-xs uppercase tracking-wider text-red-100 font-bold mt-1">Scored</div>
             </div>
-            <div class="rounded-xl bg-white/10 p-3 text-center backdrop-blur">
-                <div class="text-2xl font-black">Free</div>
-                <div class="text-[10px] uppercase tracking-wider text-red-100">Access</div>
+            <div class="rounded-xl bg-black/15 p-4 text-center backdrop-blur shadow-sm border border-white/5">
+                <div class="text-2xl sm:text-3xl font-black text-green-400">Free</div>
+                <div class="text-[10px] sm:text-xs uppercase tracking-wider text-red-100 font-bold mt-1">Access</div>
             </div>
         </div>
 
-        <div class="rounded-2xl bg-white/15 p-4 text-sm backdrop-blur">
-          <p class="font-semibold flex items-center gap-2">
+        <div class="rounded-2xl bg-black/20 p-5 text-sm backdrop-blur border border-white/10 shadow-lg mt-2">
+          <p class="font-bold flex items-center gap-2 text-base">
             <span class="relative flex h-3 w-3">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
             </span>
             Live Engine Status
           </p>
-          <ul class="mt-3 space-y-2 text-red-50 text-xs">
-            <li class="flex justify-between border-b border-white/10 pb-1"><span>Crawling frequency</span> <span class="font-bold text-white">Every 5 mins</span></li>
-            <li class="flex justify-between border-b border-white/10 pb-1"><span>Verification engine</span> <span class="font-bold text-white">Active</span></li>
-            <li class="flex justify-between"><span>Auto-publish</span> <span class="font-bold text-white">Enabled</span></li>
+          <ul class="mt-4 space-y-3 text-red-50 text-sm">
+            <li class="flex justify-between border-b border-white/10 pb-2">
+                <span class="text-white/80">Crawling frequency</span> 
+                <span class="font-black text-white bg-black/20 px-2 py-0.5 rounded text-xs">Every 5 mins</span>
+            </li>
+            <li class="flex justify-between border-b border-white/10 pb-2">
+                <span class="text-white/80">Verification engine</span> 
+                <span class="font-black text-green-400 bg-green-900/30 px-2 py-0.5 rounded text-xs">Online</span>
+            </li>
+            <li class="flex justify-between">
+                <span class="text-white/80">Auto-publish</span> 
+                <span class="font-black text-white bg-black/20 px-2 py-0.5 rounded text-xs">Enabled</span>
+            </li>
           </ul>
         </div>
       </div>
     </div>
   </div>
+@endsection
+
+@section('content')
+<section class="space-y-6">
 
   <x-ad-banner slot="home-top" />
 
