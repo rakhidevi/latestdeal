@@ -26,9 +26,6 @@
     </script>
 @endsection
 
-
-@endsection
-
 @section('hero')
   <div class="w-full bg-gradient-to-r from-red-600 via-red-500 to-rose-600 text-white hidden md:block shadow-md">
     <div class="mx-auto max-w-7xl grid gap-8 p-6 md:grid-cols-[1.2fr_0.8fr] md:p-10 lg:p-12 items-center">
