@@ -68,14 +68,10 @@ class Deal extends Model
         $baseSlug = \Illuminate\Support\Str::slug($this->title);
         $slug = $baseSlug ?: 'deal';
         $count = 1;
-        while (static::where('slug', $slug)->where('id', '!=', $this->id)->exists()) {
-            $slug = $baseSlug . '-' . $count++;
-        }
+        // Don't check database in accessor to avoid DB exceptions if DB is locked
+        $this->slug = $slug . '-' . $this->id;
         
-        $this->slug = $slug;
-        $this->saveQuietly();
-        
-        return $slug;
+        return $this->slug;
     }
 
     public function getHashIdAttribute($value)
@@ -84,15 +80,10 @@ class Deal extends Model
             return $value;
         }
         
-        $hash = \Illuminate\Support\Str::random(6);
-        while (static::where('hash_id', $hash)->where('id', '!=', $this->id)->exists()) {
-            $hash = \Illuminate\Support\Str::random(6);
-        }
+        // Generate a random hash but don't save to avoid saveQuietly exceptions
+        $this->hash_id = \Illuminate\Support\Str::random(6);
         
-        $this->hash_id = $hash;
-        $this->saveQuietly();
-        
-        return $hash;
+        return $this->hash_id;
     }
 
     /**
