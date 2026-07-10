@@ -53,7 +53,8 @@ class ShopperAssistantController extends Controller
         $model = env('OLLAMA_MODEL', 'llama3');
 
         try {
-            $response = Http::timeout(30)->post($ollamaUrl, [
+            // Reduced timeout for Ollama so it fails quickly if offline
+            $response = Http::timeout(5)->post($ollamaUrl, [
                 'model' => $model,
                 'prompt' => $systemPrompt . "\n\nUser: " . $userMessage . "\n\nAI Assistant:",
                 'stream' => false
@@ -64,9 +65,34 @@ class ShopperAssistantController extends Controller
                 return response()->json(['reply' => $reply]);
             }
             
-            return response()->json(['reply' => "Sorry, I am having trouble connecting to my AI core right now."], 500);
-
+            throw new \Exception("Ollama returned an error status.");
         } catch (\Exception $e) {
+            // Fallback to Gemini API if available
+            $geminiKey = env('GEMINI_API_KEY');
+            if ($geminiKey) {
+                try {
+                    $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $geminiKey;
+                    $geminiResponse = Http::timeout(30)->post($geminiUrl, [
+                        'contents' => [
+                            [
+                                'parts' => [
+                                    ['text' => $systemPrompt . "\n\nUser: " . $userMessage . "\n\nAI Assistant:"]
+                                ]
+                            ]
+                        ]
+                    ]);
+
+                    if ($geminiResponse->successful()) {
+                        $reply = $geminiResponse->json('candidates.0.content.parts.0.text');
+                        return response()->json(['reply' => $reply]);
+                    }
+                    
+                    return response()->json(['reply' => "I am currently offline or restarting. (Gemini Fallback Error)"], 500);
+                } catch (\Exception $geminiEx) {
+                    return response()->json(['reply' => "I am currently offline or restarting. (Gemini Exception: " . $geminiEx->getMessage() . ")"], 500);
+                }
+            }
+
             return response()->json(['reply' => "I am currently offline or restarting. Please try again in a moment. (" . $e->getMessage() . ")"], 500);
         }
     }
