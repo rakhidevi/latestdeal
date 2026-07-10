@@ -302,7 +302,8 @@ async def listen_to_websockets():
                         keyword = payload.get('keyword')
                         print(f"⚡ Received instant hunt request via WS for keyword: {keyword}")
                         import subprocess
-                        subprocess.Popen(["python", "-u", "hunter.py", "--keyword", str(keyword)])
+                        import sys
+                        subprocess.Popen([sys.executable, "-u", "hunter.py", "--keyword", str(keyword)])
                         
         except websockets.exceptions.ConnectionClosed:
             print("WebSocket connection closed. Reconnecting in 5s...")

@@ -55,7 +55,7 @@ async def async_crawl4ai_extract(url: str) -> dict:
     proxy_server = os.getenv("PROXY_SERVER")
     proxy_config = {"server": proxy_server} if proxy_server else None
 
-    async with AsyncWebCrawler(verbose=True) as crawler:
+    async with AsyncWebCrawler(verbose=True, headless=False) as crawler:
         config_kwargs = {
             "extraction_strategy": extraction_strategy,
             "cache_mode": "bypass",

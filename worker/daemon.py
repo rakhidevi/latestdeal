@@ -6,11 +6,13 @@ import threading
 scraper_process = None
 log_buffer = []
 
+import sys
+
 def run_scraper():
     global scraper_process, log_buffer
     log_buffer.clear()
     scraper_process = subprocess.Popen(
-        ["python", "-u", "main.py"],
+        [sys.executable, "-u", "main.py"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True
@@ -69,7 +71,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             try:
                 data = json.loads(post_data.decode('utf-8'))
                 
-                cmd = ["python", "-u", "hunter.py"]
+                cmd = [sys.executable, "-u", "hunter.py"]
                 if data.get('mode'):
                     cmd.extend(["--mode", str(data['mode'])])
                 if data.get('category'):

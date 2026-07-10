@@ -63,6 +63,20 @@ class PublishDealsCommand extends Command
                         $deal->ai_score = $score;
                         $deal->status = 'active';
                         $deal->save();
+                        
+                        // Dispatch to Telegram
+                        $telegramAccounts = \App\Models\SocialAccount::where('platform', 'telegram')
+                            ->where('is_active', true)
+                            ->get();
+                            
+                        if ($telegramAccounts->isNotEmpty()) {
+                            foreach ($telegramAccounts as $account) {
+                                \App\Jobs\PublishDealToTelegramJob::dispatch($deal, $account->id);
+                            }
+                        } else {
+                            \App\Jobs\PublishDealToTelegramJob::dispatch($deal, null);
+                        }
+
                         $publishedCount++;
                         Log::info("AI Auto-published deal ID {$deal->id} with score {$score}/10");
                     } else {
