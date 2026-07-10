@@ -89,9 +89,9 @@
           <!-- Filters Row -->
           <div class="flex flex-col sm:flex-row gap-3 w-full">
             <div class="flex items-center gap-2 w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors">
-                <input type="number" name="min_price" value="{{ request('min_price') }}" placeholder="Min Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
+                <input type="number" min="0" name="min_price" value="{{ request('min_price') }}" placeholder="Min Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
                 <span class="text-white/80 font-medium px-1">-</span>
-                <input type="number" name="max_price" value="{{ request('max_price') }}" placeholder="Max Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
+                <input type="number" min="0" name="max_price" value="{{ request('max_price') }}" placeholder="Max Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
             </div>
             
             <div class="w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20">
