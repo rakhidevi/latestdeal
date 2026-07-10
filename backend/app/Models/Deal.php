@@ -67,11 +67,9 @@ class Deal extends Model
         
         $baseSlug = \Illuminate\Support\Str::slug($this->title);
         $slug = $baseSlug ?: 'deal';
-        $count = 1;
-        // Don't check database in accessor to avoid DB exceptions if DB is locked
-        $this->slug = $slug . '-' . $this->id;
         
-        return $this->slug;
+        // Return a generated slug without mutating attributes to prevent infinite recursion
+        return $slug . '-' . $this->id;
     }
 
     public function getHashIdAttribute($value)
@@ -80,10 +78,7 @@ class Deal extends Model
             return $value;
         }
         
-        // Generate a random hash but don't save to avoid saveQuietly exceptions
-        $this->hash_id = \Illuminate\Support\Str::random(6);
-        
-        return $this->hash_id;
+        return \Illuminate\Support\Str::random(6);
     }
 
     /**
