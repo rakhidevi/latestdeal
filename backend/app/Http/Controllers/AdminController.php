@@ -323,4 +323,30 @@ class AdminController
         $socialAccount->update(['is_active' => !$socialAccount->is_active]);
         return back()->with('success', 'Social account status updated.');
     }
+
+    public function settings()
+    {
+        $settings = Setting::whereIn('key', ['ollama_model', 'ollama_base_url', 'ai_auto_summarize'])->pluck('value', 'key');
+        return view('admin.settings', compact('settings'));
+    }
+
+    public function saveSettings(Request $request)
+    {
+        $request->validate([
+            'ollama_model' => 'nullable|string',
+            'ollama_base_url' => 'nullable|url',
+            'ai_auto_summarize' => 'nullable|string|in:enabled,disabled'
+        ]);
+
+        foreach (['ollama_model', 'ollama_base_url', 'ai_auto_summarize'] as $key) {
+            if ($request->has($key)) {
+                Setting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => $request->input($key)]
+                );
+            }
+        }
+
+        return back()->with('success', 'AI Settings updated successfully.');
+    }
 }

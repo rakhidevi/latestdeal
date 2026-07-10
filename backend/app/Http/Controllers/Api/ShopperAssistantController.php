@@ -59,16 +59,17 @@ class ShopperAssistantController extends Controller
         $fullPrompt = $systemPrompt . "\n\nUser request: " . $userMessage . "\n\nAI Assistant (obeying all rules):";
 
         // ----------------------------------------------------------------
-        // Step 1: Try local Ollama if OLLAMA_BASE_URL is set in .env
-        // This should be your desktop's Ollama exposed via a tunnel
-        // Try local Ollama if OLLAMA_BASE_URL is set in .env or fallback to the permanent tunnel
+        // Step 1: Try local Ollama if OLLAMA_BASE_URL is set in settings or .env
         // ----------------------------------------------------------------
-        $ollamaBaseUrl = env('OLLAMA_BASE_URL', 'https://ai.latestdeal.in');
+        
+        $dbSettings = \App\Models\Setting::whereIn('key', ['ollama_base_url', 'ollama_model'])->pluck('value', 'key');
+        
+        $ollamaBaseUrl = $dbSettings['ollama_base_url'] ?? env('OLLAMA_BASE_URL', 'https://ai.latestdeal.in');
         $ollamaError   = null;
 
         if ($ollamaBaseUrl) {
             $ollamaUrl = rtrim($ollamaBaseUrl, '/') . '/api/generate';
-            $model     = env('OLLAMA_MODEL', 'llama3');
+            $model     = $dbSettings['ollama_model'] ?? env('OLLAMA_MODEL', 'llama3');
 
             try {
                 $response = Http::timeout(10)->post($ollamaUrl, [

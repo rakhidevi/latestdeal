@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LatestDeal AI Control Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, #1e1b4b, var(--bg-color));
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        h1, h2, h3 { margin: 0; }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 { font-weight: 800; font-size: 2rem; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background-color: var(--danger);
+            box-shadow: 0 0 10px var(--danger);
+        }
+        .status-indicator.active { background-color: var(--success); box-shadow: 0 0 10px var(--success); }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .btn-stop { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .btn-stop:hover { background: var(--danger); color: white; }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
+
+        .input-group { margin-bottom: 1rem; }
+        .input-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 0.75rem; border-radius: 8px;
+            background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color);
+            color: white; font-family: 'Inter', sans-serif; box-sizing: border-box;
+        }
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--primary); }
+
+        .logs-container {
+            background: #000; font-family: monospace; font-size: 0.85rem;
+            padding: 1rem; border-radius: 8px; height: 300px; overflow-y: auto;
+            color: #10b981; border: 1px solid var(--border-color);
+        }
+        .log-line { margin-bottom: 4px; }
+        .log-line.error { color: #ef4444; }
+        .log-line.warning { color: #f59e0b; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; }
+        .badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .badge-processing { background: rgba(59, 130, 246, 0.2); color: #38bdf8; }
+        .badge-completed { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .badge-failed { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        
+        .workers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+        .worker-card { padding: 1rem; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>LatestDeal AI Engine</h1>
+        <div style="display: flex; gap: 1rem;">
+            <button class="btn" onclick="startAll()">▶ Start All Systems</button>
+            <button class="btn btn-stop" onclick="stopAll()">🛑 Stop All</button>
+        </div>
+    </div>
+
+    <div class="workers-grid">
+        <div class="worker-card">
+            <div>
+                <h3 style="margin-bottom: 0.25rem;">Server Worker (AI & API)</h3>
+                <span class="status-indicator" id="status-server"></span>
+                <span id="text-server" style="color: var(--text-muted); font-size: 0.9rem;">Stopped</span>
+            </div>
+            <div>
+                <button class="btn" id="btn-server" onclick="toggleProcess('server')">Start</button>
+            </div>
+        </div>
+        <div class="worker-card">
+            <div>
+                <h3 style="margin-bottom: 0.25rem;">Desktop Worker (Browser)</h3>
+                <span class="status-indicator" id="status-desktop"></span>
+                <span id="text-desktop" style="color: var(--text-muted); font-size: 0.9rem;">Stopped</span>
+            </div>
+            <div>
+                <button class="btn" id="btn-desktop" onclick="toggleProcess('desktop')">Start</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-layout">
+        <!-- Sidebar Controls -->
+        <div class="glass-panel">
+            <div class="card-header">
+                <h2>Deal Hunter</h2>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span class="status-indicator" id="status-hunter"></span>
+                    <span id="text-hunter" style="font-weight: 600;">Idle</span>
+                </div>
+                <button class="btn" id="btn-hunter" onclick="toggleHunter()" style="width: 120px;">▶ Hunt</button>
+            </div>
+
+            <div class="input-group">
+                <label>Hunter Mode</label>
+                <select id="h-mode">
+                    <option value="sitestripe_automation">Premium Tracking (SiteStripe)</option>
+                    <option value="ingestion">Standard Ingestion</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label>Search Keyword (Optional)</label>
+                <input type="text" id="h-keyword" placeholder="e.g. iPhone 15">
+            </div>
+
+            <div class="input-group">
+                <label>Brand (Optional)</label>
+                <input type="text" id="h-brand" placeholder="e.g. Samsung">
+            </div>
+
+            <div class="input-group">
+                <label>Category (Optional)</label>
+                <input type="text" id="h-category" placeholder="e.g. Electronics">
+            </div>
+
+            <div class="input-group">
+                <label>Discount Filter (Optional)</label>
+                <input type="text" id="h-discount" placeholder="e.g. 50">
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">
+                Note: Updating filters requires stopping and restarting the hunter.
+            </p>
+        </div>
+
+        <!-- Main Content -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            
+            <div class="glass-panel">
+                <div class="card-header">
+                    <h2>Live Terminal Logs</h2>
+                    <select id="log-selector" style="background: transparent; color: white; border: 1px solid var(--border-color); padding: 0.5rem; border-radius: 6px;" onchange="updateLogs()">
+                        <option value="server">Server Worker</option>
+                        <option value="desktop">Desktop Worker</option>
+                        <option value="hunter">Hunter Script</option>
+                    </select>
+                </div>
+                <div class="logs-container" id="terminal-logs">
+                    <!-- Logs injected here -->
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <div class="card-header">
+                    <h2>Recent Local Queue</h2>
+                    <button class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="fetchQueue()">↻ Refresh</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="queue-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>URL</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Last Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Queue injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let isServerRunning = false;
+        let isDesktopRunning = false;
+        let isHunterRunning = false;
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                
+                updateIndicator('server', data.server);
+                updateIndicator('desktop', data.desktop);
+                updateIndicator('hunter', data.hunter);
+                
+                isServerRunning = data.server;
+                isDesktopRunning = data.desktop;
+                isHunterRunning = data.hunter;
+                
+            } catch (e) {
+                console.error("Status fetch failed", e);
+            }
+        }
+
+        function updateIndicator(target, isRunning) {
+            const ind = document.getElementById(`status-${target}`);
+            const txt = document.getElementById(`text-${target}`);
+            const btn = document.getElementById(`btn-${target}`);
+            
+            if (isRunning) {
+                ind.classList.add('active');
+                txt.textContent = 'Running';
+                if(btn) {
+                    btn.textContent = 'Stop';
+                    btn.classList.add('btn-stop');
+                }
+            } else {
+                ind.classList.remove('active');
+                txt.textContent = 'Stopped';
+                if(btn) {
+                    btn.textContent = 'Start';
+                    btn.classList.remove('btn-stop');
+                }
+            }
+        }
+
+        async function toggleProcess(target) {
+            const isRunning = target === 'server' ? isServerRunning : isDesktopRunning;
+            const action = isRunning ? 'stop' : 'start';
+            await fetch(`/api/control/${action}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({target: target})
+            });
+            fetchStatus();
+        }
+
+        async function toggleHunter() {
+            const action = isHunterRunning ? 'stop' : 'start';
+            const payload = { target: 'hunter' };
+            
+            if (action === 'start') {
+                payload.settings = {
+                    mode: document.getElementById('h-mode').value,
+                    keyword: document.getElementById('h-keyword').value,
+                    brand: document.getElementById('h-brand').value,
+                    category: document.getElementById('h-category').value,
+                    discount: document.getElementById('h-discount').value
+                };
+            }
+            
+            await fetch(`/api/control/${action}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            fetchStatus();
+        }
+
+        async function startAll() {
+            await fetch('/api/control/start', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({target: 'all', settings: {mode: document.getElementById('h-mode').value}})
+            });
+            fetchStatus();
+        }
+
+        async function stopAll() {
+            await fetch('/api/control/stop', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({target: 'all'})
+            });
+            fetchStatus();
+        }
+
+        async function updateLogs() {
+            const target = document.getElementById('log-selector').value;
+            try {
+                const res = await fetch(`/api/logs/${target}`);
+                const data = await res.json();
+                const container = document.getElementById('terminal-logs');
+                container.innerHTML = data.logs.map(line => {
+                    let cls = 'log-line';
+                    if (line.toLowerCase().includes('error') || line.toLowerCase().includes('failed')) cls += ' error';
+                    if (line.toLowerCase().includes('warning')) cls += ' warning';
+                    return `<div class="${cls}">${line}</div>`;
+                }).join('');
+                container.scrollTop = container.scrollHeight;
+            } catch (e) {}
+        }
+
+        async function fetchQueue() {
+            try {
+                const res = await fetch('/api/queue');
+                const rows = await res.json();
+                const tbody = document.querySelector('#queue-table tbody');
+                tbody.innerHTML = rows.map(r => {
+                    let badgeClass = 'badge-pending';
+                    if (r.status === 'completed') badgeClass = 'badge-completed';
+                    if (r.status === 'processing') badgeClass = 'badge-processing';
+                    if (r.status === 'failed') badgeClass = 'badge-failed';
+                    
+                    return `
+                        <tr>
+                            <td>#${r.id}</td>
+                            <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${r.url}">
+                                <a href="${r.url}" target="_blank" style="color: var(--primary); text-decoration: none;">${r.url}</a>
+                            </td>
+                            <td><span style="font-size: 0.8rem; color: var(--text-muted);">${r.type}</span></td>
+                            <td><span class="badge ${badgeClass}">${r.status}</span></td>
+                            <td>${new Date(r.updated_at).toLocaleString()}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {}
+        }
+
+        // Initialize loops
+        setInterval(fetchStatus, 2000);
+        setInterval(updateLogs, 1000);
+        setInterval(fetchQueue, 5000);
+        
+        fetchStatus();
+        fetchQueue();
+    </script>
+</body>
+</html>

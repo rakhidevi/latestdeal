@@ -436,6 +436,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/actions', [\App\Http\Controllers\AdminController::class, 'actions'])->name('admin.actions');
     Route::post('/actions/run', [\App\Http\Controllers\AdminController::class, 'runAction'])->name('admin.actions.run');
+    Route::get('/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->name('admin.settings');
+    Route::post('/settings/save', [\App\Http\Controllers\AdminController::class, 'saveSettings'])->name('admin.settings.save');
     Route::post('/settings/toggle', [\App\Http\Controllers\AdminController::class, 'toggleSetting'])->name('admin.settings.toggle');
     Route::get('/deals', [\App\Http\Controllers\AdminController::class, 'deals'])->name('admin.deals');
     Route::put('/deals/{deal}/status', [\App\Http\Controllers\AdminController::class, 'updateDealStatus'])->name('admin.deals.status');
