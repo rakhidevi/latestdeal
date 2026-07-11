@@ -27,6 +27,9 @@ TARGET_CHANNELS = []
 
 client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
 
+# Lock to ensure only one headed Playwright instance opens at a time
+sitestripe_lock = asyncio.Lock()
+
 class TelegramDealSchema(BaseModel):
     title: str = Field(description="The product title")
     url: str = Field(description="The affiliate or product URL in the message")
@@ -77,12 +80,23 @@ def expand_url(url: str) -> str:
         print(f"Error expanding URL {url}: {e}")
         return url
 
-def parse_telegram_message(message_text: str, ollama_url: str = "http://localhost:11434") -> dict:
+def parse_telegram_message(message_text: str, ollama_url: str = "http://localhost:11434", scraped_data: dict = None) -> dict:
     """Uses Ollama to parse a raw Telegram deal message into structured JSON."""
     llm_client = OpenAI(
         base_url=f"{ollama_url}/v1",
         api_key="ollama" 
     )
+    
+    extra_context = ""
+    if scraped_data:
+        extra_context = f"""
+        Additionally, we deeply scraped the product page. Use this FACTUAL data to improve your extraction (especially features, real price, title):
+        - Real Title: {scraped_data.get('raw_title', 'Unknown')}
+        - Features: {scraped_data.get('features', [])}
+        - Rating: {scraped_data.get('star_rating', 'Unknown')} ({scraped_data.get('review_count', 'Unknown')} reviews)
+        - Original Price: {scraped_data.get('raw_original_price', 'Unknown')}
+        - Discounted Price: {scraped_data.get('raw_discounted_price', 'Unknown')}
+        """
     
     prompt = f"""
     You are an expert affiliate marketer. Parse this raw Telegram deal message into a structured JSON object.
@@ -91,6 +105,8 @@ def parse_telegram_message(message_text: str, ollama_url: str = "http://localhos
     
     RAW MESSAGE:
     {message_text}
+    
+    {extra_context}
     """
     
     try:
@@ -134,30 +150,63 @@ async def handler(event):
     chat_name = utils.get_display_name(event.chat) if event.chat else "Unknown Chat"
     print(f"\n[{chat_name}] New Message Received!")
     
-    # 1. Parse Message with LLM
+    # 0. Filter out Spam / Pirated Content early to save resources
+    blocked_keywords = [
+        'mod apk', 'modded apk', 'cracked apk',
+        'premium unlocked', 'unlocked all', 'pro unlocked',
+        'no watermark', 'ad free mod', 'ads removed mod',
+        'crack', 'cracked', 'keygen', 'serial key',
+        'pirated', 'warez', 'nulled',
+        'paid apk free', 'patched apk',
+    ]
+    message_lower = message_text.lower()
+    for kw in blocked_keywords:
+        if kw in message_lower:
+            print(f"🚫 Blocked Keyword Detected ('{kw}'). Ignoring illegal/spam deal.")
+            return
+    
+    # 1. Pre-extract URL and run deep scraping if it's Amazon
+    url = ""
+    urls = re.findall(r'(https?://[^\s]+)', message_text)
+    if urls:
+        url = urls[0]
+        print(f"Unshortening URL: {url}")
+        url = await asyncio.to_thread(expand_url, url)
+        print(f"Final URL: {url}")
+        
+    scraped_data = None
+    if url and ('amazon' in url.lower() or 'amzn' in url.lower()):
+        print(f"Detected Amazon link! Initiating deep Playwright scraping...")
+        try:
+            from sitestripe_scraper import get_sitestripe_link_and_data
+            async with sitestripe_lock:
+                scraped_data = await asyncio.to_thread(get_sitestripe_link_and_data, url)
+        except Exception as e:
+            print(f"Deep scraping failed, falling back to basic parsing: {e}")
+            
+    # 2. Parse Message with LLM (enriched with scraped_data)
     print("Parsing message with LLM...")
-    deal_data = await asyncio.to_thread(parse_telegram_message, message_text)
+    deal_data = await asyncio.to_thread(parse_telegram_message, message_text, "http://localhost:11434", scraped_data)
     
     if not deal_data or not deal_data.get('is_deal'):
         print("Not a valid deal or parsing failed. Skipping.")
         return
         
-    if not deal_data.get('url'):
+    # Override URL with the LLM extracted one if pre-extraction failed, or with sitestripe shortlink
+    if not url:
+        url = deal_data.get('url')
+        if url:
+            url = await asyncio.to_thread(expand_url, url)
+            
+    if scraped_data and scraped_data.get('sitestripe_url'):
+        url = scraped_data['sitestripe_url']
+        print(f"Overriding with generated affiliate link: {url}")
+        
+    if not url:
         print("No URL found in deal. Skipping.")
         return
 
     print(f"✅ Extracted Deal: {deal_data['title']} (₹{deal_data['discounted_price']})")
-    
-    # 2. Extract first valid link (sometimes LLM fails, so regex as fallback)
-    url = deal_data['url']
-    if not url.startswith('http'):
-        urls = re.findall(r'(https?://[^\s]+)', message_text)
-        if urls:
-            url = urls[0]
-            
-    print(f"Unshortening URL: {url}")
-    url = await asyncio.to_thread(expand_url, url)
-    print(f"Final URL: {url}")
             
     # 3. Build AI Caption using the extra Telegram info
     caption_text = f"🚨 {deal_data['title']} \n\n"
@@ -183,7 +232,11 @@ async def handler(event):
     # Fallback to Composer if no image found in Telegram message
     if not image_base64:
         print("No image in message, attempting to scrape image from URL...")
-        og_url = await asyncio.to_thread(fetch_og_image, url)
+        og_url = ""
+        if scraped_data and scraped_data.get('image_url'):
+            og_url = scraped_data['image_url']
+        else:
+            og_url = await asyncio.to_thread(fetch_og_image, url)
         
         # Use fetched image or dummy gradient placeholder
         placeholder_url = og_url if og_url else "https://placehold.co/800x800/e2e8f0/475569.png?text=Loot+Deal"

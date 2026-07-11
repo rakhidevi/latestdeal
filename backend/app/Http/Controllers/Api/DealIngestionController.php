@@ -43,6 +43,25 @@ class DealIngestionController
             'short_url' => 'nullable|url'
         ]);
 
+        // 1.5 Block Illegal / Pirated Content (server-side safety net)
+        $blockedKeywords = [
+            'mod apk', 'modded apk', 'cracked apk',
+            'premium unlocked', 'unlocked all', 'pro unlocked',
+            'no watermark', 'ad free mod', 'ads removed mod',
+            'crack', 'cracked', 'keygen', 'serial key',
+            'pirated', 'warez', 'nulled',
+            'paid apk free', 'patched apk',
+        ];
+        $titleLower = strtolower($validated['title']);
+        foreach ($blockedKeywords as $keyword) {
+            if (str_contains($titleLower, $keyword)) {
+                return response()->json([
+                    'error' => 'Deal rejected: illegal or pirated content detected',
+                    'blocked_keyword' => $keyword,
+                ], 422);
+            }
+        }
+
         // 2. Process Base64 Image
         $imagePath = null;
         if (preg_match('/^data:image\/(\w+);base64,/', $validated['image_base64'], $type)) {

@@ -16,15 +16,32 @@ def clean_number(val, return_type=float):
             pass
     return 0
 
+
+# Blocked keywords for illegal / pirated content (case-insensitive check)
+BLOCKED_KEYWORDS = [
+    'mod apk', 'modded apk', 'cracked apk',
+    'premium unlocked', 'unlocked all', 'pro unlocked',
+    'no watermark', 'ad free mod', 'ads removed mod',
+    'crack', 'cracked', 'keygen', 'serial key',
+    'pirated', 'warez', 'nulled',
+    'paid apk free', 'patched apk',
+]
+
 def evaluate_deal(raw_data: dict) -> dict:
     """
     Evaluates the scraped raw_data against strict guardrails.
     Returns a dictionary with 'is_approved', 'reason', and structured 'metrics'.
     """
+    # --- Rule 0: Block Illegal / Pirated Content ---
+    title = raw_data.get("raw_title", "")
+    title_lower = title.lower()
+    for kw in BLOCKED_KEYWORDS:
+        if kw in title_lower:
+            return {"is_approved": False, "reason": f"Blocked: illegal content detected ('{kw}')"}
+
     if raw_data.get("out_of_stock"):
         return {"is_approved": False, "reason": "Out of Stock"}
         
-    title = raw_data.get("raw_title", "")
     if not title:
         return {"is_approved": False, "reason": "Missing Title"}
         

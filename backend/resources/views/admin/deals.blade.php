@@ -11,6 +11,44 @@
         </div>
     </div>
 
+    <!-- Search & Actions Bar -->
+    <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+        <!-- Search Form -->
+        <form method="GET" action="{{ route('admin.deals') }}" class="flex items-center gap-2 flex-1 max-w-lg">
+            <input type="hidden" name="status" value="{{ $status }}">
+            <div class="relative flex-1">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search deals by title..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none">
+            </div>
+            <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
+                Search
+            </button>
+            @if(!empty($search))
+                <a href="{{ route('admin.deals', ['status' => $status]) }}" class="inline-flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Clear
+                </a>
+            @endif
+        </form>
+
+        <!-- Purge Illegal Deals Button -->
+        @if($illegalCount > 0)
+            <form action="{{ route('admin.deals.purge-illegal') }}" method="POST" onsubmit="return confirm('⚠️ This will PERMANENTLY DELETE {{ $illegalCount }} deals containing illegal/pirated content (MOD APK, cracked, etc.). This cannot be undone. Proceed?');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 shadow-sm transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
+                    Purge Illegal Deals ({{ $illegalCount }})
+                </button>
+            </form>
+        @endif
+    </div>
+
+    @if(!empty($search))
+        <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">
+            Showing results for "<strong>{{ $search }}</strong>" in <strong>{{ $status }}</strong> deals — {{ $deals->total() }} found
+        </div>
+    @endif
+
     <!-- Tabs -->
     <div class="border-b border-gray-200">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">

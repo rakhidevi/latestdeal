@@ -442,6 +442,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/deals', [\App\Http\Controllers\AdminController::class, 'deals'])->name('admin.deals');
     Route::put('/deals/{deal}/status', [\App\Http\Controllers\AdminController::class, 'updateDealStatus'])->name('admin.deals.status');
     Route::delete('/deals/{deal}', [\App\Http\Controllers\AdminController::class, 'destroyDeal'])->name('admin.deals.destroy');
+    Route::delete('/deals-purge-illegal', [\App\Http\Controllers\AdminController::class, 'purgeIllegalDeals'])->name('admin.deals.purge-illegal');
     Route::get('/merchants', [\App\Http\Controllers\AdminController::class, 'merchants'])->name('admin.merchants');
     Route::post('/merchants', [\App\Http\Controllers\AdminController::class, 'storeMerchant'])->name('admin.merchants.store');
     Route::put('/merchants/{merchant}', [\App\Http\Controllers\AdminController::class, 'updateMerchant'])->name('admin.merchants.update');

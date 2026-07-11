@@ -181,7 +181,15 @@ class AdminController
     public function deals(Request $request)
     {
         $status = $request->get('status', 'pending');
-        $deals = Deal::where('status', $status)->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        $search = $request->get('search', '');
+        
+        $query = Deal::where('status', $status);
+        
+        if (!empty($search)) {
+            $query->where('title', 'like', '%' . $search . '%');
+        }
+        
+        $deals = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
         
         $counts = [
             'pending' => Deal::where('status', 'pending')->count(),
@@ -189,7 +197,61 @@ class AdminController
             'rejected' => Deal::where('status', 'rejected')->count(),
         ];
 
-        return view('admin.deals', compact('deals', 'status', 'counts'));
+        // Count how many illegal deals currently exist across all statuses
+        $illegalCount = $this->countIllegalDeals();
+
+        return view('admin.deals', compact('deals', 'status', 'counts', 'search', 'illegalCount'));
+    }
+
+    /**
+     * Returns the count of deals matching blocked keywords.
+     */
+    private function countIllegalDeals(): int
+    {
+        $blockedKeywords = [
+            'mod apk', 'modded apk', 'cracked apk',
+            'premium unlocked', 'unlocked all', 'pro unlocked',
+            'no watermark', 'ad free mod', 'ads removed mod',
+            'crack', 'cracked', 'keygen', 'serial key',
+            'pirated', 'warez', 'nulled',
+            'paid apk free', 'patched apk',
+        ];
+
+        $query = Deal::query();
+        $query->where(function ($q) use ($blockedKeywords) {
+            foreach ($blockedKeywords as $keyword) {
+                $q->orWhere('title', 'like', '%' . $keyword . '%');
+            }
+        });
+
+        return $query->count();
+    }
+
+    /**
+     * Permanently deletes all deals matching blocked (illegal/pirated) keywords.
+     */
+    public function purgeIllegalDeals()
+    {
+        $blockedKeywords = [
+            'mod apk', 'modded apk', 'cracked apk',
+            'premium unlocked', 'unlocked all', 'pro unlocked',
+            'no watermark', 'ad free mod', 'ads removed mod',
+            'crack', 'cracked', 'keygen', 'serial key',
+            'pirated', 'warez', 'nulled',
+            'paid apk free', 'patched apk',
+        ];
+
+        $query = Deal::query();
+        $query->where(function ($q) use ($blockedKeywords) {
+            foreach ($blockedKeywords as $keyword) {
+                $q->orWhere('title', 'like', '%' . $keyword . '%');
+            }
+        });
+
+        $count = $query->count();
+        $query->delete();
+
+        return back()->with('success', "Purged {$count} illegal/pirated deals.");
     }
 
     public function updateDealStatus(Request $request, Deal $deal)
