@@ -152,7 +152,12 @@ async def async_crawl4ai_extract(url: str) -> dict:
 def extract_deal_data(url: str) -> dict:
     print(f"Bypassing Crawl4AI (DOM too large for local LLM). Using manual Playwright scraper for {url}...")
     try:
-        return extract_deal_data_fallback(url)
+        if 'udemy.com' in url:
+            return extract_udemy_data(url)
+        elif 'coursera.org' in url:
+            return extract_coursera_data(url)
+        else:
+            return extract_deal_data_fallback(url)
     except Exception as e:
         print(f"Extraction failed: {e}")
         raise e
@@ -296,3 +301,88 @@ def extract_deal_data_fallback(url: str) -> dict:
         
         finally:
             browser.close()
+
+def extract_udemy_data(url: str) -> dict:
+    """Scrapes raw data from Udemy."""
+    with sync_playwright() as p:
+        browser = setup_browser(p)
+        page = browser.new_page()
+        stealth(page)
+        
+        try:
+            ua = random.choice(DESKTOP_USER_AGENTS)
+            page.set_extra_http_headers({"User-Agent": ua})
+            page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            
+            time.sleep(5)
+            
+            # 1. Product Title
+            title_element = page.locator("h1[data-purpose='lead-title']").first
+            title = title_element.inner_text().strip() if title_element.count() > 0 else page.title()
+            
+            # 2. Discounted Price (Deal Price) -> Free
+            discounted_price_html = "Free"
+                    
+            # 3. Original Price
+            original_price_html = ""
+            el = page.locator("div[data-purpose='discount-price'] s span").first
+            if el.count() > 0:
+                original_price_html = el.inner_text().strip()
+                    
+            # 4. Image URL
+            image_url = ""
+            img_element = page.locator("img[data-purpose='course-image']").first
+            if img_element.count() > 0:
+                image_url = img_element.get_attribute("src") or ""
+                
+            raw_data = {
+                "url": url,
+                "raw_title": title,
+                "raw_discounted_price": discounted_price_html,
+                "raw_original_price": original_price_html,
+                "features": ["100% Free Coupon", "Lifetime Access", "Certificate of Completion"],
+                "image_url": image_url,
+                "scraper_type": "Udemy Playwright Scraper"
+            }
+            print(f"Scraped Udemy Data: {raw_data}")
+            return raw_data
+        finally:
+            browser.close()
+
+def extract_coursera_data(url: str) -> dict:
+    """Scrapes raw data from Coursera."""
+    with sync_playwright() as p:
+        browser = setup_browser(p)
+        page = browser.new_page()
+        stealth(page)
+        
+        try:
+            ua = random.choice(DESKTOP_USER_AGENTS)
+            page.set_extra_http_headers({"User-Agent": ua})
+            page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            
+            time.sleep(5)
+            
+            title_element = page.locator("h1").first
+            title = title_element.inner_text().strip() if title_element.count() > 0 else page.title()
+            
+            image_url = ""
+            # Try to grab open graph image
+            meta_img = page.locator("meta[property='og:image']").first
+            if meta_img.count() > 0:
+                image_url = meta_img.get_attribute("content") or ""
+                
+            raw_data = {
+                "url": url,
+                "raw_title": title,
+                "raw_discounted_price": "Free",
+                "raw_original_price": "",
+                "features": ["Free Course", "Learn from Top Universities"],
+                "image_url": image_url,
+                "scraper_type": "Coursera Playwright Scraper"
+            }
+            print(f"Scraped Coursera Data: {raw_data}")
+            return raw_data
+        finally:
+            browser.close()
+
