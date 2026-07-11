@@ -486,3 +486,57 @@ Route::get("/debug-failed-jobs", function () {
         return "Error: " . $e->getMessage(); 
     } 
 });
+
+Route::get("/fix-status-constraint", function () {
+    try {
+        // Method 1: Try native Laravel Schema modification
+        \Illuminate\Support\Facades\Schema::table("deals", function (\Illuminate\Database\Schema\Blueprint $table) {
+            $table->string("status", 50)->default("active")->change();
+        });
+        return "Success: The status column constraint was successfully removed using Laravel Schema builder!";
+    } catch (\Exception $e) {
+        // Method 2: Fallback to Raw SQLite Table Reconstruction if doctrine/dbal is missing or fails
+        try {
+            \Illuminate\Support\Facades\DB::statement("PRAGMA foreign_keys=OFF;");
+            
+            // Get original schema dynamically to ensure we don't miss columns
+            $tableInfo = \Illuminate\Support\Facades\DB::select("PRAGMA table_info(deals);");
+            $columns = [];
+            $selectCols = [];
+            foreach ($tableInfo as $col) {
+                $name = $col->name;
+                $selectCols[] = '"' . $name . '"';
+                
+                if ($name === 'status') {
+                    $columns[] = '"status" varchar(50) default \'active\' not null';
+                } elseif ($name === 'id') {
+                    $columns[] = '"id" integer primary key autoincrement not null';
+                } else {
+                    $type = $col->type;
+                    $notNull = $col->notnull ? 'not null' : '';
+                    $default = $col->dflt_value !== null ? 'default ' . $col->dflt_value : '';
+                    $columns[] = '"' . $name . '" ' . $type . ' ' . $notNull . ' ' . $default;
+                }
+            }
+            
+            $columnDef = implode(", ", $columns);
+            $selectDef = implode(", ", $selectCols);
+            
+            \Illuminate\Support\Facades\DB::statement("CREATE TABLE deals_new ($columnDef, foreign key(\"category_id\") references \"categories\"(\"id\") on delete cascade, foreign key(\"merchant_id\") references \"merchants\"(\"id\") on delete cascade);");
+            \Illuminate\Support\Facades\DB::statement("INSERT INTO deals_new ($selectDef) SELECT $selectDef FROM deals;");
+            \Illuminate\Support\Facades\DB::statement("DROP TABLE deals;");
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE deals_new RENAME TO deals;");
+            
+            // Re-add known indexes
+            \Illuminate\Support\Facades\DB::statement("CREATE INDEX IF NOT EXISTS deals_slug_index ON deals (slug);");
+            \Illuminate\Support\Facades\DB::statement("CREATE INDEX IF NOT EXISTS deals_hash_id_index ON deals (hash_id);");
+            
+            \Illuminate\Support\Facades\DB::statement("PRAGMA foreign_keys=ON;");
+            return "Success: The status column constraint was successfully removed using Raw SQLite reconstruction! Data is safe.";
+            
+        } catch (\Exception $e2) {
+            \Illuminate\Support\Facades\DB::statement("PRAGMA foreign_keys=ON;");
+            return "Fatal Error removing constraint: " . $e2->getMessage();
+        }
+    }
+});

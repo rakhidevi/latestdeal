@@ -93,61 +93,90 @@ class ShopperAssistantController extends Controller
         }
 
         // ----------------------------------------------------------------
-        // Step 2: Gemini fallback (or primary when Ollama isn't configured)
-        // Set GEMINI_API_KEY in your production .env on the server
+        // Step 2: Groq fallback (Free tier, extremely fast Llama3)
+        // ----------------------------------------------------------------
+        $groqKey = env('GROQ_API_KEY');
+        $groqError = null;
+        
+        if ($groqKey) {
+            try {
+                $groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
+                $groqResponse = Http::withToken($groqKey)->timeout(15)->post($groqUrl, [
+                    'model' => 'llama3-8b-8192',
+                    'messages' => [
+                        ['role' => 'system', 'content' => 'You are a helpful shopping assistant.'],
+                        ['role' => 'user', 'content' => $fullPrompt]
+                    ],
+                    'temperature' => 0.7,
+                    'max_tokens' => 1024,
+                ]);
+
+                if ($groqResponse->successful()) {
+                    $reply = $groqResponse->json('choices.0.message.content');
+                    if ($reply) {
+                        return response()->json([
+                            'reply'  => $reply,
+                            'source' => 'groq',
+                        ]);
+                    }
+                }
+                $groqError = "Groq HTTP " . $groqResponse->status() . ": " . substr($groqResponse->body(), 0, 100);
+            } catch (\Exception $e) {
+                $groqError = $e->getMessage();
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // Step 3: Gemini fallback
         // ----------------------------------------------------------------
         $geminiKey = env('GEMINI_API_KEY');
 
-        if (!$geminiKey) {
-            $msg = $ollamaBaseUrl
-                ? "Your local Ollama is offline and no Gemini API key is configured on the server. Please check your desktop is running."
-                : "No AI provider is configured. Please set GEMINI_API_KEY in the server .env file.";
-
-            return response()->json(['reply' => $msg], 503);
+        if (!$geminiKey && !$groqKey && !$ollamaBaseUrl) {
+            return response()->json(['reply' => "No AI provider is configured on the server."], 503);
         }
 
-        try {
-            $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=' . $geminiKey;
+        if ($geminiKey) {
+            try {
+                $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=' . $geminiKey;
 
-            $geminiResponse = Http::timeout(30)->post($geminiUrl, [
-                'contents' => [[
-                    'parts' => [['text' => $fullPrompt]]
-                ]],
-                'generationConfig' => [
-                    'temperature'     => 0.7,
-                    'maxOutputTokens' => 1024,
-                ],
-            ]);
+                $geminiResponse = Http::timeout(30)->post($geminiUrl, [
+                    'contents' => [[
+                        'parts' => [['text' => $fullPrompt]]
+                    ]],
+                    'generationConfig' => [
+                        'temperature'     => 0.7,
+                        'maxOutputTokens' => 1024,
+                    ],
+                ]);
 
-            if ($geminiResponse->successful()) {
-                $reply = $geminiResponse->json('candidates.0.content.parts.0.text');
-                if ($reply) {
-                    return response()->json([
-                        'reply'  => $reply,
-                        'source' => 'gemini',
-                    ]);
+                if ($geminiResponse->successful()) {
+                    $reply = $geminiResponse->json('candidates.0.content.parts.0.text');
+                    if ($reply) {
+                        return response()->json([
+                            'reply'  => $reply,
+                            'source' => 'gemini',
+                        ]);
+                    }
                 }
-            }
 
-            // Gemini returned an error — show exact reason
-            $errorBody = $geminiResponse->json('error.message') ?? $geminiResponse->body();
-            $msg = "AI service error (Gemini): " . substr($errorBody, 0, 300);
-            if ($ollamaError) {
-                $msg .= " | (Ollama also failed: " . $ollamaError . ")";
+                // Gemini returned an error
+                $errorBody = $geminiResponse->json('error.message') ?? $geminiResponse->body();
+                $technicalError = "Gemini Error: " . substr($errorBody, 0, 300);
+            } catch (\Exception $e) {
+                $technicalError = "Gemini Exception: " . $e->getMessage();
             }
-            
-            return response()->json([
-                'reply' => $msg
-            ], 500);
-
-        } catch (\Exception $e) {
-            $msg = "AI service unavailable: " . $e->getMessage();
-            if ($ollamaError) {
-                $msg .= " | (Ollama also failed: " . $ollamaError . ")";
-            }
-            return response()->json([
-                'reply' => $msg
-            ], 500);
+        } else {
+            $technicalError = "Gemini not configured.";
         }
+        
+        // If we reach here, ALL configured AI providers failed
+        if ($ollamaError) $technicalError .= " | Ollama Error: " . $ollamaError;
+        if ($groqError) $technicalError .= " | Groq Error: " . $groqError;
+        
+        \Illuminate\Support\Facades\Log::error("Shopper Assistant Failed: " . $technicalError);
+        
+        return response()->json([
+            'reply' => "I'm currently experiencing high traffic and couldn't process your request right now. Please try again in a few moments!"
+        ], 500);
     }
 }

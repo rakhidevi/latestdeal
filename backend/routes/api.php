@@ -26,6 +26,14 @@ Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionCont
 Route::post('/scraper/jobs', [\App\Http\Controllers\Api\ScraperJobController::class, 'store']);
 Route::put('/scraper/jobs/{job}', [\App\Http\Controllers\Api\ScraperJobController::class, 'update']);
 
+// Crawler Configuration
+Route::get('/settings/crawlers', function () {
+    return response()->json([
+        'crawler_automated' => \App\Models\Setting::where('key', 'crawler_automated')->value('value') ?? 'enabled',
+        'crawler_manual' => \App\Models\Setting::where('key', 'crawler_manual')->value('value') ?? 'enabled'
+    ]);
+});
+
 // Shopper AI Engine
 Route::post('/assistant/chat', [\App\Http\Controllers\Api\ShopperAssistantController::class, 'chat']);
 Route::post('/predict-price', [\App\Http\Controllers\Api\PricePredictionController::class, 'predict']);

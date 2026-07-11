@@ -10,3 +10,4 @@ python-dotenv
 anthropic
 openai
 crawl4ai
+telethon

@@ -119,5 +119,12 @@ def control(action):
             
         return jsonify({'status': 'stopped'})
 
+    elif action == 'hard-restart':
+        def restart():
+            time.sleep(1)
+            subprocess.Popen("START_WORKER.bat", creationflags=subprocess.CREATE_NEW_CONSOLE)
+        threading.Thread(target=restart).start()
+        return jsonify({'status': 'System is hard restarting. Please refresh the page in 5 seconds.'})
+
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=False)

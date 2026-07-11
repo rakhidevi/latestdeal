@@ -15,7 +15,9 @@ def run_scraper():
         [sys.executable, "-u", "main.py"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        text=True
+        text=True,
+        encoding='utf-8',
+        errors='replace'
     )
     for line in scraper_process.stdout:
         log_buffer.append(line.rstrip())

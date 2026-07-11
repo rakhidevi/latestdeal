@@ -60,6 +60,42 @@
                 </select>
             </div>
 
+            <hr class="border-slate-100 my-8">
+
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <i data-lucide="bot" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Crawler Settings</h2>
+                    <p class="text-slate-500 text-sm mt-1">Enable or disable background data ingestion engines.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6">
+                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Automated Crawler (Telegram)</h3>
+                        <p class="text-sm text-slate-500 mt-1">Listens to Telegram channels for real-time deals using Telethon.</p>
+                    </div>
+                    <select name="crawler_automated" class="px-4 py-2 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500">
+                        <option value="enabled" {{ ($settings['crawler_automated'] ?? 'enabled') == 'enabled' ? 'selected' : '' }}>Enabled</option>
+                        <option value="disabled" {{ ($settings['crawler_automated'] ?? 'enabled') == 'disabled' ? 'selected' : '' }}>Disabled</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">Manual Crawler (Playwright)</h3>
+                        <p class="text-sm text-slate-500 mt-1">Classic DOM scraper that visits amazon links manually via Chromium.</p>
+                    </div>
+                    <select name="crawler_manual" class="px-4 py-2 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500">
+                        <option value="enabled" {{ ($settings['crawler_manual'] ?? 'enabled') == 'enabled' ? 'selected' : '' }}>Enabled</option>
+                        <option value="disabled" {{ ($settings['crawler_manual'] ?? 'enabled') == 'disabled' ? 'selected' : '' }}>Disabled</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="mt-8 flex justify-end">
                 <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5">
                     Save AI Settings

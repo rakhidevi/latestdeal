@@ -326,7 +326,7 @@ class AdminController
 
     public function settings()
     {
-        $settings = Setting::whereIn('key', ['ollama_model', 'ollama_base_url', 'ai_auto_summarize'])->pluck('value', 'key');
+        $settings = Setting::whereIn('key', ['ollama_model', 'ollama_base_url', 'ai_auto_summarize', 'crawler_automated', 'crawler_manual'])->pluck('value', 'key');
         return view('admin.settings', compact('settings'));
     }
 
@@ -335,10 +335,12 @@ class AdminController
         $request->validate([
             'ollama_model' => 'nullable|string',
             'ollama_base_url' => 'nullable|url',
-            'ai_auto_summarize' => 'nullable|string|in:enabled,disabled'
+            'ai_auto_summarize' => 'nullable|string|in:enabled,disabled',
+            'crawler_automated' => 'nullable|string|in:enabled,disabled',
+            'crawler_manual' => 'nullable|string|in:enabled,disabled'
         ]);
 
-        foreach (['ollama_model', 'ollama_base_url', 'ai_auto_summarize'] as $key) {
+        foreach (['ollama_model', 'ollama_base_url', 'ai_auto_summarize', 'crawler_automated', 'crawler_manual'] as $key) {
             if ($request->has($key)) {
                 Setting::updateOrCreate(
                     ['key' => $key],

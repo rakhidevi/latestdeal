@@ -20,7 +20,7 @@ return new class extends Migration
             
             $table->text('url');
             $table->string('image_path');
-            $table->enum('status', ['active', 'expired'])->default('active');
+            $table->string('status', 50)->default('active');
             
             $table->timestamps();
         });
