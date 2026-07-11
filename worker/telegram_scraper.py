@@ -256,7 +256,6 @@ async def handler(event):
         "discounted_price": deal_data['discounted_price'],
         "url": url,
         "category_id": 1, # Placeholder, can be mapped from tags later
-        "merchant_id": 1, # Defaulting to Amazon (ID 1) to prevent SQLite Foreign Key errors until other merchants are added via Admin Panel
         "ai_caption": caption_text,
         "features": deal_data.get('features', []),
         "brand": deal_data.get('store', 'Unknown'),

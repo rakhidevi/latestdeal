@@ -169,7 +169,6 @@ async def process_queue():
                 "discounted_price": caption_data['discounted_price'],
                 "url": affiliate_url,
                 "category_id": 1, # Placeholder
-                "merchant_id": 1, # Placeholder
                 "ai_caption": caption_text,
                 "features": caption_data.get('features', []),
                 "verdict": caption_data.get('verdict', ''),

@@ -76,7 +76,6 @@ def import_sitestripe_deal(url: str):
             "url": url, # Original URL for deduplication
             "short_url": official_shortlink, # Sitestripe Link
             "category_id": 1,
-            "merchant_id": 1,
             "ai_caption": caption_text,
             "features": caption_data.get('features', []),
             "verdict": caption_data.get('verdict', ''),

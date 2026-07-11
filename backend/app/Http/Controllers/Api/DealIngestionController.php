@@ -28,7 +28,7 @@ class DealIngestionController
             'discounted_price' => 'required|numeric',
             'url' => 'required|url',
             'category_id' => 'required|integer',
-            'merchant_id' => 'required|integer',
+            'merchant_id' => 'nullable|integer', // Made nullable so we can auto-resolve
             'ai_caption' => 'required|string',
             'image_base64' => 'required|string',
             'promo_code' => 'nullable|string',
@@ -42,6 +42,36 @@ class DealIngestionController
             'ai_score' => 'nullable|integer|min:1|max:100',
             'short_url' => 'nullable|url'
         ]);
+
+        // 1.2 Resolve Merchant from URL Domain
+        $host = parse_url($validated['url'], PHP_URL_HOST);
+        $resolvedMerchantId = null;
+        
+        if ($host) {
+            $host = preg_replace('/^www\./', '', $host);
+            
+            // Handle common shortlinks / variations
+            if (in_array($host, ['amzn.to', 'amazon.in', 'amazon.com'])) {
+                $merchant = \App\Models\Merchant::where('name', 'LIKE', '%Amazon%')->first();
+            } else {
+                $merchant = \App\Models\Merchant::where('domain', 'LIKE', '%' . $host . '%')->first();
+            }
+            
+            if ($merchant) {
+                $resolvedMerchantId = $merchant->id;
+            }
+        }
+
+        // If we couldn't resolve a merchant, reject the deal.
+        // This prevents random sites like freecourse.io from being added as Amazon deals.
+        if (!$resolvedMerchantId) {
+            return response()->json([
+                'error' => 'Deal rejected: Unsupported merchant domain (' . ($host ?? 'unknown') . '). Please add this merchant in the Admin Panel first.'
+            ], 422);
+        }
+        
+        // Override the validated array with our newly resolved secure merchant ID
+        $validated['merchant_id'] = $resolvedMerchantId;
 
         // 1.5 Block Illegal / Pirated Content (server-side safety net)
         $blockedKeywords = [

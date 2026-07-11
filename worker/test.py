@@ -71,7 +71,6 @@ if deal_item:
             "discounted_price": caption_data['discounted_price'],
             "url": affiliate_url,
             "category_id": 1,
-            "merchant_id": 1,
             "ai_caption": caption_text,
             "image_base64": base64_image
         }
