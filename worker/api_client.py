@@ -36,7 +36,9 @@ def push_to_production(payload: dict) -> bool:
     except requests.RequestException as e:
         print(f"Failed to push deal: {e}")
         if hasattr(e, 'response') and e.response is not None:
-            print(f"Server Response: {e.response.text}")
+            print(f"Server Response: {e.response.text[:200]}...")
+            with open("last_laravel_error.html", "w", encoding="utf-8") as f:
+                f.write(e.response.text)
         return False
 
 def create_job(name: str, job_type: str = 'ingestion') -> int:

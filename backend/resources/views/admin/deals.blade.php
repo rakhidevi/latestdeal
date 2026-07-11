@@ -51,14 +51,25 @@
                     </div>
                 </div>
                 
-                <h3 class="font-medium text-gray-900 line-clamp-2 text-sm" title="{{ $deal->title }}">{{ $deal->title }}</h3>
+                <a href="{{ route('deal.show', $deal->slug) }}" target="_blank" class="font-medium text-blue-600 hover:text-blue-800 hover:underline line-clamp-2 text-sm mt-1" title="{{ $deal->title }}">{{ $deal->title }}</a>
                 <p class="mt-2 text-xs text-gray-500">
                     {{ $deal->merchant->name ?? 'Unknown Store' }} • 
                     @if($deal->original_price > 0)
                         {{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF • 
                     @endif
-                    Score: {{ number_format($deal->trust_metrics['score'] ?? 0, 1) }}
+                    Score: {{ number_format($deal->ai_score ?? 0, 1) }}
                 </p>
+                
+                <div class="mt-2 flex space-x-3 text-xs">
+                    <a href="{{ route('deal.redirect', $deal->hash_id) }}" target="_blank" class="text-gray-500 hover:text-gray-900 flex items-center">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        Test Affiliate Link
+                    </a>
+                    <a href="{{ $deal->url }}" target="_blank" class="text-gray-500 hover:text-gray-900 flex items-center">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        Original URL
+                    </a>
+                </div>
             </div>
 
             <div class="mt-4 pt-4 border-t border-gray-100 flex gap-2">
@@ -94,6 +105,14 @@
                         </button>
                     </form>
                 @endif
+                
+                <form action="{{ route('admin.deals.destroy', $deal->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Are you sure you want to permanently delete this deal?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="w-full justify-center inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete
+                    </button>
+                </form>
             </div>
         </div>
         @empty

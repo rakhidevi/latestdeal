@@ -199,6 +199,12 @@ class AdminController
         return back()->with('success', 'Deal status updated to ' . $request->status);
     }
 
+    public function destroyDeal(Deal $deal)
+    {
+        $deal->delete();
+        return back()->with('success', 'Deal permanently deleted.');
+    }
+
     public function merchants()
     {
         $merchants = Merchant::orderBy('name')->get();
