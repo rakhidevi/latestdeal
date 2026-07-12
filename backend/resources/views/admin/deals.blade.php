@@ -18,7 +18,7 @@
             <input type="hidden" name="status" value="{{ $status }}">
             <div class="relative flex-1">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" name="search" value="{{ $search }}" placeholder="Search deals by title..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none">
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search deals by title or URL..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none">
             </div>
             <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
                 Search
@@ -42,6 +42,20 @@
             </form>
         @endif
     </div>
+
+    @if(isset($uniqueDomains) && $uniqueDomains->count() > 0)
+        <div class="bg-white rounded-lg p-4 border border-gray-200 mt-2">
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">Domains present in all deals (click to filter):</h3>
+            <div class="flex flex-wrap gap-2">
+                @foreach($uniqueDomains as $domain)
+                    <a href="{{ route('admin.deals', ['status' => $status, 'search' => $domain]) }}" 
+                       class="inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 cursor-pointer transition-colors border border-gray-200">
+                        {{ $domain }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
 
     @if(!empty($search))
         <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">

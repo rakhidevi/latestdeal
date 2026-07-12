@@ -2,6 +2,7 @@ import os
 import re
 import json
 import asyncio
+import urllib.parse
 from telethon import TelegramClient, events
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, ValidationError

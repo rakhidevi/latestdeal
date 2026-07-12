@@ -26,25 +26,6 @@ from utils import clean_amazon_url
 
 load_dotenv(override=True)
 
-import urllib.parse
-
-def clean_amazon_url(url: str, tag: str = "kridaymart-21") -> str:
-    """Cleans an Amazon URL by stripping other tracking/affiliate params and applying ours, while retaining important params like smid."""
-    if "amazon" not in url.lower() or "amzn.to" in url.lower() or "link.amazon" in url.lower():
-        return url
-        
-    try:
-        parsed = urllib.parse.urlparse(url)
-        query = urllib.parse.parse_qs(parsed.query)
-        # Remove tracking params
-        for param in ['tag', 'linkCode', 'linkId', 'ref_', 'ascsubtag', 'btn_ref', 'psc']:
-            query.pop(param, None)
-        query['tag'] = [tag]
-        new_query = urllib.parse.urlencode(query, doseq=True)
-        return urllib.parse.urlunparse(parsed._replace(query=new_query))
-    except Exception:
-        return url + ("&" if "?" in url else "?") + f"tag={tag}"
-
 async def process_queue():
     """Processes items in the local SQLite queue."""
     worker_mode = os.getenv("WORKER_MODE", "server")

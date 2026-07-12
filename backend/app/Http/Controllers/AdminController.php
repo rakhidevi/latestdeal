@@ -186,7 +186,10 @@ class AdminController
         $query = Deal::where('status', $status);
         
         if (!empty($search)) {
-            $query->where('title', 'like', '%' . $search . '%');
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('url', 'like', '%' . $search . '%');
+            });
         }
         
         $deals = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
@@ -200,7 +203,13 @@ class AdminController
         // Count how many illegal deals currently exist across all statuses
         $illegalCount = $this->countIllegalDeals();
 
-        return view('admin.deals', compact('deals', 'status', 'counts', 'search', 'illegalCount'));
+        // Get unique domains across all deals
+        $allUrls = Deal::pluck('url')->toArray();
+        $uniqueDomains = collect($allUrls)->map(function ($url) {
+            return parse_url($url, PHP_URL_HOST);
+        })->filter()->unique()->values();
+
+        return view('admin.deals', compact('deals', 'status', 'counts', 'search', 'illegalCount', 'uniqueDomains'));
     }
 
     /**
