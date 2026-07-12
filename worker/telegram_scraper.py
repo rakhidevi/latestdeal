@@ -173,8 +173,6 @@ async def handler(event):
         raw_url = urls[0]
         print(f"Cleaning and Unshortening URL: {raw_url}")
         url = await asyncio.to_thread(clean_amazon_url, raw_url)
-        print(f"Cleaned Final URL: {url}")
-        
     scraped_data = None
     if url and ('amazon' in url.lower() or 'amzn' in url.lower()):
         print(f"Detected Amazon link! Initiating deep Playwright scraping...")
@@ -184,6 +182,39 @@ async def handler(event):
                 scraped_data = await asyncio.to_thread(get_sitestripe_link_and_data, url)
         except Exception as e:
             print(f"Deep scraping failed, falling back to basic parsing: {e}")
+            
+    is_udemy = False
+    if url and ('udemy.com' in url.lower()):
+        print(f"Detected Udemy link! Applying Impact affiliate tracking parameters...")
+        is_udemy = True
+        try:
+            parsed = urllib.parse.urlparse(url)
+            query_params = urllib.parse.parse_qs(parsed.query)
+            
+            # Add user's specific impact parameters
+            impact_params = {
+                'im_ref': ['3UDwqRybsxyZWDu1FDz21SsZUkuVtBwg7TRYz00'],
+                'irpid': ['7475040'],
+                'utm_medium': ['affiliate'],
+                'utm_source': ['impact'],
+                'utm_audience': ['mx'],
+                'utm_tactic': ['"APAC","Coupon/Deal"'],
+                'utm_content': ['3193860'],
+                'utm_campaign': ['7475040'],
+                'irgwc': ['1'],
+                'afsrc': ['1']
+            }
+            # Merge while keeping existing parameters (like couponCode) if not overriding
+            query_params.update(impact_params)
+            
+            # Reconstruct the URL
+            new_query = urllib.parse.urlencode(query_params, doseq=True)
+            url = urllib.parse.urlunparse(
+                (parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment)
+            )
+            print(f"Generated Udemy Affiliate Link: {url}")
+        except Exception as e:
+            print(f"Failed to append Udemy tracking params: {e}")
             
     # 2. Parse Message with LLM (enriched with scraped_data)
     print("Parsing message with LLM...")
@@ -256,7 +287,8 @@ async def handler(event):
         "original_price": deal_data['original_price'],
         "discounted_price": deal_data['discounted_price'],
         "url": url,
-        "category_id": 1, # Placeholder, can be mapped from tags later
+        "category_id": None, # Nullable in API now
+        "category_name": "Courses" if is_udemy else None, # Let API auto-resolve
         "ai_caption": caption_text,
         "features": deal_data.get('features', []),
         "brand": deal_data.get('store', 'Unknown'),

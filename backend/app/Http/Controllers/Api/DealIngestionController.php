@@ -27,7 +27,8 @@ class DealIngestionController
             'original_price' => 'required|numeric',
             'discounted_price' => 'required|numeric',
             'url' => 'required|url',
-            'category_id' => 'required|integer',
+            'category_id' => 'nullable|integer',
+            'category_name' => 'nullable|string',
             'merchant_id' => 'nullable|integer', // Made nullable so we can auto-resolve
             'ai_caption' => 'required|string',
             'image_base64' => 'required|string',
@@ -42,6 +43,15 @@ class DealIngestionController
             'ai_score' => 'nullable|integer|min:1|max:100',
             'short_url' => 'nullable|url'
         ]);
+
+        // 1.1 Resolve Category from Name
+        if (empty($validated['category_id']) && !empty($validated['category_name'])) {
+            $cat = \App\Models\Category::firstOrCreate(
+                ['slug' => \Illuminate\Support\Str::slug($validated['category_name'])],
+                ['name' => $validated['category_name']]
+            );
+            $validated['category_id'] = $cat->id;
+        }
 
         // 1.2 Resolve Merchant from URL Domain
         $host = parse_url($validated['url'], PHP_URL_HOST);
