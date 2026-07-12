@@ -3,6 +3,7 @@ import time
 import random
 from playwright.sync_api import sync_playwright
 from playwright_stealth import Stealth
+from utils import clean_amazon_url
 
 def get_sitestripe_link_and_data(url: str) -> dict:
     """
@@ -24,8 +25,24 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             page = context.new_page()
             Stealth().use_sync(page)
             
-            print(f"Navigating to {url}...")
-            page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            print(f"Navigating to raw URL: {url}...")
+            # We use wait_until="networkidle" to ensure JS redirects (like indiafreestuff or amzn.to) finish
+            page.goto(url, wait_until="networkidle", timeout=60000)
+            
+            # Wait a few seconds for any lingering client-side redirects
+            time.sleep(3)
+            
+            final_raw_url = page.url
+            print(f"Resolved raw URL: {final_raw_url}")
+            
+            # Clean the URL
+            clean_url = clean_amazon_url(final_raw_url, resolve_redirects=False)
+            
+            if clean_url != final_raw_url and "amazon" in clean_url.lower():
+                print(f"URL cleaned successfully. Revisiting clean URL: {clean_url}...")
+                page.goto(clean_url, wait_until="domcontentloaded", timeout=60000)
+            else:
+                clean_url = final_raw_url
             
             if page.locator("div#amzn-ss-wrap").count() == 0:
                 # Give it a second just in case it's loading slowly
@@ -139,7 +156,7 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             print(f"Successfully generated SiteStripe Link: {short_url}")
             
             raw_data = {
-                "url": url,
+                "url": clean_url,
                 "sitestripe_url": short_url,
                 "raw_title": title,
                 "raw_discounted_price": discounted_price_html,

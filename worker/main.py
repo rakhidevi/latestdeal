@@ -21,8 +21,29 @@ from image_composer import compose_image
 from api_client import push_to_production, create_job, update_job
 from deal_evaluator import evaluate_deal
 import requests
+from sitestripe_scraper import get_sitestripe_link_and_data
+from utils import clean_amazon_url
 
 load_dotenv(override=True)
+
+import urllib.parse
+
+def clean_amazon_url(url: str, tag: str = "kridaymart-21") -> str:
+    """Cleans an Amazon URL by stripping other tracking/affiliate params and applying ours, while retaining important params like smid."""
+    if "amazon" not in url.lower() or "amzn.to" in url.lower() or "link.amazon" in url.lower():
+        return url
+        
+    try:
+        parsed = urllib.parse.urlparse(url)
+        query = urllib.parse.parse_qs(parsed.query)
+        # Remove tracking params
+        for param in ['tag', 'linkCode', 'linkId', 'ref_', 'ascsubtag', 'btn_ref', 'psc']:
+            query.pop(param, None)
+        query['tag'] = [tag]
+        new_query = urllib.parse.urlencode(query, doseq=True)
+        return urllib.parse.urlunparse(parsed._replace(query=new_query))
+    except Exception:
+        return url + ("&" if "?" in url else "?") + f"tag={tag}"
 
 async def process_queue():
     """Processes items in the local SQLite queue."""
@@ -36,6 +57,10 @@ async def process_queue():
             continue
             
         url = deal_item['url']
+        
+        # Ensure we are using the fully cleaned URL
+        url = clean_amazon_url(url, resolve_redirects=False) # Already resolved in telegram_scraper, but enforce clean format
+        
         item_id = deal_item['id']
         print(f"Processing ID {item_id}: {url}")
         
@@ -81,8 +106,34 @@ async def process_queue():
                 add_log("Extraction complete. Handing job back to Server for publishing.")
                 continue
             else:
-                add_log("Starting extraction...")
-                raw_data = await asyncio.to_thread(extract_deal_data, url)
+                add_log("Starting sequential extraction (SiteStripe URL Cleanup -> Crawl4AI Scrape)...")
+                
+                # 1. SiteStripe handles visiting raw URL, resolving JS redirects, cleaning URL, and generating shortlink
+                sitestripe_result = {}
+                if 'amazon' in url.lower() or 'amzn' in url.lower() or 'indiafreestuff' in url.lower():
+                    try:
+                        add_log("Running SiteStripe automation to clean URL and get shortlink...")
+                        sitestripe_result = await asyncio.to_thread(get_sitestripe_link_and_data, url)
+                        if sitestripe_result and sitestripe_result.get("url"):
+                            url = sitestripe_result["url"]  # Use the cleaned URL for subsequent scraping
+                            add_log(f"SiteStripe successful. Cleaned URL: {url}")
+                    except Exception as e:
+                        add_log(f"SiteStripe error: {e}")
+
+                # 2. Scrape the cleaned URL using the powerful Crawl4AI/Playwright scraper
+                add_log("Starting deep scrape on cleaned URL...")
+                try:
+                    scrape_result = await asyncio.to_thread(extract_deal_data, url)
+                    raw_data = scrape_result
+                except Exception as e:
+                    add_log(f"Scraper error: {e}")
+                    raw_data = {}
+                    
+                # Merge sitestripe url into raw_data
+                raw_data['sitestripe_url'] = sitestripe_result.get('sitestripe_url', '')
+                if not raw_data.get('url'):
+                    raw_data['url'] = url
+                    
                 scraper_engine = raw_data.get('scraper_type', 'Unknown')
                 add_log(f"Extraction successful using: {scraper_engine}")
             
@@ -138,10 +189,7 @@ async def process_queue():
                 caption_data['original_price'] = clean_price(caption_data.get('original_price'))
                 caption_data['discounted_price'] = clean_price(caption_data.get('discounted_price'))
                 
-                affiliate_url = url
-                # Don't append tags to amzn.to or link.amazon shortlinks as they already have them baked in
-                if "amazon" in url and "amzn.to" not in url and "link.amazon" not in url:
-                    affiliate_url = url + ("&" if "?" in url else "?") + "tag=kridaymart-21"
+                affiliate_url = clean_amazon_url(url)
                 
                 caption_text = f"🚨 {caption_data['title']} \n\n" + "\n".join(caption_data.get('features', [])) + f"\n\n👉🏻 Buy Now: {affiliate_url}"
             except Exception as ai_e:
@@ -152,9 +200,7 @@ async def process_queue():
                     'discounted_price': metrics["discounted_price"]
                 }
                 
-                affiliate_url = url
-                if "amazon" in url and "amzn.to" not in url and "link.amazon" not in url:
-                    affiliate_url = url + ("&" if "?" in url else "?") + "tag=kridaymart-21"
+                affiliate_url = clean_amazon_url(url)
                 
                 caption_text = f"🔥 NEW DEAL 🔥\n{caption_data['title']}\n\n{caption_data.get('trust_metrics', '')}\n\n💰 Price: {caption_data['discounted_price']} (Was {caption_data['original_price']})\n\nGrab it here: {affiliate_url}"
             

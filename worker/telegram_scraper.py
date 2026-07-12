@@ -12,6 +12,7 @@ from telethon import utils
 
 # Import existing logic to push deals
 from api_client import push_to_production
+from utils import clean_amazon_url
 from image_composer import compose_image
 
 load_dotenv()
@@ -169,10 +170,10 @@ async def handler(event):
     url = ""
     urls = re.findall(r'(https?://[^\s]+)', message_text)
     if urls:
-        url = urls[0]
-        print(f"Unshortening URL: {url}")
-        url = await asyncio.to_thread(expand_url, url)
-        print(f"Final URL: {url}")
+        raw_url = urls[0]
+        print(f"Cleaning and Unshortening URL: {raw_url}")
+        url = await asyncio.to_thread(clean_amazon_url, raw_url)
+        print(f"Cleaned Final URL: {url}")
         
     scraped_data = None
     if url and ('amazon' in url.lower() or 'amzn' in url.lower()):

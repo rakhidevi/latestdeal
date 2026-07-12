@@ -1,5 +1,5 @@
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth
+from playwright_stealth import Stealth
 import time
 import random
 import os
@@ -49,7 +49,7 @@ async def async_crawl4ai_extract(url: str) -> dict:
         ),
         schema=DealExtractionSchema.model_json_schema(),
         extraction_type="schema",
-        instruction="Extract the MAIN product title, original price, discounted price, product features, main product image URL, star rating (e.g. 4.5), review count, and brand name. IMPORTANT: ONLY extract the actual selling price and original MRP. DO NOT extract 'per gram', 'per kg', 'per 100g', or any other unit prices. DO NOT extract prices of related products, sponsored items, or accessories. If the main product is 'Out of Stock' or 'Currently unavailable', set out_of_stock to true and leave the prices as empty strings. If a field is missing, return an empty string or empty list."
+        instruction="Extract the MAIN product title, original price, discounted price, product features, main product image URL, star rating, review count, and brand name. IMPORTANT: ONLY extract the actual selling price and original MRP. DO NOT extract unit prices like 'per g', '/100 g', or 'per kg' (e.g. ignore '₹68,99,900.00 per g'). Original MRP MUST usually be associated with 'M.R.P.'. If you see a per-unit price, IGNORE it completely. DO NOT extract prices of related products, sponsored items, or accessories. If 'Out of Stock', set out_of_stock to true."
     )
     
     proxy_server = os.getenv("PROXY_SERVER")
@@ -188,7 +188,7 @@ def extract_deal_data_fallback(url: str) -> dict:
     with sync_playwright() as p:
         browser = setup_browser(p)
         page = browser.new_page()
-        stealth(page)
+        Stealth().apply_stealth_sync(page)
         
         try:
             # Random User-Agent setup
@@ -256,11 +256,20 @@ def extract_deal_data_fallback(url: str) -> dict:
             ]:
                 el = page.locator(selector).first
                 if el.count() > 0:
-                    # Inner text of .a-offscreen is sometimes hidden or structured differently, 
-                    # text_content() grabs it regardless of visibility
-                    original_price_html = el.text_content().strip()
-                    break
+                    text_val = el.text_content().strip()
+                    # Strictly ignore unit prices
+                    if "per g" not in text_val.lower() and "/100 g" not in text_val.lower():
+                        original_price_html = text_val
+                        break
                     
+            # Fallback for explicit M.R.P. text if .a-text-price grabs the wrong one
+            if not original_price_html or "per" in original_price_html.lower():
+                # Attempt to find the span containing "M.R.P.:"
+                mrp_label = page.locator("span:has-text('M.R.P.:')").first
+                if mrp_label.count() > 0:
+                    parent = mrp_label.locator("..").first
+                    if parent.count() > 0:
+                        original_price_html = parent.text_content().replace('M.R.P.:', '').strip()
             # 4. Image URL (High-res extraction)
             image_url = ""
             img_element = page.locator("#landingImage").first
@@ -296,7 +305,10 @@ def extract_deal_data_fallback(url: str) -> dict:
                 "scraper_type": "Playwright Scraper"
             }
             
-            print(f"Scraped Data: {raw_data}")
+            try:
+                print(f"Scraped Data: {raw_data}".encode('utf-8', 'replace').decode('utf-8'))
+            except UnicodeEncodeError:
+                pass
             return raw_data
         
         finally:
@@ -307,7 +319,7 @@ def extract_udemy_data(url: str) -> dict:
     with sync_playwright() as p:
         browser = setup_browser(p)
         page = browser.new_page()
-        stealth(page)
+        Stealth().apply_stealth_sync(page)
         
         try:
             ua = random.choice(DESKTOP_USER_AGENTS)
@@ -354,7 +366,7 @@ def extract_coursera_data(url: str) -> dict:
     with sync_playwright() as p:
         browser = setup_browser(p)
         page = browser.new_page()
-        stealth(page)
+        Stealth().apply_stealth_sync(page)
         
         try:
             ua = random.choice(DESKTOP_USER_AGENTS)
