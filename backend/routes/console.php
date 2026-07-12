@@ -35,6 +35,7 @@ Schedule::command('queue:prune-failed --hours=168')->daily();
 // Deal Automation Scripts
 Schedule::command(\App\Console\Commands\PublishDealsCommand::class)->hourly();
 Schedule::command(\App\Console\Commands\ExpireDealsCommand::class)->daily();
+Schedule::command(\App\Console\Commands\CheckDeadLinksCommand::class)->twiceDaily(1, 13);
 Schedule::command(\App\Console\Commands\AutoHuntCommand::class)->cron('0 */1 * * *'); // Run every 1 hour (closest to 1.5 without complex crons)
 
 // Aggressive Image Pruning
