@@ -185,8 +185,16 @@ async def handler(event):
             
     is_udemy = False
     if url and ('udemy.com' in url.lower()):
-        print(f"Detected Udemy link! Applying Impact affiliate tracking parameters...")
+        print(f"Detected Udemy link! Initiating Playwright scraping...")
         is_udemy = True
+        try:
+            from scraper import extract_udemy_data
+            # We don't use sitestripe_lock here as it's not Amazon, but we could if we wanted to limit concurrency
+            scraped_data = await asyncio.to_thread(extract_udemy_data, url)
+        except Exception as e:
+            print(f"Udemy scraping failed, falling back to basic parsing: {e}")
+            
+        print(f"Applying Impact affiliate tracking parameters...")
         try:
             parsed = urllib.parse.urlparse(url)
             query_params = urllib.parse.parse_qs(parsed.query)
