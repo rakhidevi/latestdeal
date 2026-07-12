@@ -60,6 +60,37 @@
                 </select>
             </div>
 
+            <hr class="border-slate-100 my-6">
+            
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                    <i data-lucide="palette" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Theme & UI Preferences</h2>
+                    <p class="text-slate-500 text-sm mt-1">Configure default color palettes and light/dark mode fallback.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Global Default Theme</label>
+                    <select name="default_theme" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                        <option value="red" {{ ($settings['default_theme'] ?? 'red') == 'red' ? 'selected' : '' }}>Classic Red (Urgency)</option>
+                        <option value="green" {{ ($settings['default_theme'] ?? 'red') == 'green' ? 'selected' : '' }}>Premium Green (Wealth & Savings)</option>
+                        <option value="amber" {{ ($settings['default_theme'] ?? 'red') == 'amber' ? 'selected' : '' }}>Eye Protection (Warm/Amber)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Default Color Mode</label>
+                    <select name="default_color_mode" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                        <option value="auto" {{ ($settings['default_color_mode'] ?? 'auto') == 'auto' ? 'selected' : '' }}>Auto (Follow System / Time)</option>
+                        <option value="light" {{ ($settings['default_color_mode'] ?? 'auto') == 'light' ? 'selected' : '' }}>Light Mode Always</option>
+                        <option value="dark" {{ ($settings['default_color_mode'] ?? 'auto') == 'dark' ? 'selected' : '' }}>Dark Mode Always</option>
+                    </select>
+                </div>
+            </div>
+
             <hr class="border-slate-100 my-8">
 
             <div class="flex items-center gap-3 mb-6">

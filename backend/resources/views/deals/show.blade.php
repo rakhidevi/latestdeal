@@ -267,7 +267,7 @@
         </div>
         <script>
             const ctx = document.getElementById('priceChart').getContext('2d');
-            const data = @json($priceHistory->map(fn($p) => ['x' => $p->recorded_at->format('Y-m-d'), 'y' => $p->price]));
+            const data = @json($priceHistory->map(fn($p) => ['x' => \Carbon\Carbon::parse($p->recorded_at)->format('Y-m-d'), 'y' => $p->price]));
             
             new Chart(ctx, {
                 type: 'line',
