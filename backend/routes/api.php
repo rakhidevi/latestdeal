@@ -44,13 +44,11 @@ Route::post('/deals/{id}/refresh-price', [\App\Http\Controllers\Api\PriceUpdateC
 Route::post('/deals/update-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'updatePrice']);
 
 // Protected APIs (Requires Bearer Token)
-Route::middleware(function ($request, $next) {
-    if (env('API_KEY') && $request->header('Authorization') !== 'Bearer ' . env('API_KEY')) {
-        return response()->json(['error' => 'Unauthorized'], 401);
-    }
-    return $next($request);
-})->group(function () {
-    Route::get('/deals/active', function () {
+Route::group([], function () {
+    Route::get('/deals/active', function (\Illuminate\Http\Request $request) {
+        if (env('API_KEY') && $request->header('Authorization') !== 'Bearer ' . env('API_KEY')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
         return response()->json(['deals' => \App\Models\Deal::where('status', 'active')->get()]);
     });
     
