@@ -57,8 +57,11 @@ class SmartSearchController extends Controller
             
             if (!empty($filters['category'])) {
                 // Approximate category matching
-                $query->whereHas('category', function($q) use ($filters) {
-                    $q->where('name', 'like', '%' . $filters['category'] . '%');
+                $query->where(function($q) use ($filters) {
+                    $q->whereHas('category', function($q2) use ($filters) {
+                        $q2->where('name', 'like', '%' . $filters['category'] . '%');
+                    })
+                    ->orWhere('title', 'like', '%' . $filters['category'] . '%');
                 });
             }
             

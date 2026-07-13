@@ -24,6 +24,44 @@ import requests
 from sitestripe_scraper import get_sitestripe_link_and_data
 from utils import clean_amazon_url
 
+# Dynamic Config Cache
+config_cache = {"brand_tiers": [], "scraping_configs": []}
+
+def update_dynamic_config():
+    """Fetches scraping config and brand tiers from Laravel."""
+    global config_cache
+    backend_url = os.getenv("API_URL", "http://localhost:8000/api/v1")
+    try:
+        response = requests.get(f"{backend_url}/config/scraping")
+        if response.status_code == 200:
+            config_cache = response.json()
+            print("Successfully updated dynamic configurations.")
+    except Exception as e:
+        print(f"Error fetching dynamic configs: {e}")
+
+def get_historical_lowest_price(provider, product_id, current_price):
+    """Pings backend to log current price and fetch historical lowest price."""
+    backend_url = os.getenv("API_URL", "http://localhost:8000/api/v1")
+    try:
+        res = requests.post(
+            f"{backend_url}/deals/price-check",
+            json={"provider": provider, "product_id": product_id, "price": current_price},
+            headers={"Accept": "application/json"}
+        )
+        if res.status_code == 200:
+            return res.json().get('historical_lowest_price')
+    except Exception as e:
+        print(f"Error checking price history: {e}")
+    return None
+
+def extract_product_id(url, provider='amazon'):
+    if provider == 'amazon':
+        import re
+        match = re.search(r'/dp/([A-Z0-9]{10})', url)
+        if match:
+            return match.group(1)
+    return url # Fallback
+
 load_dotenv(override=True)
 
 async def process_queue():
@@ -63,9 +101,8 @@ async def process_queue():
                 print(f"SiteStripe automation failed: {e}")
                 mark_status(deal_item['id'], 'failed')
                 update_job(job_id, status='failed', error_log=str(e))
-            finally:
-                await asyncio.sleep(5)
-                continue
+            await asyncio.sleep(5)
+            continue
 
         job_logs = []
         def add_log(msg):
@@ -122,7 +159,7 @@ async def process_queue():
             update_job(job_id, type=f"ingestion ({scraper_engine})")
             
             # --- FAST PATH FOR REAL-TIME PRICE UPDATES ---
-            if job_type == 'price_update':
+            if deal_item.get('type') == 'price_update':
                 add_log(f"Fast path for price update: {url}")
                 new_price = raw_data.get('raw_discounted_price')
                 if new_price:
@@ -150,7 +187,15 @@ async def process_queue():
 
             # 1.5 Evaluate Deal
             add_log("Evaluating deal metrics...")
-            evaluation = evaluate_deal(raw_data)
+            current_price = clean_price(raw_data.get('raw_discounted_price'))
+            
+            # Determine provider and product ID for price history
+            provider = 'amazon' if 'amazon' in url.lower() or 'amzn' in url.lower() else 'unknown'
+            product_id = extract_product_id(url, provider)
+            
+            lowest_historical_price = get_historical_lowest_price(provider, product_id, current_price) if current_price > 0 else None
+            
+            evaluation = evaluate_deal(raw_data, brand_tiers=config_cache.get('brand_tiers', []), lowest_historical_price=lowest_historical_price)
             if not evaluation["is_approved"]:
                 add_log(f"Deal REJECTED: {evaluation['reason']}")
                 mark_status(item_id, 'failed')
@@ -202,7 +247,14 @@ async def process_queue():
                 "trust_metrics": caption_data.get('trust_metrics', ''),
                 "ai_score": caption_data.get('ai_score', None),
                 "image_base64": base64_image,
-                "brand": caption_data.get('brand_name')
+                "brand": caption_data.get('brand_name'),
+                "trust_score": metrics.get('trust_score'),
+                "why_stands_out": caption_data.get('why_stands_out'),
+                "pros": caption_data.get('pros', []),
+                "cons": caption_data.get('cons', []),
+                "best_for": caption_data.get('best_for'),
+                "value_rating": caption_data.get('value_rating'),
+                "lowest_price_seen": metrics.get('lowest_price_seen')
             }
             
             # 5. Push to Laravel
@@ -351,6 +403,7 @@ async def main():
         
     init_db()
     print(f"Worker Initialized in {args.mode.upper()} mode.")
+    update_dynamic_config()
     
     if args.mode == 'server':
         await asyncio.gather(

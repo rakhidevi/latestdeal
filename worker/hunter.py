@@ -16,7 +16,8 @@ def setup_browser(p):
         user_data_dir=user_data_dir,
         headless=False,
         executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe", # Use REAL local Chrome
-        args=["--disable-blink-features=AutomationControlled"]
+        args=["--disable-blink-features=AutomationControlled"],
+        ignore_default_args=["--enable-automation", "--no-sandbox"]
     )
     return browser
 
@@ -40,8 +41,8 @@ def hunt_amazon_deals(job_type='ingestion', category=None, brand=None, discount=
     
     with sync_playwright() as p:
         context = setup_browser(p)
-        page = context.new_page()
-        Stealth().use_sync(page)
+        page = context.pages[0] if context.pages else context.new_page()
+        Stealth().apply_stealth_sync(page)
         
         try:
             page.goto(url, wait_until="domcontentloaded", timeout=60000)

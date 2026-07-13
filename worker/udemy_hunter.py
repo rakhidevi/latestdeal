@@ -55,7 +55,14 @@ def get_udemy_url(course_url):
     for a in go_soup.select('.ui.segment a'):
         href = a.get('href', '')
         if 'udemy.com' in href and 'couponCode=' in href:
-            return href
+            import urllib.parse as urlparse
+            parsed = urlparse.urlparse(href)
+            qs = urlparse.parse_qs(parsed.query)
+            coupon = qs.get('couponCode', [''])[0]
+            base = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+            if coupon:
+                return f"{base}?couponCode={coupon}"
+            return base
             
     return None
 

@@ -21,6 +21,10 @@ use App\Http\Controllers\Api\MetricsController;
 Route::post('/deals/ingest', [\App\Http\Controllers\Api\DealIngestionController::class, 'store']);
 Route::get('/deals/active', [\App\Http\Controllers\Api\DealIngestionController::class, 'activeDeals']);
 Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionController::class, 'expire']);
+Route::post('/deals/price-check', [\App\Http\Controllers\Api\DealIngestionController::class, 'priceCheck']);
+
+// Config
+Route::get('/config/scraping', [\App\Http\Controllers\Api\ConfigController::class, 'scrapingConfig']);
 
 // Scraper Job Tracking
 Route::post('/scraper/jobs', [\App\Http\Controllers\Api\ScraperJobController::class, 'store']);
@@ -44,11 +48,8 @@ Route::post('/deals/{id}/refresh-price', [\App\Http\Controllers\Api\PriceUpdateC
 Route::post('/deals/update-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'updatePrice']);
 
 // Protected APIs (Requires Bearer Token)
-Route::group([], function () {
-    Route::get('/deals/active', function (\Illuminate\Http\Request $request) {
-        if (env('API_KEY') && $request->header('Authorization') !== 'Bearer ' . env('API_KEY')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/deals/active', function () {
         return response()->json(['deals' => \App\Models\Deal::where('status', 'active')->get()]);
     });
     

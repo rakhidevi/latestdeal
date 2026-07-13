@@ -49,7 +49,7 @@ class PriceUpdateController extends Controller
             $oldPrice = $deal->discounted_price;
             $newPrice = $request->price;
 
-            // Only update if there's an actual change
+            // Only update DB history if there's an actual change
             if ($oldPrice != $newPrice) {
                 // Keep history
                 PriceHistory::create([
@@ -60,12 +60,12 @@ class PriceUpdateController extends Controller
 
                 $deal->discounted_price = $newPrice;
                 $deal->save();
-
-                // Broadcast to frontend so it can update live without reload
-                event(new DealUpdated($deal->id, $newPrice));
                 
                 Log::info("Deal {$deal->id} price updated in real-time from {$oldPrice} to {$newPrice}");
             }
+
+            // ALWAYS broadcast to frontend so it can stop the loading spinner, even if price didn't change
+            event(new DealUpdated($deal->id, $newPrice));
 
             return response()->json(['success' => true]);
         }

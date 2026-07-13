@@ -4,7 +4,7 @@
 <div class="max-w-5xl mx-auto my-10 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 dark:border-slate-800">
     
     <!-- Left Sidebar (Branding & Benefits) -->
-    <div class="w-full lg:w-5/12 bg-gradient-to-br from-red-600 via-rose-600 to-orange-500 text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
+    <div class="hidden lg:flex w-full lg:w-5/12 bg-gradient-to-br from-red-700 via-red-600 to-red-500 text-white p-8 lg:p-12 flex-col justify-between relative overflow-hidden">
         <!-- Abstract background elements -->
         <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div class="absolute bottom-0 left-0 w-64 h-64 bg-yellow-400/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>

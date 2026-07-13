@@ -97,7 +97,7 @@
             }
             .section-title { @apply text-2xl font-black tracking-tight text-gray-900 dark:text-slate-100; }
             .section-subtitle { @apply mt-1 text-sm text-gray-600 dark:text-slate-400; }
-            .panel { @apply rounded-2xl border border-red-100/80 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/80; }
+            .panel { @apply rounded-2xl border border-red-100 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/80; }
             .surface { @apply rounded-2xl border border-red-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900; }
             
             /* Accessibility tweaks */
@@ -162,13 +162,13 @@
 </head>
 <body x-data="themeSwitcher" class="antialiased">
     
-    <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-40 border-b border-red-100/80 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
+    <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-40 border-b border-red-100 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
       <div class="mx-auto flex max-w-7xl px-4 sm:px-6 lg:px-8 py-3 items-center justify-between relative">
         
         <!-- Left Side: Logo -->
         <a href="/" class="flex items-center justify-start flex-shrink-0 z-50 relative">
-          <img src="/images/logo.png" alt="LatestDeal" class="theme-logo h-8 md:h-10 w-auto block dark:hidden" />
-          <img src="/images/logo-white.png" alt="LatestDeal" class="theme-logo h-8 md:h-10 w-auto hidden dark:block" />
+          <img src="/images/logo.png" alt="LatestDeal" height="40" class="theme-logo h-8 md:h-10 w-auto block dark:hidden" />
+          <img src="/images/logo-white.png" alt="LatestDeal" height="40" class="theme-logo h-8 md:h-10 w-auto hidden dark:block" />
         </a>
 
         <!-- Center: Desktop Mega Menu -->
@@ -431,16 +431,16 @@
         </main>
     </div>
 
-    <footer class="border-t border-red-100 bg-white pt-12 pb-8 text-sm text-gray-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 mt-12">
+    <footer class="border-t border-red-100 bg-white pt-8 pb-4 text-sm text-gray-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 mt-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-8 mb-8">
                 <!-- Branding & About -->
-                <div class="md:col-span-2">
-                    <a href="/" class="flex items-center mb-4 group">
-                        <img src="/images/logo.png" alt="LatestDeal" class="theme-logo h-8 w-auto block dark:hidden group-hover:scale-105 transition-transform" />
-                        <img src="/images/logo-white.png" alt="LatestDeal" class="theme-logo h-8 w-auto hidden dark:block group-hover:scale-105 transition-transform" />
+                <div class="col-span-2 md:col-span-2">
+                    <a href="/" class="flex items-center mb-3 group">
+                        <img src="/images/logo.png" alt="LatestDeal" height="28" class="theme-logo h-7 w-auto block dark:hidden group-hover:scale-105 transition-transform" />
+                        <img src="/images/logo-white.png" alt="LatestDeal" height="28" class="theme-logo h-7 w-auto hidden dark:block group-hover:scale-105 transition-transform" />
                     </a>
-                    <p class="text-slate-500 dark:text-slate-400 max-w-sm mb-6 leading-relaxed">
+                    <p class="text-slate-500 dark:text-slate-400 max-w-sm mb-4 leading-relaxed text-xs sm:text-sm">
                         Autonomous global deal discovery engine. We scour the web to find the best discounts, offers, and coupons so you never pay full price.
                     </p>
                     <div class="flex space-x-5">
@@ -455,8 +455,8 @@
 
                 <!-- Quick Links -->
                 <div>
-                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Platform</h3>
-                    <ul class="space-y-3">
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider text-xs">Platform</h3>
+                    <ul class="space-y-2.5">
                         <li><a href="/?sort=discount" class="hover:text-red-500 transition-colors">Today's Deals</a></li>
                         <li><a href="/?tag=trending" class="hover:text-red-500 transition-colors">Trending</a></li>
                         <li><a href="/?category=electronics" class="hover:text-red-500 transition-colors">Categories</a></li>
@@ -466,8 +466,8 @@
 
                 <!-- Legal -->
                 <div>
-                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Legal</h3>
-                    <ul class="space-y-3">
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider text-xs">Legal</h3>
+                    <ul class="space-y-2.5">
                         <li><a href="{{ route('privacy') }}" class="hover:text-red-500 transition-colors">Privacy Policy</a></li>
                         <li><a href="{{ route('terms') }}" class="hover:text-red-500 transition-colors">Terms of Service</a></li>
                         <li><a href="{{ route('privacy') }}" class="hover:text-red-500 transition-colors">Cookie Policy</a></li>
@@ -477,7 +477,7 @@
             </div>
 
             <!-- Bottom Copyright -->
-            <div class="pt-8 border-t border-slate-200 dark:border-slate-800/60 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="pt-6 border-t border-slate-200 dark:border-slate-800/60 flex flex-col md:flex-row justify-between items-center gap-3">
                 <p>&copy; {{ date('Y') }} LatestDeal. All rights reserved.</p>
                 <p class="flex items-center gap-1.5 text-xs text-slate-400">
                     Made with <svg class="h-3 w-3 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> by LatestDeal Team
@@ -493,21 +493,69 @@
         <x-cookie-consent />
     @endif
     
-    <!-- Floating Theme Switcher -->
-    <div class="fixed right-6 top-1/2 -translate-y-1/2 z-[60] flex flex-col gap-2">
-        <div x-show="open" x-transition.opacity.scale.origin.right class="flex flex-col gap-3 bg-white/95 dark:bg-slate-800/95 p-3 rounded-2xl shadow-xl backdrop-blur border border-slate-200 dark:border-slate-700 mb-2">
-            <p class="text-[10px] font-bold text-center uppercase text-slate-500 tracking-widest">Theme</p>
-            <button @click="setColorTheme('red')" class="w-10 h-10 rounded-full bg-red-500 border-2 transition-transform hover:scale-110" :class="colorTheme === 'red' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
-            <button @click="setColorTheme('green')" class="w-10 h-10 rounded-full bg-[#1B5E3C] border-2 transition-transform hover:scale-110" :class="colorTheme === 'green' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
-            <button @click="setColorTheme('amber')" class="w-10 h-10 rounded-full bg-amber-500 border-2 transition-transform hover:scale-110" :class="colorTheme === 'amber' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
-            <div class="h-px bg-slate-200 dark:bg-slate-700 my-1"></div>
-            <button @click="setDark(!isDark)" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-                <svg x-show="!isDark" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                <svg x-show="isDark" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            </button>
+    <!-- Slide-up Theme Switcher -->
+    <div class="fixed bottom-0 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center">
+        <!-- Slide-up Panel -->
+        <div x-show="open" 
+             x-transition:enter="transition ease-out duration-300" 
+             x-transition:enter-start="translate-y-full opacity-0" 
+             x-transition:enter-end="translate-y-0 opacity-100" 
+             x-transition:leave="transition ease-in duration-200" 
+             x-transition:leave-start="translate-y-0 opacity-100" 
+             x-transition:leave-end="translate-y-full opacity-0" 
+             class="w-[22rem] bg-white/95 dark:bg-slate-900/95 p-5 rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-xl border border-b-0 border-slate-200 dark:border-slate-700 pb-8"
+             @click.away="open = false">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Appearance Settings</h3>
+                <button @click="open = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Dark Mode Options -->
+            <div class="grid grid-cols-2 gap-2 mb-6 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl">
+                <button @click="setDark(false)" class="py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 focus:outline-none" :class="!isDark ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    Light
+                </button>
+                <button @click="setDark(true)" class="py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 focus:outline-none" :class="isDark ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                    Dark
+                </button>
+            </div>
+
+            <!-- Accent Colors -->
+            <div class="mb-5">
+                <p class="text-[10px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Accent Theme</p>
+                <div class="flex items-center gap-4">
+                    <button @click="setColorTheme('red')" style="background-color: #ef4444;" class="w-10 h-10 rounded-full border-[3px] transition-transform hover:scale-110 focus:outline-none" :class="colorTheme === 'red' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
+                    <button @click="setColorTheme('green')" class="w-10 h-10 rounded-full bg-[#1B5E3C] border-[3px] transition-transform hover:scale-110 focus:outline-none" :class="colorTheme === 'green' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
+                </div>
+            </div>
+
+            <!-- Eye Comfort View -->
+            <div class="flex items-center justify-between pt-5 border-t border-slate-200 dark:border-slate-700/60">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl">
+                        <!-- Eye safety icon -->
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-800 dark:text-white">Eye Comfort View</p>
+                        <p class="text-xs text-slate-500">Reduces blue light</p>
+                    </div>
+                </div>
+                <!-- Power Toggle Button -->
+                <button @click="colorTheme === 'amber' ? setColorTheme('red') : setColorTheme('amber')" class="relative flex items-center justify-center h-10 w-10 rounded-full transition-colors shadow-inner focus:outline-none" :class="colorTheme === 'amber' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'">
+                    <!-- Power Icon -->
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" /></svg>
+                </button>
+            </div>
         </div>
-        <button @click="open = !open" class="w-12 h-12 bg-white dark:bg-slate-800 rounded-full shadow-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-red-500 transition-colors ml-auto focus:outline-none focus:ring-4 focus:ring-red-300/50">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+        
+        <!-- Toggle Arrow Button (Hidden when panel is open) -->
+        <button @click="open = true" x-show="!open" x-transition.opacity.delay.200ms class="bg-white/90 dark:bg-slate-800/90 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] border border-b-0 border-slate-200 dark:border-slate-700 rounded-t-xl px-5 py-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors backdrop-blur focus:outline-none mb-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
         </button>
     </div>
 
@@ -529,6 +577,9 @@
     >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
     </button>
+    
+    <!-- Eye Comfort Overlay -->
+    <div x-show="colorTheme === 'amber'" class="fixed inset-0 z-[99999] pointer-events-none bg-[#451a03]/5 backdrop-brightness-95 backdrop-contrast-90" x-transition.opacity></div>
     
     @stack('scripts')
 </body>

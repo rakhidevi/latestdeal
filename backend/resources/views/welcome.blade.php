@@ -30,7 +30,7 @@
   <style>
     [x-cloak] { display: none !important; }
   </style>
-  <div x-data="{ showSearch: {{ request()->hasAny(['q', 'min_price', 'max_price', 'min_discount', 'category']) ? 'true' : 'false' }} }" class="w-full relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-rose-600 text-white shadow-md group">
+  <div x-data="{ showSearch: {{ request()->hasAny(['q', 'min_price', 'max_price', 'min_discount', 'category']) ? 'true' : 'false' }} }" class="w-full relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white shadow-md group">
     <!-- Animated background accents -->
     <div class="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000 pointer-events-none"></div>
     <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000 pointer-events-none"></div>
@@ -89,7 +89,7 @@
         </div>
     </div>
 
-    <div class="mx-auto max-w-7xl grid gap-4 md:gap-6 p-4 md:p-6 lg:p-8 md:grid-cols-[1.2fr_0.8fr] items-center relative z-10 transition-all duration-300">
+    <div class="mx-auto max-w-7xl grid gap-4 md:gap-6 p-4 pt-16 md:p-6 lg:p-8 md:grid-cols-[1.2fr_0.8fr] items-center relative z-10 transition-all duration-300">
       <div class="min-w-0 flex flex-col justify-center">
         
         <h1 class="text-3xl lg:text-4xl font-bold leading-tight break-words tracking-tight text-white drop-shadow-sm min-h-[2.5rem] lg:min-h-[3rem]" 
