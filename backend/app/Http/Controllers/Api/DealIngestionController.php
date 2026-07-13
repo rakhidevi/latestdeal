@@ -53,6 +53,15 @@ class DealIngestionController
             $validated['category_id'] = $cat->id;
         }
 
+        // 1.1.1 Fallback to a default category if still null (to prevent DB constraint violation)
+        if (empty($validated['category_id'])) {
+            $cat = \App\Models\Category::firstOrCreate(
+                ['slug' => 'general-deals'],
+                ['name' => 'General Deals']
+            );
+            $validated['category_id'] = $cat->id;
+        }
+
         // 1.2 Resolve Merchant from URL Domain
         $host = parse_url($validated['url'], PHP_URL_HOST);
         $resolvedMerchantId = null;
@@ -61,7 +70,7 @@ class DealIngestionController
             $host = preg_replace('/^www\./', '', $host);
             
             // Handle common shortlinks / variations
-            if (in_array($host, ['amzn.to', 'amazon.in', 'amazon.com'])) {
+            if (in_array($host, ['amzn.to', 'amazon.in', 'amazon.com', 'link.amazon'])) {
                 $merchant = \App\Models\Merchant::where('name', 'LIKE', '%Amazon%')->first();
             } else {
                 $merchant = \App\Models\Merchant::where('domain', 'LIKE', '%' . $host . '%')->first();

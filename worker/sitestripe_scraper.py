@@ -14,15 +14,26 @@ def get_sitestripe_link_and_data(url: str) -> dict:
         os.makedirs(user_data_dir, exist_ok=True)
         
         try:
-            # Launch Chrome visibly so the user can log in if needed
+            # Launch Chrome headlessly by default so it doesn't steal focus
+            is_headless = os.getenv("HEADLESS", "true").lower() == "true"
             context = p.chromium.launch_persistent_context(
                 user_data_dir=user_data_dir,
-                headless=False,
+                headless=is_headless,
                 executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe", # Use REAL local Chrome
                 permissions=["clipboard-read", "clipboard-write"], # Grant clipboard permissions
-                args=["--disable-blink-features=AutomationControlled"]
+                args=["--disable-blink-features=AutomationControlled", "--restore-last-session=false"],
+                ignore_default_args=["--enable-automation", "--no-sandbox"]
             )
-            page = context.new_page()
+            page = context.pages[0] if context.pages else context.new_page()
+            
+            # Close any accumulated about:blank tabs from previous crashed sessions
+            for p_ext in context.pages:
+                if p_ext != page:
+                    try:
+                        p_ext.close()
+                    except:
+                        pass
+                        
             Stealth().use_sync(page)
             
             print(f"Navigating to raw URL: {url}...")
