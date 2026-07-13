@@ -27,12 +27,69 @@
 @endsection
 
 @section('hero')
-  <div class="w-full relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-rose-600 text-white hidden md:block shadow-md group">
+  <style>
+    [x-cloak] { display: none !important; }
+  </style>
+  <div x-data="{ showSearch: {{ request()->hasAny(['q', 'min_price', 'max_price', 'min_discount', 'category']) ? 'true' : 'false' }} }" class="w-full relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-rose-600 text-white shadow-md group">
     <!-- Animated background accents -->
-    <div class="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000"></div>
-    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000"></div>
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000 pointer-events-none"></div>
+    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000 pointer-events-none"></div>
 
-    <div class="mx-auto max-w-7xl grid gap-4 md:gap-6 p-4 md:p-6 lg:p-8 md:grid-cols-[1.2fr_0.8fr] items-center relative z-10">
+    <!-- Search Toggle Button (Ribbon) -->
+    <button x-show="!showSearch" @click="showSearch = true" x-transition.opacity.duration.300ms class="absolute top-0 left-1/2 -translate-x-1/2 z-30 bg-white/20 hover:bg-white/30 backdrop-blur-md border-x border-b border-white/30 text-white font-bold py-2 px-8 shadow-[0_10px_20px_rgba(0,0,0,0.1)] flex items-center gap-2 transition-all hover:pt-3 focus:outline-none focus:ring-4 focus:ring-white/20 rounded-b-2xl cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        Search Deals
+    </button>
+
+    <!-- Expanding Search Bar -->
+    <div x-show="showSearch" x-collapse.duration.400ms x-cloak class="w-full relative z-20 bg-black/10 backdrop-blur-sm border-b border-white/10">
+        <div class="mx-auto max-w-4xl px-4 sm:px-6 pt-8 pb-6">
+            <form action="/" method="GET" class="space-y-4 w-full relative" id="filter-form">
+                <!-- Search Bar -->
+                <div class="flex w-full shadow-lg rounded-xl overflow-hidden bg-white transition-all hover:shadow-xl relative z-10">
+                    <div class="pl-4 flex items-center text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input name="q" value="{{ request('q') }}" autocomplete="off" placeholder="Search products, brands, or categories..." class="border-0 bg-transparent text-gray-900 flex-1 py-3.5 px-3 text-base focus:ring-0 placeholder-gray-400 outline-none" />
+                    <button class="bg-gray-900 px-8 py-3.5 text-sm font-bold tracking-wide text-white transition hover:bg-black flex-shrink-0">Search</button>
+                </div>
+                
+                <!-- Filters Row -->
+                <div class="flex flex-col sm:flex-row gap-3 w-full">
+                    <div class="flex items-center gap-2 w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors">
+                        <input type="number" min="0" name="min_price" value="{{ request('min_price') }}" placeholder="Min Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
+                        <span class="text-white/80 font-medium px-1">-</span>
+                        <input type="number" min="0" name="max_price" value="{{ request('max_price') }}" placeholder="Max Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
+                    </div>
+                    
+                    <div class="w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20">
+                        <select name="min_discount" onchange="this.form.submit()" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-44 shadow-sm transition-all cursor-pointer">
+                            <option value="">Any Discount %</option>
+                            <option value="10" {{ request('min_discount') == '10' ? 'selected' : '' }}>At least 10% Off</option>
+                            <option value="25" {{ request('min_discount') == '25' ? 'selected' : '' }}>At least 25% Off</option>
+                            <option value="50" {{ request('min_discount') == '50' ? 'selected' : '' }}>At least 50% Off</option>
+                            <option value="75" {{ request('min_discount') == '75' ? 'selected' : '' }}>75%+ Off (Deep Cuts)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="ml-auto flex items-center gap-2 mt-1 sm:mt-0">
+                        @if(request()->hasAny(['q', 'min_price', 'max_price', 'min_discount', 'category']))
+                            <a href="/" class="text-xs font-semibold text-white bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 backdrop-blur-sm border border-white/20 h-[42px]">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                Clear
+                            </a>
+                        @endif
+                        <button type="button" @click="showSearch = false" class="text-xs font-semibold text-red-100 bg-black/20 hover:bg-black/30 px-4 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 backdrop-blur-sm border border-white/10 h-[42px]">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="mx-auto max-w-7xl grid gap-4 md:gap-6 p-4 md:p-6 lg:p-8 md:grid-cols-[1.2fr_0.8fr] items-center relative z-10 transition-all duration-300">
       <div class="min-w-0 flex flex-col justify-center">
         
         <h1 class="text-3xl lg:text-4xl font-bold leading-tight break-words tracking-tight text-white drop-shadow-sm min-h-[2.5rem] lg:min-h-[3rem]" 
@@ -70,48 +127,6 @@
         <p class="mt-2 lg:mt-4 text-sm lg:text-base text-red-50 hidden sm:block font-medium max-w-xl">
           Our AI engines continuously extract and verify deals from top Indian marketplaces 24/7.
         </p>
-        
-        <form action="/" method="GET" class="mt-4 md:mt-6 space-y-4 w-full max-w-2xl" id="filter-form">
-          <!-- Search Bar -->
-          <div class="flex w-full shadow-lg rounded-xl overflow-hidden bg-white focus-within:ring-4 focus-within:ring-white/30 transition-all hover:shadow-xl">
-            <div class="pl-4 flex items-center text-gray-400">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </div>
-            <input
-              name="q"
-              value="{{ request('q') }}"
-              placeholder="Search products, brands, or categories..."
-              class="border-0 bg-transparent text-gray-900 flex-1 py-3.5 px-3 text-base focus:ring-0 placeholder-gray-400"
-            />
-            <button class="bg-gray-900 px-8 py-3.5 text-sm font-bold tracking-wide text-white transition hover:bg-black hover:scale-105 transform origin-right flex-shrink-0">Search</button>
-          </div>
-          
-          <!-- Filters Row -->
-          <div class="flex flex-col sm:flex-row gap-3 w-full">
-            <div class="flex items-center gap-2 w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors">
-                <input type="number" min="0" name="min_price" value="{{ request('min_price') }}" placeholder="Min Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
-                <span class="text-white/80 font-medium px-1">-</span>
-                <input type="number" min="0" name="max_price" value="{{ request('max_price') }}" placeholder="Max Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
-            </div>
-            
-            <div class="w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20">
-                <select name="min_discount" onchange="this.form.submit()" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-44 shadow-sm transition-all cursor-pointer">
-                    <option value="">Any Discount %</option>
-                    <option value="10" {{ request('min_discount') == '10' ? 'selected' : '' }}>At least 10% Off</option>
-                    <option value="25" {{ request('min_discount') == '25' ? 'selected' : '' }}>At least 25% Off</option>
-                    <option value="50" {{ request('min_discount') == '50' ? 'selected' : '' }}>At least 50% Off</option>
-                    <option value="75" {{ request('min_discount') == '75' ? 'selected' : '' }}>75%+ Off (Deep Cuts)</option>
-                </select>
-            </div>
-            
-            @if(request()->hasAny(['q', 'min_price', 'max_price', 'min_discount', 'category']))
-                <a href="/" class="ml-auto text-xs font-semibold text-white bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 backdrop-blur-sm border border-white/20 h-[42px] mt-1 sm:mt-0">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    Clear Filters
-                </a>
-            @endif
-          </div>
-        </form>
         
         <div class="mt-6 flex flex-wrap items-center gap-2 text-sm text-red-100">
             <span class="font-bold text-white/90 text-xs uppercase tracking-wider mr-2">Trending</span>
