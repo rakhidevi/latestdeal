@@ -43,37 +43,86 @@ class PricePredictionController extends Controller
                   "}\n" .
                   "Do NOT include markdown formatting like ```json, just the raw JSON brackets.";
 
-        try {
-            $response = Http::timeout(20)->post($ollamaUrl, [
-                'model' => $model,
-                'prompt' => $prompt,
-                'stream' => false,
-                'format' => 'json'
-            ]);
+        $errors = [];
+        $result = null;
 
-            if ($response->successful()) {
-                $jsonString = $response->json('response');
-                $result = json_decode($jsonString, true);
+        // Try Ollama
+        if ($ollamaBaseUrl) {
+            try {
+                $response = Http::timeout(10)->post($ollamaUrl, [
+                    'model' => $model,
+                    'prompt' => $prompt,
+                    'stream' => false,
+                    'format' => 'json'
+                ]);
 
-                if ($result && isset($result['prediction'])) {
-                    return response()->json([
-                        'status' => 'success',
-                        'data' => $result
-                    ]);
+                if ($response->successful()) {
+                    $jsonString = $response->json('response');
+                    $result = json_decode($jsonString, true);
+                } else {
+                    $errors[] = "Ollama HTTP " . $response->status();
                 }
+            } catch (\Exception $e) {
+                $errors[] = "Ollama Exception: " . $e->getMessage();
             }
-            
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to parse AI response'
-            ], 500);
-
-        } catch (\Exception $e) {
-            Log::error("Price Prediction failed: " . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'AI connection failed'
-            ], 500);
         }
+
+        // Try Groq if Ollama failed
+        if (!$result && env('GROQ_API_KEY')) {
+            try {
+                $groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
+                $response = Http::withToken(env('GROQ_API_KEY'))->timeout(15)->post($groqUrl, [
+                    'model' => 'llama3-8b-8192',
+                    'messages' => [['role' => 'user', 'content' => $prompt]],
+                    'temperature' => 0.3,
+                    'response_format' => ['type' => 'json_object']
+                ]);
+
+                if ($response->successful()) {
+                    $reply = $response->json('choices.0.message.content');
+                    $result = json_decode($reply, true);
+                } else {
+                    $errors[] = "Groq HTTP " . $response->status();
+                }
+            } catch (\Exception $e) {
+                $errors[] = "Groq Exception: " . $e->getMessage();
+            }
+        }
+
+        // Try Gemini if Groq failed
+        if (!$result && env('GEMINI_API_KEY')) {
+            try {
+                $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=' . env('GEMINI_API_KEY');
+                $response = Http::timeout(30)->post($geminiUrl, [
+                    'contents' => [['parts' => [['text' => $prompt]]]],
+                    'generationConfig' => [
+                        'temperature' => 0.3,
+                        'responseMimeType' => 'application/json'
+                    ],
+                ]);
+
+                if ($response->successful()) {
+                    $reply = $response->json('candidates.0.content.parts.0.text');
+                    $result = json_decode($reply, true);
+                } else {
+                    $errors[] = "Gemini HTTP " . $response->status();
+                }
+            } catch (\Exception $e) {
+                $errors[] = "Gemini Exception: " . $e->getMessage();
+            }
+        }
+
+        if ($result && isset($result['prediction'])) {
+            return response()->json([
+                'status' => 'success',
+                'data' => $result
+            ]);
+        }
+
+        Log::error("Price Prediction completely failed. Errors: " . implode(" | ", $errors));
+        return response()->json([
+            'status' => 'error',
+            'message' => 'AI connection failed or invalid JSON response'
+        ], 500);
     }
 }

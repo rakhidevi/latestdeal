@@ -35,6 +35,13 @@ if ($return_var === 0) {
         exec(PHP_BINARY . " " . escapeshellarg($artisan) . " view:clear", $output);
         exec(PHP_BINARY . " " . escapeshellarg($artisan) . " cache:clear", $output);
         exec(PHP_BINARY . " " . escapeshellarg($artisan) . " migrate --force", $output);
+        
+        // Fix 403 error by ensuring public/storage is a fresh symlink
+        $storageLink = __DIR__ . '/../public/storage';
+        if (is_link($storageLink) || is_dir($storageLink)) {
+            exec("rm -rf " . escapeshellarg($storageLink));
+        }
+        exec(PHP_BINARY . " " . escapeshellarg($artisan) . " storage:link", $output);
     }
     
     // Self-destruct and cleanup
@@ -59,6 +66,7 @@ if ($return_var === 0) {
             exec(PHP_BINARY . " " . escapeshellarg($artisan) . " view:clear", $output);
             exec(PHP_BINARY . " " . escapeshellarg($artisan) . " cache:clear", $output);
             exec(PHP_BINARY . " " . escapeshellarg($artisan) . " migrate --force", $output);
+            exec(PHP_BINARY . " " . escapeshellarg($artisan) . " storage:link", $output);
         }
         
         echo "Extraction successful using ZipArchive. Migrations and cache clear executed. Cleanup complete.";
