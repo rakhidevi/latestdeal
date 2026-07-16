@@ -178,19 +178,28 @@ class DealIngestionController
         // 5. Trigger the Retention Engine Listener
         event(new DealIngested($deal));
 
-        // 6. Trigger the Publishing Engine Queue Job (if configured for auto-publishing)
+        // 6. Trigger the Publishing Engine Queue Jobs
         if ($deal->status === 'active') {
-            $telegramAccounts = \App\Models\SocialAccount::where('platform', 'telegram')
-                ->where('is_active', true)
-                ->get();
-                
+            // Telegram
+            $telegramAccounts = \App\Models\SocialAccount::where('platform', 'telegram')->where('is_active', true)->get();
             if ($telegramAccounts->isNotEmpty()) {
                 foreach ($telegramAccounts as $account) {
                     PublishDealToTelegramJob::dispatch($deal, $account->id);
                 }
             } else {
-                // Fallback to .env configuration if no database accounts are set up
-                PublishDealToTelegramJob::dispatch($deal, null);
+                PublishDealToTelegramJob::dispatch($deal, null); // Fallback to .env
+            }
+
+            // Facebook
+            $facebookAccounts = \App\Models\SocialAccount::where('platform', 'facebook')->where('is_active', true)->get();
+            foreach ($facebookAccounts as $account) {
+                \App\Jobs\PublishDealToFacebookJob::dispatch($deal, $account->id);
+            }
+
+            // Instagram
+            $instagramAccounts = \App\Models\SocialAccount::where('platform', 'instagram')->where('is_active', true)->get();
+            foreach ($instagramAccounts as $account) {
+                \App\Jobs\PublishDealToInstagramJob::dispatch($deal, $account->id);
             }
         }
 
