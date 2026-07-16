@@ -493,24 +493,6 @@
         <x-cookie-consent />
     @endif
     
-    <!-- Floating Theme Switcher -->
-    <div class="fixed right-6 top-1/2 -translate-y-1/2 z-[60] flex flex-col gap-2">
-        <div x-show="open" x-transition.opacity.scale.origin.right class="flex flex-col gap-3 bg-white/95 dark:bg-slate-800/95 p-3 rounded-2xl shadow-xl backdrop-blur border border-slate-200 dark:border-slate-700 mb-2">
-            <p class="text-[10px] font-bold text-center uppercase text-slate-500 tracking-widest">Theme</p>
-            <button @click="setColorTheme('red')" class="w-10 h-10 rounded-full bg-red-500 border-2 transition-transform hover:scale-110" :class="colorTheme === 'red' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
-            <button @click="setColorTheme('green')" class="w-10 h-10 rounded-full bg-[#1B5E3C] border-2 transition-transform hover:scale-110" :class="colorTheme === 'green' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
-            <button @click="setColorTheme('amber')" class="w-10 h-10 rounded-full bg-amber-500 border-2 transition-transform hover:scale-110" :class="colorTheme === 'amber' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
-            <div class="h-px bg-slate-200 dark:bg-slate-700 my-1"></div>
-            <button @click="setDark(!isDark)" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-                <svg x-show="!isDark" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                <svg x-show="isDark" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            </button>
-        </div>
-        <button @click="open = !open" class="w-12 h-12 bg-white dark:bg-slate-800 rounded-full shadow-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-red-500 transition-colors ml-auto focus:outline-none focus:ring-4 focus:ring-red-300/50">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-        </button>
-    </div>
-
     <!-- Scroll to Top Button -->
     <button 
         x-data="{ show: false }"
