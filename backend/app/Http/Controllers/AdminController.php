@@ -115,7 +115,7 @@ class AdminController
     {
         try {
             $workerIp = gethostbyname('worker');
-            Http::timeout(5)->post("http://{$workerIp}:5000/start");
+            Http::timeout(5)->post("http://{$workerIp}:8001/start");
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
@@ -126,7 +126,7 @@ class AdminController
     {
         try {
             $workerIp = gethostbyname('worker');
-            Http::timeout(5)->post("http://{$workerIp}:5000/stop");
+            Http::timeout(5)->post("http://{$workerIp}:8001/stop");
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
@@ -137,7 +137,7 @@ class AdminController
     {
         try {
             $workerIp = gethostbyname('worker');
-            $response = Http::timeout(3)->get("http://{$workerIp}:5000/status");
+            $response = Http::timeout(3)->get("http://{$workerIp}:8001/status");
             return response()->json($response->json());
         } catch (\Exception $e) {
             return response()->json(['running' => false, 'logs' => ["Worker daemon unreachable: " . $e->getMessage()]]);
@@ -153,7 +153,7 @@ class AdminController
         try {
             $workerIp = gethostbyname('worker');
             $payload = ['url' => $request->url, 'type' => $request->type ?? 'ingestion'];
-            $response = Http::timeout(5)->post("http://{$workerIp}:5000/scrape", $payload);
+            $response = Http::timeout(5)->post("http://{$workerIp}:8001/scrape", $payload);
             return response()->json(['success' => true, 'message' => $response->json('status')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
@@ -171,7 +171,7 @@ class AdminController
                 'keyword' => $request->keyword,
                 'mode' => $request->mode
             ];
-            $response = Http::timeout(5)->post("http://{$workerIp}:5000/hunt", $payload);
+            $response = Http::timeout(5)->post("http://{$workerIp}:8001/hunt", $payload);
             return response()->json(['success' => true, 'message' => $response->json('status')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
@@ -403,7 +403,7 @@ class AdminController
 
     public function settings()
     {
-        $settings = Setting::whereIn('key', ['ollama_model', 'ollama_base_url', 'ai_auto_summarize', 'crawler_automated', 'crawler_manual', 'default_theme', 'default_color_mode'])->pluck('value', 'key');
+        $settings = Setting::whereIn('key', ['ollama_model', 'ollama_base_url', 'ai_auto_summarize', 'crawler_automated', 'crawler_manual'])->pluck('value', 'key');
         return view('admin.settings', compact('settings'));
     }
 
@@ -414,12 +414,10 @@ class AdminController
             'ollama_base_url' => 'nullable|url',
             'ai_auto_summarize' => 'nullable|string|in:enabled,disabled',
             'crawler_automated' => 'nullable|string|in:enabled,disabled',
-            'crawler_manual' => 'nullable|string|in:enabled,disabled',
-            'default_theme' => 'nullable|string|in:red,green,amber',
-            'default_color_mode' => 'nullable|string|in:light,dark,auto'
+            'crawler_manual' => 'nullable|string|in:enabled,disabled'
         ]);
 
-        foreach (['ollama_model', 'ollama_base_url', 'ai_auto_summarize', 'crawler_automated', 'crawler_manual', 'default_theme', 'default_color_mode'] as $key) {
+        foreach (['ollama_model', 'ollama_base_url', 'ai_auto_summarize', 'crawler_automated', 'crawler_manual'] as $key) {
             if ($request->has($key)) {
                 Setting::updateOrCreate(
                     ['key' => $key],
@@ -428,6 +426,6 @@ class AdminController
             }
         }
 
-        return back()->with('success', 'Settings updated successfully.');
+        return back()->with('success', 'AI Settings updated successfully.');
     }
 }

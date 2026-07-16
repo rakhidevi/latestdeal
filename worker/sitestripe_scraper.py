@@ -14,26 +14,15 @@ def get_sitestripe_link_and_data(url: str) -> dict:
         os.makedirs(user_data_dir, exist_ok=True)
         
         try:
-            # Launch Chrome headlessly by default so it doesn't steal focus
-            is_headless = os.getenv("HEADLESS", "true").lower() == "true"
+            # Launch Chrome visibly so the user can log in if needed
             context = p.chromium.launch_persistent_context(
                 user_data_dir=user_data_dir,
-                headless=is_headless,
+                headless=False,
                 executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe", # Use REAL local Chrome
                 permissions=["clipboard-read", "clipboard-write"], # Grant clipboard permissions
-                args=["--disable-blink-features=AutomationControlled", "--restore-last-session=false"],
-                ignore_default_args=["--enable-automation", "--no-sandbox"]
+                args=["--disable-blink-features=AutomationControlled"]
             )
-            page = context.pages[0] if context.pages else context.new_page()
-            
-            # Close any accumulated about:blank tabs from previous crashed sessions
-            for p_ext in context.pages:
-                if p_ext != page:
-                    try:
-                        p_ext.close()
-                    except:
-                        pass
-                        
+            page = context.new_page()
             Stealth().use_sync(page)
             
             print(f"Navigating to raw URL: {url}...")
@@ -95,8 +84,17 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             ]:
                 el = page.locator(selector).first
                 if el.count() > 0:
-                    original_price_html = el.text_content().strip()
-                    break
+                    text_val = el.text_content().strip()
+                    if "per g" not in text_val.lower() and "/100 g" not in text_val.lower() and "/ 100 g" not in text_val.lower():
+                        original_price_html = text_val
+                        break
+                        
+            if not original_price_html or "per" in original_price_html.lower():
+                mrp_label = page.locator("span:has-text('M.R.P.:')").first
+                if mrp_label.count() > 0:
+                    parent = mrp_label.locator("..").first
+                    if parent.count() > 0:
+                        original_price_html = parent.text_content().replace('M.R.P.:', '').strip()
                     
             image_url = ""
             img_element = page.locator("#landingImage").first

@@ -41,14 +41,7 @@ class DealIngestionController
             'verdict' => 'nullable|string',
             'trust_metrics' => 'nullable|string',
             'ai_score' => 'nullable|integer|min:1|max:100',
-            'short_url' => 'nullable|url',
-            'trust_score' => 'nullable|integer',
-            'why_stands_out' => 'nullable|string',
-            'pros' => 'nullable|array',
-            'cons' => 'nullable|array',
-            'best_for' => 'nullable|string',
-            'value_rating' => 'nullable|string',
-            'lowest_price_seen' => 'nullable|numeric'
+            'short_url' => 'nullable|url'
         ]);
 
         // 1.1 Resolve Category from Name
@@ -56,15 +49,6 @@ class DealIngestionController
             $cat = \App\Models\Category::firstOrCreate(
                 ['slug' => \Illuminate\Support\Str::slug($validated['category_name'])],
                 ['name' => $validated['category_name']]
-            );
-            $validated['category_id'] = $cat->id;
-        }
-
-        // 1.1.1 Fallback to a default category if still null (to prevent DB constraint violation)
-        if (empty($validated['category_id'])) {
-            $cat = \App\Models\Category::firstOrCreate(
-                ['slug' => 'general-deals'],
-                ['name' => 'General Deals']
             );
             $validated['category_id'] = $cat->id;
         }
@@ -77,7 +61,7 @@ class DealIngestionController
             $host = preg_replace('/^www\./', '', $host);
             
             // Handle common shortlinks / variations
-            if (in_array($host, ['amzn.to', 'amazon.in', 'amazon.com', 'link.amazon'])) {
+            if (in_array($host, ['amzn.to', 'amazon.in', 'amazon.com'])) {
                 $merchant = \App\Models\Merchant::where('name', 'LIKE', '%Amazon%')->first();
             } else {
                 $merchant = \App\Models\Merchant::where('domain', 'LIKE', '%' . $host . '%')->first();
@@ -165,13 +149,6 @@ class DealIngestionController
                 'image_path' => $imagePath,
                 'status' => $initialStatus,
                 'short_url' => $validated['short_url'] ?? null,
-                'trust_score' => $validated['trust_score'] ?? null,
-                'why_stands_out' => $validated['why_stands_out'] ?? null,
-                'pros' => isset($validated['pros']) ? json_encode($validated['pros']) : null,
-                'cons' => isset($validated['cons']) ? json_encode($validated['cons']) : null,
-                'best_for' => $validated['best_for'] ?? null,
-                'value_rating' => $validated['value_rating'] ?? null,
-                'lowest_price_seen' => $validated['lowest_price_seen'] ?? null,
             ]
         );
 
@@ -230,37 +207,5 @@ class DealIngestionController
     {
         $deal->update(['status' => 'expired']);
         return response()->json(['message' => 'Deal expired successfully']);
-    }
-
-    /**
-     * Checks price history and returns the historical lowest price.
-     */
-    public function priceCheck(Request $request)
-    {
-        $validated = $request->validate([
-            'provider' => 'required|string',
-            'product_id' => 'required|string',
-            'price' => 'required|numeric'
-        ]);
-
-        // Log the current price
-        \Illuminate\Support\Facades\DB::table('product_price_histories')->insert([
-            'provider' => $validated['provider'],
-            'product_id' => $validated['product_id'],
-            'price' => $validated['price'],
-            'recorded_at' => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        // Find the lowest price ever seen for this product
-        $lowestPrice = \Illuminate\Support\Facades\DB::table('product_price_histories')
-            ->where('provider', $validated['provider'])
-            ->where('product_id', $validated['product_id'])
-            ->min('price');
-
-        return response()->json([
-            'historical_lowest_price' => $lowestPrice
-        ]);
     }
 }

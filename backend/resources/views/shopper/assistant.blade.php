@@ -19,65 +19,46 @@
 
     <div class="grid gap-6 lg:grid-cols-[1.15fr_1fr]">
         <!-- Chat Interface -->
-        <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-gray-100 dark:border-slate-800 flex h-[650px] flex-col rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-            <!-- Decorative background glow -->
-            <div class="absolute -top-40 -right-40 w-80 h-80 bg-red-400/20 blur-3xl rounded-full pointer-events-none"></div>
-
-            <div class="flex-1 space-y-6 overflow-y-auto pr-2 relative z-10 custom-scrollbar" id="chat-window">
+        <div class="glass-panel flex h-[600px] flex-col rounded-3xl p-6 shadow-lg">
+            <div class="flex-1 space-y-4 overflow-y-auto pr-2" id="chat-window">
                 <template x-for="m in messages" :key="m.id">
-                    <div class="flex flex-col animate-fade-in-up">
-                        <!-- Role label (Optional, can be removed for cleaner look, but let's keep bubbles distinct) -->
-                        <div :class="m.role === 'user' ? 'items-end' : 'items-start'" class="flex flex-col w-full">
-                            <div class="flex items-center gap-2 mb-1" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400" x-text="m.role === 'user' ? 'You' : 'LatestDeal AI'"></span>
-                            </div>
-                            <div :class="m.role === 'user' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-l-2xl rounded-tr-2xl' : 'bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-gray-200 rounded-r-2xl rounded-tl-2xl border border-gray-200 dark:border-slate-700'" 
-                                 class="max-w-[85%] px-5 py-4 text-sm shadow-sm transition-all transform">
-                                <div x-html="m.role === 'assistant' ? marked.parse(m.text) : m.text" class="leading-relaxed whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-a:text-red-500 prose-a:no-underline hover:prose-a:underline"></div>
-                            </div>
-                        </div>
+                    <div :class="m.role === 'user' ? 'ml-auto bg-red-600 text-white' : 'bg-slate-100 text-slate-800'" 
+                         class="max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm transition-all transform animate-fade-in-up">
+                        <div x-html="m.role === 'assistant' ? marked.parse(m.text) : m.text" class="leading-relaxed whitespace-pre-wrap [&>strong]:font-bold [&>ul]:list-disc [&>ul]:pl-5 [&>p]:mb-2 [&>a]:text-red-600 [&>a]:underline"></div>
                     </div>
                 </template>
             </div>
             
-            <form @submit.prevent="onAsk" class="mt-4 relative z-10">
-                <div class="relative flex items-center bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-red-500/50 focus-within:border-red-500 transition-all p-1.5">
-                    <input
-                        x-model="query"
-                        :disabled="isSearching"
-                        placeholder="E.g. Best smartphone under ₹30000"
-                        class="w-full bg-transparent border-none focus:ring-0 px-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 disabled:opacity-50 outline-none"
-                    />
-                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-xl p-3 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-red-500/20 mr-1" :disabled="isSearching">
-                        <svg x-show="!isSearching" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                        <svg x-show="isSearching" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                    </button>
-                </div>
+            <form @submit.prevent="onAsk" class="mt-4 flex gap-2 border-t border-slate-200 pt-4">
+                <input
+                    x-model="query"
+                    :disabled="isSearching"
+                    placeholder="E.g. Best smartphone under ₹30000"
+                    class="input-base w-full rounded-xl bg-slate-50 border-slate-200 focus:bg-white disabled:opacity-50"
+                />
+                <button type="submit" class="btn-primary rounded-xl px-6 flex items-center justify-center min-w-[80px]" :disabled="isSearching">
+                    <span x-show="!isSearching">Ask</span>
+                    <svg x-show="isSearching" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
             </form>
             
-            <div class="mt-4 flex flex-wrap gap-2 text-xs relative z-10">
-                <button type="button" @click="setQuery('Best smartphone under ₹30000')" class="rounded-full border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-3.5 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm">Best smartphone under ₹30000</button>
-                <button type="button" @click="setQuery('Cheapest AirPods today')" class="rounded-full border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-3.5 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm">Cheapest AirPods today</button>
-                <button type="button" @click="setQuery('Laptop deals under ₹70000')" class="rounded-full border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-3.5 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm">Laptop deals under ₹70000</button>
+            <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                <button type="button" @click="setQuery('Best smartphone under ₹30000')" class="rounded-full border border-red-200 bg-red-50/50 px-3 py-1.5 text-red-700 hover:bg-red-50 transition-colors">Best smartphone under ₹30000</button>
+                <button type="button" @click="setQuery('Cheapest AirPods today')" class="rounded-full border border-red-200 bg-red-50/50 px-3 py-1.5 text-red-700 hover:bg-red-50 transition-colors">Cheapest AirPods today</button>
+                <button type="button" @click="setQuery('Laptop deals under ₹70000')" class="rounded-full border border-red-200 bg-red-50/50 px-3 py-1.5 text-red-700 hover:bg-red-50 transition-colors">Laptop deals under ₹70000</button>
             </div>
         </div>
 
         <!-- Prediction & Comparison Panel -->
         <div class="space-y-6">
-            <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-8 shadow-2xl text-white border border-slate-700 relative overflow-hidden">
-                <!-- Abstract lines -->
-                <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 1px, transparent 10px);"></div>
-                
-                <div class="relative z-10">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            AI Price Prediction
-                        </h3>
-                    </div>
+            <div class="glass-panel rounded-3xl p-6 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">AI Price Prediction</h3>
+                    <i data-lucide="trending-down" class="text-emerald-400 w-5 h-5"></i>
+                </div>
                 
                 <div class="flex items-baseline space-x-2">
                     <span class="text-4xl font-black">₹<span x-text="bestDeal ? Math.round(bestDeal.price).toLocaleString('en-IN') : '0'"></span></span>
@@ -87,42 +68,35 @@
                 <p class="mt-4 text-sm text-slate-300 bg-white/5 p-3 rounded-xl border border-white/10" 
                    :class="{'animate-pulse text-slate-400': predictionLoading}"
                    x-text="predictionText"></p>
-                </div>
             </div>
 
-            <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-slate-800">
-                <h3 class="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-5 flex items-center gap-2">
-                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    AI Comparison Matrix
-                </h3>
+            <div class="glass-panel rounded-3xl p-6 shadow-lg">
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">AI Comparison</h3>
                 
                 <template x-if="comparisonDeals.length === 0">
-                    <p class="text-sm text-gray-500 italic p-6 text-center bg-gray-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700">No products match your query. Ask the AI to find something!</p>
+                    <p class="text-sm text-slate-500 italic p-4 text-center bg-slate-50 rounded-xl">No products match your query.</p>
                 </template>
                 
                 <div class="space-y-3">
                     <template x-for="(row, idx) in comparisonDeals" :key="row.id">
-                        <div class="rounded-2xl border border-gray-100 dark:border-slate-700/60 p-4 hover:bg-gray-50 dark:hover:bg-slate-800/80 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md" @click="selectedDeal = row" :class="selectedDeal && selectedDeal.id === row.id ? 'ring-2 ring-red-500 border-transparent bg-red-50/20 dark:bg-red-500/10' : 'bg-white dark:bg-slate-900'">
-                            <p class="line-clamp-1 font-bold text-gray-900 dark:text-white text-sm"><span x-text="'#' + (idx + 1) + ' '" class="text-red-500 mr-1"></span> <span x-text="row.title"></span></p>
-                            <div class="mt-2 flex items-center justify-between text-xs">
-                                <span class="font-bold text-lg text-gray-900 dark:text-white">₹<span x-text="Math.round(row.price).toLocaleString('en-IN')"></span></span>
-                                <span class="text-gray-500 dark:text-slate-400 font-medium px-2 py-1 bg-gray-100 dark:bg-slate-800 rounded-md" x-text="row.merchant"></span>
+                        <div class="rounded-xl border border-slate-200 p-3 hover:bg-slate-50 transition-colors cursor-pointer" @click="selectedDeal = row">
+                            <p class="line-clamp-1 font-bold text-slate-800"><span x-text="'#' + (idx + 1) + ' '"></span> <span x-text="row.title"></span></p>
+                            <div class="mt-1 flex items-center justify-between text-xs">
+                                <span class="font-medium text-slate-600">₹<span x-text="Math.round(row.price).toLocaleString('en-IN')"></span></span>
+                                <span class="text-slate-400" x-text="row.merchant"></span>
                             </div>
                         </div>
                     </template>
                 </div>
                 
                 <template x-if="bestDeal">
-                    <div class="mt-6 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/30 p-5 shadow-inner">
-                        <p class="font-bold text-emerald-700 dark:text-emerald-400 text-sm mb-3 flex items-center tracking-wide uppercase">
-                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            AI Best Pick
-                        </p>
-                        <p class="text-sm font-bold text-gray-900 dark:text-white line-clamp-2 leading-relaxed" x-text="bestDeal.title"></p>
-                        <ul class="mt-3 space-y-2 text-xs text-gray-600 dark:text-gray-300">
-                            <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> Highest value score blend.</li>
-                            <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> Strong price-to-feature ratio at <span class="font-bold text-gray-900 dark:text-white">₹<span x-text="Math.round(bestDeal.price).toLocaleString('en-IN')"></span></span>.</li>
-                            <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> Reliable marketplace signal from <span class="font-bold text-gray-900 dark:text-white" x-text="bestDeal.merchant"></span>.</li>
+                    <div class="mt-4 rounded-xl bg-emerald-50 border border-emerald-100 p-4">
+                        <p class="font-bold text-emerald-800 text-sm mb-2 flex items-center"><i data-lucide="check-circle" class="w-4 h-4 mr-1"></i> Best Pick</p>
+                        <p class="text-sm font-medium text-emerald-900 line-clamp-1" x-text="bestDeal.title"></p>
+                        <ul class="mt-2 space-y-1 text-xs text-emerald-700">
+                            <li>• Highest value score blend.</li>
+                            <li>• Strong price-to-feature ratio at ₹<span x-text="Math.round(bestDeal.price).toLocaleString('en-IN')"></span>.</li>
+                            <li>• Reliable marketplace signal from <span x-text="bestDeal.merchant"></span>.</li>
                         </ul>
                     </div>
                 </template>
@@ -138,10 +112,10 @@
         </div>
         
         <template x-if="filteredDeals.length === 0">
-            <div class="bg-white/50 dark:bg-slate-900/50 backdrop-blur border border-gray-100 dark:border-slate-800 p-16 text-center rounded-3xl shadow-sm">
-                <svg class="w-16 h-16 text-gray-300 dark:text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <p class="text-gray-900 dark:text-white font-bold text-lg">No matching deals found.</p>
-                <p class="text-sm text-gray-500 dark:text-slate-400 mt-2">Ask the AI to broaden the search criteria or try a different product category.</p>
+            <div class="glass-panel p-12 text-center rounded-3xl">
+                <i data-lucide="search-x" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
+                <p class="text-slate-600 font-medium">No matching deals found.</p>
+                <p class="text-sm text-slate-400 mt-1">Try a higher budget or broader keyword.</p>
             </div>
         </template>
         
@@ -154,11 +128,11 @@
                         <span class="rounded-full bg-red-600 px-2.5 py-1 text-xs font-black tracking-wide text-white shadow-sm" x-text="'-' + deal.discount_pct + '%'"></span>
                     </div>
 
-                    <div class="relative aspect-square overflow-hidden bg-slate-50 p-4 rounded-xl">
-                        <img :src="deal.image_path.startsWith('http') || deal.image_path.startsWith('/') ? deal.image_path : '/storage/' + deal.image_path"
+                    <div class="relative aspect-square overflow-hidden bg-slate-50 p-4">
+                        <img :src="deal.image_path.startsWith('http') ? deal.image_path : '/storage/' + deal.image_path"
                              :alt="deal.title"
                              class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply"
-                             onerror="this.src='/images/logo.png'" />
+                             onerror="this.src='/placeholder.jpg'" />
                     </div>
 
                     <div class="flex flex-1 flex-col p-4">
@@ -196,7 +170,6 @@ document.addEventListener('alpine:init', () => {
             { id: 1, role: 'assistant', text: 'Hi! Ask me for deal recommendations. Example: "Best smartphone under ₹30000" or "Cheapest AirPods".' }
         ],
         query: '',
-        selectedDeal: null,
         filters: {
             budget: null,
             keyword: null,
@@ -274,7 +247,7 @@ document.addEventListener('alpine:init', () => {
             this.messages.push({ id: Date.now(), role: 'user', text });
             
             const aiMessageId = Date.now() + 1;
-            this.messages.push({ id: aiMessageId, role: 'assistant', text: '<div class="flex items-center space-x-1.5 h-6 px-1"><div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.15s"></div><div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></div></div>' });
+            this.messages.push({ id: aiMessageId, role: 'assistant', text: '...' });
             
             this.query = '';
             this.isSearching = true;

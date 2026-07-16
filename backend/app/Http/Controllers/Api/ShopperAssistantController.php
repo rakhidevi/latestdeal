@@ -41,7 +41,7 @@ class ShopperAssistantController extends Controller
                 });
         });
 
-        if ($request->has('deal_ids')) {
+        if (!empty($dealIds)) {
             $deals = collect($deals)->whereIn('id', $dealIds)->values();
         }
 
@@ -50,12 +50,11 @@ class ShopperAssistantController extends Controller
             "Here are the active deals available in our database:\n\n" .
             json_encode($deals) . "\n\n" .
             "STRICT RULES:\n" .
-            "1. ONLY recommend deals from the JSON list provided above. NEVER invent or hallucinate products.\n" .
+            "1. ONLY recommend deals from the JSON list provided above.\n" .
             "2. If the user specifies a budget (e.g. 'under 30000'), you MUST NOT recommend any items that cost more than that amount.\n" .
-            "3. If the JSON list above is empty `[]`, it means we currently have ZERO products matching their query in our database. You MUST NOT recommend any products. Simply apologize and ask them to try a different search.\n" .
+            "3. If NO deals in the JSON list match the user's exact criteria (budget, category, etc.), you MUST politely say 'I'm sorry, I couldn't find any active deals matching your request right now.' Do NOT suggest items outside their budget.\n" .
             "4. Format your reply in concise, friendly markdown.\n" .
-            "5. Always mention the product name, price, merchant, and discount %.\n" .
-            "6. CRITICAL: You MUST format every recommended product name as a clickable Markdown link pointing to its deal page. Use the format: [Product Name](/deal/{id}) (e.g. [ASUS TUF Gaming](/deal/12)).";
+            "5. Always mention the product name, price, merchant, and discount %.";
 
         $fullPrompt = $systemPrompt . "\n\nUser request: " . $userMessage . "\n\nAI Assistant (obeying all rules):";
 

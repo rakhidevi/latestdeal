@@ -168,14 +168,12 @@ def setup_browser(p):
     os.makedirs(user_data_dir, exist_ok=True)
 
     proxy_server = os.getenv("PROXY_SERVER")
-    is_headless = os.getenv("HEADLESS", "true").lower() == "true"
     
     launch_args = {
         "user_data_dir": user_data_dir,
-        "headless": is_headless, 
-        "executable_path": r"C:\Program Files\Google\Chrome\Application\chrome.exe", # Use REAL local Chrome
-        "args": ["--disable-blink-features=AutomationControlled", "--restore-last-session=false"],
-        "ignore_default_args": ["--enable-automation", "--no-sandbox"]
+        "headless": False, # Changed to False to stay bot safe and allow manual auth
+        "channel": "chrome", # Use real Chrome
+        "args": ["--disable-blink-features=AutomationControlled"]
     }
     
     if proxy_server:
@@ -189,16 +187,7 @@ def extract_deal_data_fallback(url: str) -> dict:
     """Scrapes raw data from a given URL using stealth."""
     with sync_playwright() as p:
         browser = setup_browser(p)
-        page = browser.pages[0] if browser.pages else browser.new_page()
-        
-        # Close any accumulated about:blank tabs from previous crashed sessions
-        for p_ext in browser.pages:
-            if p_ext != page:
-                try:
-                    p_ext.close()
-                except:
-                    pass
-                    
+        page = browser.new_page()
         Stealth().apply_stealth_sync(page)
         
         try:
@@ -329,16 +318,7 @@ def extract_udemy_data(url: str) -> dict:
     """Scrapes raw data from Udemy."""
     with sync_playwright() as p:
         browser = setup_browser(p)
-        page = browser.pages[0] if browser.pages else browser.new_page()
-        
-        # Close any accumulated about:blank tabs from previous crashed sessions
-        for p_ext in browser.pages:
-            if p_ext != page:
-                try:
-                    p_ext.close()
-                except:
-                    pass
-                    
+        page = browser.new_page()
         Stealth().apply_stealth_sync(page)
         
         try:
@@ -385,16 +365,7 @@ def extract_coursera_data(url: str) -> dict:
     """Scrapes raw data from Coursera."""
     with sync_playwright() as p:
         browser = setup_browser(p)
-        page = browser.pages[0] if browser.pages else browser.new_page()
-        
-        # Close any accumulated about:blank tabs from previous crashed sessions
-        for p_ext in browser.pages:
-            if p_ext != page:
-                try:
-                    p_ext.close()
-                except:
-                    pass
-                    
+        page = browser.new_page()
         Stealth().apply_stealth_sync(page)
         
         try:

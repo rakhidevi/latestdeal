@@ -1,8 +1,5 @@
-@php
-    $defaultTheme = \App\Models\Setting::where('key', 'default_theme')->value('value') ?? 'red';
-@endphp
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-50 antialiased" data-theme="{{ $defaultTheme }}">
+<html lang="en" class="h-full bg-slate-50 antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,13 +16,7 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        red: {
-                            50: 'var(--theme-50)', 100: 'var(--theme-100)', 200: 'var(--theme-200)',
-                            300: 'var(--theme-300)', 400: 'var(--theme-400)', 500: 'var(--theme-500)',
-                            600: 'var(--theme-600)', 700: 'var(--theme-700)', 800: 'var(--theme-800)',
-                            900: 'var(--theme-900)', 950: 'var(--theme-950)'
-                        },
-                        primary: { 500: 'var(--theme-500)', 600: 'var(--theme-600)', 900: '#0f172a' },
+                        primary: { 500: '#ef4444', 600: '#dc2626', 900: '#0f172a' },
                         surface: '#ffffff',
                     },
                     animation: {
@@ -38,28 +29,6 @@
             }
         }
     </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            :root, html[data-theme="red"] {
-                --theme-50: #fef2f2; --theme-100: #fee2e2; --theme-200: #fecaca;
-                --theme-300: #fca5a5; --theme-400: #f87171; --theme-500: #ef4444;
-                --theme-600: #dc2626; --theme-700: #b91c1c; --theme-800: #991b1b;
-                --theme-900: #7f1d1d; --theme-950: #450a0a;
-            }
-            html[data-theme="green"] {
-                --theme-50: #F4FBF7; --theme-100: #D6F2ED; --theme-200: #A7E0D2;
-                --theme-300: #47B49A; --theme-400: #298F77; --theme-500: #1B5E3C;
-                --theme-600: #104A2F; --theme-700: #102321; --theme-800: #0E1D1B;
-                --theme-900: #120F12; --theme-950: #0E100F;
-            }
-            html[data-theme="amber"] {
-                --theme-50: #fffbeb; --theme-100: #fef3c7; --theme-200: #fde68a;
-                --theme-300: #fcd34d; --theme-400: #fbbf24; --theme-500: #f59e0b;
-                --theme-600: #d97706; --theme-700: #b45309; --theme-800: #92400e;
-                --theme-900: #78350f; --theme-950: #451a03;
-            }
-        }
-    </style>
     <style>
         .glass-panel {
             background: rgba(255, 255, 255, 0.7);

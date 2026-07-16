@@ -30,7 +30,7 @@ TARGET_CHANNELS = []
 client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
 
 # Lock to ensure only one headed Playwright instance opens at a time
-browser_lock = asyncio.Lock()
+sitestripe_lock = asyncio.Lock()
 
 class TelegramDealSchema(BaseModel):
     title: str = Field(description="The product title")
@@ -73,41 +73,11 @@ def expand_url(url: str) -> str:
     """Follows redirects to find the final URL (unshortens bit.ly, amzn.to, etc)."""
     try:
         import requests
-        from bs4 import BeautifulSoup
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
         response = requests.head(url, allow_redirects=True, headers=headers, timeout=10)
         if response.status_code >= 400:
             response = requests.get(url, allow_redirects=True, headers=headers, timeout=10)
-            
-        final_url = response.url
-        
-        # If it's a competitor link, try to extract the actual course URL
-        if 'freecourse.io' in final_url or 'indiafreestuff.in' in final_url or 'indfs.in' in final_url:
-            print(f"Competitor link detected ({final_url}). Attempting to extract real course link...")
-            try:
-                page_response = requests.get(final_url, headers=headers, timeout=10)
-                soup = BeautifulSoup(page_response.text, 'html.parser')
-                
-                # Look for udemy or amazon links
-                for a in soup.find_all('a', href=True):
-                    href = a['href']
-                    if 'udemy.com' in href or 'amazon.in' in href or 'amzn.to' in href:
-                        print(f"Extracted actual link: {href}")
-                        return href
-                        
-                # Look for meta refresh
-                meta = soup.find('meta', attrs={'http-equiv': 'refresh'})
-                if meta and 'url=' in meta.get('content', '').lower():
-                    content = meta['content']
-                    parts = content.lower().split('url=')
-                    if len(parts) > 1:
-                        redirect_url = parts[1].strip('\'" ')
-                        if 'udemy.com' in redirect_url or 'amazon.in' in redirect_url or 'amzn.to' in redirect_url:
-                            return redirect_url
-            except Exception as inner_e:
-                print(f"Failed to scrape competitor page: {inner_e}")
-                
-        return final_url
+        return response.url
     except Exception as e:
         print(f"Error expanding URL {url}: {e}")
         return url
@@ -209,7 +179,7 @@ async def handler(event):
         print(f"Detected Amazon link! Initiating deep Playwright scraping...")
         try:
             from sitestripe_scraper import get_sitestripe_link_and_data
-            async with browser_lock:
+            async with sitestripe_lock:
                 scraped_data = await asyncio.to_thread(get_sitestripe_link_and_data, url)
         except Exception as e:
             print(f"Deep scraping failed, falling back to basic parsing: {e}")
@@ -220,8 +190,8 @@ async def handler(event):
         is_udemy = True
         try:
             from scraper import extract_udemy_data
-            async with browser_lock:
-                scraped_data = await asyncio.to_thread(extract_udemy_data, url)
+            # We don't use sitestripe_lock here as it's not Amazon, but we could if we wanted to limit concurrency
+            scraped_data = await asyncio.to_thread(extract_udemy_data, url)
         except Exception as e:
             print(f"Udemy scraping failed, falling back to basic parsing: {e}")
             
@@ -275,10 +245,6 @@ async def handler(event):
         
     if not url:
         print("No URL found in deal. Skipping.")
-        return
-        
-    if 'freecourse.io' in url or 'indiafreestuff.in' in url or 'indfs.in' in url:
-        print(f"Final URL is a competitor link ({url}) and could not be resolved to a real course/product. Dropping deal.")
         return
 
     print(f"✅ Extracted Deal: {deal_data['title']} (₹{deal_data['discounted_price']})")
