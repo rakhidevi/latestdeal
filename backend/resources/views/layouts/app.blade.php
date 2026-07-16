@@ -493,6 +493,72 @@
         <x-cookie-consent />
     @endif
     
+    <!-- Slide-up Theme Switcher -->
+    <div class="fixed bottom-0 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center">
+        <!-- Slide-up Panel -->
+        <div x-show="open" 
+             x-transition:enter="transition ease-out duration-300" 
+             x-transition:enter-start="translate-y-full opacity-0" 
+             x-transition:enter-end="translate-y-0 opacity-100" 
+             x-transition:leave="transition ease-in duration-200" 
+             x-transition:leave-start="translate-y-0 opacity-100" 
+             x-transition:leave-end="translate-y-full opacity-0" 
+             class="w-[22rem] bg-white/95 dark:bg-slate-900/95 p-5 rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-xl border border-b-0 border-slate-200 dark:border-slate-700 pb-8"
+             @click.away="open = false">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Appearance Settings</h3>
+                <button @click="open = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Dark Mode Options -->
+            <div class="grid grid-cols-2 gap-2 mb-6 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl">
+                <button @click="setDark(false)" class="py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 focus:outline-none" :class="!isDark ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    Light
+                </button>
+                <button @click="setDark(true)" class="py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 focus:outline-none" :class="isDark ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                    Dark
+                </button>
+            </div>
+
+            <!-- Accent Colors -->
+            <div class="mb-5">
+                <p class="text-[10px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Accent Theme</p>
+                <div class="flex items-center gap-4">
+                    <button @click="setColorTheme('red')" style="background-color: #ef4444;" class="w-10 h-10 rounded-full border-[3px] transition-transform hover:scale-110 focus:outline-none" :class="colorTheme === 'red' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
+                    <button @click="setColorTheme('green')" class="w-10 h-10 rounded-full bg-[#1B5E3C] border-[3px] transition-transform hover:scale-110 focus:outline-none" :class="colorTheme === 'green' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
+                </div>
+            </div>
+
+            <!-- Eye Comfort View -->
+            <div class="flex items-center justify-between pt-5 border-t border-slate-200 dark:border-slate-700/60">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl">
+                        <!-- Eye safety icon -->
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-800 dark:text-white">Eye Comfort View</p>
+                        <p class="text-xs text-slate-500">Reduces blue light</p>
+                    </div>
+                </div>
+                <!-- Power Toggle Button -->
+                <button @click="colorTheme === 'amber' ? setColorTheme('red') : setColorTheme('amber')" class="relative flex items-center justify-center h-10 w-10 rounded-full transition-colors shadow-inner focus:outline-none" :class="colorTheme === 'amber' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'">
+                    <!-- Power Icon -->
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" /></svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Toggle Arrow Button (Hidden when panel is open) -->
+        <button @click="open = true" x-show="!open" x-transition.opacity.delay.200ms class="bg-white/90 dark:bg-slate-800/90 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] border border-b-0 border-slate-200 dark:border-slate-700 rounded-t-xl px-5 py-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors backdrop-blur focus:outline-none mb-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+    </div>
+    
     <!-- Scroll to Top Button -->
     <button 
         x-data="{ show: false }"
@@ -511,6 +577,9 @@
     >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
     </button>
+    
+    <!-- Eye Comfort Overlay -->
+    <div x-show="colorTheme === 'amber'" class="fixed inset-0 z-[99999] pointer-events-none bg-[#451a03]/5 backdrop-brightness-95 backdrop-contrast-90" x-transition.opacity></div>
     
     @stack('scripts')
 </body>
