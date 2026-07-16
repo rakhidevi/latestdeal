@@ -60,22 +60,26 @@ class AutoHuntCommand extends Command
         $this->info("Hunting Category: {$targetCategory}");
 
         try {
-            $workerIp = gethostbyname('worker');
-            // If the worker is unreachable (e.g. running on desktop without tunnel port forward for /hunt)
-            // It might fail, but let's try.
-            // Wait, the python daemon runs on desktop. If Laravel is on a remote server, it CANNOT hit $workerIp:8001
-            // But since the python worker is running a daemon, and Laravel wants to trigger a custom hunt...
-            // Oh, we can just use the database `scraper_jobs` or directly send a websocket broadcast!
-            
-            // Wait, I will use HTTP if it's local, otherwise we need a fallback.
-            // Actually, the user's Laravel backend might be local or they are using Cloudflare tunnel.
-            // Let's just do the HTTP request as AdminController does.
             $payload = [
                 'keyword' => $targetCategory,
                 'mode' => 'ingestion'
             ];
             
-            $response = Http::timeout(10)->post("http://{$workerIp}:8001/hunt", $payload);
+            // If the worker is unreachable (e.g. running on desktop without tunnel port forward for /hunt)
+            // It might fail, but let's try.
+            // Wait, the python daemon runs on desktop. If Laravel is on a remote server, it CANNOT hit $workerIp:5000
+            // but for local dev this is fine.
+            $workerIp = gethostbyname('worker'); // Usually docker resolves this if they are on same bridge, but here they are host processes
+            
+            // Wait, worker runs on localhost:5000 when running bare metal
+            // But if Laravel is in docker, it needs host.docker.internal
+            if (env('APP_ENV') === 'local') {
+                $workerIp = 'host.docker.internal';
+            } else {
+                $workerIp = 'localhost'; 
+            }
+            
+            $response = Http::timeout(10)->post("http://{$workerIp}:5000/hunt", $payload);
             
             if ($response->successful()) {
                 $this->info("Hunt triggered successfully: " . $response->json('status'));

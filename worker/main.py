@@ -350,10 +350,13 @@ async def listen_to_websockets():
     websocket_url = os.getenv("WEBSOCKET_URL", "ws://localhost:8080/app/my-app-key")
     print(f"Connecting to WebSocket: {websocket_url}")
     
+    retry_delay = 5
+    max_delay = 60
     while True:
         try:
             async with websockets.connect(websocket_url) as websocket:
                 print("WebSocket Connected! Subscribing to private-scraper-worker...")
+                retry_delay = 5 # Reset delay on successful connection
                 
                 # Pusher/Reverb Subscribe protocol
                 subscribe_msg = {
@@ -384,11 +387,13 @@ async def listen_to_websockets():
                         subprocess.Popen([sys.executable, "-u", "hunter.py", "--keyword", str(keyword)])
                         
         except websockets.exceptions.ConnectionClosed:
-            print("WebSocket connection closed. Reconnecting in 5s...")
-            await asyncio.sleep(5)
+            print(f"WebSocket connection closed. Reconnecting in {retry_delay}s...")
+            await asyncio.sleep(retry_delay)
+            retry_delay = min(retry_delay * 2, max_delay)
         except Exception as e:
-            print(f"WebSocket error: {e}. Reconnecting in 5s...")
-            await asyncio.sleep(5)
+            print(f"WebSocket error: {e}. Reconnecting in {retry_delay}s...")
+            await asyncio.sleep(retry_delay)
+            retry_delay = min(retry_delay * 2, max_delay)
 
 async def main():
     env_mode = os.getenv('WORKER_MODE', 'server')
@@ -408,8 +413,8 @@ async def main():
     if args.mode == 'server':
         await asyncio.gather(
             process_queue(),
-            expiry_checker(),
-            listen_to_websockets()
+            expiry_checker()
+            # listen_to_websockets() # Disabled: Shared hosting doesn't support Reverb. Enable this or use Pusher in the future if real-time WS triggers are needed.
         )
     else:
         # Desktop mode only processes the queue

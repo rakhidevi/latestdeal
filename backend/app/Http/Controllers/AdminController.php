@@ -115,7 +115,7 @@ class AdminController
     {
         try {
             $workerIp = gethostbyname('worker');
-            Http::timeout(5)->post("http://{$workerIp}:8001/start");
+            Http::timeout(5)->post("http://{$workerIp}:5000/start");
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
@@ -126,7 +126,7 @@ class AdminController
     {
         try {
             $workerIp = gethostbyname('worker');
-            Http::timeout(5)->post("http://{$workerIp}:8001/stop");
+            Http::timeout(5)->post("http://{$workerIp}:5000/stop");
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
@@ -137,7 +137,7 @@ class AdminController
     {
         try {
             $workerIp = gethostbyname('worker');
-            $response = Http::timeout(3)->get("http://{$workerIp}:8001/status");
+            $response = Http::timeout(3)->get("http://{$workerIp}:5000/status");
             return response()->json($response->json());
         } catch (\Exception $e) {
             return response()->json(['running' => false, 'logs' => ["Worker daemon unreachable: " . $e->getMessage()]]);
@@ -153,7 +153,7 @@ class AdminController
         try {
             $workerIp = gethostbyname('worker');
             $payload = ['url' => $request->url, 'type' => $request->type ?? 'ingestion'];
-            $response = Http::timeout(5)->post("http://{$workerIp}:8001/scrape", $payload);
+            $response = Http::timeout(5)->post("http://{$workerIp}:5000/scrape", $payload);
             return response()->json(['success' => true, 'message' => $response->json('status')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
@@ -171,7 +171,7 @@ class AdminController
                 'keyword' => $request->keyword,
                 'mode' => $request->mode
             ];
-            $response = Http::timeout(5)->post("http://{$workerIp}:8001/hunt", $payload);
+            $response = Http::timeout(5)->post("http://{$workerIp}:5000/hunt", $payload);
             return response()->json(['success' => true, 'message' => $response->json('status')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
