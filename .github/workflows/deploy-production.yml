@@ -29,6 +29,17 @@ jobs:
           cd backend
           composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Build Frontend Assets
+        run: |
+          cd backend
+          npm install
+          npm run build
+
       - name: Zip Application
         run: |
           cd backend
