@@ -87,6 +87,7 @@
                 <p class="mt-4 text-sm text-slate-300 bg-white/5 p-3 rounded-xl border border-white/10" 
                    :class="{'animate-pulse text-slate-400': predictionLoading}"
                    x-text="predictionText"></p>
+                </div>
             </div>
 
             <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-slate-800">
@@ -153,11 +154,11 @@
                         <span class="rounded-full bg-red-600 px-2.5 py-1 text-xs font-black tracking-wide text-white shadow-sm" x-text="'-' + deal.discount_pct + '%'"></span>
                     </div>
 
-                    <div class="relative aspect-square overflow-hidden bg-slate-50 p-4">
-                        <img :src="deal.image_path.startsWith('http') ? deal.image_path : '/storage/' + deal.image_path"
+                    <div class="relative aspect-square overflow-hidden bg-slate-50 p-4 rounded-xl">
+                        <img :src="deal.image_path.startsWith('http') || deal.image_path.startsWith('/') ? deal.image_path : '/storage/' + deal.image_path"
                              :alt="deal.title"
                              class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply"
-                             onerror="this.src='/placeholder.jpg'" />
+                             onerror="this.src='/images/logo.png'" />
                     </div>
 
                     <div class="flex flex-1 flex-col p-4">
@@ -195,6 +196,7 @@ document.addEventListener('alpine:init', () => {
             { id: 1, role: 'assistant', text: 'Hi! Ask me for deal recommendations. Example: "Best smartphone under ₹30000" or "Cheapest AirPods".' }
         ],
         query: '',
+        selectedDeal: null,
         filters: {
             budget: null,
             keyword: null,
@@ -272,7 +274,7 @@ document.addEventListener('alpine:init', () => {
             this.messages.push({ id: Date.now(), role: 'user', text });
             
             const aiMessageId = Date.now() + 1;
-            this.messages.push({ id: aiMessageId, role: 'assistant', text: '...' });
+            this.messages.push({ id: aiMessageId, role: 'assistant', text: '<div class="flex items-center space-x-1.5 h-6 px-1"><div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.15s"></div><div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></div></div>' });
             
             this.query = '';
             this.isSearching = true;

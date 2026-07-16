@@ -97,7 +97,7 @@
             }
             .section-title { @apply text-2xl font-black tracking-tight text-gray-900 dark:text-slate-100; }
             .section-subtitle { @apply mt-1 text-sm text-gray-600 dark:text-slate-400; }
-            .panel { @apply rounded-2xl border border-red-100/80 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/80; }
+            .panel { @apply rounded-2xl border border-red-100 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/80; }
             .surface { @apply rounded-2xl border border-red-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900; }
             
             /* Accessibility tweaks */
@@ -162,7 +162,7 @@
 </head>
 <body x-data="themeSwitcher" class="antialiased">
     
-    <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-40 border-b border-red-100/80 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
+    <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-40 border-b border-red-100 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
       <div class="mx-auto flex max-w-7xl px-4 sm:px-6 lg:px-8 py-3 items-center justify-between relative">
         
         <!-- Left Side: Logo -->
