@@ -176,7 +176,10 @@ class DealIngestionController
         ]);
 
         // 5. Trigger the Retention Engine Listener
-        event(new DealIngested($deal));
+        // Wrap in dispatch->afterResponse to prevent timeout if queue driver is 'sync'
+        dispatch(function () use ($deal) {
+            event(new DealIngested($deal));
+        })->afterResponse();
 
         // 6. Social publishing is handled asynchronously by the CheckPublisherRules event listener.
 

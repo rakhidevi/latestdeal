@@ -43,7 +43,7 @@ class TelegramDealSchema(BaseModel):
     bank_offer: str = Field(default="", description="Any bank discount mentioned")
     store: str = Field(default="Amazon", description="The store name (Amazon, Flipkart, Myntra, etc.)")
     is_deal: bool = Field(default=True, description="Set to true if this message actually contains a product deal. Set to false if it's just spam, a greeting, or announcement.")
-    ai_score: int = Field(default=85, description="Score this deal out of 100 based on price drop, brand value, and features (e.g., 75-99).")
+    ai_score: Optional[int] = Field(default=85, description="Score this deal out of 100 based on price drop, brand value, and features (e.g., 75-99).")
 
 def fetch_og_image(url: str) -> str:
     """Attempts to fetch the og:image or main product image from the target URL."""
