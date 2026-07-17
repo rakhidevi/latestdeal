@@ -6,6 +6,7 @@ import urllib.parse
 from telethon import TelegramClient, events
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, ValidationError
+from typing import Optional
 from openai import OpenAI
 import sqlite3
 from database import DB_PATH
@@ -35,13 +36,13 @@ sitestripe_lock = asyncio.Lock()
 class TelegramDealSchema(BaseModel):
     title: str = Field(description="The product title")
     url: str = Field(description="The affiliate or product URL in the message")
-    original_price: float = Field(default=0, description="The MRP or original price")
-    discounted_price: float = Field(default=0, description="The final discounted deal price")
+    original_price: Optional[float] = Field(default=0, description="The MRP or original price")
+    discounted_price: Optional[float] = Field(default=0, description="The final discounted deal price")
     features: list[str] = Field(default=[], description="Bullet points highlighting key features")
     promo_code: str = Field(default="", description="The promo or coupon code if one is available")
     bank_offer: str = Field(default="", description="Any bank discount mentioned")
     store: str = Field(default="Amazon", description="The store name (Amazon, Flipkart, Myntra, etc.)")
-    is_deal: bool = Field(description="Set to true if this message actually contains a product deal. Set to false if it's just spam, a greeting, or announcement.")
+    is_deal: bool = Field(default=True, description="Set to true if this message actually contains a product deal. Set to false if it's just spam, a greeting, or announcement.")
     ai_score: int = Field(default=85, description="Score this deal out of 100 based on price drop, brand value, and features (e.g., 75-99).")
 
 def fetch_og_image(url: str) -> str:
@@ -105,6 +106,9 @@ def parse_telegram_message(message_text: str, ollama_url: str = "http://localhos
     You MUST output valid JSON matching this schema:
     {TelegramDealSchema.model_json_schema()}
     
+    IMPORTANT: You must output a valid JSON INSTANCE populated with the extracted data. 
+    DO NOT output the JSON Schema definition itself. DO NOT use "properties" as the root key.
+    
     RAW MESSAGE:
     {message_text}
     
@@ -125,6 +129,39 @@ def parse_telegram_message(message_text: str, ollama_url: str = "http://localhos
         return validated_deal.model_dump()
     except Exception as e:
         print(f"LLM Parsing failed: {e}")
+        # Fallback if LLM fails
+        if scraped_data:
+            print("Using scraped_data as fallback for LLM.")
+            return {
+                "title": scraped_data.get("raw_title", "Deal extracted from Telegram"),
+                "url": scraped_data.get("url", ""),
+                "original_price": float(re.sub(r'[^\d.]', '', str(scraped_data.get("raw_original_price", "0"))) or 0),
+                "discounted_price": float(re.sub(r'[^\d.]', '', str(scraped_data.get("raw_discounted_price", "0"))) or 0),
+                "features": scraped_data.get("features", []),
+                "promo_code": "",
+                "bank_offer": "",
+                "store": "Amazon",
+                "is_deal": True,
+                "ai_score": 85
+            }
+        
+        # Regex fallback
+        print("Using Regex fallback for LLM.")
+        urls = re.findall(r'(https?://[^\s]+)', message_text)
+        url = urls[0] if urls else ""
+        if url:
+            return {
+                "title": message_text.split('\n')[0][:100],
+                "url": url,
+                "original_price": 0,
+                "discounted_price": 0,
+                "features": [],
+                "promo_code": "",
+                "bank_offer": "",
+                "store": "Unknown",
+                "is_deal": True,
+                "ai_score": 85
+            }
         return None
 
 def check_if_automated_crawler_enabled():

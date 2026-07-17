@@ -24,6 +24,17 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             )
             page = context.new_page()
             Stealth().use_sync(page)
+        except Exception as e:
+            print(f"Failed to launch persistent context (profile might be locked): {e}")
+            print("Falling back to a temporary browser context (SiteStripe login will be missing)...")
+            browser = p.chromium.launch(
+                headless=False,
+                executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                args=["--disable-blink-features=AutomationControlled"]
+            )
+            context = browser.new_context(permissions=["clipboard-read", "clipboard-write"])
+            page = context.new_page()
+            Stealth().use_sync(page)
             
             print(f"Navigating to raw URL: {url}...")
             # We use wait_until="networkidle" to ensure JS redirects (like indiafreestuff or amzn.to) finish
@@ -127,42 +138,43 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                 
             # 2. SiteStripe Automation
             print("Looking for SiteStripe bar...")
+            short_url = ""
             try:
                 page.wait_for_selector("#amzn-ss-text-link", timeout=10000)
-            except Exception:
+                sitestripe_text_btn = page.locator("#amzn-ss-text-link").first
+                    
+                print("Clicking SiteStripe 'Get Link' button...")
+                sitestripe_text_btn.click()
+                
+                # Wait for popover to appear
+                print("Waiting for popover...")
+                page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce", timeout=10000)
+                
+                copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce").first
+                copy_btn.click()
+                
+                # Wait for the "Copied to clipboard" toast to ensure it copied
+                try:
+                    page.wait_for_selector("#amzn-ss-copy-toast:not([style*='display: none'])", timeout=5000)
+                except Exception as e:
+                    print(f"Toast didn't appear, trying clipboard anyway: {e}")
+                    
+                time.sleep(1) # Extra buffer for clipboard to write
+                
+                short_url = page.evaluate("navigator.clipboard.readText()")
+                if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
+                    print(f"Failed to extract valid short URL from clipboard. Found: {short_url}")
+                    short_url = ""
+                else:
+                    print(f"Successfully generated SiteStripe Link: {short_url}")
+            except Exception as e:
                 # Check for "Frequently Returned Item" which disables the Get Link button
                 page_text = page.content()
                 if "Frequently Returned Item" in page_text or "lower return rates" in page_text:
                     print("Deal REJECTED: Frequently Returned Item (SiteStripe 'Get Link' disabled)")
                     return False
-                raise Exception("SiteStripe bar not found! Make sure you are logged in and Affiliate account is active.")
-                
-            sitestripe_text_btn = page.locator("#amzn-ss-text-link").first
-                
-            print("Clicking SiteStripe 'Get Link' button...")
-            sitestripe_text_btn.click()
-            
-            # Wait for popover to appear
-            print("Waiting for popover...")
-            page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce", timeout=10000)
-            
-            copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce").first
-            copy_btn.click()
-            
-            # Wait for the "Copied to clipboard" toast to ensure it copied
-            try:
-                page.wait_for_selector("#amzn-ss-copy-toast:not([style*='display: none'])", timeout=5000)
-            except Exception as e:
-                print(f"Toast didn't appear, trying clipboard anyway: {e}")
-                
-            time.sleep(1) # Extra buffer for clipboard to write
-            
-            short_url = page.evaluate("navigator.clipboard.readText()")
-            
-            if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
-                raise Exception(f"Failed to extract valid short URL from clipboard. Found: {short_url}")
-                
-            print(f"Successfully generated SiteStripe Link: {short_url}")
+                print(f"SiteStripe bar not found or failed to copy! Error: {e}")
+                print("Returning raw data without shortlink.")
             
             raw_data = {
                 "url": clean_url,

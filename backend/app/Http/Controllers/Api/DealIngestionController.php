@@ -178,30 +178,7 @@ class DealIngestionController
         // 5. Trigger the Retention Engine Listener
         event(new DealIngested($deal));
 
-        // 6. Trigger the Publishing Engine Queue Jobs
-        if ($deal->status === 'active') {
-            // Telegram
-            $telegramAccounts = \App\Models\SocialAccount::where('platform', 'telegram')->where('is_active', true)->get();
-            if ($telegramAccounts->isNotEmpty()) {
-                foreach ($telegramAccounts as $account) {
-                    PublishDealToTelegramJob::dispatch($deal, $account->id);
-                }
-            } else {
-                PublishDealToTelegramJob::dispatch($deal, null); // Fallback to .env
-            }
-
-            // Facebook
-            $facebookAccounts = \App\Models\SocialAccount::where('platform', 'facebook')->where('is_active', true)->get();
-            foreach ($facebookAccounts as $account) {
-                \App\Jobs\PublishDealToFacebookJob::dispatch($deal, $account->id);
-            }
-
-            // Instagram
-            $instagramAccounts = \App\Models\SocialAccount::where('platform', 'instagram')->where('is_active', true)->get();
-            foreach ($instagramAccounts as $account) {
-                \App\Jobs\PublishDealToInstagramJob::dispatch($deal, $account->id);
-            }
-        }
+        // 6. Social publishing is handled asynchronously by the CheckPublisherRules event listener.
 
         return response()->json([
             'message' => 'Deal ingested successfully',
