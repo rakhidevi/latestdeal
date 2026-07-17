@@ -156,9 +156,7 @@
         })
     </script>
 
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3274200073613804"
-     crossorigin="anonymous"></script>
+
 </head>
 <body x-data="themeSwitcher" class="antialiased">
     
