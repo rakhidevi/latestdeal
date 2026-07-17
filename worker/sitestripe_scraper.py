@@ -188,11 +188,11 @@ def get_sitestripe_link_and_data(url: str) -> dict:
 
 
 if __name__ == "__main__":
-import sys
-if len(sys.argv) < 2:
-    print("Usage: python sitestripe_scraper.py <amazon-url>")
-    sys.exit(1)
-
-data = get_sitestripe_link_and_data(sys.argv[1])
-import json
-print(json.dumps(data, indent=2))
+    import sys
+    if len(sys.argv) < 2:
+        print("Usage: python sitestripe_scraper.py <amazon-url>")
+        sys.exit(1)
+    
+    data = get_sitestripe_link_and_data(sys.argv[1])
+    import json
+    print(json.dumps(data, indent=2))
