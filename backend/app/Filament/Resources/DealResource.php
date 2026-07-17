@@ -140,6 +140,16 @@ class DealResource extends Resource
                         ->icon('heroicon-o-x-circle')
                         ->action(fn (Collection $records) => $records->each->update(['status' => 'expired'])),
                 ]),
+            ])
+            ->headerActions([
+                Tables\Actions\Action::make('run_queue')
+                    ->label('Run Queue Worker')
+                    ->icon('heroicon-o-play')
+                    ->color('warning')
+                    ->action(function () {
+                        \Illuminate\Support\Facades\Artisan::call('queue:work', ['--stop-when-empty' => true]);
+                        Notification::make()->title('Queue worker executed successfully!')->success()->send();
+                    })
             ]);
     }
 
