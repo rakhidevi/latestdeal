@@ -89,7 +89,7 @@
         </div>
     </div>
 
-    <div class="mx-auto max-w-7xl grid gap-4 md:gap-6 p-4 md:p-6 lg:p-8 md:grid-cols-[1.2fr_0.8fr] items-center relative z-10 transition-all duration-300">
+    <div class="mx-auto max-w-7xl grid gap-4 md:gap-6 p-4 pt-16 md:p-6 md:pt-16 lg:p-8 lg:pt-16 md:grid-cols-[1.2fr_0.8fr] items-center relative z-10 transition-all duration-300">
       <div class="min-w-0 flex flex-col justify-center">
         
         <h1 class="text-3xl lg:text-4xl font-bold leading-tight break-words tracking-tight text-white drop-shadow-sm min-h-[2.5rem] lg:min-h-[3rem]" 
