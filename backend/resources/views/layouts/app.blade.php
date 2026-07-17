@@ -24,8 +24,8 @@
       "@@context": "https://schema.org",
       "@@type": "Organization",
       "name": "LatestDeal",
-      "url": "{{ url('/') }}",
-      "logo": "{{ asset('/images/logo.png') }}",
+      "url": @json(url('/')),
+      "logo": @json(asset('/images/logo.png')),
       "sameAs": [
         "https://t.me/latestdealin"
       ]

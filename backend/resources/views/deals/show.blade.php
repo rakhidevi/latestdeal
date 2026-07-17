@@ -27,28 +27,28 @@
     {
       "@@context": "https://schema.org/",
       "@@type": "Product",
-      "name": "{{ addslashes($deal->title) }}",
-      "image": "{{ asset($deal->image_path) }}",
-      "description": "Get {{ addslashes($deal->title) }} at a discounted price.",
+      "name": @json($deal->title),
+      "image": @json(asset($deal->image_path)),
+      "description": @json("Get " . $deal->title . " at a discounted price."),
       "offers": {
         "@@type": "Offer",
-        "url": "{{ route('deal.show', $deal->slug) }}",
+        "url": @json(route('deal.show', $deal->slug)),
         "priceCurrency": "INR",
-        "price": "{{ $deal->discounted_price }}",
+        "price": @json($deal->discounted_price),
         "itemCondition": "https://schema.org/NewCondition",
         "availability": "https://schema.org/InStock"
       },
       "aggregateRating": {
         "@@type": "AggregateRating",
-        "ratingValue": "{{ $deal->ai_score ? round($deal->ai_score / 20, 1) : 4.8 }}",
+        "ratingValue": @json($deal->ai_score ? round($deal->ai_score / 20, 1) : 4.8),
         "bestRating": "5",
-        "reviewCount": "{{ ($deal->id % 100) + 25 }}"
+        "reviewCount": @json(($deal->id % 100) + 25)
       },
       "review": {
         "@@type": "Review",
         "reviewRating": {
           "@@type": "Rating",
-          "ratingValue": "{{ $deal->ai_score ? round($deal->ai_score / 20, 1) : 4.8 }}",
+          "ratingValue": @json($deal->ai_score ? round($deal->ai_score / 20, 1) : 4.8),
           "bestRating": "5"
         },
         "author": {

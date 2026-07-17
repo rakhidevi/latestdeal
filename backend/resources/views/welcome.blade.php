@@ -16,10 +16,10 @@
       "@@context": "https://schema.org",
       "@@type": "WebSite",
       "name": "LatestDeal",
-      "url": "{{ url('/') }}",
+      "url": @json(url('/')),
       "potentialAction": {
         "@@type": "SearchAction",
-        "target": "{{ url('/') }}?q={search_term_string}",
+        "target": @json(url('/') . '?q={search_term_string}'),
         "query-input": "required name=search_term_string"
       }
     }
