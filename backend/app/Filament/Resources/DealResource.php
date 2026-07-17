@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\DealResource\Pages;
 use App\Models\Deal;
 use App\Jobs\PublishDealToTelegramJob;
+use App\Jobs\PublishDealToFacebookJob;
+use App\Jobs\PublishDealToInstagramJob;
 use App\Services\WhatsAppService;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -85,6 +87,36 @@ class DealResource extends Resource
                             PublishDealToTelegramJob::dispatch($record, null);
                         }
                         Notification::make()->title('Queued for Telegram!')->success()->send();
+                    }),
+                Tables\Actions\Action::make('publish_to_facebook')
+                    ->label('Push to Facebook')
+                    ->icon('heroicon-o-share')
+                    ->color('primary')
+                    ->action(function (Deal $record) {
+                        $facebookAccounts = \App\Models\SocialAccount::where('platform', 'facebook')->where('is_active', true)->get();
+                        if ($facebookAccounts->isNotEmpty()) {
+                            foreach ($facebookAccounts as $account) {
+                                PublishDealToFacebookJob::dispatch($record, $account->id);
+                            }
+                            Notification::make()->title('Queued for Facebook!')->success()->send();
+                        } else {
+                            Notification::make()->title('No active Facebook account found!')->danger()->send();
+                        }
+                    }),
+                Tables\Actions\Action::make('publish_to_instagram')
+                    ->label('Push to Instagram')
+                    ->icon('heroicon-o-camera')
+                    ->color('danger')
+                    ->action(function (Deal $record) {
+                        $instagramAccounts = \App\Models\SocialAccount::where('platform', 'instagram')->where('is_active', true)->get();
+                        if ($instagramAccounts->isNotEmpty()) {
+                            foreach ($instagramAccounts as $account) {
+                                PublishDealToInstagramJob::dispatch($record, $account->id);
+                            }
+                            Notification::make()->title('Queued for Instagram!')->success()->send();
+                        } else {
+                            Notification::make()->title('No active Instagram account found!')->danger()->send();
+                        }
                     }),
                 Tables\Actions\Action::make('share_to_whatsapp')
                     ->label('Share on WhatsApp')
