@@ -26,6 +26,11 @@ def import_sitestripe_deal(url: str):
     try:
         # 1. Scrape with Authenticated Profile
         raw_data = get_sitestripe_link_and_data(url)
+        
+        if not raw_data:
+            print("SiteStripe scraping failed or was rejected. Aborting import.")
+            return False
+            
         official_shortlink = raw_data.get('sitestripe_url')
         
         if not official_shortlink:

@@ -14,11 +14,15 @@
     }
 @endphp
 
-<article class="group overflow-hidden rounded-xl border border-red-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 flex flex-col h-full">
+<article class="group overflow-hidden rounded-xl border border-red-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 flex flex-col h-full {{ $deal->status === 'expired' ? 'opacity-75 grayscale-[0.5]' : '' }}">
   <div class="relative h-32 sm:h-40 bg-gradient-to-br from-red-100 to-rose-100 p-2 dark:from-slate-800 dark:to-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
     <img src="{{ $imageUrl }}" alt="{{ Str::limit($deal->title, 20) }}" class="max-h-full max-w-full rounded-lg object-contain mix-blend-multiply dark:mix-blend-normal" onerror="this.style.display='none';" />
     
-    @if($discountPct > 0)
+    @if($deal->status === 'expired')
+    <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px] z-10">
+        <span class="bg-red-600 text-white font-black px-3 py-1.5 rounded-lg shadow-lg border border-red-400/50 rotate-[-10deg] text-lg uppercase tracking-widest">Expired</span>
+    </div>
+    @elseif($discountPct > 0)
     <div class="absolute left-3 top-3 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white">{{ $discountPct }}% OFF</div>
     @endif
     
@@ -44,7 +48,7 @@
       <div>
         <p class="text-[10px] uppercase tracking-wide text-gray-400">Price</p>
         @if(isset($deal->discounted_price))
-          <p class="text-[11px] font-semibold text-gray-900 dark:text-slate-200">
+          <p class="text-[11px] font-semibold {{ $deal->status === 'expired' ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-slate-200' }}">
             ₹{{ number_format($deal->discounted_price) }}
             @if(isset($deal->original_price) && $deal->original_price > $deal->discounted_price)
               <span class="text-[10px] text-gray-400 line-through ml-0.5">₹{{ number_format($deal->original_price) }}</span>

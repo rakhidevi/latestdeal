@@ -1,4 +1,4 @@
-<div x-data="{ open: false, keyword: '', target_price: '' }" 
+<div x-data="{ open: false, keyword: '', target_price: '', email: '', loading: false, success: false, error: '' }" 
      x-on:open-alert-modal.window="open = true"
      x-show="open" 
      class="relative z-50" 
@@ -37,33 +37,67 @@
                     </div>
                 </div>
                 
-                <form action="/price-alerts" method="POST" class="mt-5 sm:mt-6 space-y-4">
-                    @csrf
-                    @if(Auth::check())
-                        <input type="hidden" name="email" value="{{ Auth::user()->email }}">
+                <form @submit.prevent="
+                    loading = true; error = ''; success = false;
+                    let formData = { keyword: keyword, price: target_price };
+                    @if(!Auth::check())
+                        formData.email = email;
                     @else
+                        formData.email = '{{ Auth::user()->email }}';
+                    @endif
+                    fetch('/price-alerts', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(res => res.json().then(data => ({status: res.status, body: data})))
+                    .then(res => {
+                        loading = false;
+                        if(res.status >= 400) {
+                            error = res.body.message || 'Error setting alert.';
+                        } else {
+                            success = true;
+                            keyword = '';
+                            target_price = '';
+                            setTimeout(() => { open = false; success = false; }, 2000);
+                        }
+                    })
+                    .catch(() => { loading = false; error = 'Network error.'; });
+                " class="mt-5 sm:mt-6 space-y-4">
+                    @csrf
+                    @if(!Auth::check())
                         <div>
                             <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Email Address</label>
                             <div class="mt-2">
-                                <input type="email" name="email" id="email" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="you@example.com" required>
+                                <input type="email" x-model="email" id="email" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="you@example.com" required>
                             </div>
                         </div>
                     @endif
                     <div>
                         <label for="keyword" class="block text-sm font-medium leading-6 text-gray-900">Keyword</label>
                         <div class="mt-2">
-                            <input type="text" x-model="keyword" name="keyword" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="e.g. iPad Pro" required>
+                            <input type="text" x-model="keyword" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="e.g. iPad Pro" required>
                         </div>
                     </div>
                     <div>
                         <label for="price" class="block text-sm font-medium leading-6 text-gray-900">Target Price (₹)</label>
                         <div class="mt-2">
-                            <input type="number" x-model="target_price" name="price" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="50000" required>
+                            <input type="number" x-model="target_price" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="50000" required>
                         </div>
                     </div>
 
+                    <p x-show="success" x-transition class="text-green-600 text-sm font-medium text-center">Alert set successfully!</p>
+                    <p x-show="error" x-transition class="text-red-600 text-sm font-medium text-center" x-text="error"></p>
+
                     <div class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
-                        <button type="submit" class="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:col-start-2">Set Alert</button>
+                        <button type="submit" :disabled="loading" class="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:col-start-2 disabled:opacity-50">
+                            <span x-show="!loading">Set Alert</span>
+                            <span x-show="loading">Setting...</span>
+                        </button>
                         <x-button variant="secondary" type="button" @click="open = false" class="mt-3 sm:col-start-1 sm:mt-0 w-full">Cancel</x-button>
                     </div>
                 </form>

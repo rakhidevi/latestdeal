@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name='impact-site-verification' value='dcd870d6-a11b-48ec-8df2-15ba5c96630b'>
+    
+            <title>LatestDeal - Discover the Best Verified Deals Worldwide</title>
+        <meta name="description" content="LatestDeal is your autonomous global deal discovery engine. We scour the web to find the best discounts, offers, and coupons so you never pay full price.">
+        <link rel="canonical" href="http://localhost:9000/assistant">
+        <meta property="og:title" content="LatestDeal - Discover the Best Verified Deals Worldwide">
+        <meta property="og:description" content="LatestDeal is your autonomous global deal discovery engine. We scour the web to find the best discounts, offers, and coupons.">
+        <meta property="og:url" content="http://localhost:9000/assistant">
+        <meta property="og:type" content="website">
+        <meta property="og:image" content="http://localhost:9000/images/logo.png">
+        <meta name="twitter:card" content="summary_large_image">
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "LatestDeal",
+      "url": "http://localhost:9000",
+      "logo": "http://localhost:9000/images/logo.png",
+      "sameAs": [
+        "https://t.me/latestdealin"
+      ]
+    }
+    </script>
+
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3274200073613804" crossorigin="anonymous"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+        window.appConfig = { theme: 'red', colorMode: 'auto' };
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        red: {
+                            50: 'var(--theme-50)', 100: 'var(--theme-100)', 200: 'var(--theme-200)',
+                            300: 'var(--theme-300)', 400: 'var(--theme-400)', 500: 'var(--theme-500)',
+                            600: 'var(--theme-600)', 700: 'var(--theme-700)', 800: 'var(--theme-800)',
+                            900: 'var(--theme-900)', 950: 'var(--theme-950)'
+                        },
+                        primary: { DEFAULT: 'var(--theme-500)', 500: 'var(--theme-500)', 600: 'var(--theme-600)' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            :root, html[data-theme="red"] {
+                --theme-50: #fef2f2; --theme-100: #fee2e2; --theme-200: #fecaca;
+                --theme-300: #fca5a5; --theme-400: #f87171; --theme-500: #ef4444;
+                --theme-600: #dc2626; --theme-700: #b91c1c; --theme-800: #991b1b;
+                --theme-900: #7f1d1d; --theme-950: #450a0a;
+            }
+            html[data-theme="green"] {
+                --theme-50: #F4FBF7; --theme-100: #D6F2ED; --theme-200: #A7E0D2;
+                --theme-300: #47B49A; --theme-400: #298F77; --theme-500: #1B5E3C;
+                --theme-600: #104A2F; --theme-700: #102321; --theme-800: #0E1D1B;
+                --theme-900: #120F12; --theme-950: #0E100F;
+            }
+            html[data-theme="amber"] {
+                --theme-50: #fffbeb; --theme-100: #fef3c7; --theme-200: #fde68a;
+                --theme-300: #fcd34d; --theme-400: #fbbf24; --theme-500: #f59e0b;
+                --theme-600: #d97706; --theme-700: #b45309; --theme-800: #92400e;
+                --theme-900: #78350f; --theme-950: #451a03;
+            }
+            
+            :root { color-scheme: light; }
+            html.dark { color-scheme: dark; }
+
+            body {
+                @apply min-h-screen bg-slate-50 text-gray-900 transition-colors duration-300;
+                background-image: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-500) 3%, transparent) 0%, transparent 50%);
+            }
+            html.dark body {
+                @apply bg-slate-950 text-slate-100;
+                background-image: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-500) 8%, transparent) 0%, transparent 50%);
+            }
+            .section-title { @apply text-2xl font-black tracking-tight text-gray-900 dark:text-slate-100; }
+            .section-subtitle { @apply mt-1 text-sm text-gray-600 dark:text-slate-400; }
+            .panel { @apply rounded-2xl border border-red-100/80 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/80; }
+            .surface { @apply rounded-2xl border border-red-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900; }
+            
+            /* Accessibility tweaks */
+            .btn-primary { @apply rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 hover:text-white; }
+            .btn-secondary { @apply rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 dark:border-slate-700 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-slate-800; }
+            .input-base { @apply w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500; }
+            
+            /* Logo filters */
+            html[data-theme="green"] .theme-logo { filter: hue-rotate(135deg) brightness(0.85) contrast(1.2); }
+            html[data-theme="amber"] .theme-logo { filter: hue-rotate(45deg) brightness(1.2) saturate(1.5); }
+        }
+    </style>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('themeSwitcher', () => ({
+                isDark: false,
+                colorTheme: 'red',
+                open: false,
+                init() {
+                    // 1. Setup Color Theme
+                    const storedTheme = localStorage.getItem("adh-color");
+                    this.colorTheme = storedTheme || window.appConfig.theme;
+                    document.documentElement.setAttribute('data-theme', this.colorTheme);
+
+                    // 2. Setup Dark Mode (Auto by default)
+                    const storedDark = localStorage.getItem("adh-dark");
+                    
+                    if (storedDark) {
+                        this.isDark = storedDark === "dark";
+                    } else if (window.appConfig.colorMode === "dark" || window.appConfig.colorMode === "light") {
+                        this.isDark = window.appConfig.colorMode === "dark";
+                    } else {
+                        // Auto mode: check system pref or time (8 PM to 7 AM)
+                        const hour = new Date().getHours();
+                        const isNight = hour >= 20 || hour < 7;
+                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        this.isDark = isNight || prefersDark;
+                    }
+                    
+                    if(this.isDark) document.documentElement.classList.add("dark");
+                },
+                setDark(value) {
+                    this.isDark = value;
+                    document.documentElement.classList.toggle("dark", this.isDark);
+                    localStorage.setItem("adh-dark", this.isDark ? "dark" : "light");
+                },
+                setColorTheme(theme) {
+                    this.colorTheme = theme;
+                    document.documentElement.setAttribute('data-theme', theme);
+                    localStorage.setItem("adh-color", theme);
+                }
+            }))
+        })
+    </script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3274200073613804"
+     crossorigin="anonymous"></script>
+</head>
+<body x-data="themeSwitcher" class="antialiased">
+    
+    <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-40 border-b border-red-100/80 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
+      <div class="mx-auto flex max-w-7xl px-4 sm:px-6 lg:px-8 py-3 items-center justify-between relative">
+        
+        <!-- Left Side: Logo -->
+        <a href="/" class="flex items-center justify-start flex-shrink-0 z-50 relative">
+          <img src="/images/logo.png" alt="LatestDeal" height="40" class="theme-logo h-8 md:h-10 w-auto block dark:hidden" />
+          <img src="/images/logo-white.png" alt="LatestDeal" height="40" class="theme-logo h-8 md:h-10 w-auto hidden dark:block" />
+        </a>
+
+        <!-- Center: Desktop Mega Menu -->
+        <div class="hidden lg:flex absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 items-center gap-8 xl:gap-10 text-[14px] font-medium text-gray-600 dark:text-slate-300 z-30">
+            <a href="/?sort=discount" class="transition hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1.5 group whitespace-nowrap">
+                <svg class="w-[13.5px] h-[13.5px] opacity-70 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" /></svg>
+                Top Deals
+            </a>
+            
+            <!-- Stores Dropdown -->
+            <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" class="relative group py-2">
+                <button class="transition hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1.5 focus:outline-none group whitespace-nowrap">
+                    <svg class="w-[13.5px] h-[13.5px] opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    Stores 
+                    <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div x-show="open" x-transition.opacity.scale.origin.top class="absolute left-0 mt-4 w-48 rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur shadow-xl border border-gray-100 dark:border-slate-800 py-2 z-50">
+                    <a href="/?merchant=amazon" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">🛒</span> Amazon
+                    </a>
+                    <a href="/?merchant=udemy" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">🎓</span> Udemy
+                    </a>
+                    <span class="flex items-center gap-3 px-4 py-2 text-gray-400 dark:text-slate-500 cursor-not-allowed">
+                        <span class="text-lg opacity-50">🛍️</span> Flipkart (Soon)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Brands Dropdown -->
+            <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" class="relative group py-2">
+                <button class="transition hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1.5 focus:outline-none group whitespace-nowrap">
+                    <svg class="w-[13.5px] h-[13.5px] opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 7h.01"/></svg>
+                    Brands 
+                    <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div x-show="open" x-transition.opacity.scale.origin.top class="absolute left-0 mt-4 w-48 rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur shadow-xl border border-gray-100 dark:border-slate-800 py-2 z-50">
+                    <a href="/?brand=apple" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">🍎</span> Apple
+                    </a>
+                    <a href="/?brand=samsung" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">📱</span> Samsung
+                    </a>
+                    <a href="/?brand=sony" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">🎮</span> Sony
+                    </a>
+                    <a href="/?brand=nike" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">👟</span> Nike
+                    </a>
+                    <a href="/?brand=puma" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">🐆</span> Puma
+                    </a>
+                </div>
+            </div>
+
+            <!-- Categories Dropdown -->
+            <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" class="relative group py-2">
+                <button class="transition hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1.5 focus:outline-none group whitespace-nowrap">
+                    <svg class="w-[13.5px] h-[13.5px] opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect width="7" height="7" x="14" y="3" rx="1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect width="7" height="7" x="14" y="14" rx="1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect width="7" height="7" x="3" y="14" rx="1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Categories 
+                    <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div x-show="open" x-transition.opacity.scale.origin.top class="absolute left-0 mt-4 w-56 rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur shadow-xl border border-gray-100 dark:border-slate-800 py-2 z-50">
+                    <a href="/?category=electronics" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">💻</span> Electronics
+                    </a>
+                    <a href="/?category=fashion" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">👗</span> Fashion
+                    </a>
+                    <a href="/?category=home-kitchen" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">🍳</span> Home & Kitchen
+                    </a>
+                    <a href="/?category=programming" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">👨‍💻</span> Programming
+                    </a>
+                    <a href="/?category=ai" class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-red-600 dark:hover:text-red-400 transition">
+                        <span class="text-lg">🤖</span> AI
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quality Score Dropdown -->
+            <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" class="relative group py-2">
+                <button class="transition hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1.5 focus:outline-none group whitespace-nowrap">
+                    <svg class="w-[13.5px] h-[13.5px] opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Quality 
+                    <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div x-show="open" x-transition.opacity.scale.origin.top class="absolute left-0 mt-4 w-56 rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur shadow-xl border border-gray-100 dark:border-slate-800 py-2 z-50">
+                    <a href="/?min_trust_score=90" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-yellow-500 transition">
+                        <span class="w-3 h-3 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]"></span> 90+ Score (Gold)
+                    </a>
+                    <a href="/?min_trust_score=80" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-slate-400 transition">
+                        <span class="w-3 h-3 rounded-full bg-slate-300 shadow-[0_0_8px_rgba(203,213,225,0.8)]"></span> 80+ Score (Silver)
+                    </a>
+                    <a href="/?min_trust_score=75" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-orange-600 transition">
+                        <span class="w-3 h-3 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]"></span> 75+ Score (Bronze)
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: CTA / Auth -->
+        <div class="hidden lg:flex items-center justify-end gap-6 relative z-50">
+          <a href="/assistant" class="text-[14px] font-semibold text-orange-500 hover:text-orange-600 dark:text-orange-400 flex items-center gap-1.5 transition whitespace-nowrap">
+             <svg class="w-[13.5px] h-[13.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 17v4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 19h4"/></svg>
+             AI Assistant
+          </a>
+          
+                      <a href="http://localhost:9000/login" class="btn-primary flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all whitespace-nowrap">
+                <svg class="w-[13.5px] h-[13.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4" stroke-width="2"/></svg>
+                Login / Signup
+            </a>
+                  </div>
+
+        <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 -mr-2 text-gray-600 dark:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+      </div>
+
+      <!-- Mobile Menu Dropdown -->
+      <div x-show="mobileMenuOpen" x-transition class="lg:hidden border-t border-gray-100 dark:border-slate-800 px-4 py-4 space-y-3 bg-white dark:bg-slate-900 shadow-lg absolute w-full z-50">
+        <a href="/?sort=discount" class="flex items-center gap-2 font-medium text-gray-800 dark:text-gray-200 hover:text-red-600 group whitespace-nowrap">
+            <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" /></svg>
+            Top Deals
+        </a>
+        
+        <!-- Stores Accordion -->
+        <div x-data="{ open: false }" class="border-b border-gray-50 dark:border-slate-800/50 pb-2">
+            <button @click="open = !open" class="flex items-center justify-between w-full font-medium text-gray-800 dark:text-gray-200 hover:text-red-600 focus:outline-none group whitespace-nowrap">
+                <span class="flex items-center gap-2">
+                    <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    By Store
+                </span>
+                <svg class="w-5 h-5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div x-show="open" x-transition class="pl-6 pt-2 space-y-3 pb-2">
+                <a href="/?merchant=amazon" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">🛒</span> Amazon
+                </a>
+                <a href="/?merchant=udemy" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">🎓</span> Udemy
+                </a>
+                <span class="flex items-center gap-3 text-gray-400 dark:text-slate-600">
+                    <span class="text-lg opacity-50">🛍️</span> Flipkart (Soon)
+                </span>
+            </div>
+        </div>
+
+        <!-- Brands Accordion -->
+        <div x-data="{ open: false }" class="border-b border-gray-50 dark:border-slate-800/50 pb-2">
+            <button @click="open = !open" class="flex items-center justify-between w-full font-medium text-gray-800 dark:text-gray-200 hover:text-red-600 focus:outline-none group whitespace-nowrap">
+                <span class="flex items-center gap-2">
+                    <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 7h.01"/></svg>
+                    By Brand
+                </span>
+                <svg class="w-5 h-5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div x-show="open" x-transition class="pl-6 pt-2 space-y-3 pb-2">
+                <a href="/?brand=apple" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">🍎</span> Apple
+                </a>
+                <a href="/?brand=samsung" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">📱</span> Samsung
+                </a>
+                <a href="/?brand=sony" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">🎮</span> Sony
+                </a>
+                <a href="/?brand=nike" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">👟</span> Nike
+                </a>
+                <a href="/?brand=puma" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">🐆</span> Puma
+                </a>
+            </div>
+        </div>
+
+        <!-- Categories Accordion -->
+        <div x-data="{ open: false }" class="border-b border-gray-50 dark:border-slate-800/50 pb-2">
+            <button @click="open = !open" class="flex items-center justify-between w-full font-medium text-gray-800 dark:text-gray-200 hover:text-red-600 focus:outline-none group whitespace-nowrap">
+                <span class="flex items-center gap-2">
+                    <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect width="7" height="7" x="14" y="3" rx="1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect width="7" height="7" x="14" y="14" rx="1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect width="7" height="7" x="3" y="14" rx="1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Categories
+                </span>
+                <svg class="w-5 h-5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div x-show="open" x-transition class="pl-6 pt-2 space-y-3 pb-2">
+                <a href="/?category=electronics" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">💻</span> Electronics
+                </a>
+                <a href="/?category=fashion" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">👗</span> Fashion
+                </a>
+                <a href="/?category=home-kitchen" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">🍳</span> Home & Kitchen
+                </a>
+                <a href="/?category=programming" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">👨‍💻</span> Programming
+                </a>
+                <a href="/?category=ai" class="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                    <span class="text-lg">🤖</span> AI
+                </a>
+            </div>
+        </div>
+
+        <!-- Quality Score Accordion -->
+        <div x-data="{ open: false }" class="border-b border-gray-50 dark:border-slate-800/50 pb-2">
+            <button @click="open = !open" class="flex items-center justify-between w-full font-medium text-gray-800 dark:text-gray-200 hover:text-red-600 focus:outline-none group whitespace-nowrap">
+                <span class="flex items-center gap-2">
+                    <svg class="w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Quality
+                </span>
+                <svg class="w-5 h-5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div x-show="open" x-transition class="pl-6 pt-2 space-y-3 pb-2">
+                <a href="/?min_trust_score=90" class="flex items-center gap-2 text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                    <span class="w-3 h-3 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]"></span> 90+ Score (Gold)
+                </a>
+                <a href="/?min_trust_score=80" class="flex items-center gap-2 text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                    <span class="w-3 h-3 rounded-full bg-slate-300 shadow-[0_0_8px_rgba(203,213,225,0.8)]"></span> 80+ Score (Silver)
+                </a>
+                <a href="/?min_trust_score=75" class="flex items-center gap-2 text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                    <span class="w-3 h-3 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]"></span> 75+ Score (Bronze)
+                </a>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-100 dark:border-slate-800 pt-4 pb-2 space-y-3">
+            <a href="/assistant" class="flex items-center gap-2 font-medium text-orange-500 dark:text-orange-400 whitespace-nowrap">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 3v4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 5h4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 17v4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17 19h4"/></svg>
+                AI Assistant
+            </a>
+                          <a href="http://localhost:9000/login" class="btn-primary w-full text-center flex items-center justify-center gap-2 shadow-lg whitespace-nowrap">
+                  <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4" stroke-width="2"/></svg>
+                  Login / Signup
+              </a>
+                    </div>
+      </div>
+    </header>
+
+    
+    <div class="mx-auto flex max-w-7xl px-4 py-6 md:px-6 gap-6">
+        <main class="flex-1 min-w-0 min-h-[calc(100vh-130px)] w-full">
+            <div x-data="assistantApp()" class="space-y-6">
+    <header class="panel flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-black tracking-tight text-gray-900">AI Shopping Assistant</h1>
+            <p class="mt-1 text-sm text-gray-600">Conversational deal discovery with instant AI filtering, comparison and recommendations.</p>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+            <span class="rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-700">
+                Live • Active Deals: <span x-text="rawDeals.length"></span>
+            </span>
+            <button type="button" @click="window.location.reload()" class="btn-secondary px-3 py-1.5">Refresh</button>
+        </div>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-[1.15fr_1fr]">
+        <!-- Chat Interface -->
+        <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-gray-100 dark:border-slate-800 flex h-[650px] flex-col rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+            <!-- Decorative background glow -->
+            <div class="absolute -top-40 -right-40 w-80 h-80 bg-red-400/20 blur-3xl rounded-full pointer-events-none"></div>
+
+            <div class="flex-1 space-y-6 overflow-y-auto pr-2 relative z-10 custom-scrollbar" id="chat-window">
+                <template x-for="m in messages" :key="m.id">
+                    <div class="flex flex-col animate-fade-in-up">
+                        <!-- Role label (Optional, can be removed for cleaner look, but let's keep bubbles distinct) -->
+                        <div :class="m.role === 'user' ? 'items-end' : 'items-start'" class="flex flex-col w-full">
+                            <div class="flex items-center gap-2 mb-1" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400" x-text="m.role === 'user' ? 'You' : 'LatestDeal AI'"></span>
+                            </div>
+                            <div :class="m.role === 'user' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-l-2xl rounded-tr-2xl' : 'bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-gray-200 rounded-r-2xl rounded-tl-2xl border border-gray-200 dark:border-slate-700'" 
+                                 class="max-w-[85%] px-5 py-4 text-sm shadow-sm transition-all transform">
+                                <div x-html="m.role === 'assistant' ? marked.parse(m.text) : m.text" class="leading-relaxed whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-a:text-red-500 prose-a:no-underline hover:prose-a:underline"></div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            
+            <form @submit.prevent="onAsk" class="mt-4 relative z-10">
+                <div class="relative flex items-center bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-red-500/50 focus-within:border-red-500 transition-all p-1.5">
+                    <input
+                        x-model="query"
+                        :disabled="isSearching"
+                        placeholder="E.g. Best smartphone under ₹30000"
+                        class="w-full bg-transparent border-none focus:ring-0 px-4 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 disabled:opacity-50 outline-none"
+                    />
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-xl p-3 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-red-500/20 mr-1" :disabled="isSearching">
+                        <svg x-show="!isSearching" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        <svg x-show="isSearching" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-4 flex flex-wrap gap-2 text-xs relative z-10">
+                <button type="button" @click="setQuery('Best smartphone under ₹30000')" class="rounded-full border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-3.5 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm">Best smartphone under ₹30000</button>
+                <button type="button" @click="setQuery('Cheapest AirPods today')" class="rounded-full border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-3.5 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm">Cheapest AirPods today</button>
+                <button type="button" @click="setQuery('Laptop deals under ₹70000')" class="rounded-full border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-3.5 py-2 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm">Laptop deals under ₹70000</button>
+            </div>
+        </div>
+
+        <!-- Prediction & Comparison Panel -->
+        <div class="space-y-6">
+            <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-8 shadow-2xl text-white border border-slate-700 relative overflow-hidden">
+                <!-- Abstract lines -->
+                <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 1px, transparent 10px);"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            AI Price Prediction
+                        </h3>
+                    </div>
+                
+                <div class="flex items-baseline space-x-2">
+                    <span class="text-4xl font-black">₹<span x-text="bestDeal ? Math.round(bestDeal.price).toLocaleString('en-IN') : '0'"></span></span>
+                    <span class="text-emerald-400 font-medium bg-emerald-400/10 px-2 py-0.5 rounded text-sm">-<span x-text="bestDeal ? bestDeal.discount_pct : '0'"></span>% OFF</span>
+                </div>
+                
+                <p class="mt-4 text-sm text-slate-300 bg-white/5 p-3 rounded-xl border border-white/10" 
+                   :class="{'animate-pulse text-slate-400': predictionLoading}"
+                   x-text="predictionText"></p>
+            </div>
+
+            <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-slate-800">
+                <h3 class="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-5 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    AI Comparison Matrix
+                </h3>
+                
+                <template x-if="comparisonDeals.length === 0">
+                    <p class="text-sm text-gray-500 italic p-6 text-center bg-gray-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700">No products match your query. Ask the AI to find something!</p>
+                </template>
+                
+                <div class="space-y-3">
+                    <template x-for="(row, idx) in comparisonDeals" :key="row.id">
+                        <div class="rounded-2xl border border-gray-100 dark:border-slate-700/60 p-4 hover:bg-gray-50 dark:hover:bg-slate-800/80 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md" @click="selectedDeal = row" :class="selectedDeal && selectedDeal.id === row.id ? 'ring-2 ring-red-500 border-transparent bg-red-50/20 dark:bg-red-500/10' : 'bg-white dark:bg-slate-900'">
+                            <p class="line-clamp-1 font-bold text-gray-900 dark:text-white text-sm"><span x-text="'#' + (idx + 1) + ' '" class="text-red-500 mr-1"></span> <span x-text="row.title"></span></p>
+                            <div class="mt-2 flex items-center justify-between text-xs">
+                                <span class="font-bold text-lg text-gray-900 dark:text-white">₹<span x-text="Math.round(row.price).toLocaleString('en-IN')"></span></span>
+                                <span class="text-gray-500 dark:text-slate-400 font-medium px-2 py-1 bg-gray-100 dark:bg-slate-800 rounded-md" x-text="row.merchant"></span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <template x-if="bestDeal">
+                    <div class="mt-6 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/30 p-5 shadow-inner">
+                        <p class="font-bold text-emerald-700 dark:text-emerald-400 text-sm mb-3 flex items-center tracking-wide uppercase">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            AI Best Pick
+                        </p>
+                        <p class="text-sm font-bold text-gray-900 dark:text-white line-clamp-2 leading-relaxed" x-text="bestDeal.title"></p>
+                        <ul class="mt-3 space-y-2 text-xs text-gray-600 dark:text-gray-300">
+                            <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> Highest value score blend.</li>
+                            <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> Strong price-to-feature ratio at <span class="font-bold text-gray-900 dark:text-white">₹<span x-text="Math.round(bestDeal.price).toLocaleString('en-IN')"></span></span>.</li>
+                            <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> Reliable marketplace signal from <span class="font-bold text-gray-900 dark:text-white" x-text="bestDeal.merchant"></span>.</li>
+                        </ul>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Results Grid -->
+    <div class="mt-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-slate-900">Top Matches</h2>
+            <p class="text-sm text-slate-500"><span x-text="filteredDeals.length"></span> results found</p>
+        </div>
+        
+        <template x-if="filteredDeals.length === 0">
+            <div class="bg-white/50 dark:bg-slate-900/50 backdrop-blur border border-gray-100 dark:border-slate-800 p-16 text-center rounded-3xl shadow-sm">
+                <svg class="w-16 h-16 text-gray-300 dark:text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="text-gray-900 dark:text-white font-bold text-lg">No matching deals found.</p>
+                <p class="text-sm text-gray-500 dark:text-slate-400 mt-2">Ask the AI to broaden the search criteria or try a different product category.</p>
+            </div>
+        </template>
+        
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <template x-for="deal in filteredDeals" :key="deal.id">
+                <!-- Inline Deal Card -->
+                <div class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-200 hover:shadow-xl hover:border-red-200 transition-all duration-300 hover:-translate-y-1 cursor-pointer" @click="selectedDeal = deal">
+                    <!-- Discount Badge -->
+                    <div class="absolute left-3 top-3 z-10 flex flex-col gap-1">
+                        <span class="rounded-full bg-red-600 px-2.5 py-1 text-xs font-black tracking-wide text-white shadow-sm" x-text="'-' + deal.discount_pct + '%'"></span>
+                    </div>
+
+                    <div class="relative aspect-square overflow-hidden bg-slate-50 p-4">
+                        <img :src="deal.image_path.startsWith('http') ? deal.image_path : '/storage/' + deal.image_path"
+                             :alt="deal.title"
+                             class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply"
+                             onerror="this.src='/placeholder.jpg'" />
+                    </div>
+
+                    <div class="flex flex-1 flex-col p-4">
+                        <div class="mb-2 flex items-center justify-between text-xs font-medium">
+                            <span class="text-red-600 bg-red-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold" x-text="deal.merchant"></span>
+                            <span class="text-slate-400" x-text="deal.category"></span>
+                        </div>
+
+                        <h3 class="mb-2 line-clamp-2 text-sm font-semibold leading-snug text-slate-800 group-hover:text-red-600 transition-colors" x-text="deal.title"></h3>
+
+                        <div class="mt-auto pt-2">
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-xl font-black tracking-tight text-gray-900">₹<span x-text="Math.round(deal.price).toLocaleString('en-IN')"></span></span>
+                                <template x-if="deal.original_price > deal.price">
+                                    <span class="text-sm font-medium text-slate-400 line-through">₹<span x-text="Math.round(deal.original_price).toLocaleString('en-IN')"></span></span>
+                                </template>
+                            </div>
+                            <a :href="'/deal/' + deal.id" class="mt-3 block w-full rounded-xl bg-slate-900 py-2.5 text-center text-sm font-bold text-white transition-all hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30">
+                                View Deal
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('assistantApp', () => ({
+        rawDeals: [{"id":30,"title":"ASUS TUF Gaming F15 Laptop","price":54990,"original_price":74990,"discount_pct":27,"url":"https:\/\/www.amazon.in\/dp\/B09CCW5XW8","image_path":"\/storage\/deals\/asus_tuf.jpg","merchant":"Amazon India","category":"Electronics"},{"id":29,"title":"Sony WH-1000XM5 Wireless Noise Cancelling Headphones","price":26990,"original_price":34990,"discount_pct":23,"url":"https:\/\/www.amazon.in\/dp\/B09Y2MYL5C","image_path":"\/storage\/deals\/sony_xm5.jpg","merchant":"Amazon India","category":"Electronics"},{"id":28,"title":"Apple iPhone 15 (128 GB) - Blue","price":69900,"original_price":79900,"discount_pct":13,"url":"https:\/\/www.amazon.in\/dp\/B0CHX1W1XY","image_path":"\/storage\/deals\/iphone15.jpg","merchant":"Amazon India","category":"Electronics"},{"id":27,"title":"XGIMI New Launch MoGo 4 (with Stand) Portable DLP Projector, 1080P Full HD, 450 ISO Lumens","price":56999,"original_price":56999,"discount_pct":0,"url":"https:\/\/amzn.to\/44hT9Zu","image_path":"deals\/b7ee8115-300a-4152-b2b2-78927b1bcedc.jpeg","merchant":"Amazon","category":"General"},{"id":26,"title":"Atomberg Zenova Mixer Grinder","price":6499,"original_price":11999,"discount_pct":46,"url":"https:\/\/amzn.to\/3TmITN4","image_path":"deals\/db034a06-efdf-4e9a-9e9c-156567781dda.jpeg","merchant":"Amazon","category":"General"},{"id":25,"title":"SHOKZ Openrun Pro 2 Mini Bone Conduction Sport Headphones","price":15299,"original_price":25799,"discount_pct":41,"url":"https:\/\/amzn.to\/44QZkDW","image_path":"deals\/b4dd388e-1fe5-47ef-92f8-daeb9ae02da5.jpeg","merchant":"Amazon","category":"General"},{"id":24,"title":"ASUS TUF A15, AMD Ryzen 7 170, RTX 3050-4GB","price":70990,"original_price":94990,"discount_pct":25,"url":"https:\/\/amzn.to\/4aHJKy1","image_path":"deals\/a15124ad-b702-498e-8d0f-c1cb46d77c7d.jpeg","merchant":"Amazon","category":"General"},{"id":23,"title":"Kuvings B1700 Dark Silver Cold Press Juicer for Home with Attachments","price":21499,"original_price":43900,"discount_pct":51,"url":"https:\/\/amzn.to\/4vQe6qh","image_path":"deals\/cdb131b9-5f31-43c0-b788-3f532c80e72b.jpeg","merchant":"Amazon","category":"General"},{"id":22,"title":"Acer ALG, Intel Core5-210H Processor, NVIDIA GeForceRTX 3050-6GB DDR6","price":74990,"original_price":129000,"discount_pct":42,"url":"https:\/\/amzn.to\/3SJTm5b","image_path":"deals\/dc151a87-6441-4c68-bcdd-296c9024d51f.jpeg","merchant":"Amazon","category":"General"},{"id":21,"title":"Atomberg Zenova Mixer Grinder for Kitchen with Intelligent BLDC Motor","price":6799,"original_price":11999,"discount_pct":43,"url":"https:\/\/amzn.to\/3RqSaTM","image_path":"deals\/0aad70af-4d1c-4656-9f0e-cc7200d5aad4.jpeg","merchant":"Amazon","category":"General"},{"id":20,"title":"CELLBELL Desire C104 Mesh Mid Back Chair | Ergonomic Office, Study, Revolving, Computer Chair for Work from Home Heavy Duty Metal Base, Seat Height Adjustable (Black)","price":2999,"original_price":9999,"discount_pct":70,"url":"https:\/\/amzn.to\/4y7pyzo","image_path":"deals\/e87a7ba1-1335-4a10-99ee-54441b638c63.jpeg","merchant":"Amazon","category":"General"},{"id":19,"title":"SINGER 1408 Sewing Machine \u2013 8 Built-in Stitches | 21 Stitch Functions | 800 SPM Speed | 4-Step Buttonhole | Heavy-Duty Metal Frame | Free Arm | Snap-On Presser Foot | 2-Year Warranty","price":9585,"original_price":15700,"discount_pct":39,"url":"https:\/\/amzn.to\/3R5M6jx","image_path":"deals\/1a680168-721d-49bc-ae8b-fcfffc35e7bb.jpeg","merchant":"Amazon","category":"General"},{"id":18,"title":"DeLonghi Dedica Style Espresso Machine with Milk Frother","price":14499,"original_price":44999,"discount_pct":68,"url":"https:\/\/amzn.to\/4wa4O97","image_path":"deals\/21ac2b24-f45f-4972-8daa-45bd6079782c.jpeg","merchant":"Amazon","category":"General"},{"id":17,"title":"SHOKZ Openrun Pro 2 Mini Bone Conduction Sport Headphones, Open Ear Wireless Earphones With Bluetooth 5.3, Noise Cancelling Mics, IP55 Waterproof, 12H Playtime For Running, USB-C Quick Charge (Silver)","price":15299,"original_price":25799,"discount_pct":41,"url":"https:\/\/amzn.to\/4buM7nU","image_path":"deals\/32f478fb-e342-4c63-b7c7-f735a0973c74.jpeg","merchant":"Amazon","category":"General"},{"id":16,"title":"beAAtho\u00ae Verona Mesh High Back Ergonomic Home Office Chair","price":3994,"original_price":14999,"discount_pct":73,"url":"https:\/\/amzn.to\/4y9g2Ml","image_path":"deals\/e994d87d-49ad-4c73-b83a-e6afc06ee8c7.jpeg","merchant":"Amazon","category":"General"},{"id":15,"title":"Colorbot Stella BLDC Ceiling Fans 1200mm | BEE 5 Star Rated Power Saver | AeroQuiet+ Technology | 370 RPM | Remote Control (Boost, Timer, LED, Reverse Mode) | 4 Years Warranty (Charcoal Black)","price":2589,"original_price":6377,"discount_pct":59,"url":"https:\/\/amzn.to\/4bbZg5g","image_path":"deals\/d7d8ca3f-2c87-4655-9109-0605238acd88.jpeg","merchant":"Amazon","category":"General"},{"id":14,"title":"realme Buds T500 Pro TWS Earbuds with 12.4mm Drivers, Upto 50dB ANC,3D Spatial Audio, 56H Playtime, AI ENC, IP55 Rating, and 45ms Low Latency BT 6.1 (Chocolate)","price":2799,"original_price":4250,"discount_pct":34,"url":"https:\/\/amzn.to\/3R5oZFD","image_path":"deals\/44ba849a-fb7b-45f5-b78a-0c13e3ff8618.jpeg","merchant":"Amazon","category":"General"},{"id":13,"title":"DeLonghi Dedica Style Espresso Machine with Milk Frother","price":14499,"original_price":44999,"discount_pct":68,"url":"https:\/\/amzn.to\/4p66U6S","image_path":"deals\/b2494646-60f3-4643-9d63-a491cbb91101.jpeg","merchant":"Amazon","category":"General"},{"id":12,"title":"70mai A510 HDR 3K Dual Channel Dash Cam","price":11799,"original_price":21999,"discount_pct":46,"url":"https:\/\/amzn.to\/4yamPoU","image_path":"deals\/f595e4f7-4d54-41a0-8cb4-91c3d4d76945.jpeg","merchant":"Amazon","category":"General"},{"id":11,"title":"Samsung Galaxy Watch8 (40mm, LTE, Graphite)","price":24999,"original_price":42990,"discount_pct":42,"url":"https:\/\/amzn.to\/3ToSrHp","image_path":"deals\/b38df68f-670b-4557-b6eb-69a5cf014717.jpeg","merchant":"Amazon","category":"General"},{"id":10,"title":"Atomberg Zenova Fresh Juicer Mixer Grinder","price":6299,"original_price":12000,"discount_pct":48,"url":"https:\/\/amzn.to\/3SOphkR","image_path":"deals\/c4c3880d-398e-4703-aa24-3890e3e4dbeb.jpeg","merchant":"Amazon","category":"General"},{"id":9,"title":"Kurlon Dual Mattress | Queen Size 72x60x4 Inches","price":5399,"original_price":10468,"discount_pct":48,"url":"https:\/\/amzn.to\/4wwc1zZ","image_path":"deals\/793ecae3-3a67-49dd-94d6-c0fcbceb2b01.jpeg","merchant":"Amazon","category":"General"},{"id":8,"title":"Dyson V8 Absolute Cord-Free Cleaner","price":27990,"original_price":43900,"discount_pct":36,"url":"https:\/\/amzn.to\/4vM49dy","image_path":"deals\/638c06f9-68fe-4244-aeb9-cf909e539385.jpeg","merchant":"Amazon","category":"General"},{"id":7,"title":"Kuvings B1700 Dark Silver Cold Press Juicer for Home","price":16999,"original_price":35900,"discount_pct":53,"url":"https:\/\/amzn.to\/4bbZ4D4","image_path":"deals\/ab513525-5b72-46ac-ab56-6b1a110367e4.jpeg","merchant":"Amazon","category":"General"},{"id":6,"title":"Samsung Galaxy Watch8 (44mm, LTE, Graphite) with 3nm Processor | Dual GPS","price":25999,"original_price":45999,"discount_pct":43,"url":"https:\/\/amzn.to\/44he3b6","image_path":"deals\/d85f8dee-51ec-4cd4-a3fb-cc71ca3c0966.jpeg","merchant":"Amazon","category":"General"},{"id":5,"title":"Slovic Pull up Bar for Home for Kids \u0026 Adults [100 KG] | Pull up Bar Wall Mounted with Anti-Skid Grip | No-Drill Installation Pull-up Bars for Home Workout | Gym Equipment for Home Workout (62-100 CM)","price":549,"original_price":1499,"discount_pct":63,"url":"https:\/\/amzn.to\/4btyKV2","image_path":"deals\/6d2e7076-3cc4-4c22-b61f-99407ef3ac1b.jpeg","merchant":"Amazon","category":"General"},{"id":4,"title":"Samsung 55 inches Mini LED 4K Samsung Vision AI Smart TV UA55M2EHAULXL","price":8990,"original_price":30000,"discount_pct":70,"url":"https:\/\/www.amazon.in\/Samsung-inches-Vision-Smart-UA55M2EHAULXL\/dp\/B0GXV5313B?tag=kridaymart-21","image_path":"deals\/a3c25abe-02a4-4815-a0b0-2f4d060b5319.jpeg","merchant":"Amazon","category":"General"}],
+        messages: [
+            { id: 1, role: 'assistant', text: 'Hi! Ask me for deal recommendations. Example: "Best smartphone under ₹30000" or "Cheapest AirPods".' }
+        ],
+        query: '',
+        filters: {
+            budget: null,
+            keyword: null,
+            intent: 'best' // 'best' or 'cheapest'
+        },
+        predictionText: 'Select a deal to see AI prediction.',
+        predictionLoading: false,
+
+        init() {
+            this.$watch('bestDeal', value => {
+                if (value) {
+                    this.fetchPrediction(value.id);
+                } else {
+                    this.predictionText = 'Select a deal to see AI prediction.';
+                }
+            });
+            // trigger on load if bestDeal exists
+            if (this.bestDeal) {
+                this.fetchPrediction(this.bestDeal.id);
+            }
+        },
+
+        fetchPrediction(dealId) {
+            this.predictionLoading = true;
+            this.predictionText = 'AI is analyzing price history...';
+            
+            fetch('/api/predict-price', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deal_id: dealId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    this.predictionText = data.data.prediction;
+                } else {
+                    this.predictionText = 'Prediction unavailable.';
+                }
+            })
+            .catch(err => {
+                this.predictionText = 'Error connecting to AI.';
+            })
+            .finally(() => {
+                this.predictionLoading = false;
+            });
+        },
+
+        get filteredDeals() {
+            if (this.aiSearchResults !== null) {
+                return this.aiSearchResults;
+            }
+            return [...this.rawDeals].slice(0, 12);
+        },
+        
+        get comparisonDeals() {
+            return this.filteredDeals.slice(0, 4);
+        },
+        
+        get bestDeal() {
+            return this.selectedDeal || this.comparisonDeals[0] || null;
+        },
+
+        setQuery(q) {
+            this.query = q;
+            this.onAsk();
+        },
+
+        aiSearchResults: null,
+        isSearching: false,
+
+        onAsk() {
+            const text = this.query.trim();
+            if (!text) return;
+
+            this.messages.push({ id: Date.now(), role: 'user', text });
+            
+            const aiMessageId = Date.now() + 1;
+            this.messages.push({ id: aiMessageId, role: 'assistant', text: '...' });
+            
+            this.query = '';
+            this.isSearching = true;
+            this.selectedDeal = null;
+            
+            this.$nextTick(() => {
+                const el = document.getElementById('chat-window');
+                if(el) el.scrollTop = el.scrollHeight;
+            });
+            
+            // Step 1: Hit Smart Search API to get deals based on intent
+            fetch('/api/smart-search?q=' + encodeURIComponent(text))
+            .then(res => res.json())
+            .then(searchData => {
+                if (searchData.deals && searchData.deals.length > 0) {
+                    this.aiSearchResults = searchData.deals;
+                } else {
+                    this.aiSearchResults = [];
+                }
+                this.isSearching = false;
+
+                // Step 2: Hit Chat API to generate a conversational response
+                return fetch('/api/assistant/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        message: text,
+                        deal_ids: this.aiSearchResults.map(d => d.id)
+                    })
+                });
+            })
+            .then(res => res ? res.json() : null)
+            .then(data => {
+                if (!data) return;
+                const msgIndex = this.messages.findIndex(m => m.id === aiMessageId);
+                if (msgIndex !== -1) {
+                    this.messages[msgIndex].text = data.reply || "I found some deals that match your criteria.";
+                }
+                this.$nextTick(() => {
+                    const el = document.getElementById('chat-window');
+                    if(el) el.scrollTop = el.scrollHeight;
+                });
+            })
+            .catch(err => {
+                this.isSearching = false;
+                const msgIndex = this.messages.findIndex(m => m.id === aiMessageId);
+                if (msgIndex !== -1) {
+                    this.messages[msgIndex].text = "Error connecting to AI backend.";
+                }
+            });
+        }
+    }));
+});
+</script>
+        </main>
+    </div>
+
+    <footer class="border-t border-red-100 bg-white pt-8 pb-4 text-sm text-gray-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-8 mb-8">
+                <!-- Branding & About -->
+                <div class="col-span-2 md:col-span-2">
+                    <a href="/" class="flex items-center mb-3 group">
+                        <img src="/images/logo.png" alt="LatestDeal" height="28" class="theme-logo h-7 w-auto block dark:hidden group-hover:scale-105 transition-transform" />
+                        <img src="/images/logo-white.png" alt="LatestDeal" height="28" class="theme-logo h-7 w-auto hidden dark:block group-hover:scale-105 transition-transform" />
+                    </a>
+                    <p class="text-slate-500 dark:text-slate-400 max-w-sm mb-4 leading-relaxed text-xs sm:text-sm">
+                        Autonomous global deal discovery engine. We scour the web to find the best discounts, offers, and coupons so you never pay full price.
+                    </p>
+                    <div class="flex space-x-5">
+                        <a href="https://t.me/latestdealin" target="_blank" class="text-slate-400 hover:text-red-500 transition-colors">
+                            <span class="sr-only">Telegram</span>
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.415-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.254-.241-1.868-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.892-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider text-xs">Platform</h3>
+                    <ul class="space-y-2.5">
+                        <li><a href="/?sort=discount" class="hover:text-red-500 transition-colors">Today's Deals</a></li>
+                        <li><a href="/?tag=trending" class="hover:text-red-500 transition-colors">Trending</a></li>
+                        <li><a href="/?category=electronics" class="hover:text-red-500 transition-colors">Categories</a></li>
+                        <li><a href="/?merchant=amazon" class="hover:text-red-500 transition-colors">Stores</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider text-xs">Legal</h3>
+                    <ul class="space-y-2.5">
+                        <li><a href="http://localhost:9000/privacy" class="hover:text-red-500 transition-colors">Privacy Policy</a></li>
+                        <li><a href="http://localhost:9000/terms" class="hover:text-red-500 transition-colors">Terms of Service</a></li>
+                        <li><a href="http://localhost:9000/privacy" class="hover:text-red-500 transition-colors">Cookie Policy</a></li>
+                        <li><a href="mailto:support@latestdeal.in" class="hover:text-red-500 transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright -->
+            <div class="pt-6 border-t border-slate-200 dark:border-slate-800/60 flex flex-col md:flex-row justify-between items-center gap-3">
+                <p>&copy; 2026 LatestDeal. All rights reserved.</p>
+                <p class="flex items-center gap-1.5 text-xs text-slate-400">
+                    Made with <svg class="h-3 w-3 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> by LatestDeal Team
+                </p>
+            </div>
+        </div>
+    </footer>
+
+            <div x-data="{ open: false, keyword: '', target_price: '' }" 
+     x-on:open-alert-modal.window="open = true"
+     x-show="open" 
+     class="relative z-50" 
+     aria-labelledby="modal-title" 
+     role="dialog" 
+     aria-modal="true" 
+     style="display: none;">
+     
+    <!-- Backdrop -->
+    <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <!-- Modal Panel -->
+            <div x-show="open" 
+                 x-transition:enter="ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave="ease-in duration-200" 
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 @click.away="open = false"
+                 class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                 
+                <div>
+                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                        <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-5">
+                        <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Set a Price Alert</h3>
+                        <div class="mt-2 text-sm text-gray-500">
+                            <p>Enter an email and keyword (e.g. "iPhone") to instantly receive a notification when the price drops!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form action="/price-alerts" method="POST" class="mt-5 sm:mt-6 space-y-4">
+                    <input type="hidden" name="_token" value="c8IbbyllgHBYUkbsxya3Yp8mAeaUdBCdhiTcQBZA" autocomplete="off">                                            <div>
+                            <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Email Address</label>
+                            <div class="mt-2">
+                                <input type="email" name="email" id="email" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="you@example.com" required>
+                            </div>
+                        </div>
+                                        <div>
+                        <label for="keyword" class="block text-sm font-medium leading-6 text-gray-900">Keyword</label>
+                        <div class="mt-2">
+                            <input type="text" x-model="keyword" name="keyword" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="e.g. iPad Pro" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="price" class="block text-sm font-medium leading-6 text-gray-900">Target Price (₹)</label>
+                        <div class="mt-2">
+                            <input type="number" x-model="target_price" name="price" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3" placeholder="50000" required>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
+                        <button type="submit" class="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:col-start-2">Set Alert</button>
+                        <button class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md font-semibold text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary bg-gray-200 hover:bg-gray-300 text-gray-800 mt-3 sm:col-start-1 sm:mt-0 w-full" type="button" @click="open = false">
+    Cancel
+</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+                <div x-data="{ 
+        showCookieBanner: !localStorage.getItem('cookieConsent_preference'),
+        showPolicyModal: false,
+        activeTab: 'privacy',
+        accept(level) {
+            localStorage.setItem('cookieConsent_preference', level);
+            this.showCookieBanner = false;
+        }
+    }"
+     class="relative z-[100]">
+
+    <!-- Cookie Banner -->
+    <div x-show="showCookieBanner"
+         class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5 z-[100]"
+         style="display: none;">
+        <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+            <div class="p-4 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex-1 flex items-start gap-4">
+                    <span class="flex p-2 rounded-lg bg-slate-800 shrink-0">
+                        <svg class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="font-bold text-white mb-1">Your Privacy Choices</h3>
+                        <p class="text-sm text-slate-300">
+                            We use cookies to improve your experience, personalize content, and analyze our traffic. 
+                            By choosing "Accept All", you agree to our 
+                            <button @click.prevent="showPolicyModal = true; activeTab = 'terms'" class="font-semibold text-red-400 hover:text-red-300 underline">Terms</button> and 
+                            <button @click.prevent="showPolicyModal = true; activeTab = 'privacy'" class="font-semibold text-red-400 hover:text-red-300 underline">Privacy Policy</button>.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center justify-center md:justify-end gap-2 w-full md:w-auto shrink-0">
+                    <button @click="accept('all')" class="rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600 transition w-full sm:w-auto">
+                        Accept All
+                    </button>
+                    <button @click="accept('mandatory')" class="rounded-lg bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-600 transition w-full sm:w-auto border border-slate-600">
+                        Mandatory Only
+                    </button>
+                    <button @click="accept('reject')" class="rounded-lg bg-transparent px-4 py-2.5 text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition w-full sm:w-auto border border-transparent hover:border-slate-700">
+                        Reject All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Policy Modal -->
+    <div x-show="showPolicyModal" 
+         style="display: none;"
+         class="fixed inset-0 z-[110] overflow-y-auto" 
+         aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        
+        <!-- Backdrop -->
+        <div x-show="showPolicyModal"
+             x-transition.opacity
+             class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"
+             @click="showPolicyModal = false"></div>
+
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <!-- Modal Panel -->
+            <div x-show="showPolicyModal"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                
+                <!-- Header -->
+                <div class="border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
+                    <div class="flex gap-4">
+                        <button @click="activeTab = 'privacy'" 
+                                :class="{'text-red-500 border-b-2 border-red-500': activeTab === 'privacy', 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200': activeTab !== 'privacy'}"
+                                class="text-lg font-bold pb-1 transition">
+                            Privacy Policy
+                        </button>
+                        <button @click="activeTab = 'terms'" 
+                                :class="{'text-red-500 border-b-2 border-red-500': activeTab === 'terms', 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200': activeTab !== 'terms'}"
+                                class="text-lg font-bold pb-1 transition">
+                            Terms of Service
+                        </button>
+                    </div>
+                    <button @click="showPolicyModal = false" class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="px-6 py-4 max-h-[60vh] overflow-y-auto prose dark:prose-invert prose-sm sm:prose-base">
+                    
+                    <!-- Privacy Content -->
+                    <div x-show="activeTab === 'privacy'">
+                        <p class="text-slate-500 dark:text-slate-400 mb-4">Last updated: July 13, 2026</p>
+                        <h4 class="font-bold mt-4 mb-2">1. Information We Collect</h4>
+                        <p class="mb-4">We collect information you provide directly to us, such as when you create or modify your account, request on-demand services, contact customer support, or otherwise communicate with us. This information may include: name, email, phone number, postal address, profile picture, and other information you choose to provide.</p>
+                        <h4 class="font-bold mt-4 mb-2">2. How We Use Information</h4>
+                        <p class="mb-4">We use the information we collect about you to provide, maintain, and improve our services, including, for example, to facilitate payments, send receipts, provide products and services you request, develop new features, provide customer support, develop safety features, authenticate users, and send product updates and administrative messages.</p>
+                        <h4 class="font-bold mt-4 mb-2">3. Sharing of Information</h4>
+                        <p class="mb-4">We may share the information we collect about you as described in this Statement or as described at the time of collection or sharing, including as follows: with third parties to provide you a service you requested through a partnership or promotional offering made by a third party or us.</p>
+                        <h4 class="font-bold mt-4 mb-2">4. Cookies and Advertising</h4>
+                        <p class="mb-4">We use cookies and similar technologies for purposes such as: authenticating users, remembering user preferences and settings, determining the popularity of content, delivering and measuring the effectiveness of advertising campaigns, analyzing site traffic and trends, and generally understanding the online behaviors and interests of people who interact with our services.</p>
+                        <h4 class="font-bold mt-4 mb-2">5. Contact Us</h4>
+                        <p class="mb-4">If you have any questions about this Privacy Statement, please contact us.</p>
+                    </div>
+
+                    <!-- Terms Content -->
+                    <div x-show="activeTab === 'terms'" style="display: none;">
+                        <p class="text-slate-500 dark:text-slate-400 mb-4">Last updated: July 13, 2026</p>
+                        <h4 class="font-bold mt-4 mb-2">1. Acceptance of Terms</h4>
+                        <p class="mb-4">By accessing and using LatestDeal, you accept and agree to be bound by the terms and provision of this agreement. In addition, when using LatestDeal's particular services, you shall be subject to any posted guidelines or rules applicable to such services.</p>
+                        <h4 class="font-bold mt-4 mb-2">2. Description of Service</h4>
+                        <p class="mb-4">LatestDeal provides users with access to a rich collection of resources, including various communications tools, forums, shopping services, and personalized content. You also understand and agree that the service may include advertisements and that these advertisements are necessary for LatestDeal to provide the service.</p>
+                        <h4 class="font-bold mt-4 mb-2">3. Affiliate Links Disclosure</h4>
+                        <p class="mb-4">Some of the links on LatestDeal are affiliate links. This means that if you click on the link and purchase the item, LatestDeal will receive an affiliate commission at no extra cost to you. We only recommend products or services we believe will add value to our readers.</p>
+                        <h4 class="font-bold mt-4 mb-2">4. User Conduct</h4>
+                        <p class="mb-4">You understand that all information, data, text, software, music, sound, photographs, graphics, video, messages or other materials, whether publicly posted or privately transmitted, are the sole responsibility of the person from which such content originated. You agree to not use the service to post content that is unlawful, harmful, or threatening.</p>
+                        <h4 class="font-bold mt-4 mb-2">5. Modifications to Service</h4>
+                        <p class="mb-4">LatestDeal reserves the right at any time and from time to time to modify or discontinue, temporarily or permanently, the service (or any part thereof) with or without notice.</p>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex justify-end">
+                    <button @click="showPolicyModal = false" class="btn-primary">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        
+    <!-- Slide-up Theme Switcher -->
+    <div class="fixed bottom-0 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center">
+        <!-- Slide-up Panel -->
+        <div x-show="open" 
+             x-transition:enter="transition ease-out duration-300" 
+             x-transition:enter-start="translate-y-full opacity-0" 
+             x-transition:enter-end="translate-y-0 opacity-100" 
+             x-transition:leave="transition ease-in duration-200" 
+             x-transition:leave-start="translate-y-0 opacity-100" 
+             x-transition:leave-end="translate-y-full opacity-0" 
+             class="w-[22rem] bg-white/95 dark:bg-slate-900/95 p-5 rounded-t-3xl shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-xl border border-b-0 border-slate-200 dark:border-slate-700 pb-8"
+             @click.away="open = false">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">Appearance Settings</h3>
+                <button @click="open = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Dark Mode Options -->
+            <div class="grid grid-cols-2 gap-2 mb-6 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl">
+                <button @click="setDark(false)" class="py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 focus:outline-none" :class="!isDark ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    Light
+                </button>
+                <button @click="setDark(true)" class="py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 focus:outline-none" :class="isDark ? 'bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                    Dark
+                </button>
+            </div>
+
+            <!-- Accent Colors -->
+            <div class="mb-5">
+                <p class="text-[10px] font-semibold text-slate-500 mb-3 uppercase tracking-wider">Accent Theme</p>
+                <div class="flex items-center gap-4">
+                    <button @click="setColorTheme('red')" style="background-color: #ef4444;" class="w-10 h-10 rounded-full border-[3px] transition-transform hover:scale-110 focus:outline-none" :class="colorTheme === 'red' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
+                    <button @click="setColorTheme('green')" class="w-10 h-10 rounded-full bg-[#1B5E3C] border-[3px] transition-transform hover:scale-110 focus:outline-none" :class="colorTheme === 'green' ? 'border-slate-800 dark:border-white scale-110' : 'border-transparent'"></button>
+                </div>
+            </div>
+
+            <!-- Eye Comfort View -->
+            <div class="flex items-center justify-between pt-5 border-t border-slate-200 dark:border-slate-700/60">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl">
+                        <!-- Eye safety icon -->
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-800 dark:text-white">Eye Comfort View</p>
+                        <p class="text-xs text-slate-500">Reduces blue light</p>
+                    </div>
+                </div>
+                <!-- Power Toggle Button -->
+                <button @click="colorTheme === 'amber' ? setColorTheme('red') : setColorTheme('amber')" class="relative flex items-center justify-center h-10 w-10 rounded-full transition-colors shadow-inner focus:outline-none" :class="colorTheme === 'amber' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'">
+                    <!-- Power Icon -->
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10" /></svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Toggle Arrow Button (Hidden when panel is open) -->
+        <button @click="open = true" x-show="!open" x-transition.opacity.delay.200ms class="bg-white/90 dark:bg-slate-800/90 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] border border-b-0 border-slate-200 dark:border-slate-700 rounded-t-xl px-5 py-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors backdrop-blur focus:outline-none mb-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button 
+        x-data="{ show: false }"
+        x-init="window.addEventListener('scroll', () => { show = window.scrollY > 500 })"
+        x-show="show"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-10"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-10"
+        @click="window.scrollTo({ top: 0, behavior: 'smooth' })"
+        class="fixed bottom-6 right-6 z-50 p-3.5 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all focus:outline-none focus:ring-4 focus:ring-red-300"
+        aria-label="Scroll to top"
+        style="display: none;"
+    >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
+    </button>
+    
+    <!-- Eye Comfort Overlay -->
+    <div x-show="colorTheme === 'amber'" class="fixed inset-0 z-[99999] pointer-events-none bg-[#451a03]/5 backdrop-brightness-95 backdrop-contrast-90" x-transition.opacity></div>
+    
+    </body>
+</html>

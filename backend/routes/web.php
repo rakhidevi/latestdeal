@@ -429,6 +429,14 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/publisher/dashboard', [\App\Http\Controllers\PublisherAuthController::class, 'dashboard']);
     Route::post('/publisher/logout', [\App\Http\Controllers\PublisherAuthController::class, 'logout']);
+    
+    // API Tokens
+    Route::post('/publisher/tokens', [\App\Http\Controllers\PublisherTokenController::class, 'store'])->name('publisher.tokens.store');
+    Route::delete('/publisher/tokens/{id}', [\App\Http\Controllers\PublisherTokenController::class, 'destroy'])->name('publisher.tokens.destroy');
+    
+    // Publisher Rules
+    Route::post('/publisher/rules', [\App\Http\Controllers\PublisherRuleController::class, 'store'])->name('publisher.rules.store');
+    Route::delete('/publisher/rules/{rule}', [\App\Http\Controllers\PublisherRuleController::class, 'destroy'])->name('publisher.rules.destroy');
 });
 
 // Admin Routes

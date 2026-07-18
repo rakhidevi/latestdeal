@@ -20,8 +20,14 @@ start "Telegram Scraper" /MIN cmd /c "venv\Scripts\python.exe telegram_scraper.p
 echo 5. Starting the AI Hunter (Auto-scans Amazon every 60 mins)...
 start "AI Hunter" /MIN cmd /c "run_hunter_loop.bat"
 
+echo 6. Starting the Live Comparison Worker (Background price checker)...
+start "Live Comparison Worker" /MIN cmd /c "venv\Scripts\python.exe compare_worker.py"
+
+echo 7. Starting the Main Worker (Queue Processor)...
+start "Main Worker" /MIN cmd /c "venv\Scripts\python.exe main.py"
+
 echo.
-echo [SUCCESS] Everything is running! (Daemon, Dashboard, Telegram Scraper, and Hunter)
+echo [SUCCESS] Everything is running! (Daemon, Dashboard, Telegram Scraper, Hunter, Comparison Worker, and Main Worker)
 echo The browsers will now pop up VISIBLY on your screen so Amazon/Udemy won't block them.
 echo Opening the UI dashboard for you...
 

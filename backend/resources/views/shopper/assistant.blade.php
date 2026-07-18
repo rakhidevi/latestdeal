@@ -124,6 +124,40 @@
                             <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> Strong price-to-feature ratio at <span class="font-bold text-gray-900 dark:text-white">₹<span x-text="Math.round(bestDeal.price).toLocaleString('en-IN')"></span></span>.</li>
                             <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">•</span> Reliable marketplace signal from <span class="font-bold text-gray-900 dark:text-white" x-text="bestDeal.merchant"></span>.</li>
                         </ul>
+                        <div class="mt-4">
+                            <button @click="startLiveComparison(bestDeal)" class="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 text-sm transition-colors flex items-center justify-center gap-2 shadow-sm" :disabled="isComparing">
+                                <svg x-show="!isComparing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <svg x-show="isComparing" class="animate-spin w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <span x-text="isComparing ? compareStageText : 'Compare Prices Live'"></span>
+                            </button>
+                        </div>
+                        
+                        <!-- Live Comparison Results -->
+                        <div x-show="comparisonResults" class="mt-4 border-t border-emerald-200/50 dark:border-emerald-800/50 pt-4" x-transition>
+                            <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Live Competitor Prices</h4>
+                            <div class="space-y-3">
+                                <template x-for="comp in comparisonResults" :key="comp.store">
+                                    <div class="flex items-center justify-between p-2 rounded-lg bg-white/50 dark:bg-slate-900/50 border border-emerald-100 dark:border-emerald-800/30">
+                                        <div class="flex flex-col">
+                                            <span class="font-bold text-sm text-gray-900 dark:text-white" x-text="comp.store"></span>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[10px] text-gray-500" x-text="comp.delivery || 'Standard Delivery'"></span>
+                                                <span class="text-[10px] text-yellow-500 font-bold" x-show="comp.rating" x-text="'⭐ ' + comp.rating"></span>
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col items-end">
+                                            <span class="font-bold text-emerald-600 dark:text-emerald-400">₹<span x-text="comp.price.toLocaleString('en-IN')"></span></span>
+                                            <a :href="comp.url" target="_blank" class="text-[10px] text-blue-500 hover:underline">View</a>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            <template x-if="aiValueScore">
+                                <div class="mt-3 bg-emerald-100 dark:bg-emerald-900/40 p-2 rounded-lg text-center">
+                                    <span class="text-xs font-bold text-emerald-700 dark:text-emerald-300">AI Value Score: <span x-text="aiValueScore + '/100'"></span></span>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </template>
             </div>
@@ -204,9 +238,17 @@ document.addEventListener('alpine:init', () => {
         },
         predictionText: 'Select a deal to see AI prediction.',
         predictionLoading: false,
+        
+        isComparing: false,
+        compareStageText: 'Compare Prices Live',
+        comparisonResults: null,
+        aiValueScore: null,
+        comparisonInterval: null,
 
         init() {
             this.$watch('bestDeal', value => {
+                this.comparisonResults = null;
+                this.aiValueScore = null;
                 if (value) {
                     this.fetchPrediction(value.id);
                 } else {
@@ -264,6 +306,81 @@ document.addEventListener('alpine:init', () => {
             this.onAsk();
         },
 
+        async startLiveComparison(deal) {
+            if (!deal) return;
+            this.isComparing = true;
+            this.comparisonResults = null;
+            this.aiValueScore = null;
+            
+            try {
+                // 1. Dispatch request
+                const res = await fetch('/api/compare-prices', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ deal_id: deal.id, title: deal.title })
+                });
+                const data = await res.json();
+                
+                if (data.status === 'cache_hit') {
+                    this.comparisonResults = data.data.results;
+                    this.aiValueScore = data.data.ai_score;
+                    this.isComparing = false;
+                    return;
+                }
+                
+                const stages = [
+                    "Queuing comparison task...",
+                    "Searching Amazon...",
+                    "Checking Flipkart...",
+                    "Querying Croma...",
+                    "AI is scoring the deals..."
+                ];
+                let currentStage = 0;
+                this.compareStageText = stages[0];
+                
+                let stageInterval = setInterval(() => {
+                    currentStage++;
+                    if(currentStage >= stages.length) currentStage = stages.length - 1;
+                    this.compareStageText = stages[currentStage];
+                }, 2000);
+                
+                // 2. Poll for results if pending
+                const jobId = data.job_id;
+                let attempts = 0;
+                
+                this.comparisonInterval = setInterval(async () => {
+                    attempts++;
+                    if (attempts > 30) { // 60s timeout
+                        clearInterval(this.comparisonInterval);
+                        clearInterval(stageInterval);
+                        this.isComparing = false;
+                        alert("Comparison timed out.");
+                        return;
+                    }
+                    
+                    const statusRes = await fetch(`/api/compare-prices/${jobId}`);
+                    const statusData = await statusRes.json();
+                    
+                    if (statusData.status === 'completed') {
+                        clearInterval(this.comparisonInterval);
+                        clearInterval(stageInterval);
+                        this.comparisonResults = statusData.data.results;
+                        this.aiValueScore = statusData.data.ai_score;
+                        this.isComparing = false;
+                    } else if (statusData.status === 'failed') {
+                        clearInterval(this.comparisonInterval);
+                        clearInterval(stageInterval);
+                        this.isComparing = false;
+                        alert("Failed to retrieve live prices.");
+                    }
+                }, 2000);
+                
+            } catch (err) {
+                console.error("Comparison error", err);
+                this.isComparing = false;
+            }
+        },
+
         aiSearchResults: null,
         isSearching: false,
 
@@ -274,7 +391,19 @@ document.addEventListener('alpine:init', () => {
             this.messages.push({ id: Date.now(), role: 'user', text });
             
             const aiMessageId = Date.now() + 1;
-            this.messages.push({ id: aiMessageId, role: 'assistant', text: '<div class="flex items-center space-x-1.5 h-6 px-1"><div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.15s"></div><div class="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></div></div>' });
+            
+            const keywords = text.substring(0, 35);
+            const stages = [
+                `🔍 Understanding your request: "${keywords}..."`,
+                `🛒 Searching active deals...`,
+                `💰 Analyzing pricing history...`,
+                `🤖 Ranking best recommendations...`
+            ];
+            let currentStage = 0;
+            
+            const getLoadingHtml = (msg) => `<div class="flex items-center space-x-2 text-slate-500 dark:text-slate-400 text-sm italic font-medium"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>${msg}</span></div>`;
+
+            this.messages.push({ id: aiMessageId, role: 'assistant', text: getLoadingHtml(stages[0]) });
             
             this.query = '';
             this.isSearching = true;
@@ -284,6 +413,15 @@ document.addEventListener('alpine:init', () => {
                 const el = document.getElementById('chat-window');
                 if(el) el.scrollTop = el.scrollHeight;
             });
+            
+            let loadingInterval = setInterval(() => {
+                currentStage++;
+                if (currentStage >= stages.length) currentStage = stages.length - 1;
+                const msgIndex = this.messages.findIndex(m => m.id === aiMessageId);
+                if (msgIndex !== -1 && this.isSearching) {
+                    this.messages[msgIndex].text = getLoadingHtml(stages[currentStage]);
+                }
+            }, 1200);
             
             // Step 1: Hit Smart Search API to get deals based on intent
             fetch('/api/smart-search?q=' + encodeURIComponent(text))
@@ -327,6 +465,9 @@ document.addEventListener('alpine:init', () => {
                 if (msgIndex !== -1) {
                     this.messages[msgIndex].text = "Error connecting to AI backend.";
                 }
+            })
+            .finally(() => {
+                clearInterval(loadingInterval);
             });
         }
     }));

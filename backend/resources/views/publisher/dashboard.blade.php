@@ -137,6 +137,75 @@
         </div>
     </div>
 
+    <!-- Rule-Based Automation -->
+    <div class="bg-white shadow sm:rounded-lg border mb-8">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-base font-semibold leading-6 text-gray-900">Rule-Based Automation</h3>
+            <div class="mt-2 max-w-xl text-sm text-gray-500">
+                <p>Define rules to automatically post deals to your channels when they match specific criteria.</p>
+            </div>
+            
+            <!-- Add Rule Form -->
+            <form action="{{ route('publisher.rules.store') }}" method="POST" class="mt-5 sm:flex sm:items-end gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                @csrf
+                <div class="w-full sm:max-w-xs">
+                    <label for="keyword" class="block text-xs font-medium text-gray-700">Keyword (Optional)</label>
+                    <input type="text" name="keyword" id="keyword" placeholder="e.g. iPhone" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6">
+                </div>
+                <div class="w-full sm:max-w-[120px] mt-3 sm:mt-0">
+                    <label for="min_discount" class="block text-xs font-medium text-gray-700">Min Discount %</label>
+                    <input type="number" name="min_discount" id="min_discount" placeholder="50" min="0" max="100" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6">
+                </div>
+                <div class="w-full sm:max-w-xs mt-3 sm:mt-0">
+                    <label for="category_id" class="block text-xs font-medium text-gray-700">Category</label>
+                    <select id="category_id" name="category_id" class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6">
+                        <option value="">Any Category</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="submit" class="mt-3 sm:mt-0 inline-flex w-full sm:w-auto items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                    Add Rule
+                </button>
+            </form>
+
+            <!-- Active Rules List -->
+            <div class="mt-6 border-t border-gray-200 pt-5">
+                @if($rules->isEmpty())
+                    <p class="text-sm text-gray-500 italic">No automation rules defined.</p>
+                @else
+                    <ul role="list" class="divide-y divide-gray-200">
+                        @foreach($rules as $rule)
+                            <li class="py-4 flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">
+                                        @if($rule->keyword)
+                                            Keyword: <span class="font-bold">"{{ $rule->keyword }}"</span>
+                                        @else
+                                            <span class="italic text-gray-500">Any Keyword</span>
+                                        @endif
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        Min Discount: <span class="font-bold">{{ $rule->min_discount }}%</span> | 
+                                        Category: <span class="font-bold">{{ $rule->category_id ? $categories->firstWhere('id', $rule->category_id)->name : 'Any' }}</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <form action="{{ route('publisher.rules.destroy', $rule->id) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-500 hover:text-red-700 text-sm font-medium">Delete</button>
+                                    </form>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </div>
+    </div>
+
     <!-- Integrations -->
     <div class="bg-white shadow sm:rounded-lg border">
         <div class="px-4 py-5 sm:p-6">
@@ -157,6 +226,52 @@
                                 </div>
                                 <div>
                                     <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Active</span>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </div>
+    </div>
+    <!-- API Tokens -->
+    <div class="bg-white shadow sm:rounded-lg border mt-8">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-base font-semibold leading-6 text-gray-900">API Access</h3>
+            <div class="mt-2 max-w-xl text-sm text-gray-500">
+                <p>Generate API tokens to integrate your own custom scripts via Laravel Sanctum.</p>
+            </div>
+            
+            <!-- Generate Token Form -->
+            <form action="{{ route('publisher.tokens.store') }}" method="POST" class="mt-5 sm:flex sm:items-end gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                @csrf
+                <div class="w-full sm:max-w-xs">
+                    <label for="name" class="block text-xs font-medium text-gray-700">Token Name</label>
+                    <input type="text" name="name" id="name" placeholder="e.g. My Python Script" required class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6">
+                </div>
+                <button type="submit" class="mt-3 sm:mt-0 inline-flex w-full sm:w-auto items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                    Generate Token
+                </button>
+            </form>
+
+            <!-- Active Tokens List -->
+            <div class="mt-6 border-t border-gray-200 pt-5">
+                @if($user->tokens->isEmpty())
+                    <p class="text-sm text-gray-500 italic">No API tokens generated yet.</p>
+                @else
+                    <ul role="list" class="divide-y divide-gray-200">
+                        @foreach($user->tokens as $token)
+                            <li class="py-4 flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">{{ $token->name }}</p>
+                                    <p class="text-xs text-gray-500">Created: {{ $token->created_at->diffForHumans() }} | Last Used: {{ $token->last_used_at ? $token->last_used_at->diffForHumans() : 'Never' }}</p>
+                                </div>
+                                <div>
+                                    <form action="{{ route('publisher.tokens.destroy', $token->id) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-500 hover:text-red-700 text-sm font-medium">Revoke</button>
+                                    </form>
                                 </div>
                             </li>
                         @endforeach

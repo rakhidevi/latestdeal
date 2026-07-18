@@ -19,6 +19,17 @@ class PricePredictionController extends Controller
 
         $deal = Deal::find($request->deal_id);
 
+        $priceHistories = $deal->priceHistories()->orderBy('created_at', 'asc')->get();
+        $historyText = "No historical data available.";
+        if ($priceHistories->count() > 0) {
+            $historyLines = [];
+            foreach ($priceHistories as $ph) {
+                $date = $ph->created_at->format('Y-m-d');
+                $historyLines[] = "- {$date}: ₹{$ph->price}";
+            }
+            $historyText = implode("\n", $historyLines);
+        }
+
         $ollamaBaseUrl = Setting::where('key', 'ollama_base_url')->value('value') ?? env('OLLAMA_BASE_URL', 'https://ai.latestdeal.in');
         $ollamaUrl = rtrim($ollamaBaseUrl, '/') . '/api/generate';
         $model = Setting::where('key', 'ollama_model')->value('value') ?? env('OLLAMA_MODEL', 'llama3');
@@ -34,7 +45,8 @@ class PricePredictionController extends Controller
                   "Current Price: ₹{$deal->discounted_price}\n" .
                   "Original Price: ₹{$deal->original_price}\n" .
                   "Discount: {$discountPct}%\n\n" .
-                  "Task: Predict if this is a good time to buy or if the user should wait for a better price drop.\n" .
+                  "Historical Prices:\n{$historyText}\n\n" .
+                  "Task: Predict if this is a good time to buy or if the user should wait for a better price drop based on the historical prices provided.\n" .
                   "Reply ONLY with a raw JSON object containing exactly these keys:\n" .
                   "{\n" .
                   "  \"prediction\": \"A short 1-2 sentence advice.\",\n" .

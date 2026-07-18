@@ -62,12 +62,14 @@ class PublisherAuthController
     {
         $user = Auth::user();
         $integrations = PublisherIntegration::where('user_id', $user->id)->get();
+        $rules = \App\Models\PublisherRule::where('user_id', $user->id)->get();
+        $categories = \App\Models\Category::all();
         
         // Count metrics
         $metricsController = app(\App\Http\Controllers\Api\MetricsController::class);
         $metrics = $metricsController->index(request())->getData();
 
-        return view('publisher.dashboard', compact('user', 'integrations', 'metrics'));
+        return view('publisher.dashboard', compact('user', 'integrations', 'rules', 'categories', 'metrics'));
     }
 
     public function logout(Request $request)

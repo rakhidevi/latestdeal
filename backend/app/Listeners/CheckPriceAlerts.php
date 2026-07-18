@@ -30,8 +30,16 @@ class CheckPriceAlerts implements ShouldQueue
         foreach ($matchingAlerts as $alert) {
             $subscriber = $alert->subscriber;
             
-            // In a real application, you would dispatch a Mailable or Push Notification job here
-            Log::info("Price Alert Triggered! Emailing {$subscriber->email} for deal: {$deal->title}");
+            // Send email alert
+            if ($subscriber->email) {
+                \Illuminate\Support\Facades\Mail::raw(
+                    "Great news!\n\nThe deal you've been waiting for is here:\n{$deal->title}\n\nIt has dropped to ₹{$deal->discounted_price}!\n\nView it here: " . url('/go/' . $deal->id),
+                    function ($message) use ($subscriber, $deal) {
+                        $message->to($subscriber->email)
+                                ->subject("Price Drop Alert: {$deal->title}");
+                    }
+                );
+            }
             
             // Ping OneSignal REST API if push_token exists
             if ($subscriber->push_token) {

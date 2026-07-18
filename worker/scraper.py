@@ -172,8 +172,9 @@ def setup_browser(p):
     launch_args = {
         "user_data_dir": user_data_dir,
         "headless": False, # Changed to False to stay bot safe and allow manual auth
-        "channel": "chrome", # Use real Chrome
-        "args": ["--disable-blink-features=AutomationControlled"]
+        "executable_path": r"C:\Program Files\Google\Chrome\Application\chrome.exe", # Use REAL local Chrome
+        "args": ["--disable-blink-features=AutomationControlled"],
+        "ignore_default_args": ["--enable-automation", "--no-sandbox"]
     }
     
     if proxy_server:
@@ -187,7 +188,7 @@ def extract_deal_data_fallback(url: str) -> dict:
     """Scrapes raw data from a given URL using stealth."""
     with sync_playwright() as p:
         browser = setup_browser(p)
-        page = browser.new_page()
+        page = browser.pages[0] if browser.pages else browser.new_page()
         Stealth().apply_stealth_sync(page)
         
         try:
@@ -318,7 +319,7 @@ def extract_udemy_data(url: str) -> dict:
     """Scrapes raw data from Udemy."""
     with sync_playwright() as p:
         browser = setup_browser(p)
-        page = browser.new_page()
+        page = browser.pages[0] if browser.pages else browser.new_page()
         Stealth().apply_stealth_sync(page)
         
         try:
@@ -365,7 +366,7 @@ def extract_coursera_data(url: str) -> dict:
     """Scrapes raw data from Coursera."""
     with sync_playwright() as p:
         browser = setup_browser(p)
-        page = browser.new_page()
+        page = browser.pages[0] if browser.pages else browser.new_page()
         Stealth().apply_stealth_sync(page)
         
         try:

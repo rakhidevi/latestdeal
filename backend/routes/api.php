@@ -39,7 +39,12 @@ Route::post('/assistant/chat', [\App\Http\Controllers\Api\ShopperAssistantContro
 Route::post('/predict-price', [\App\Http\Controllers\Api\PricePredictionController::class, 'predict']);
 Route::get('/smart-search', [\App\Http\Controllers\Api\SmartSearchController::class, 'search']);
 
-// Real-Time Price Verification
+// Real-Time Price Comparison & Live Fetching
+Route::post('/compare-prices', [\App\Http\Controllers\Api\LiveComparisonController::class, 'compare']);
+Route::get('/compare-prices/{job_id}', [\App\Http\Controllers\Api\LiveComparisonController::class, 'checkStatus']);
+Route::get('/worker/compare-jobs/pending', [\App\Http\Controllers\Api\LiveComparisonController::class, 'getNextJob']);
+Route::post('/worker/compare-jobs/{job_id}/complete', [\App\Http\Controllers\Api\LiveComparisonController::class, 'completeJob']);
+
 Route::post('/deals/{id}/refresh-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'refreshPrice']);
 Route::post('/deals/update-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'updatePrice']);
 

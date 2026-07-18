@@ -9,6 +9,7 @@
     @endphp
     <title>{{ $deal->title }} | {{ $discountPercent > 0 ? "Save {$discountPercent}%" : 'Best Price' }} | LatestDeal.in</title>
     <meta name="description" content="Get {{ $deal->title }} for just ₹{{ $deal->discounted_price }}. Original price: ₹{{ $deal->original_price }}.">
+    <link rel="canonical" href="{{ route('deal.show', $deal->slug) }}" />
     
     <!-- Open Graph for WhatsApp/Telegram Previews -->
     <meta property="og:title" content="{{ $deal->title }} | Save {{ $discountPercent }}%">
@@ -188,7 +189,14 @@
 
                 <!-- Copy Code & Go -->
                 <div>
-                    @if($deal->promo_code || $deal->coupon_code)
+                    @if($deal->status === 'expired')
+                        <button disabled class="inline-flex justify-center items-center w-full sm:w-auto bg-gray-400 dark:bg-gray-700 text-white px-8 py-3.5 rounded-xl font-black text-lg cursor-not-allowed shadow-none relative overflow-hidden">
+                            <span class="relative z-10 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                DEAL EXPIRED / SOLD OUT
+                            </span>
+                        </button>
+                    @elseif($deal->promo_code || $deal->coupon_code)
                         <div class="bg-gray-900 dark:bg-black rounded-2xl p-2 pl-6 flex flex-col sm:flex-row sm:items-center justify-between shadow-2xl gap-4 border border-gray-800">
                             <div class="pt-2 sm:pt-0">
                                 <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Use Code at Checkout</p>

@@ -9,6 +9,7 @@ use App\Models\PriceHistory;
 use App\Models\Tag;
 use App\Events\DealIngested;
 use App\Jobs\PublishDealToTelegramJob;
+use App\Jobs\PingGoogleIndexingApiJob;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\Setting;
@@ -130,27 +131,60 @@ class DealIngestionController
         $pipelineEnabled = Setting::where('key', 'deal_approval_pipeline')->value('value') === 'enabled';
         $initialStatus = $pipelineEnabled ? 'pending' : 'active';
 
-        // 3. Create or Update Deal
-        $deal = Deal::updateOrCreate(
-            ['url' => $validated['url']],
-            [
-                'category_id' => $validated['category_id'],
-                'merchant_id' => $validated['merchant_id'],
-                'title' => Str::limit($validated['title'], 250, ''),
-                'original_price' => $validated['original_price'],
-                'discounted_price' => $validated['discounted_price'],
-                'coupon_code' => $validated['promo_code'] ?? null,
-                'brand' => isset($validated['brand']) ? Str::limit($validated['brand'], 250, '') : null,
-                'features' => $validated['features'] ?? null,
-                'verdict' => $validated['verdict'] ?? null,
-                'trust_metrics' => isset($validated['trust_metrics']) ? Str::limit($validated['trust_metrics'], 250, '') : null,
-                'ai_caption' => $validated['ai_caption'] ?? null,
-                'ai_score' => $validated['ai_score'] ?? null,
-                'image_path' => $imagePath,
-                'status' => $initialStatus,
-                'short_url' => $validated['short_url'] ?? null,
-            ]
-        );
+        $brand = isset($validated['brand']) ? Str::limit($validated['brand'], 250, '') : null;
+
+        // 3. Deduplication (Cross-Source fuzzy matching)
+        $titleWords = array_filter(explode(' ', $validated['title']));
+        $firstThreeWords = implode(' ', array_slice($titleWords, 0, 3));
+        
+        $duplicateDeal = null;
+        if (strlen($firstThreeWords) > 5) {
+            $query = Deal::where('status', '!=', 'expired')
+                         ->where('url', '!=', $validated['url']);
+                         
+            if ($brand) {
+                $query->where('brand', $brand)
+                      ->where('title', 'LIKE', $firstThreeWords . '%');
+            } else {
+                $query->where('title', 'LIKE', $firstThreeWords . '%');
+            }
+            $duplicateDeal = $query->first();
+        }
+
+        if ($duplicateDeal) {
+            // Merge: If new deal is cheaper, update the existing deal's URL, price and merchant
+            if ($validated['discounted_price'] < $duplicateDeal->discounted_price) {
+                $duplicateDeal->update([
+                    'discounted_price' => $validated['discounted_price'],
+                    'original_price' => $validated['original_price'],
+                    'url' => $validated['url'],
+                    'merchant_id' => $validated['merchant_id'],
+                ]);
+            }
+            $deal = $duplicateDeal;
+        } else {
+            // 3.5 Create or Update Deal
+            $deal = Deal::updateOrCreate(
+                ['url' => $validated['url']],
+                [
+                    'category_id' => $validated['category_id'],
+                    'merchant_id' => $validated['merchant_id'],
+                    'title' => Str::limit($validated['title'], 250, ''),
+                    'original_price' => $validated['original_price'],
+                    'discounted_price' => $validated['discounted_price'],
+                    'coupon_code' => $validated['promo_code'] ?? null,
+                    'brand' => $brand,
+                    'features' => $validated['features'] ?? null,
+                    'verdict' => $validated['verdict'] ?? null,
+                    'trust_metrics' => isset($validated['trust_metrics']) ? Str::limit($validated['trust_metrics'], 250, '') : null,
+                    'ai_caption' => $validated['ai_caption'] ?? null,
+                    'ai_score' => $validated['ai_score'] ?? null,
+                    'image_path' => $imagePath,
+                    'status' => $initialStatus,
+                    'short_url' => $validated['short_url'] ?? null,
+                ]
+            );
+        }
 
         // Process Tags
         
@@ -168,6 +202,12 @@ class DealIngestionController
             $deal->tags()->sync($tagIds);
         }
 
+        // 6. Async Jobs (Telegram, Google Indexing, etc)
+        if ($isNew) {
+            PublishDealToTelegramJob::dispatch($deal)->delay(now()->addSeconds(30));
+            PingGoogleIndexingApiJob::dispatch($deal)->delay(now()->addMinutes(1));
+        }
+
         // 4. Log Price History
         PriceHistory::create([
             'deal_id' => $deal->id,
@@ -182,7 +222,6 @@ class DealIngestionController
         })->afterResponse();
 
         // 6. Social publishing is handled asynchronously by the CheckPublisherRules event listener.
-
         return response()->json([
             'message' => 'Deal ingested successfully',
             'deal_id' => $deal->id
