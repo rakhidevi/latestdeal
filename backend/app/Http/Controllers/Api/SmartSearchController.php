@@ -35,7 +35,7 @@ class SmartSearchController extends Controller
                   "Do NOT include markdown formatting like ```json, just the raw JSON brackets.";
 
         try {
-            $response = Http::timeout(15)->post($ollamaUrl, [
+            $response = Http::timeout(60)->post($ollamaUrl, [
                 'model' => $model,
                 'prompt' => $prompt,
                 'stream' => false,
@@ -67,7 +67,7 @@ class SmartSearchController extends Controller
                     foreach($filters['keywords'] as $keyword) {
                         if (strlen($keyword) > 2) {
                             $q->orWhere('title', 'like', '%' . $keyword . '%')
-                              ->orWhere('description', 'like', '%' . $keyword . '%')
+                              ->orWhere('features', 'like', '%' . $keyword . '%')
                               ->orWhere('brand', 'like', '%' . $keyword . '%');
                         }
                     }

@@ -72,7 +72,7 @@ class ShopperAssistantController extends Controller
             $model     = $dbSettings['ollama_model'] ?? env('OLLAMA_MODEL', 'llama3');
 
             try {
-                $response = Http::timeout(10)->post($ollamaUrl, [
+                $response = Http::timeout(60)->post($ollamaUrl, [
                     'model'  => $model,
                     'prompt' => $fullPrompt,
                     'stream' => false,
