@@ -36,6 +36,7 @@ class ShopperAssistantController extends Controller
                             ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100)
                             : 0,
                         'url'           => $deal->url,
+                        'image_path'    => $deal->image_path,
                         'merchant'      => optional($deal->merchant)->name ?? 'Marketplace',
                     ];
                 });
