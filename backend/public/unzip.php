@@ -15,7 +15,7 @@ if (isset($_GET['migrate'])) {
 if (isset($_GET['debug_deals'])) {
     try {
         $db = new PDO('sqlite:' . __DIR__ . '/../database/database.sqlite');
-        $stmt = $db->query("SELECT url FROM deals WHERE image_path = 'placeholder.png' OR image_path IS NULL");
+        $stmt = $db->query("SELECT id, title, url, image_path FROM deals WHERE status = 'active' ORDER BY id DESC");
         header('Content-Type: application/json');
         echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (\Exception $e) {
