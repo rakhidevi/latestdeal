@@ -22,6 +22,16 @@ Route::post('/deals/ingest', [\App\Http\Controllers\Api\DealIngestionController:
 Route::get('/deals/active', [\App\Http\Controllers\Api\DealIngestionController::class, 'activeDeals']);
 Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionController::class, 'expire']);
 
+// Temporary manual migration route
+Route::get('/migrate', function() {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
 // Scraper Job Tracking
 Route::post('/scraper/jobs', [\App\Http\Controllers\Api\ScraperJobController::class, 'store']);
 Route::put('/scraper/jobs/{job}', [\App\Http\Controllers\Api\ScraperJobController::class, 'update']);
