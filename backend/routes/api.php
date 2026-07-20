@@ -40,6 +40,11 @@ Route::get('/queue-work', function() {
         $deals = \App\Models\Deal::where('status', 'raw')->get();
         $count = 0;
         foreach ($deals as $deal) {
+            // Check if the deal was deleted by a previous iteration (due to deduplication)
+            if (!\App\Models\Deal::find($deal->id)) {
+                continue;
+            }
+            
             $correlationId = \Illuminate\Support\Str::uuid()->toString();
             // Reconstruct the raw_payload that would have been sent originally
             $rawPayload = [
@@ -55,7 +60,10 @@ Route::get('/queue-work', function() {
         }
         return response()->json(['message' => "Re-dispatched $count raw deals."]);
     } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
     }
 });
 
