@@ -46,7 +46,7 @@ if ($return_var === 0) {
     
     // Self-destruct and cleanup
     @unlink($zipFile);
-    @unlink(__FILE__);
+    // @unlink(__FILE__); // Disabled for debugging
     
     echo "Extraction successful using system unzip. Migrations and cache clear executed. Cleanup complete.";
 } else {
@@ -57,7 +57,7 @@ if ($return_var === 0) {
         $zip->close();
         
         @unlink($zipFile);
-        @unlink(__FILE__);
+        // @unlink(__FILE__); // Disabled for debugging
         
         // Run Laravel commands using the correct PHP binary
         $artisan = __DIR__ . '/../artisan';
