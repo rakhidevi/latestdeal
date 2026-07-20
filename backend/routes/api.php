@@ -25,6 +25,9 @@ Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionCont
 // Temporary manual migration route
 Route::get('/migrate', function() {
     try {
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
     } catch (\Exception $e) {
