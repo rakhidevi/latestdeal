@@ -37,8 +37,23 @@ Route::get('/migrate', function() {
 
 Route::get('/queue-work', function() {
     try {
-        \Illuminate\Support\Facades\Artisan::call('queue:work', ['connection' => 'database', '--stop-when-empty' => true]);
-        return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
+        $deals = \App\Models\Deal::where('status', 'raw')->get();
+        $count = 0;
+        foreach ($deals as $deal) {
+            $correlationId = \Illuminate\Support\Str::uuid()->toString();
+            // Reconstruct the raw_payload that would have been sent originally
+            $rawPayload = [
+                'title' => $deal->title,
+                'original_price' => $deal->original_price,
+                'discounted_price' => $deal->discounted_price,
+                'url' => $deal->url,
+                'brand' => $deal->brand,
+                'image_base64' => '' // We can't recover base64, but the listener handles empty
+            ];
+            event(new \App\Events\DealDiscovered($deal, $correlationId, 'unknown', '1.0', ['raw_payload' => $rawPayload]));
+            $count++;
+        }
+        return response()->json(['message' => "Re-dispatched $count raw deals."]);
     } catch (\Exception $e) {
         return response()->json(['error' => $e->getMessage()], 500);
     }
