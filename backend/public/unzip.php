@@ -1,12 +1,14 @@
 <?php
 
 if (isset($_GET['migrate'])) {
-    $artisan = __DIR__ . '/../artisan';
-    if (file_exists($artisan)) {
-        exec(PHP_BINARY . " " . escapeshellarg($artisan) . " migrate --force", $output);
-        echo "Migrations executed: " . implode("\n", $output);
-    } else {
-        echo "Artisan not found!";
+    try {
+        require __DIR__.'/../vendor/autoload.php';
+        $app = require_once __DIR__.'/../bootstrap/app.php';
+        $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+        $kernel->call('migrate', ['--force' => true]);
+        echo "Migrations executed: \n" . $kernel->output();
+    } catch (\Exception $e) {
+        echo "Migration failed: " . $e->getMessage();
     }
     exit;
 }
