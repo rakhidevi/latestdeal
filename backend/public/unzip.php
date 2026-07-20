@@ -15,7 +15,7 @@ if (isset($_GET['migrate'])) {
 if (isset($_GET['debug_deals'])) {
     try {
         $db = new PDO('sqlite:' . __DIR__ . '/../database/database.sqlite');
-        $stmt = $db->query('SELECT id, title, url, status, created_at FROM deals ORDER BY id DESC LIMIT 10');
+        $stmt = $db->query("SELECT id, title, url, status, created_at FROM deals WHERE url LIKE '%B07Y24YFSP%' ORDER BY id DESC LIMIT 5");
         header('Content-Type: application/json');
         echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
     } catch (\Exception $e) {
