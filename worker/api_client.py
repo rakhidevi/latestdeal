@@ -47,6 +47,7 @@ def create_job(name: str, job_type: str = 'ingestion') -> int:
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
     try:
         res = requests.post(f"{api_url}/scraper/jobs", json={"name": name, "type": job_type}, headers=headers, timeout=15)
@@ -63,6 +64,7 @@ def update_job(job_id: int, status: str = None, logs: list = None, **kwargs):
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
     payload = kwargs
     if status: payload['status'] = status

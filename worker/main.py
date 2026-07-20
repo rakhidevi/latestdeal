@@ -166,7 +166,7 @@ async def expiry_checker():
             # Assuming an endpoint GET /api/v1/deals/active exists
             response = requests.get(
                 f"{backend_url}/deals/active",
-                headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
+                headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
             )
             
             expired_count = 0
@@ -201,7 +201,7 @@ async def expiry_checker():
                         add_log(f"🚨 Deal Expired: {deal['url']}. Notifying backend...")
                         requests.post(
                             f"{backend_url}/deals/{deal['id']}/expire",
-                            headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
+                            headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
                         )
                         expired_count += 1
                     
@@ -259,11 +259,11 @@ async def listen_to_websockets():
                         subprocess.Popen([sys.executable, "-u", "hunter.py", "--keyword", str(keyword)])
                         
         except websockets.exceptions.ConnectionClosed:
-            print("WebSocket connection closed. Reconnecting in 5s...")
-            await asyncio.sleep(5)
+            print("WebSocket connection closed. Reconnecting in 60s...")
+            await asyncio.sleep(60)
         except Exception as e:
-            print(f"WebSocket error: {e}. Reconnecting in 5s...")
-            await asyncio.sleep(5)
+            print(f"WebSocket error: {e}. Reconnecting in 60s...")
+            await asyncio.sleep(60)
 
 async def main():
     env_mode = os.getenv('WORKER_MODE', 'server')
