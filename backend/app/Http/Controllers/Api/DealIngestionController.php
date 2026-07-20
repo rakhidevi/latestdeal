@@ -60,172 +60,61 @@ class DealIngestionController
         
         if ($host) {
             $host = preg_replace('/^www\./', '', $host);
-            
-            // Handle common shortlinks / variations
-            if (in_array($host, ['amzn.to', 'amazon.in', 'amazon.com'])) {
+            if (in_array($host, ['amzn.to', 'amazon.in', 'amazon.com', 'link.amazon'])) {
                 $merchant = \App\Models\Merchant::where('name', 'LIKE', '%Amazon%')->first();
             } else {
                 $merchant = \App\Models\Merchant::where('domain', 'LIKE', '%' . $host . '%')->first();
             }
-            
             if ($merchant) {
                 $resolvedMerchantId = $merchant->id;
             }
         }
 
-        // If we couldn't resolve a merchant, reject the deal.
-        // This prevents random sites like freecourse.io from being added as Amazon deals.
         if (!$resolvedMerchantId) {
             return response()->json([
-                'error' => 'Deal rejected: Unsupported merchant domain (' . ($host ?? 'unknown') . '). Please add this merchant in the Admin Panel first.'
+                'error' => 'Deal rejected: Unsupported merchant domain (' . ($host ?? 'unknown') . ').'
             ], 422);
         }
-        
-        // Override the validated array with our newly resolved secure merchant ID
         $validated['merchant_id'] = $resolvedMerchantId;
 
-        // 1.5 Block Illegal / Pirated Content (server-side safety net)
-        $blockedKeywords = [
-            'mod apk', 'modded apk', 'cracked apk',
-            'premium unlocked', 'unlocked all', 'pro unlocked',
-            'no watermark', 'ad free mod', 'ads removed mod',
-            'crack', 'cracked', 'keygen', 'serial key',
-            'pirated', 'warez', 'nulled',
-            'paid apk free', 'patched apk',
-        ];
+        // 1.5 Block Illegal / Pirated Content (Safety Net)
+        $blockedKeywords = ['mod apk', 'cracked apk', 'premium unlocked', 'unlocked all', 'crack', 'keygen', 'pirated', 'warez'];
         $titleLower = strtolower($validated['title']);
         foreach ($blockedKeywords as $keyword) {
             if (str_contains($titleLower, $keyword)) {
-                return response()->json([
-                    'error' => 'Deal rejected: illegal or pirated content detected',
-                    'blocked_keyword' => $keyword,
-                ], 422);
+                return response()->json(['error' => 'Deal rejected: illegal content'], 422);
             }
         }
 
-        // 2. Process Base64 Image
-        $imagePath = null;
-        if (preg_match('/^data:image\/(\w+);base64,/', $validated['image_base64'], $type)) {
-            $data = substr($validated['image_base64'], strpos($validated['image_base64'], ',') + 1);
-            $type = strtolower($type[1]); // jpg, png, etc.
-
-            $data = base64_decode($data);
-            
-            if ($data !== false) {
-                $fileName = Str::uuid() . '.' . $type;
-                // Store directly in public folder for easy access without symlinks
-                $path = public_path('deals');
-                if (!file_exists($path)) {
-                    mkdir($path, 0755, true);
-                }
-                file_put_contents($path . '/' . $fileName, $data);
-                $imagePath = 'deals/' . $fileName;
-            }
-        }
-
-        if (!$imagePath) {
-            return response()->json(['error' => 'Invalid image payload'], 400);
-        }
-
-        // 2.5 Determine initial status based on Pipeline Setting
-        $pipelineEnabled = Setting::where('key', 'deal_approval_pipeline')->value('value') === 'enabled';
-        $initialStatus = $pipelineEnabled ? 'pending' : 'active';
-
-        $brand = isset($validated['brand']) ? Str::limit($validated['brand'], 250, '') : null;
-
-        // 3. Deduplication (Cross-Source fuzzy matching)
-        $titleWords = array_filter(explode(' ', $validated['title']));
-        $firstThreeWords = implode(' ', array_slice($titleWords, 0, 3));
-        
-        $duplicateDeal = null;
-        if (strlen($firstThreeWords) > 5) {
-            $query = Deal::where('status', '!=', 'expired')
-                         ->where('url', '!=', $validated['url']);
-                         
-            if ($brand) {
-                $query->where('brand', $brand)
-                      ->where('title', 'LIKE', $firstThreeWords . '%');
-            } else {
-                $query->where('title', 'LIKE', $firstThreeWords . '%');
-            }
-            $duplicateDeal = $query->first();
-        }
-
-        if ($duplicateDeal) {
-            // Merge: If new deal is cheaper, update the existing deal's URL, price and merchant
-            if ($validated['discounted_price'] < $duplicateDeal->discounted_price) {
-                $duplicateDeal->update([
-                    'discounted_price' => $validated['discounted_price'],
-                    'original_price' => $validated['original_price'],
-                    'url' => $validated['url'],
-                    'merchant_id' => $validated['merchant_id'],
-                ]);
-            }
-            $deal = $duplicateDeal;
-        } else {
-            // 3.5 Create or Update Deal
-            $deal = Deal::updateOrCreate(
-                ['url' => $validated['url']],
-                [
-                    'category_id' => $validated['category_id'],
-                    'merchant_id' => $validated['merchant_id'],
-                    'title' => Str::limit($validated['title'], 250, ''),
-                    'original_price' => $validated['original_price'],
-                    'discounted_price' => $validated['discounted_price'],
-                    'coupon_code' => $validated['promo_code'] ?? null,
-                    'brand' => $brand,
-                    'features' => $validated['features'] ?? null,
-                    'verdict' => $validated['verdict'] ?? null,
-                    'trust_metrics' => isset($validated['trust_metrics']) ? Str::limit($validated['trust_metrics'], 250, '') : null,
-                    'ai_caption' => $validated['ai_caption'] ?? null,
-                    'ai_score' => $validated['ai_score'] ?? null,
-                    'image_path' => $imagePath,
-                    'status' => $initialStatus,
-                    'short_url' => $validated['short_url'] ?? null,
-                ]
-            );
-        }
-
-        // Process Tags
-        
-        // Removed TinyURL generation as per user request
-        if (!empty($validated['tags'])) {
-            $tagIds = [];
-            foreach ($validated['tags'] as $tagName) {
-                $tag = Tag::firstOrCreate([
-                    'slug' => Str::slug($tagName)
-                ], [
-                    'name' => $tagName
-                ]);
-                $tagIds[] = $tag->id;
-            }
-            $deal->tags()->sync($tagIds);
-        }
-
-        // 6. Async Jobs (Telegram, Google Indexing, etc)
-        if ($isNew) {
-            PublishDealToTelegramJob::dispatch($deal)->delay(now()->addSeconds(30));
-            PingGoogleIndexingApiJob::dispatch($deal)->delay(now()->addMinutes(1));
-        }
-
-        // 4. Log Price History
-        PriceHistory::create([
-            'deal_id' => $deal->id,
-            'price' => $validated['discounted_price'],
-            'recorded_at' => now(),
+        // 2. Persist Raw Payload (Status: raw)
+        $deal = Deal::create([
+            'url' => $validated['url'],
+            'category_id' => $validated['category_id'],
+            'merchant_id' => $validated['merchant_id'],
+            'title' => Str::limit($validated['title'], 250, ''),
+            'original_price' => $validated['original_price'],
+            'discounted_price' => $validated['discounted_price'],
+            'coupon_code' => $validated['promo_code'] ?? null,
+            'brand' => isset($validated['brand']) ? Str::limit($validated['brand'], 250, '') : null,
+            'features' => $validated['features'] ?? null,
+            'verdict' => $validated['verdict'] ?? null,
+            'trust_metrics' => isset($validated['trust_metrics']) ? Str::limit($validated['trust_metrics'], 250, '') : null,
+            'ai_caption' => $validated['ai_caption'] ?? null,
+            'ai_score' => $validated['ai_score'] ?? null,
+            'status' => 'raw', // Indicates it hasn't been processed
+            'short_url' => $validated['short_url'] ?? null,
         ]);
 
-        // 5. Trigger the Retention Engine Listener
-        // Wrap in dispatch->afterResponse to prevent timeout if queue driver is 'sync'
-        dispatch(function () use ($deal) {
-            event(new DealIngested($deal));
-        })->afterResponse();
+        // 3. Queue Processing (Dispatch Event)
+        $correlationId = Str::uuid()->toString();
+        event(new \App\Events\DealDiscovered($deal, $correlationId, 'unknown', '1.0', ['raw_payload' => $validated]));
 
-        // 6. Social publishing is handled asynchronously by the CheckPublisherRules event listener.
+        // 4. Return HTTP 200 immediately
         return response()->json([
-            'message' => 'Deal ingested successfully',
-            'deal_id' => $deal->id
-        ], 201);
+            'message' => 'Deal ingested and queued successfully',
+            'deal_id' => $deal->id,
+            'correlation_id' => $correlationId
+        ], 200);
     }
 
     /**

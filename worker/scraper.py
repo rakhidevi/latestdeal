@@ -7,6 +7,7 @@ import json
 import asyncio
 from pydantic import BaseModel, Field
 from typing import List
+from domains import is_amazon_url
 
 # List of common desktop user agents for rotation
 DESKTOP_USER_AGENTS = [
@@ -150,6 +151,35 @@ async def async_crawl4ai_extract(url: str) -> dict:
             raise ValueError("No content extracted by Crawl4AI")
 
 def extract_deal_data(url: str) -> dict:
+    if is_amazon_url(url):
+        print(f"Using NEW Provider Architecture for Amazon: {url}")
+        from worker.new.providers.amazon.scraper import AmazonScraper
+        scraper = AmazonScraper()
+        scraper.initialize()
+        
+        try:
+            results = scraper.search(url)
+            if results and len(results) > 0:
+                html = results[0]
+                raw = scraper.extract(html)
+                dto = scraper.normalize(raw)
+                scraper.validate(dto)
+                
+                # Map DTO to old raw_data format for legacy compatibility
+                return {
+                    "url": url,
+                    "raw_title": dto.product.title,
+                    "raw_discounted_price": str(dto.price.current),
+                    "raw_original_price": str(dto.price.original) if dto.price.original else "",
+                    "features": dto.features,
+                    "image_url": dto.product.image_url,
+                    "scraper_type": "AmazonScraper (New Architecture)"
+                }
+            else:
+                raise Exception("New AmazonScraper failed to return HTML.")
+        finally:
+            scraper.cleanup()
+            
     print(f"Bypassing Crawl4AI (DOM too large for local LLM). Using manual Playwright scraper for {url}...")
     try:
         if 'udemy.com' in url:
@@ -228,73 +258,17 @@ def extract_deal_data_fallback(url: str) -> dict:
                 page.wait_for_load_state("domcontentloaded")
                 time.sleep(3)
             
-            # Extract actual DOM details using robust Amazon selectors
-            
-            # 1. Product Title
-            title_element = page.locator("#productTitle").first
-            title = title_element.inner_text().strip() if title_element.count() > 0 else page.title()
-            
-            # 2. Discounted Price (Deal Price)
-            # Amazon frequently changes this, we try multiple common selectors
+            # Generic Fallback Extraction for non-Amazon sites until their providers are built
+            title = page.title()
             discounted_price_html = ""
-            for selector in [
-                "#corePriceDisplay_desktop_feature_div .a-price-whole",
-                ".priceToPay .a-price-whole",
-                "#priceblock_dealprice",
-                "#priceblock_ourprice"
-            ]:
-                el = page.locator(selector).first
-                if el.count() > 0:
-                    discounted_price_html = el.inner_text().strip()
-                    break
-                    
-            # 3. Original Price (M.R.P)
             original_price_html = ""
-            for selector in [
-                ".a-text-price .a-offscreen",
-                "#priceBlockStrikePriceString",
-                "span.a-price.a-text-price span.a-offscreen"
-            ]:
-                el = page.locator(selector).first
-                if el.count() > 0:
-                    text_val = el.text_content().strip()
-                    # Strictly ignore unit prices
-                    if "per g" not in text_val.lower() and "/100 g" not in text_val.lower():
-                        original_price_html = text_val
-                        break
-                    
-            # Fallback for explicit M.R.P. text if .a-text-price grabs the wrong one
-            if not original_price_html or "per" in original_price_html.lower():
-                # Attempt to find the span containing "M.R.P.:"
-                mrp_label = page.locator("span:has-text('M.R.P.:')").first
-                if mrp_label.count() > 0:
-                    parent = mrp_label.locator("..").first
-                    if parent.count() > 0:
-                        original_price_html = parent.text_content().replace('M.R.P.:', '').strip()
-            # 4. Image URL (High-res extraction)
             image_url = ""
-            img_element = page.locator("#landingImage").first
-            if img_element.count() > 0:
-                dynamic_images = img_element.get_attribute("data-a-dynamic-image")
-                if dynamic_images:
-                    import json
-                    try:
-                        img_dict = json.loads(dynamic_images)
-                        if img_dict:
-                            # Pick the one with the highest resolution sum
-                            image_url = max(img_dict.items(), key=lambda x: x[1][0] + x[1][1])[0]
-                    except:
-                        pass
-                if not image_url:
-                    image_url = img_element.get_attribute("data-old-hires") or img_element.get_attribute("src") or ""
-                
-            # 5. Features / Bullet Points
             features = []
-            feature_elements = page.locator("#feature-bullets ul li span.a-list-item").all()
-            for el in feature_elements:
-                text = el.inner_text().strip()
-                if text:
-                    features.append(text)
+            
+            # Attempt to grab Open Graph image as a generic fallback
+            meta_img = page.locator("meta[property='og:image']").first
+            if meta_img.count() > 0:
+                image_url = meta_img.get_attribute("content") or ""
             
             raw_data = {
                 "url": url,

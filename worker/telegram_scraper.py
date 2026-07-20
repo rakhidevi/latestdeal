@@ -11,6 +11,7 @@ from openai import OpenAI
 import sqlite3
 from database import DB_PATH
 from telethon import utils
+from domains import is_amazon_or_aggregator
 
 # Import existing logic to push deals
 from api_client import push_to_production
@@ -212,8 +213,8 @@ async def handler(event):
         print(f"Cleaning and Unshortening URL: {raw_url}")
         url = await asyncio.to_thread(clean_amazon_url, raw_url)
     scraped_data = None
-    if url and ('amazon' in url.lower() or 'amzn' in url.lower()):
-        print(f"Detected Amazon link! Initiating deep Playwright scraping...")
+    if url and is_amazon_or_aggregator(url):
+        print(f"Detected Amazon/IndiaFreeStuff link! Initiating deep Playwright scraping...")
         try:
             from sitestripe_scraper import get_sitestripe_link_and_data
             async with sitestripe_lock:
@@ -330,8 +331,8 @@ async def handler(event):
     # 5. Construct Final Payload
     payload = {
         "title": deal_data['title'],
-        "original_price": deal_data['original_price'],
-        "discounted_price": deal_data['discounted_price'],
+        "original_price": deal_data.get('original_price') or 0,
+        "discounted_price": deal_data.get('discounted_price') or 0,
         "url": url,
         "category_id": None, # Nullable in API now
         "category_name": "Courses" if is_udemy else None, # Let API auto-resolve

@@ -1,6 +1,7 @@
 import urllib.parse
 import re
 import requests
+from domains import is_amazon_url
 
 def extract_amazon_asin(url: str) -> str:
     """Extracts ASIN from a given Amazon URL."""
@@ -28,7 +29,7 @@ def clean_amazon_url(url: str, resolve_redirects: bool = True) -> str:
         except Exception:
             pass
 
-    if "amazon" not in final_url.lower() and "amzn.to" not in final_url.lower():
+    if not is_amazon_url(final_url):
         # If it's not an Amazon link after resolving, we can't clean it as an Amazon URL.
         return final_url
 

@@ -1,6 +1,7 @@
 import sys
 import io
-
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 if sys.stdout.encoding.lower() != 'utf-8':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
 if sys.stderr.encoding.lower() != 'utf-8':
@@ -12,6 +13,7 @@ import asyncio
 import json
 import websockets
 from dotenv import load_dotenv
+from domains import is_amazon_or_aggregator
 import argparse
 
 from database import init_db, get_next_pending, mark_status, add_to_queue, update_job_data
@@ -38,6 +40,7 @@ async def process_queue():
             continue
             
         url = deal_item['url']
+        job_type = deal_item.get('type', 'ingestion')
         
         # Ensure we are using the fully cleaned URL
         url = clean_amazon_url(url, resolve_redirects=False) # Already resolved in telegram_scraper, but enforce clean format
@@ -91,7 +94,7 @@ async def process_queue():
                 
                 # 1. SiteStripe handles visiting raw URL, resolving JS redirects, cleaning URL, and generating shortlink
                 sitestripe_result = {}
-                if 'amazon' in url.lower() or 'amzn' in url.lower() or 'indiafreestuff' in url.lower():
+                if is_amazon_or_aggregator(url):
                     try:
                         add_log("Running SiteStripe automation to clean URL and get shortlink...")
                         sitestripe_result = await asyncio.to_thread(get_sitestripe_link_and_data, url)
@@ -111,7 +114,11 @@ async def process_queue():
                     raw_data = {}
                     
                 # Merge sitestripe url into raw_data
-                raw_data['sitestripe_url'] = sitestripe_result.get('sitestripe_url', '')
+                if isinstance(sitestripe_result, dict):
+                    raw_data['sitestripe_url'] = sitestripe_result.get('sitestripe_url', '')
+                else:
+                    raw_data['sitestripe_url'] = ''
+                    
                 if not raw_data.get('url'):
                     raw_data['url'] = url
                     
