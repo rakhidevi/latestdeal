@@ -44,6 +44,11 @@ Route::get('/queue-work', function() {
     }
 });
 
+Route::get('/debug-deal', function(\Illuminate\Http\Request $request) {
+    $deal = \App\Models\Deal::where('url', 'LIKE', '%' . $request->get('id') . '%')->first();
+    return response()->json($deal);
+});
+
 // Scraper Job Tracking
 Route::post('/scraper/jobs', [\App\Http\Controllers\Api\ScraperJobController::class, 'store']);
 Route::put('/scraper/jobs/{job}', [\App\Http\Controllers\Api\ScraperJobController::class, 'update']);
