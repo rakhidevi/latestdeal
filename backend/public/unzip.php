@@ -13,6 +13,17 @@ if (isset($_GET['migrate'])) {
     exit;
 }
 
+if (isset($_GET['debug_deals'])) {
+    require __DIR__.'/../vendor/autoload.php';
+    $app = require_once __DIR__.'/../bootstrap/app.php';
+    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+    
+    $deals = \App\Models\Deal::orderBy('id', 'desc')->take(10)->get();
+    header('Content-Type: application/json');
+    echo json_encode($deals);
+    exit;
+}
+
 // Simple script to extract deploy.zip and self-destruct
 
 $zipFile = __DIR__ . '/../deploy.zip';
