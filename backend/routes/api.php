@@ -60,9 +60,10 @@ Route::get('/queue-work', function() {
         }
         return response()->json(['message' => "Re-dispatched $count raw deals."]);
     } catch (\Exception $e) {
+        file_put_contents(storage_path('logs/queue-work-error.txt'), $e->getMessage() . "\n" . $e->getTraceAsString());
         return response()->json([
             'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
+            'trace_saved' => true
         ], 500);
     }
 });
