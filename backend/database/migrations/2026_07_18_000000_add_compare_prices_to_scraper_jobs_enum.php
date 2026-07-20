@@ -9,13 +9,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // For MySQL/MariaDB
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
         DB::statement("ALTER TABLE scraper_jobs MODIFY COLUMN type ENUM('ingestion', 'expiry_check', 'metrics_sync', 'compare_prices') DEFAULT 'ingestion'");
     }
 
     public function down(): void
     {
-        // Optional rollback
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
         DB::statement("ALTER TABLE scraper_jobs MODIFY COLUMN type ENUM('ingestion', 'expiry_check', 'metrics_sync') DEFAULT 'ingestion'");
     }
 };
