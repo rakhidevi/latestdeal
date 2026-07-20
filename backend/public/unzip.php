@@ -24,6 +24,16 @@ if (isset($_GET['debug_deals'])) {
     exit;
 }
 
+if (isset($_GET['read_log'])) {
+    $logPath = __DIR__ . '/../storage/logs/queue-work-error.txt';
+    if (file_exists($logPath)) {
+        echo file_get_contents($logPath);
+    } else {
+        echo "Log file not found.";
+    }
+    exit;
+}
+
 // Simple script to extract deploy.zip and self-destruct
 
 $zipFile = __DIR__ . '/../deploy.zip';
