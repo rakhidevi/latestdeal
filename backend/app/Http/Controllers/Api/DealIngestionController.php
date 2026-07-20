@@ -113,9 +113,24 @@ class DealIngestionController
 
         \Illuminate\Support\Facades\Log::info('Validated category_id before Deal::create: ' . json_encode($validated['category_id']));
 
+        // 1.6 Process Image Base64
+        $imagePath = 'deals/default.png';
+        if (!empty($validated['image_base64'])) {
+            $base64Str = $validated['image_base64'];
+            $type = 'png';
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Str, $matches)) {
+                $base64Str = substr($base64Str, strpos($base64Str, ',') + 1);
+                $type = strtolower($matches[1]);
+            }
+            $imageName = Str::random(20) . '.' . $type;
+            \Illuminate\Support\Facades\Storage::disk('public')->put('deals/' . $imageName, base64_decode($base64Str));
+            $imagePath = 'deals/' . $imageName;
+        }
+
         // 2. Persist Raw Payload (Status: raw)
         $deal = Deal::create([
             'url' => $validated['url'],
+            'image_path' => $imagePath,
             'category_id' => $validated['category_id'],
             'merchant_id' => $validated['merchant_id'],
             'title' => Str::limit($validated['title'], 250, ''),
