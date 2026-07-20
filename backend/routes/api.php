@@ -37,7 +37,7 @@ Route::get('/migrate', function() {
 
 Route::get('/queue-work', function() {
     try {
-        \Illuminate\Support\Facades\Artisan::call('queue:work', ['--stop-when-empty' => true]);
+        \Illuminate\Support\Facades\Artisan::call('queue:work', ['connection' => 'database', '--stop-when-empty' => true]);
         return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
     } catch (\Exception $e) {
         return response()->json(['error' => $e->getMessage()], 500);
