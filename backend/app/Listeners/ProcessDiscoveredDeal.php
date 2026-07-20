@@ -73,6 +73,12 @@ class ProcessDiscoveredDeal implements ShouldQueue
                 ]);
             }
             
+            // If the duplicate was stuck in 'raw', activate it!
+            if ($duplicateDeal->status === 'raw') {
+                $pipelineEnabled = Setting::where('key', 'deal_approval_pipeline')->value('value') === 'enabled';
+                $duplicateDeal->update(['status' => $pipelineEnabled ? 'pending' : 'active']);
+            }
+            
             // Delete the raw deal since it's a duplicate
             $deal->delete();
             $deal = $duplicateDeal;
@@ -81,10 +87,12 @@ class ProcessDiscoveredDeal implements ShouldQueue
             $pipelineEnabled = Setting::where('key', 'deal_approval_pipeline')->value('value') === 'enabled';
             $initialStatus = $pipelineEnabled ? 'pending' : 'active';
             
-            $deal->update([
-                'image_path' => $imagePath,
-                'status' => $initialStatus,
-            ]);
+            $updateData = ['status' => $initialStatus];
+            if ($imagePath) {
+                $updateData['image_path'] = $imagePath;
+            }
+            
+            $deal->update($updateData);
 
             // Process Tags
             if (!empty($payload['tags'])) {
