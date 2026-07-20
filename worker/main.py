@@ -17,13 +17,9 @@ from domains import is_amazon_or_aggregator
 import argparse
 
 from database import init_db, get_next_pending, mark_status, add_to_queue, update_job_data
-from scraper import extract_deal_data
-from ai_agent import generate_caption
 from image_composer import compose_image
 from api_client import push_to_production, create_job, update_job
-from deal_evaluator import evaluate_deal
 import requests
-from sitestripe_scraper import get_sitestripe_link_and_data
 from utils import clean_amazon_url
 
 load_dotenv(override=True)
@@ -52,23 +48,6 @@ async def process_queue():
         
         job_id = create_job(f"Scrape Deal: {url}", deal_item['type'])
         
-        if deal_item.get('type') == 'sitestripe_automation':
-            try:
-                from sitestripe_importer import import_sitestripe_deal
-                # Must run in a thread since it uses sync_playwright
-                success = await asyncio.to_thread(import_sitestripe_deal, url)
-                if success:
-                    mark_status(deal_item['id'], 'completed')
-                    update_job(job_id, status='success')
-                else:
-                    raise Exception("SiteStripe import returned False")
-            except Exception as e:
-                print(f"SiteStripe automation failed: {e}")
-                mark_status(deal_item['id'], 'failed')
-                update_job(job_id, status='failed', error_log=str(e))
-            finally:
-                await asyncio.sleep(5)
-                continue
 
         job_logs = []
         def add_log(msg):
@@ -77,143 +56,72 @@ async def process_queue():
             update_job(job_id, logs=[msg])
             
         try:
-            # --- PHASE 1: EXTRACTION ---
-            if worker_mode == "server" and deal_item['status'] == 'ready_for_publish':
-                add_log("Loading raw data provided by Desktop Worker...")
-                raw_data = json.loads(deal_item['data'])
-                scraper_engine = raw_data.get('scraper_type', 'Desktop Playwright')
-            elif worker_mode == "desktop" and deal_item['status'] == 'needs_desktop_processing':
-                add_log("Desktop Worker executing physical browser fallback extraction...")
-                raw_data = await asyncio.to_thread(extract_deal_data, url)
-                # Desktop worker saves data and hands it back to the Server worker
-                update_job_data(item_id, json.dumps(raw_data), 'ready_for_publish')
+            # --- PHASE 1: EXTRACTION via PIPELINE ---
+            if worker_mode == "desktop" and deal_item['status'] == 'needs_desktop_processing':
+                add_log("Desktop Worker executing physical browser extraction...")
+                from pipeline import ScrapingPipeline
+                deal = await asyncio.to_thread(ScrapingPipeline.process_url, url, "dashboard")
+                update_job_data(item_id, deal.model_dump_json(), 'ready_for_publish')
                 add_log("Extraction complete. Handing job back to Server for publishing.")
                 continue
+            elif worker_mode == "server" and deal_item['status'] == 'ready_for_publish':
+                add_log("Loading extracted deal data provided by Desktop Worker...")
+                from models import Deal
+                deal = Deal.model_validate_json(deal_item['data'])
             else:
-                add_log("Starting sequential extraction (SiteStripe URL Cleanup -> Crawl4AI Scrape)...")
+                add_log("Starting standard pipeline extraction...")
+                from pipeline import ScrapingPipeline
+                deal = await asyncio.to_thread(ScrapingPipeline.process_url, url, "dashboard")
                 
-                # 1. SiteStripe handles visiting raw URL, resolving JS redirects, cleaning URL, and generating shortlink
-                sitestripe_result = {}
-                if is_amazon_or_aggregator(url):
-                    try:
-                        add_log("Running SiteStripe automation to clean URL and get shortlink...")
-                        sitestripe_result = await asyncio.to_thread(get_sitestripe_link_and_data, url)
-                        if sitestripe_result and sitestripe_result.get("url"):
-                            url = sitestripe_result["url"]  # Use the cleaned URL for subsequent scraping
-                            add_log(f"SiteStripe successful. Cleaned URL: {url}")
-                    except Exception as e:
-                        add_log(f"SiteStripe error: {e}")
-
-                # 2. Scrape the cleaned URL using the powerful Crawl4AI/Playwright scraper
-                add_log("Starting deep scrape on cleaned URL...")
-                try:
-                    scrape_result = await asyncio.to_thread(extract_deal_data, url)
-                    raw_data = scrape_result
-                except Exception as e:
-                    add_log(f"Scraper error: {e}")
-                    raw_data = {}
-                    
-                # Merge sitestripe url into raw_data
-                if isinstance(sitestripe_result, dict):
-                    raw_data['sitestripe_url'] = sitestripe_result.get('sitestripe_url', '')
-                else:
-                    raw_data['sitestripe_url'] = ''
-                    
-                if not raw_data.get('url'):
-                    raw_data['url'] = url
-                    
-                scraper_engine = raw_data.get('scraper_type', 'Unknown')
-                add_log(f"Extraction successful using: {scraper_engine}")
-            
-            # Update job type to include the scraper engine for better visibility
-            update_job(job_id, type=f"ingestion ({scraper_engine})")
+            update_job(job_id, type=f"ingestion ({deal.merchant})")
             
             # --- FAST PATH FOR REAL-TIME PRICE UPDATES ---
             if job_type == 'price_update':
-                add_log(f"Fast path for price update: {url}")
-                new_price = raw_data.get('raw_discounted_price')
-                if new_price:
-                    import re
-                    cleaned_price = re.sub(r'[^\d.]', '', str(new_price))
-                    if cleaned_price:
-                        from api_client import get_api_config
-                        backend_url, _ = get_api_config()
-                        requests.post(
-                            f"{backend_url}/deals/update-price",
-                            json={"url": url, "price": float(cleaned_price)},
-                            headers={"Accept": "application/json"}
-                        )
+                add_log(f"Fast path for price update: {deal.canonical_url}")
+                if deal.price:
+                    from api_client import get_api_config
+                    backend_url, _ = get_api_config()
+                    import requests
+                    requests.post(
+                        f"{backend_url}/deals/update-price",
+                        json={"url": deal.canonical_url, "price": deal.price},
+                        headers={"Accept": "application/json"}
+                    )
                 mark_status(item_id, 'completed')
                 update_job(job_id, status="success")
                 continue
             # ---------------------------------------------
             
-            def clean_price(val):
-                if not val: return 0
-                import re
-                cleaned = re.sub(r'[^\d.]', '', str(val))
-                try: return float(cleaned)
-                except: return 0
-
-            # 1.5 Evaluate Deal
-            add_log("Evaluating deal metrics...")
-            evaluation = evaluate_deal(raw_data)
-            if not evaluation["is_approved"]:
-                add_log(f"Deal REJECTED: {evaluation['reason']}")
-                mark_status(item_id, 'failed')
-                update_job(job_id, status="failure")
-                continue
-                
-            metrics = evaluation["metrics"]
-            # Inject metrics into raw_data for AI caption generator
-            raw_data["metrics"] = metrics
-
-            # 2. Generate Caption via Ollama
-            add_log("Generating AI Caption...")
-            try:
-                caption_data = generate_caption(raw_data, os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"))
-                
-                # Sanitize prices returned by AI or fallback
-                caption_data['original_price'] = clean_price(caption_data.get('original_price'))
-                caption_data['discounted_price'] = clean_price(caption_data.get('discounted_price'))
-                
-                affiliate_url = clean_amazon_url(url)
-                
-                caption_text = f"🚨 {caption_data['title']} \n\n" + "\n".join(caption_data.get('features', [])) + f"\n\n👉🏻 Buy Now: {affiliate_url}"
-            except Exception as ai_e:
-                add_log(f"AI Generation failed: {ai_e}. Using fallback template.")
-                caption_data = {
-                    'title': raw_data.get('raw_title', 'Awesome Deal'),
-                    'original_price': metrics["original_price"],
-                    'discounted_price': metrics["discounted_price"]
-                }
-                
-                affiliate_url = clean_amazon_url(url)
-                
-                caption_text = f"🔥 NEW DEAL 🔥\n{caption_data['title']}\n\n{caption_data.get('trust_metrics', '')}\n\n💰 Price: {caption_data['discounted_price']} (Was {caption_data['original_price']})\n\nGrab it here: {affiliate_url}"
+            # 2. Build AI Caption (Using Deal Object)
+            add_log("Building Deal Payload...")
+            caption_text = deal.ai_caption or f"🚨 {deal.title} \n\n"
+            if deal.coupon:
+                caption_text += f"\n✂️ Coupon: {deal.coupon}"
+            caption_text += f"\n\n👉🏻 Buy Now: {deal.affiliate_url or deal.canonical_url}"
             
             # 3. Create Composite Image
             add_log("Composing deal image...")
-            base64_image = compose_image(raw_data.get('image_url', ''), caption_data['original_price'], caption_data['discounted_price'])
+            from image_composer import compose_image
+            base64_image = compose_image(deal.image_url or '', deal.original_price or 0, deal.price or 0)
             
             # 4. Construct Final Payload
             payload = {
-                "title": caption_data['title'],
-                "original_price": caption_data['original_price'],
-                "discounted_price": caption_data['discounted_price'],
-                "url": affiliate_url,
-                "category_id": 1, # Placeholder
+                "title": deal.title,
+                "original_price": deal.original_price or 0,
+                "discounted_price": deal.price or 0,
+                "url": deal.affiliate_url or deal.canonical_url,
+                "category_id": deal.category.id if (deal.category and hasattr(deal.category, 'id')) else 1, # Hardcoded fallback for production API
+                "category_name": deal.category.name if deal.category else "Electronics",
                 "ai_caption": caption_text,
-                "features": caption_data.get('features', []),
-                "verdict": caption_data.get('verdict', ''),
-                "trust_metrics": caption_data.get('trust_metrics', ''),
-                "ai_score": caption_data.get('ai_score', None),
+                "features": [],
+                "brand": deal.brand or deal.merchant,
                 "image_base64": base64_image,
-                "brand": caption_data.get('brand_name')
+                "ai_score": deal.ai_score or 85
             }
             
             # 5. Push to Laravel
             add_log("Pushing final payload to Laravel...")
+            from api_client import push_to_production
             success = push_to_production(payload)
             
             if success:
@@ -226,7 +134,7 @@ async def process_queue():
                 update_job(job_id, status="failure")
                 
         except Exception as e:
-            if str(e) == "needs_desktop_processing":
+            if "CAPTCHA" in str(e) or "needs_desktop_processing" in str(e):
                 add_log("Delegating job to Desktop Worker due to CAPTCHA/bot block.")
                 mark_status(item_id, 'needs_desktop_processing')
                 update_job(job_id, logs=job_logs + ["Delegated to Desktop Worker"])
@@ -268,14 +176,26 @@ async def expiry_checker():
                 for deal in active_deals:
                     add_log(f"Checking expiry for deal: {deal['url']}")
                     # Re-scrape
-                    raw_data = await asyncio.to_thread(extract_deal_data, deal['url'])
+                    from pipeline import ScrapingPipeline
+                    from models import ScraperException
                     
-                    # Basic Expiry Logic: if title says 'currently unavailable' or price isn't found
                     is_expired = False
-                    if "currently unavailable" in str(raw_data.get('raw_title', '')).lower():
-                        is_expired = True
-                    elif not raw_data.get('raw_discounted_price'):
-                        is_expired = True
+                    try:
+                        scraped_deal = await asyncio.to_thread(ScrapingPipeline.process_url, deal['url'], "expiry_check")
+                        
+                        # Basic Expiry Logic: if title says 'currently unavailable' or price isn't found
+                        if "currently unavailable" in (scraped_deal.title or "").lower():
+                            is_expired = True
+                        elif not scraped_deal.price:
+                            is_expired = True
+                            
+                    except ScraperException as e:
+                        if "nodeal" in str(e).lower() or "page not found" in str(e).lower():
+                            is_expired = True
+                        else:
+                            add_log(f"Warning: Scraper failed during expiry check: {e}")
+                    except Exception as e:
+                        add_log(f"Warning: Scraper failed during expiry check: {e}")
                         
                     if is_expired:
                         add_log(f"🚨 Deal Expired: {deal['url']}. Notifying backend...")

@@ -16,11 +16,9 @@ import os
 print("Running process_queue...")
 # Since process_queue has an infinite loop, we can just run one cycle manually or let it run
 from database import get_next_pending, mark_status
-from scraper import extract_deal_data
-from ai_agent import generate_caption
+from pipeline import ScrapingPipeline
 from image_composer import compose_image
 from api_client import push_to_production
-from deal_evaluator import evaluate_deal
 
 deal_item = get_next_pending()
 if deal_item:
@@ -29,8 +27,8 @@ if deal_item:
     print(f"Processing ID {item_id}: {url}")
     
     try:
-        raw_data = extract_deal_data(url)
-        print("Scrape data:", raw_data)
+        deal = ScrapingPipeline.process_url(url, "test")
+        print("Scrape data:", deal.model_dump_json(indent=2))
         
         import re
         def clean_price(val):

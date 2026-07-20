@@ -45,11 +45,36 @@ class DealIngestionController
             'short_url' => 'nullable|url'
         ]);
 
-        // 1.1 Resolve Category from Name
-        if (empty($validated['category_id']) && !empty($validated['category_name'])) {
+        // 1.1 Resolve Category from Name or Apply Keyword Rules
+        if (empty($validated['category_id'])) {
+            $catName = !empty($validated['category_name']) ? $validated['category_name'] : null;
+            
+            // Keyword Rule Engine (if no category name provided, or if we want to fallback from AI)
+            if (empty($catName) && !empty($validated['title'])) {
+                $titleLower = strtolower($validated['title']);
+                if (preg_match('/\b(cookie|biscuit|chocolate|chips|snack|grocery)\b/', $titleLower)) {
+                    $catName = 'Food & Grocery';
+                } elseif (preg_match('/\b(phone|mobile|iphone|smartphone|poco|samsung)\b/', $titleLower)) {
+                    $catName = 'Mobiles';
+                } elseif (preg_match('/\b(tv|laptop|earbuds|headphones|electronics)\b/', $titleLower)) {
+                    $catName = 'Electronics';
+                } elseif (preg_match('/\b(shoe|shirt|t-shirt|jeans|fashion|wear)\b/', $titleLower)) {
+                    $catName = 'Fashion';
+                } elseif (preg_match('/\b(face wash|cream|beauty|makeup|perfume)\b/', $titleLower)) {
+                    $catName = 'Beauty & Personal Care';
+                } elseif (preg_match('/\b(course|udemy|certification)\b/', $titleLower)) {
+                    $catName = 'Education';
+                }
+            }
+            
+            // Ultimate fallback so we never drop a deal
+            if (empty($catName)) {
+                $catName = 'Uncategorized';
+            }
+            
             $cat = \App\Models\Category::firstOrCreate(
-                ['slug' => \Illuminate\Support\Str::slug($validated['category_name'])],
-                ['name' => $validated['category_name']]
+                ['slug' => \Illuminate\Support\Str::slug($catName)],
+                ['name' => $catName]
             );
             $validated['category_id'] = $cat->id;
         }
@@ -85,6 +110,8 @@ class DealIngestionController
                 return response()->json(['error' => 'Deal rejected: illegal content'], 422);
             }
         }
+
+        \Illuminate\Support\Facades\Log::info('Validated category_id before Deal::create: ' . json_encode($validated['category_id']));
 
         // 2. Persist Raw Payload (Status: raw)
         $deal = Deal::create([

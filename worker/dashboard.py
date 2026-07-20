@@ -103,6 +103,32 @@ def get_queue():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/telemetry')
+def get_telemetry():
+    try:
+        from worker.new.sdk.storage.sqlite_manager import SQLiteManager
+        db = SQLiteManager()
+        rows = db.get_unpushed_metrics()
+        
+        summary = {}
+        for row in rows:
+            name = row[1]
+            val = row[2]
+            provider = row[3]
+            if provider not in summary: summary[provider] = {}
+            if name not in summary[provider]: summary[provider][name] = []
+            summary[provider][name].append(val)
+            
+        # Calculate sums (for counts) and averages (for latencies)
+        for p in summary:
+            for m in summary[p]:
+                vals = summary[p][m]
+                summary[p][m] = sum(vals) if "latency" not in m else sum(vals)/len(vals)
+                
+        return jsonify(summary)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/control/<action>', methods=['POST'])
 def control(action):
     global processes, logs, hunter_settings

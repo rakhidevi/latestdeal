@@ -26,8 +26,8 @@ API_HASH = '2b3f3db5b0f54fa1e65633266d48bff8'
 SESSION_NAME = 'latestdeal_telegram'
 
 # The channels we want to listen to. Use empty list to listen to ALL joined channels, or specify valid @usernames.
-# Let's listen to all incoming messages from any chat/channel the account is joined to.
-TARGET_CHANNELS = []
+from config_manager import config
+TARGET_CHANNELS = config.get("telegram", {}).get("target_channels", [])
 
 client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
 
@@ -169,8 +169,11 @@ def check_if_automated_crawler_enabled():
     """Checks the live backend API to see if the automated crawler is active."""
     try:
         import requests
-        # Using production URL so it works seamlessly
-        response = requests.get('https://latestdeal.in/api/settings/crawlers', timeout=5)
+        from api_client import get_api_config
+        api_url, _ = get_api_config()
+        # Remove /api suffix if present to append /settings/crawlers cleanly, or just handle it
+        base_url = api_url.replace('/api', '') if api_url.endswith('/api') else api_url
+        response = requests.get(f'{base_url}/api/settings/crawlers', timeout=5)
         if response.status_code == 200:
             return response.json().get('crawler_automated') == 'enabled'
     except Exception as e:
@@ -205,95 +208,86 @@ async def handler(event):
             print(f"🚫 Blocked Keyword Detected ('{kw}'). Ignoring illegal/spam deal.")
             return
     
-    # 1. Pre-extract URL and run deep scraping if it's Amazon
+    # 1. Pre-extract URL and run generic pipeline
     url = ""
     urls = re.findall(r'(https?://[^\s]+)', message_text)
     if urls:
         raw_url = urls[0]
-        print(f"Cleaning and Unshortening URL: {raw_url}")
-        url = await asyncio.to_thread(clean_amazon_url, raw_url)
-    scraped_data = None
-    if url and is_amazon_or_aggregator(url):
-        print(f"Detected Amazon/IndiaFreeStuff link! Initiating deep Playwright scraping...")
+        
+        # Check against ignored domains in config
+        from config_manager import config
+        ignore_domains = config.get("scraper", {}).get("ignore_domains", [])
+        if any(ignored in raw_url for ignored in ignore_domains):
+            print(f"🚫 URL matched ignore list: {raw_url}. Skipping.")
+            return
+            
         try:
-            from sitestripe_scraper import get_sitestripe_link_and_data
-            async with sitestripe_lock:
-                scraped_data = await asyncio.to_thread(get_sitestripe_link_and_data, url)
+            from pipeline import ScrapingPipeline
+            # Retry loop for resilient scraping
+            max_retries = 2
+            deal = None
+            for attempt in range(max_retries):
+                try:
+                    deal = await asyncio.to_thread(ScrapingPipeline.process_url, raw_url, "telegram")
+                    break
+                except Exception as e:
+                    print(f"Pipeline attempt {attempt+1} failed for {raw_url}: {e}")
+                    if attempt == max_retries - 1:
+                        return
+                    await asyncio.sleep(2)
         except Exception as e:
-            print(f"Deep scraping failed, falling back to basic parsing: {e}")
+            print(f"Failed to load pipeline: {e}")
+            return
             
-    is_udemy = False
-    if url and ('udemy.com' in url.lower()):
-        print(f"Detected Udemy link! Initiating Playwright scraping...")
-        is_udemy = True
-        try:
-            from scraper import extract_udemy_data
-            # We don't use sitestripe_lock here as it's not Amazon, but we could if we wanted to limit concurrency
-            scraped_data = await asyncio.to_thread(extract_udemy_data, url)
-        except Exception as e:
-            print(f"Udemy scraping failed, falling back to basic parsing: {e}")
-            
-        print(f"Applying Impact affiliate tracking parameters...")
-        try:
-            parsed = urllib.parse.urlparse(url)
-            query_params = urllib.parse.parse_qs(parsed.query)
-            
-            # Add user's specific impact parameters
-            impact_params = {
-                'im_ref': ['3UDwqRybsxyZWDu1FDz21SsZUkuVtBwg7TRYz00'],
-                'irpid': ['7475040'],
-                'utm_medium': ['affiliate'],
-                'utm_source': ['impact'],
-                'utm_audience': ['mx'],
-                'utm_tactic': ['"APAC","Coupon/Deal"'],
-                'utm_content': ['3193860'],
-                'utm_campaign': ['7475040'],
-                'irgwc': ['1'],
-                'afsrc': ['1']
-            }
-            # Merge while keeping existing parameters (like couponCode) if not overriding
-            query_params.update(impact_params)
-            
-            # Reconstruct the URL
-            new_query = urllib.parse.urlencode(query_params, doseq=True)
-            url = urllib.parse.urlunparse(
-                (parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment)
-            )
-            print(f"Generated Udemy Affiliate Link: {url}")
-        except Exception as e:
-            print(f"Failed to append Udemy tracking params: {e}")
-            
-    # 2. Parse Message with LLM (enriched with scraped_data)
-    print("Parsing message with LLM...")
-    deal_data = await asyncio.to_thread(parse_telegram_message, message_text, "http://localhost:11434", scraped_data)
+    # 2. Extract extra text from Telegram message using LLM to find Promo Codes/Bank Offers
+    # Since the pipeline already got the core product info (Title, Price, etc), we only need 
+    # to supplement it with Telegram-specific context (like coupon codes or bank offers).
+    print("Parsing message with LLM for supplementary Telegram context...")
+    deal_data = await asyncio.to_thread(parse_telegram_message, message_text, "http://localhost:11434")
     
-    if not deal_data or not deal_data.get('is_deal'):
+    if deal_data and not deal_data.get('is_deal'):
         print("Not a valid deal or parsing failed. Skipping.")
         return
         
-    # Override URL with the LLM extracted one if pre-extraction failed, or with sitestripe shortlink
-    if not url:
-        url = deal_data.get('url')
-        if url:
-            url = await asyncio.to_thread(expand_url, url)
-            
-    if scraped_data and scraped_data.get('sitestripe_url'):
-        url = scraped_data['sitestripe_url']
-        print(f"Overriding with generated affiliate link: {url}")
-        
-    if not url:
-        print("No URL found in deal. Skipping.")
+    if not url and deal_data:
+        # Fallback if regex missed it but LLM found it
+        raw_url = deal_data.get('url')
+        if raw_url:
+            try:
+                from pipeline import ScrapingPipeline
+                max_retries = 2
+                for attempt in range(max_retries):
+                    try:
+                        deal = await asyncio.to_thread(ScrapingPipeline.process_url, raw_url, "telegram")
+                        break
+                    except Exception as e:
+                        print(f"Fallback Pipeline attempt {attempt+1} failed for {raw_url}: {e}")
+                        if attempt == max_retries - 1:
+                            return
+                        await asyncio.sleep(2)
+            except Exception as e:
+                print(f"Failed to load pipeline: {e}")
+                return
+
+    if 'deal' not in locals() or not deal:
+        print("No URL found in deal or pipeline completely failed. Skipping.")
         return
 
-    print(f"✅ Extracted Deal: {deal_data['title']} (₹{deal_data['discounted_price']})")
+    # Merge Telegram context into the Deal object
+    if deal_data:
+        if not deal.coupon and deal_data.get('promo_code'):
+            deal.coupon = deal_data['promo_code']
+        # We can also add bank_offer to features if not present
+        if deal_data.get('bank_offer'):
+            deal.title = f"[Bank Offer: {deal_data['bank_offer']}] " + deal.title
+
+    print(f"✅ Extracted Deal: {deal.title} (₹{deal.price})")
             
     # 3. Build AI Caption using the extra Telegram info
-    caption_text = f"🚨 {deal_data['title']} \n\n"
-    if deal_data.get('bank_offer'):
-        caption_text += f"💳 Bank Offer: {deal_data['bank_offer']}\n"
-    if deal_data.get('promo_code'):
-        caption_text += f"✂️ Coupon: {deal_data['promo_code']}\n"
-    caption_text += f"\n👉🏻 Buy Now: {url}"
+    caption_text = deal.ai_caption or f"🚨 {deal.title} \n\n"
+    if deal.coupon:
+        caption_text += f"\n✂️ Coupon: {deal.coupon}"
+    caption_text += f"\n\n👉🏻 Buy Now: {deal.affiliate_url or deal.canonical_url}"
 
     # 4. Handle Image
     # If the telegram message has a photo, let's download it
@@ -311,11 +305,9 @@ async def handler(event):
     # Fallback to Composer if no image found in Telegram message
     if not image_base64:
         print("No image in message, attempting to scrape image from URL...")
-        og_url = ""
-        if scraped_data and scraped_data.get('image_url'):
-            og_url = scraped_data['image_url']
-        else:
-            og_url = await asyncio.to_thread(fetch_og_image, url)
+        og_url = deal.image_url
+        if not og_url:
+            og_url = await asyncio.to_thread(fetch_og_image, deal.canonical_url)
         
         # Use fetched image or dummy gradient placeholder
         placeholder_url = og_url if og_url else "https://placehold.co/800x800/e2e8f0/475569.png?text=Loot+Deal"
@@ -324,23 +316,23 @@ async def handler(event):
         image_base64 = await asyncio.to_thread(
             compose_image, 
             placeholder_url, 
-            deal_data['original_price'], 
-            deal_data['discounted_price']
+            deal.original_price or 0, 
+            deal.price or 0
         )
 
     # 5. Construct Final Payload
     payload = {
-        "title": deal_data['title'],
-        "original_price": deal_data.get('original_price') or 0,
-        "discounted_price": deal_data.get('discounted_price') or 0,
-        "url": url,
-        "category_id": None, # Nullable in API now
-        "category_name": "Courses" if is_udemy else None, # Let API auto-resolve
+        "title": deal.title,
+        "original_price": deal.original_price or 0,
+        "discounted_price": deal.price or 0,
+        "url": deal.affiliate_url or deal.canonical_url,
+        "category_id": deal.category.id if (deal.category and hasattr(deal.category, 'id')) else 1, # Hardcoded fallback for production API
+        "category_name": deal.category.name if deal.category else "Electronics",
         "ai_caption": caption_text,
-        "features": deal_data.get('features', []),
-        "brand": deal_data.get('store', 'Unknown'),
+        "features": deal_data.get('features', []) if deal_data else [],
+        "brand": deal.brand or deal.merchant,
         "image_base64": image_base64,
-        "ai_score": deal_data.get('ai_score', 85)
+        "ai_score": deal.ai_score or 85
     }
             
     # 6. Push to Laravel
