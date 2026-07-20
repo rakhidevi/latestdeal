@@ -79,6 +79,11 @@ class ProcessDiscoveredDeal implements ShouldQueue
                 $duplicateDeal->update(['status' => $pipelineEnabled ? 'pending' : 'active']);
             }
             
+            // If we generated a new image, update the duplicate deal with it
+            if ($imagePath) {
+                $duplicateDeal->update(['image_path' => $imagePath]);
+            }
+            
             // Delete the raw deal since it's a duplicate
             $deal->delete();
             $deal = $duplicateDeal;
