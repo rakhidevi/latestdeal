@@ -12,15 +12,15 @@ if (isset($_GET['migrate'])) {
     }
     exit;
 }
-
 if (isset($_GET['debug_deals'])) {
-    require __DIR__.'/../vendor/autoload.php';
-    $app = require_once __DIR__.'/../bootstrap/app.php';
-    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-    
-    $deals = \App\Models\Deal::orderBy('id', 'desc')->take(10)->get();
-    header('Content-Type: application/json');
-    echo json_encode($deals);
+    try {
+        $db = new PDO('sqlite:' . __DIR__ . '/../database/database.sqlite');
+        $stmt = $db->query('SELECT id, title, url, status, created_at FROM deals ORDER BY id DESC LIMIT 10');
+        header('Content-Type: application/json');
+        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (\Exception $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
     exit;
 }
 
