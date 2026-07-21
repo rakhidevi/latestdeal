@@ -12,12 +12,15 @@ class ApplyDeduplication
     {
         $query = $payload->query;
 
-        // Runtime deduplication: Select single representative deal per brand/price/category
+        // Group by discounted_price and normalized title stem (strips emojis, spaces, 'new', hyphens)
         $query->whereIn('id', function ($sub) {
             $sub->selectRaw('MIN(id)')
                 ->from('deals')
                 ->where('status', 'active')
-                ->groupBy('discounted_price', DB::raw("COALESCE(brand_id, 0)"), 'category_id');
+                ->groupBy(
+                    'discounted_price', 
+                    DB::raw("SUBSTR(LOWER(REPLACE(REPLACE(REPLACE(REPLACE(title, '🚨', ''), 'new', ''), ' ', ''), '-', '')), 1, 15)")
+                );
         });
 
         return $next($payload);
