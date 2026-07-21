@@ -39,15 +39,21 @@ class ApplyRanking
         }
 
         // AI Ranking Engine
-        // Rank Score = Discount Percentage + AI Score + Freshness Decay (100 - (days_old * 5))
+        // Rank Score = Discount Percentage + AI Score + Freshness Decay + Price Bump Boost
+        // price_bumped_at: adds a large temporary boost when deal price has recently dropped
         
-        // Multi-Factor Search Ranking Engine
-        // Rank Score = (discount_percentage * 0.4) + (IFNULL(ai_score, 50) * 0.3) + (GREATEST(100 - (DATEDIFF(NOW(), created_at) * 5), 0) * 0.3)
         $discountExpr = \Illuminate\Support\Facades\Schema::hasColumn('deals', 'discount_percentage') 
             ? 'IFNULL(discount_percentage, 0)' 
             : '(CASE WHEN original_price > 0 THEN ((original_price - discounted_price) / original_price * 100) ELSE 0 END)';
 
-        $rankFormula = "($discountExpr * 0.4 + IFNULL(ai_score, 50) * 0.3 + GREATEST(100 - (DATEDIFF(NOW(), created_at) * 5), 0) * 0.3)";
+        // Price bump boost: adds 200 points if price dropped within the last 48 hours, decays to 0 after 7 days
+        $priceBumpBoost = "CASE 
+            WHEN price_bumped_at IS NOT NULL AND TIMESTAMPDIFF(HOUR, price_bumped_at, NOW()) <= 48 THEN 200
+            WHEN price_bumped_at IS NOT NULL AND TIMESTAMPDIFF(HOUR, price_bumped_at, NOW()) <= 168 THEN GREATEST(0, 200 - (TIMESTAMPDIFF(HOUR, price_bumped_at, NOW()) - 48) * 2)
+            ELSE 0
+        END";
+
+        $rankFormula = "($discountExpr * 0.4 + IFNULL(ai_score, 50) * 0.3 + GREATEST(100 - (DATEDIFF(NOW(), created_at) * 5), 0) * 0.3 + ($priceBumpBoost))";
 
         $query->orderByRaw("$rankFormula DESC");
 
