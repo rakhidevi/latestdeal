@@ -56,6 +56,15 @@ class Deal extends Model
         return $this->belongsTo(Brand::class);
     }
 
+    /**
+     * Alias for brand() relationship to avoid collision with 'brand' string column.
+     * Use $deal->brandRelation->name in views to safely access the Brand model.
+     */
+    public function brandRelation()
+    {
+        return $this->belongsTo(Brand::class, 'brand_id');
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);

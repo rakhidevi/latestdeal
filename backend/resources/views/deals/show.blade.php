@@ -7,8 +7,8 @@
     <div class="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
         <div class="flex flex-col md:flex-row gap-8 items-center">
             <div class="w-full md:w-1/2 flex items-center justify-center p-4 bg-gray-50 dark:bg-slate-800 rounded-2xl">
-                @if($deal->image)
-                    <img src="{{ $deal->image }}" alt="{{ $deal->title }}" class="max-h-72 object-contain rounded-xl">
+                @if($deal->image_path)
+                    <img src="{{ $deal->image_path }}" alt="{{ $deal->title }}" class="max-h-72 object-contain rounded-xl">
                 @else
                     <span class="text-6xl">🏷️</span>
                 @endif
@@ -18,18 +18,23 @@
                     @if($deal->category)
                         <span class="bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400 text-xs font-bold px-3 py-1 rounded-full">{{ $deal->category->icon }} {{ $deal->category->name }}</span>
                     @endif
-                    @if($deal->brand)
-                        <span class="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300 text-xs font-bold px-3 py-1 rounded-full">🏷️ {{ $deal->brand->name }}</span>
+                    @php
+                        $brandName = ($deal->brand_id && $deal->brandRelation) ? $deal->brandRelation->name : (is_string($deal->getRawOriginal('brand')) ? $deal->getRawOriginal('brand') : null);
+                    @endphp
+                    @if($brandName)
+                        <span class="bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300 text-xs font-bold px-3 py-1 rounded-full">🏷️ {{ $brandName }}</span>
                     @endif
                 </div>
 
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">{{ $deal->title }}</h1>
                 
                 <div class="flex items-baseline gap-4">
-                    <span class="text-3xl font-black text-red-600 dark:text-red-400">₹{{ number_format($deal->price) }}</span>
-                    @if($deal->original_price && $deal->original_price > $deal->price)
+                    <span class="text-3xl font-black text-red-600 dark:text-red-400">₹{{ number_format($deal->discounted_price) }}</span>
+                    @if($deal->original_price && $deal->original_price > $deal->discounted_price)
                         <span class="text-lg text-gray-400 line-through">₹{{ number_format($deal->original_price) }}</span>
-                        <span class="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 text-xs font-extrabold px-2.5 py-1 rounded-md">{{ $deal->discount_percentage }}% OFF</span>
+                        @if($deal->discount_percentage)
+                            <span class="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 text-xs font-extrabold px-2.5 py-1 rounded-md">{{ round($deal->discount_percentage) }}% OFF</span>
+                        @endif
                     @endif
                 </div>
 
@@ -37,7 +42,7 @@
 
                 <div class="pt-4 flex items-center gap-4">
                     <a href="{{ $deal->affiliate_url ?? $deal->url }}" target="_blank" rel="noopener noreferrer" class="btn-primary flex-1 text-center py-3.5 text-base font-bold shadow-lg hover:shadow-xl transition">
-                        Get Deal on {{ $deal->merchant->name ?? 'Store' }} →
+                        Get Deal on {{ $deal->merchant?->name ?? 'Store' }} →
                     </a>
                 </div>
             </div>

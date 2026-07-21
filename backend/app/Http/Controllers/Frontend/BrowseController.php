@@ -197,7 +197,10 @@ class BrowseController extends Controller
 
     public function show(Request $request, $slug)
     {
-        $deal = Deal::where('slug', $slug)->firstOrFail();
+        $deal = Deal::with(['merchant', 'category', 'brandRelation'])
+            ->where('slug', $slug)
+            ->firstOrFail();
+
         $pageTitle = $deal->title;
         $breadcrumbs = $this->breadcrumbService->generate([
             ['title' => 'Home', 'url' => '/'],
@@ -206,7 +209,7 @@ class BrowseController extends Controller
         ]);
         $seoMeta = $this->seoService->generateMeta(
             $pageTitle . ' | LatestDeal',
-            $deal->title . ' - Best deal price ₹' . number_format($deal->price),
+            $deal->title . ' - Best deal price ₹' . number_format($deal->discounted_price),
             url('/deal/' . $deal->slug)
         );
         $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
