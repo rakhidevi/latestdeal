@@ -197,9 +197,23 @@ class BrowseController extends Controller
 
     public function show(Request $request, $slug)
     {
-        $deal = Deal::with(['merchant', 'category', 'brandRelation'])
+        $deal = Deal::with(['merchant', 'category', 'brandRelation', 'priceHistories', 'tags'])
             ->where('slug', $slug)
             ->firstOrFail();
+
+        // Price history for the chart section
+        $priceHistory = $deal->priceHistories()->orderBy('recorded_at', 'asc')->get();
+
+        // Similar deals from the same category, excluding current
+        $similarDeals = Deal::where('status', 'active')
+            ->where('id', '!=', $deal->id)
+            ->where(function ($q) use ($deal) {
+                $q->where('category_id', $deal->category_id)
+                  ->orWhere('brand_id', $deal->brand_id);
+            })
+            ->orderByDesc('ai_score')
+            ->limit(4)
+            ->get();
 
         $pageTitle = $deal->title;
         $breadcrumbs = $this->breadcrumbService->generate([
@@ -214,6 +228,6 @@ class BrowseController extends Controller
         );
         $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
 
-        return view('deals.show', compact('deal', 'pageTitle', 'breadcrumbs', 'seoMeta', 'schema'));
+        return view('deals.show', compact('deal', 'pageTitle', 'breadcrumbs', 'seoMeta', 'schema', 'priceHistory', 'similarDeals'));
     }
 }
