@@ -101,6 +101,7 @@ Route::get('/privacy', function () {
 Route::get('/run-migrations', function () {
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     try {
+        \Illuminate\Support\Facades\Artisan::call('deals:classify');
         app(\App\Services\Catalog\BrandCounter::class)->recountAll();
         app(\App\Services\NavigationVersionManager::class)->incrementVersion();
         \Illuminate\Support\Facades\Cache::flush();
