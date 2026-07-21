@@ -13,22 +13,30 @@ class RedirectionController extends Controller
     {
         $deal = Deal::where('hash_id', $hashId)->firstOrFail();
 
-        // If we have UIC payload via cookies/headers or session
-        $visitorUuid = $request->cookie('uic_vid') ?? 'unknown';
-        $sessionId = $request->cookie('uic_sid') ?? 'unknown';
+        // Log the click in UIC safely
+        try {
+            $visitorUuid = $request->cookie('uic_vid') ?? 'unknown';
+            $sessionId = $request->cookie('uic_sid') ?? 'unknown';
 
-        // Log the click in UIC
-        UicAffiliateClick::create([
-            'session_id' => $sessionId,
-            'visitor_uuid' => $visitorUuid,
-            'deal_id' => $deal->id,
-            'merchant_id' => $deal->merchant_id,
-            'clicked_url' => $deal->url,
-            'ip_hash' => md5($request->ip() . config('app.key')),
-            'referrer' => $request->server('HTTP_REFERER')
-        ]);
+            UicAffiliateClick::create([
+                'session_id' => $sessionId,
+                'visitor_uuid' => $visitorUuid,
+                'merchant' => $deal->merchant->name ?? 'Store',
+                'merchant_id' => $deal->merchant_id,
+                'product' => $deal->title,
+                'deal_id' => $deal->id,
+                'category' => $deal->category->name ?? 'General',
+                'affiliate_url' => $deal->affiliate_url ?? $deal->url,
+                'clicked_url' => $deal->url,
+                'destination' => $deal->url,
+                'ip_hash' => md5($request->ip() . config('app.key')),
+                'referrer' => $request->server('HTTP_REFERER')
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('RedirectionController UIC log error: ' . $e->getMessage());
+        }
 
         // Redirect to actual deal URL
-        return redirect()->away($deal->url);
+        return redirect()->away($deal->affiliate_url ?? $deal->url);
     }
 }
