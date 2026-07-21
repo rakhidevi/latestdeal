@@ -96,11 +96,11 @@ class ClassifyCatalogCommand extends Command
 
         $this->info("Successfully reclassified {$reclassified} deals into specific categories.");
 
-        // 3. Resolve and assign brands for all deals missing brand_id
+        // 3. Resolve and assign brands for all deals
         $resolver = app(\App\Services\Catalog\BrandResolver::class);
-        $unbrandedDeals = Deal::whereNull('brand_id')->get();
+        $allDeals = Deal::all();
         $brandedCount = 0;
-        foreach ($unbrandedDeals as $deal) {
+        foreach ($allDeals as $deal) {
             $resolver->resolveAndAssign($deal);
             $brandedCount++;
         }

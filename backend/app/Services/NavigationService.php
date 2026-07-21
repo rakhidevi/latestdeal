@@ -46,7 +46,7 @@ class NavigationService
         }
         $brands = $brandQuery->limit(20)->get();
         if ($brands->isEmpty()) {
-            $brands = Brand::where('is_active', true)->limit(20)->get();
+            $brands = Brand::limit(20)->get();
         }
 
         // Get active merchants
