@@ -57,18 +57,50 @@ class AdminController
         $clickStats = DB::table('clicks')
             ->join('deals', 'clicks.deal_id', '=', 'deals.id')
             ->join('merchants', 'deals.merchant_id', '=', 'merchants.id')
-            ->select('merchants.name', DB::raw('count(*) as click_count'))
-            ->groupBy('merchants.name')
-            ->pluck('click_count', 'name')
-            ->toArray();
+            ->select(
+                'merchants.name',
+                'merchants.domain',
+                DB::raw('count(*) as click_count')
+            )
+            ->groupBy('merchants.id', 'merchants.name', 'merchants.domain')
+            ->get();
+
+        $topProducts = DB::table('clicks')
+            ->join('deals', 'clicks.deal_id', '=', 'deals.id')
+            ->select(
+                'deals.id',
+                'deals.title',
+                'deals.image_path',
+                DB::raw('count(*) as click_count')
+            )
+            ->groupBy('deals.id', 'deals.title', 'deals.image_path')
+            ->orderByDesc('click_count')
+            ->limit(10)
+            ->get();
+
+        $sourceCounts = DB::table('deals')
+            ->join('merchants', 'deals.merchant_id', '=', 'merchants.id')
+            ->select('merchants.name', 'merchants.id as merchant_id', DB::raw('count(*) as total'))
+            ->groupBy('merchants.id', 'merchants.name')
+            ->get();
+
+        $scraperStats = [
+            'source_counts' => $sourceCounts
+        ];
 
         $categoryStats = DB::table('clicks')
             ->join('deals', 'clicks.deal_id', '=', 'deals.id')
             ->join('categories', 'deals.category_id', '=', 'categories.id')
             ->select(
-                DB::raw('SUM(deals.discounted_price * (categories.commission_rate / 100) * 0.03) as estimated_revenue')
-            )->first();
-        $estimatedEarnings = $categoryStats->estimated_revenue ?? 0;
+                'categories.name',
+                'categories.commission_rate',
+                DB::raw('count(*) as click_count'),
+                DB::raw('SUM(deals.discounted_price * (categories.commission_rate / 100.0) * 0.03) as estimated_revenue')
+            )
+            ->groupBy('categories.id', 'categories.name', 'categories.commission_rate')
+            ->get();
+
+        $estimatedEarnings = $categoryStats->sum('estimated_revenue') ?? 0;
         
         $ctr = $totalClicks > 0 && Deal::count() > 0 ? round(($totalClicks / Deal::count()) * 100, 2) : 0;
 
@@ -164,7 +196,7 @@ class AdminController
         $pipelineEnabled = $pipelineSetting ? $pipelineSetting->value === 'enabled' : false;
 
         return view('admin.dashboard', compact(
-            'stats', 'topSearches', 'recentClicks', 'metrics',
+            'stats', 'topSearches', 'recentClicks', 'metrics', 'topProducts', 'scraperStats', 'categoryStats',
             'workerStatuses', 'workersOnline', 'totalWorkers', 'queueCount', 'failedJobs', 'storageUsedPct', 'alerts',
             'dealsToday', 'publishedToday', 'pendingReview', 'totalClicks',
             'clickStats', 'estimatedEarnings', 'ctr',

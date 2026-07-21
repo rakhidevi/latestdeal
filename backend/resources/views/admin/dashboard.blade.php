@@ -1,4 +1,4 @@
-﻿@extends('admin.layout')
+@extends('admin.layout')
 
 @section('title', 'System Insights')
 
@@ -192,7 +192,7 @@
                                 <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md text-xs font-bold">{{ $stat->commission_rate }}%</span>
                             </td>
                             <td class="px-4 py-4 text-right font-black text-slate-700">{{ $stat->click_count }}</td>
-                            <td class="px-4 py-4 text-right font-black text-emerald-600">Γé╣{{ number_format($stat->estimated_revenue, 2) }}</td>
+                            <td class="px-4 py-4 text-right font-black text-emerald-600">₹{{ number_format($stat->estimated_revenue ?? 0, 2) }}</td>
                         </tr>
                     @empty
                         <tr>
