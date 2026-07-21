@@ -110,11 +110,13 @@ class ClassifyCatalogCommand extends Command
 
         $this->info("Successfully reclassified {$reclassified} deals into specific categories.");
 
-        // 3. Resolve and assign brands for all deals
+        // 3. Resolve and assign brands for all deals with fresh NLP re-evaluation
         $resolver = app(\App\Services\Catalog\BrandResolver::class);
         $allDeals = Deal::all();
         $brandedCount = 0;
         foreach ($allDeals as $deal) {
+            $deal->brand = null;
+            $deal->brand_id = null;
             $resolver->resolveAndAssign($deal);
             $brandedCount++;
         }

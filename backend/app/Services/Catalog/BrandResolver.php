@@ -75,12 +75,7 @@ class BrandResolver
             $detectedName = trim($deal->ai_metadata['brand']);
         }
 
-        // 3. Existing Brand Column
-        if (!$detectedName && !empty($deal->brand) && strtolower(trim($deal->brand)) !== 'unknown brand') {
-            $detectedName = trim($deal->brand);
-        }
-
-        // 4. Title Pattern Matching
+        // 2. Title Pattern Matching (Highest Precision NLP Regex Rules)
         if (!$detectedName && !empty($deal->title)) {
             foreach ($this->brandPatterns as $brandName => $patterns) {
                 foreach ($patterns as $pattern) {
@@ -90,6 +85,11 @@ class BrandResolver
                     }
                 }
             }
+        }
+
+        // 3. Legacy Brand Column Fallback
+        if (!$detectedName && !empty($deal->brand) && strtolower(trim($deal->brand)) !== 'unknown brand') {
+            $detectedName = trim($deal->brand);
         }
 
         if ($detectedName) {
