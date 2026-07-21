@@ -113,6 +113,34 @@ class RealDealSeeder extends Seeder
                 'promo' => 'SONY10'
             ],
             [
+                'title' => 'Noise ColorFit Pulse 2 Max 1.85" Display Bluetooth Calling Smart Watch',
+                'description' => '1.85" TFT Display, 550 NITS Brightness, 100 Sports Modes, Smart DND, Noise Health Suite.',
+                'original_price' => 5999,
+                'discounted_price' => 1499,
+                'category_id' => $electronicsCat->id,
+                'merchant_id' => $merchant->id,
+                'url' => 'https://www.amazon.in/dp/B0B5L2B56Y',
+                'image_path' => '/storage/deals/noise_watch.jpg',
+                'status' => 'active',
+                'expires_at' => now()->addDays(9),
+                'tags' => ['Electronics', 'Smartwatch', 'Noise'],
+                'promo' => 'NOISE75'
+            ],
+            [
+                'title' => 'Noise Buds VS102 Truly Wireless Earbuds with 50H Playtime',
+                'description' => 'Instacharge (10 min charge = 120 min playtime), 11mm Driver, IPX5 Waterproof, Hyper Sync Tech.',
+                'original_price' => 3499,
+                'discounted_price' => 999,
+                'category_id' => $electronicsCat->id,
+                'merchant_id' => $merchant->id,
+                'url' => 'https://www.amazon.in/dp/B09CGCB8LL',
+                'image_path' => '/storage/deals/noise_earbuds.jpg',
+                'status' => 'active',
+                'expires_at' => now()->addDays(6),
+                'tags' => ['Electronics', 'Audio', 'Noise'],
+                'promo' => null
+            ],
+            [
                 'title' => 'ASUS TUF Gaming F15 Laptop',
                 'description' => '15.6" FHD 144Hz, Intel Core i5-11400H 11th Gen, RTX 3050 4GB Graphics, 8GB RAM, 512GB SSD, Windows 11',
                 'original_price' => 74990,
