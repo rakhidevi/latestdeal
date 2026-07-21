@@ -502,7 +502,11 @@ Route::get("/fix-status-constraint", function () {
 });
 
 Route::get('/run-migrations', function () {
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+    }
     try {
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         \Illuminate\Support\Facades\Artisan::call('migrate --force');
         $out1 = \Illuminate\Support\Facades\Artisan::output();
 
@@ -516,7 +520,7 @@ Route::get('/run-migrations', function () {
         app(\App\Services\NavigationVersionManager::class)->incrementVersion();
         \Illuminate\Support\Facades\Cache::flush();
 
-        return "<pre>Migrations & Catalog Recount ran successfully:\n" . $out1 . "\n" . $out2 . "\n" . $out3 . "</pre>";
+        return "OPCACHE RESET COMPLETE. Output:\n" . $out1 . "\n" . $out2 . "\n" . $out3;
     } catch (\Exception $e) {
         return "ERROR: " . $e->getMessage();
     }
