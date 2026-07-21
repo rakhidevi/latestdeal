@@ -49,10 +49,22 @@ class ApplyFilters
         }
 
         // Discount Range / Percentage Filters
-        if (isset($filters['discount_min']) && isset($filters['discount_max'])) {
-            $query->whereBetween('discount_percentage', [$filters['discount_min'], $filters['discount_max']]);
-        } elseif (isset($filters['discount_min'])) {
-            $query->where('discount_percentage', '>=', $filters['discount_min']);
+        if (isset($filters['discount_min']) || isset($filters['discount_max'])) {
+            $hasCol = \Illuminate\Support\Facades\Schema::hasColumn('deals', 'discount_percentage');
+            
+            if (isset($filters['discount_min']) && isset($filters['discount_max'])) {
+                if ($hasCol) {
+                    $query->whereBetween('discount_percentage', [$filters['discount_min'], $filters['discount_max']]);
+                } else {
+                    $query->whereRaw('(CASE WHEN original_price > 0 THEN ((original_price - discounted_price) / original_price * 100) ELSE 0 END) BETWEEN ? AND ?', [(float)$filters['discount_min'], (float)$filters['discount_max']]);
+                }
+            } elseif (isset($filters['discount_min'])) {
+                if ($hasCol) {
+                    $query->where('discount_percentage', '>=', $filters['discount_min']);
+                } else {
+                    $query->whereRaw('(CASE WHEN original_price > 0 THEN ((original_price - discounted_price) / original_price * 100) ELSE 0 END) >= ?', [(float)$filters['discount_min']]);
+                }
+            }
         }
         
         // Quality / Verification

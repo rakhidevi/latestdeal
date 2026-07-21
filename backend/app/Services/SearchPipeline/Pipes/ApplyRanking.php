@@ -43,7 +43,11 @@ class ApplyRanking
         
         // Multi-Factor Search Ranking Engine
         // Rank Score = (discount_percentage * 0.4) + (IFNULL(ai_score, 50) * 0.3) + (GREATEST(100 - (DATEDIFF(NOW(), created_at) * 5), 0) * 0.3)
-        $rankFormula = "(IFNULL(discount_percentage, 0) * 0.4 + IFNULL(ai_score, 50) * 0.3 + GREATEST(100 - (DATEDIFF(NOW(), created_at) * 5), 0) * 0.3)";
+        $discountExpr = \Illuminate\Support\Facades\Schema::hasColumn('deals', 'discount_percentage') 
+            ? 'IFNULL(discount_percentage, 0)' 
+            : '(CASE WHEN original_price > 0 THEN ((original_price - discounted_price) / original_price * 100) ELSE 0 END)';
+
+        $rankFormula = "($discountExpr * 0.4 + IFNULL(ai_score, 50) * 0.3 + GREATEST(100 - (DATEDIFF(NOW(), created_at) * 5), 0) * 0.3)";
 
         $query->orderByRaw("$rankFormula DESC");
 
