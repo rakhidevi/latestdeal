@@ -98,6 +98,23 @@ Route::get('/privacy', function () {
     return view('privacy');
 })->name('privacy');
 
+Route::get('/seed-admin-now', function () {
+    \App\Models\User::where('email', 'admin@latestdeal.in')->delete();
+    $u = new \App\Models\User();
+    $u->name = 'Admin';
+    $u->email = 'admin@latestdeal.in';
+    $u->password = \Illuminate\Support\Facades\Hash::make('password123');
+    $u->role = 'admin';
+    $u->save();
+
+    $attempt = \Illuminate\Support\Facades\Auth::attempt([
+        'email' => 'admin@latestdeal.in',
+        'password' => 'password123'
+    ]);
+
+    return "Admin User Reset Successfully!\nEmail: admin@latestdeal.in\nPassword: password123\nAuth Attempt Result: " . ($attempt ? "SUCCESS" : "FAILED");
+});
+
 Route::get('/run-migrations', function () {
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     try {
