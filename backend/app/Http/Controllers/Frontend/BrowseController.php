@@ -101,6 +101,15 @@ class BrowseController extends Controller
         }
 
         $deals = $query->paginate(15);
+
+        // Deduplicate near-identical product entries
+        $uniqueCollection = $deals->getCollection()->unique(function ($deal) {
+            $cleanTitle = mb_strtolower($deal->title ?? '', 'UTF-8');
+            $cleanTitle = preg_replace('/(wireless|bluetooth|headphones|headphone|earphones|earphone|noise|cancelling|cancellation|reduction|new|on-ear|over-ear|in-ear|mic|3-level|adjustable|for|youtube|with|and|brown|midnight|blue|black|white|silver|grey|gold|red|color|1006834|🚨)/i', '', $cleanTitle);
+            $cleanTitle = preg_replace('/[^a-z0-9]/', '', $cleanTitle);
+            return $cleanTitle . '_' . (int)($deal->discounted_price ?? 0);
+        });
+        $deals->setCollection($uniqueCollection->values());
         
         $pageTitle = $brand->name . ' Deals';
         $breadcrumbs = $this->breadcrumbService->generate([
