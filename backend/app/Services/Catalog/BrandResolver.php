@@ -87,9 +87,11 @@ class BrandResolver
             }
         }
 
-        // 3. Legacy Brand Column Fallback
-        if (!$detectedName && !empty($deal->brand) && strtolower(trim($deal->brand)) !== 'unknown brand') {
-            $detectedName = trim($deal->brand);
+        // 3. Defensive Guard: Prevent 'Noise' brand assignment if title is just describing acoustic noise cancelling/reduction
+        if ($detectedName && strtolower($detectedName) === 'noise' && !empty($deal->title)) {
+            if (preg_match('/noise\s+(cancelling|cancellation|reduction|canceling)/i', $deal->title)) {
+                $detectedName = null;
+            }
         }
 
         if ($detectedName) {
@@ -101,8 +103,9 @@ class BrandResolver
             return $brand;
         }
 
-        // Unresolved: Set brand_id to NULL and flag for review (Do NOT create artificial "Unknown Brand" entity)
+        // Unresolved: Set brand_id to NULL
         $deal->brand_id = null;
+        $deal->brand = null;
         $deal->needs_brand_review = true;
         $deal->saveQuietly();
 
