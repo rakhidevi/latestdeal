@@ -1,15 +1,16 @@
 @extends('layouts.app')
 
 @section('meta')
-    <title>Find the Best Global Deals, Offers, & Coupons | LatestDeal</title>
-    <meta name="description" content="Discover top discounts, live offers, and verified coupons from global marketplaces like Amazon. Our AI scores deals so you always save money.">
-    <link rel="canonical" href="{{ url()->current() }}">
-    <meta property="og:title" content="Find the Best Global Deals, Offers, & Coupons | LatestDeal">
-    <meta property="og:description" content="Discover top discounts, live offers, and verified coupons from global marketplaces like Amazon. Our AI scores deals so you always save money.">
-    <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:type" content="website">
+    <title>{{ $seoMeta['title'] ?? 'Find the Best Global Deals, Offers, & Coupons | LatestDeal' }}</title>
+    <meta name="description" content="{{ $seoMeta['description'] ?? 'Discover top discounts, live offers, and verified coupons from global marketplaces like Amazon. Our AI scores deals so you always save money.' }}">
+    <link rel="canonical" href="{{ $seoMeta['canonical'] ?? url()->current() }}">
+    
+    <meta property="og:title" content="{{ $seoMeta['og_title'] ?? 'Find the Best Global Deals, Offers, & Coupons | LatestDeal' }}">
+    <meta property="og:description" content="{{ $seoMeta['og_description'] ?? 'Discover top discounts, live offers, and verified coupons from global marketplaces like Amazon.' }}">
+    <meta property="og:url" content="{{ $seoMeta['og_url'] ?? url()->current() }}">
+    <meta property="og:type" content="{{ $seoMeta['og_type'] ?? 'website' }}">
     <meta property="og:image" content="{{ asset('/images/logo.png') }}">
-    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:card" content="{{ $seoMeta['twitter_card'] ?? 'summary_large_image' }}">
 
     <script type="application/ld+json">
     {
@@ -18,12 +19,18 @@
       "name": "LatestDeal",
       "url": @json(url('/')),
       "potentialAction": {
-        "@@type": "SearchAction",
+        "@type": "SearchAction",
         "target": @json(url('/') . '?q={search_term_string}'),
         "query-input": "required name=search_term_string"
       }
     }
     </script>
+    
+    @if(isset($schema))
+    <script type="application/ld+json">
+    {!! json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+    @endif
 @endsection
 
 @section('hero')
@@ -196,10 +203,31 @@
   <x-ad-banner slot="home-top" />
 
   <div class="space-y-4">
+    @if(isset($breadcrumbs))
+        <nav class="flex text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
+                @foreach($breadcrumbs as $index => $crumb)
+                    <li class="inline-flex items-center">
+                        @if(!$loop->first)
+                            <svg class="w-4 h-4 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        @endif
+                        @if($crumb['url'])
+                            <a href="{{ $crumb['url'] }}" class="text-gray-500 hover:text-red-600 transition font-medium">{{ $crumb['title'] }}</a>
+                        @else
+                            <span class="text-gray-900 font-bold">{{ $crumb['title'] }}</span>
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+        </nav>
+    @endif
+
     <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
         <div>
-            <h2 class="section-title">Featured Deals</h2>
-            <p class="section-subtitle">Global opportunities selected by scoring engine.</p>
+            <h2 class="section-title">{{ $pageTitle ?? 'Featured Deals' }}</h2>
+            <p class="text-sm text-gray-500 mt-1">Found {{ $deals->total() }} matching deals</p>
         </div>
         <div class="flex items-center gap-2 self-start sm:self-auto">
             <a href="/assistant" class="btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center px-3 py-1.5 text-sm sm:px-4 sm:py-2">
@@ -212,6 +240,73 @@
             <a href="/?category=all" class="btn-secondary px-3 py-1.5 text-sm sm:px-4 sm:py-2 hidden sm:inline-block">View all</a>
         </div>
     </div>
+
+    <!-- Entity Intelligence Landing Page UI -->
+    @if(isset($category))
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 p-6 mb-6">
+            <div class="flex flex-col md:flex-row gap-8 items-start md:items-center">
+                <div class="flex-1">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $category->name }} Deals & Buying Guide</h1>
+                    <p class="text-gray-500 dark:text-slate-400 mt-2">Discover the best discounts on {{ $category->name }}. Our AI has analyzed {{ $category->deal_count ?? $deals->total() }} deals to bring you the top offers today.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 flex-shrink-0 w-full md:w-auto">
+                    <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-800/30 text-center">
+                        <div class="text-2xl font-black text-red-600 dark:text-red-400">{{ number_format($category->average_discount, 1) }}%</div>
+                        <div class="text-xs uppercase tracking-wider text-red-800 dark:text-red-300 font-semibold mt-1">Avg Discount</div>
+                    </div>
+                    <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-100 dark:border-orange-800/30 text-center">
+                        <div class="text-2xl font-black text-orange-600 dark:text-orange-400">{{ $category->trending_score }}</div>
+                        <div class="text-xs uppercase tracking-wider text-orange-800 dark:text-orange-300 font-semibold mt-1">Trending Score</div>
+                    </div>
+                </div>
+            </div>
+            @if($category->topMerchant)
+            <div class="mt-6 pt-6 border-t border-gray-100 dark:border-slate-800">
+                <p class="text-sm font-medium text-gray-600 dark:text-slate-300">
+                    <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                    Top merchant for this category right now: <strong>{{ $category->topMerchant->name }}</strong>
+                </p>
+            </div>
+            @endif
+        </div>
+    @endif
+
+    @if(isset($brand))
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 p-6 mb-6">
+            <div class="flex flex-col md:flex-row gap-8 items-start md:items-center">
+                <div class="flex-1">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $brand->name }} Deals & Offers</h1>
+                    <p class="text-gray-500 dark:text-slate-400 mt-2">Find the latest verified discounts on {{ $brand->name }} products. Handpicked and scored by our AI engine.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 flex-shrink-0 w-full md:w-auto">
+                    <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-800/30 text-center">
+                        <div class="text-2xl font-black text-red-600 dark:text-red-400">{{ number_format($brand->average_discount, 1) }}%</div>
+                        <div class="text-xs uppercase tracking-wider text-red-800 dark:text-red-300 font-semibold mt-1">Avg Discount</div>
+                    </div>
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800/30 text-center">
+                        <div class="text-2xl font-black text-blue-600 dark:text-blue-400">{{ $brand->trending_score }}</div>
+                        <div class="text-xs uppercase tracking-wider text-blue-800 dark:text-blue-300 font-semibold mt-1">Brand Popularity</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if(isset($trendingDeals) && $trendingDeals->isNotEmpty())
+        <div class="mb-10">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="bg-red-100 text-red-600 p-2 rounded-full dark:bg-red-900/30 dark:text-red-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Trending Deals Right Now</h2>
+            </div>
+            <div class="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+                @foreach($trendingDeals as $deal)
+                    <x-deal-card :deal="$deal" />
+                @endforeach
+            </div>
+        </div>
+    @endif
 
       <div class="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5" id="deals-grid">
         @include('partials.deals_grid')
@@ -331,8 +426,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(filterForm);
             const params = new URLSearchParams(formData);
             
-            // Handle select specifically if needed, but FormData should catch it
-            const url = '/?' + params.toString();
+            // Preserve current path context (e.g. /deals/70-89-off, /categories/electronics)
+            const basePath = window.location.pathname || '/';
+            const queryString = params.toString();
+            const url = basePath + (queryString ? '?' + queryString : '');
             fetchDeals(url, false);
         });
 

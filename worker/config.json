@@ -1,0 +1,14 @@
+{
+    "telegram": {
+        "target_channels": []
+    },
+    "scraper": {
+        "ignore_domains": [
+            "amazon.in/storefront",
+            "youtube.com",
+            "youtu.be",
+            "t.me",
+            "telegram.me"
+        ]
+    }
+}

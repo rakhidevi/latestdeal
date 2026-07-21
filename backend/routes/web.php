@@ -70,83 +70,27 @@ Route::get('/assistant', function () {
 })->name('shopper.assistant');
 
 // The frontend Vue/Blade entrypoint
-Route::get('/', function (\Illuminate\Http\Request $request) {
-    // Generate a unique cache key based on the query parameters
-    $cacheKey = 'deals.welcome.' . md5(json_encode($request->query()));
-    
-    // Cache the entire payload for 5 minutes
-    $payload = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($request) {
-        $query = \App\Models\Deal::where('status', 'active');
+use App\Http\Controllers\Frontend\BrowseController;
 
-        if ($request->has('q') && $request->q) {
-            $query->where('title', 'like', '%' . $request->q . '%');
-        }
+// Directory Routes (View All)
+Route::get('/categories', [\App\Http\Controllers\DirectoryController::class, 'categories'])->name('directory.categories');
+Route::get('/brands', [\App\Http\Controllers\DirectoryController::class, 'brands'])->name('directory.brands');
+Route::get('/merchants', [\App\Http\Controllers\DirectoryController::class, 'merchants'])->name('directory.merchants');
 
-        if ($request->has('tag') && $request->tag) {
-            $query->whereHas('tags', function($q) use ($request) {
-                $q->where('slug', $request->tag);
-            });
-        }
-
-        if ($request->has('category') && $request->category && $request->category !== 'all') {
-            $query->whereHas('category', function($q) use ($request) {
-                $q->where('slug', $request->category);
-            });
-        }
-
-        if ($request->has('brand') && $request->brand) {
-            $query->where('brand', $request->brand);
-        }
-
-        if ($request->has('merchant') && $request->merchant) {
-            $query->whereHas('merchant', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->merchant . '%');
-            });
-        }
-
-        if ($request->filled('min_price') && is_numeric($request->min_price)) {
-            $query->where('discounted_price', '>=', $request->min_price);
-        }
-
-        if ($request->filled('max_price') && is_numeric($request->max_price)) {
-            $query->where('discounted_price', '<=', $request->max_price);
-        }
-
-        if ($request->filled('min_discount') && is_numeric($request->min_discount)) {
-            $query->where('original_price', '>', 0)
-                  ->whereRaw('((original_price - discounted_price) * 100.0 / original_price) >= ?', [$request->min_discount]);
-        }
-
-        if ($request->has('sort') && $request->sort === 'discount') {
-            $query->orderByRaw('(original_price - discounted_price) DESC');
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
-
-        $deals = $query->paginate(15)->withQueryString();
-        
-        // For the Sidebar
-        $categories = \App\Models\Category::has('deals')->get();
-        $brands = \App\Models\Deal::whereNotNull('brand')->select('brand')->distinct()->pluck('brand');
-        $tags = \App\Models\Tag::has('deals')->get();
-
-        return compact('deals', 'categories', 'brands', 'tags');
-    });
-
-    if ($request->ajax()) {
-        $html = view('partials.deals_grid', ['deals' => $payload['deals']])->render();
-        return response()->json([
-            'html' => $html,
-            'next_page' => $payload['deals']->nextPageUrl(),
-            'has_more' => $payload['deals']->hasMorePages()
-        ]);
-    }
-
-    return view('welcome', $payload);
-});
+// SEO Routing
+Route::get('/', [BrowseController::class, 'index'])->name('home');
+Route::get('/deal/{slug}', [BrowseController::class, 'show'])->name('deals.show');
+Route::get('/categories/{slug}', [BrowseController::class, 'byCategory'])->name('deals.category');
+Route::get('/brands/{slug}', [BrowseController::class, 'byBrand'])->name('deals.brand');
+Route::get('/merchants/{slug}', [BrowseController::class, 'byMerchant'])->name('deals.merchant');
+Route::get('/deals/{range}', [BrowseController::class, 'byDiscount'])->name('deals.discount');
 
 // SEO Engine
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index']);
+
+// Operations & Catalog Health Dashboard
+Route::get('/admin/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
+Route::get('/admin/catalog/health', [\App\Http\Controllers\Admin\CatalogHealthController::class, 'show'])->name('admin.catalog.health');
 
 // Legal Pages
 Route::view('/terms', 'terms')->name('terms');

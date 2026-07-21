@@ -110,6 +110,11 @@ class DealIngestionController
                 return response()->json(['error' => 'Deal rejected: illegal content'], 422);
             }
         }
+        
+        // 1.5.1 Block Zero Price Deals (Out of Stock items parsed incorrectly)
+        if (empty($validated['discounted_price']) || $validated['discounted_price'] <= 0) {
+            return response()->json(['error' => 'Deal rejected: Discounted price cannot be 0 (likely out of stock)'], 422);
+        }
 
         \Illuminate\Support\Facades\Log::info('Validated category_id before Deal::create: ' . json_encode($validated['category_id']));
 
@@ -127,12 +132,70 @@ class DealIngestionController
             $imagePath = 'deals/' . $imageName;
         }
 
-        // 2. Persist Raw Payload (Status: raw)
+        // 2. Check for Duplicates
+        $existingDeal = Deal::where(function($query) use ($validated) {
+                $query->where('title', Str::limit($validated['title'], 250, ''))
+                      ->where('merchant_id', $validated['merchant_id']);
+            })
+            ->orWhere('url', $validated['url'])
+            ->first();
+
+        if ($existingDeal) {
+            // It's a duplicate! Update price if changed
+            if ($existingDeal->discounted_price != $validated['discounted_price']) {
+                // Save to price history
+                \App\Models\PriceHistory::create([
+                    'deal_id' => $existingDeal->id,
+                    'price' => $existingDeal->discounted_price,
+                    'recorded_at' => now(),
+                ]);
+                
+                $existingDeal->update([
+                    'original_price' => $validated['original_price'],
+                    'discounted_price' => $validated['discounted_price'],
+                    'status' => 'active' // reactivate if it was expired
+                ]);
+                
+                return response()->json([
+                    'message' => 'Deal already exists. Price updated.',
+                    'deal_id' => $existingDeal->id,
+                    'correlation_id' => null
+                ], 200);
+            }
+            
+            // Just reactivate if it was expired
+            if ($existingDeal->status === 'expired') {
+                $existingDeal->update(['status' => 'active']);
+            }
+
+            return response()->json([
+                'message' => 'Deal already exists. No changes made.',
+                'deal_id' => $existingDeal->id,
+                'correlation_id' => null
+            ], 200);
+        }
+
+        // 2.5 Resolve Brand ID
+        $brandId = null;
+        if (!empty($validated['brand'])) {
+            $brandName = trim(Str::limit($validated['brand'], 250, ''));
+            $slug = Str::slug($brandName);
+            if (!empty($slug)) {
+                $brand = \App\Models\Brand::firstOrCreate(
+                    ['slug' => $slug],
+                    ['name' => $brandName, 'is_active' => true]
+                );
+                $brandId = $brand->id;
+            }
+        }
+
+        // 3. Persist Raw Payload (Status: raw)
         $deal = Deal::create([
             'url' => $validated['url'],
             'image_path' => $imagePath,
             'category_id' => $validated['category_id'],
             'merchant_id' => $validated['merchant_id'],
+            'brand_id' => $brandId,
             'title' => Str::limit($validated['title'], 250, ''),
             'original_price' => $validated['original_price'],
             'discounted_price' => $validated['discounted_price'],
@@ -147,11 +210,11 @@ class DealIngestionController
             'short_url' => $validated['short_url'] ?? null,
         ]);
 
-        // 3. Queue Processing (Dispatch Event)
+        // 4. Queue Processing (Dispatch Event)
         $correlationId = Str::uuid()->toString();
         event(new \App\Events\DealDiscovered($deal, $correlationId, 'unknown', '1.0', ['raw_payload' => $validated]));
 
-        // 4. Return HTTP 200 immediately
+        // 5. Return HTTP 200 immediately
         return response()->json([
             'message' => 'Deal ingested and queued successfully',
             'deal_id' => $deal->id,

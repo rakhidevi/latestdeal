@@ -35,7 +35,7 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434") -> Deal:
                 {"role": "system", "content": "You output strictly valid JSON."},
                 {"role": "user", "content": prompt}
             ],
-            timeout=15
+            timeout=120
         )
         
         data = json.loads(response.choices[0].message.content)

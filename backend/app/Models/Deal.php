@@ -8,9 +8,16 @@ use Illuminate\Support\Str;
 class Deal extends Model
 {
     protected $fillable = [
-        'category_id', 'merchant_id', 'title', 'original_price', 
-        'discounted_price', 'coupon_code', 'promo_code', 'url', 'short_url', 'image_path', 'status', 'brand',
+        'category_id', 'merchant_id', 'brand_id', 'title', 'original_price', 
+        'discounted_price', 'discount_percentage', 'amount_saved', 'price_drop', 'effective_price',
+        'needs_brand_review', 'coupon_code', 'promo_code', 'url', 'short_url', 'image_path', 'status', 'brand',
         'features', 'verdict', 'trust_metrics', 'ai_caption', 'ai_score', 'slug', 'hash_id'
+    ];
+
+    protected $dispatchesEvents = [
+        'created' => \App\Events\DealCreated::class,
+        'updated' => \App\Events\DealUpdated::class,
+        'deleted' => \App\Events\DealDeleted::class,
     ];
 
     protected static function booted()
@@ -44,6 +51,11 @@ class Deal extends Model
         return $this->belongsTo(Merchant::class);
     }
 
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -57,6 +69,11 @@ class Deal extends Model
     public function tags()
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function collections()
+    {
+        return $this->belongsToMany(Collection::class);
     }
 
     /**

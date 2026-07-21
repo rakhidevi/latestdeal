@@ -22,6 +22,12 @@ Route::post('/deals/ingest', [\App\Http\Controllers\Api\DealIngestionController:
 Route::get('/deals/active', [\App\Http\Controllers\Api\DealIngestionController::class, 'activeDeals']);
 Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionController::class, 'expire']);
 
+// Brand & Search Autocomplete API Engine
+Route::prefix('v1')->group(function () {
+    Route::get('/brands/search', [\App\Http\Controllers\Api\BrandApiController::class, 'search']);
+    Route::get('/search/suggestions', [\App\Http\Controllers\Api\SearchSuggestionController::class, 'suggestions']);
+});
+
 // Temporary manual migration route
 Route::get('/migrate', function() {
     try {
@@ -35,6 +41,9 @@ Route::get('/migrate', function() {
     }
 });
 
+Route::get('/migrate-brands-check', function() {
+    return \Illuminate\Support\Facades\DB::select('SHOW TABLES');
+});
 Route::get('/queue-work', function() {
     try {
         $deals = \App\Models\Deal::where('status', 'raw')->get();
@@ -115,6 +124,13 @@ Route::group([], function () {
 // Retention Engine (Public)
 Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
 Route::post('/alerts', [SubscriptionController::class, 'setAlert']);
+Route::post('/deals/batch', [DealIngestionController::class, 'batchIngest']);
+
+// Search Suggestions
+Route::get('/search/suggestions', [\App\Http\Controllers\Api\SearchSuggestionController::class, 'suggestions']);
+
+// User Intelligence Center Tracking
+Route::post('/uic/track', [\App\Http\Controllers\Api\UICTrackingController::class, 'track']);
 
 // Webhooks
 Route::post('/webhooks/telegram', [\App\Http\Controllers\Api\TelegramWebhookController::class, 'handle']);

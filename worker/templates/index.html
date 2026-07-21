@@ -99,9 +99,13 @@
             color: #10b981; border: 1px solid var(--border-color);
             margin-top: 1rem;
         }
-        .log-line { margin-bottom: 4px; }
-        .log-line.error { color: #ef4444; }
-        .log-line.warning { color: #f59e0b; }
+        .log-line { margin-bottom: 4px; padding: 4px 8px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; transition: background 0.2s; }
+        .log-line:hover { background: rgba(255, 255, 255, 0.05); }
+        .log-line.error { color: #fca5a5; background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; }
+        .log-line.warning { color: #fcd34d; background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; }
+        .log-line.success { color: #6ee7b7; background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; }
+        .log-line a { color: #60a5fa; text-decoration: none; font-weight: 600; padding: 0 4px; border-radius: 4px; background: rgba(96, 165, 250, 0.1); }
+        .log-line a:hover { text-decoration: underline; color: #93c5fd; background: rgba(96, 165, 250, 0.2); }
 
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
@@ -486,18 +490,55 @@
 
         async function updateLogs() {
             const processes = ['server', 'telegram', 'hunter', 'desktop', 'udemy', 'coursera'];
+            
+            // Helper to escape HTML to prevent XSS
+            const escapeHTML = str => str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag]));
+
+            // Regex to match URLs
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+
             for (const p of processes) {
                 try {
                     const res = await fetch(`/api/logs/${p}`);
                     const data = await res.json();
                     const container = document.getElementById(`terminal-logs-${p}`);
-                    container.innerHTML = data.logs.map(line => {
+                    
+                    // Smart scrolling: only auto-scroll if the user is already at the bottom
+                    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 20;
+                    
+                    container.innerHTML = data.logs.map(rawLine => {
                         let cls = 'log-line';
-                        if (line.toLowerCase().includes('error') || line.toLowerCase().includes('failed') || line.toLowerCase().includes('fatal')) cls += ' error';
-                        if (line.toLowerCase().includes('warning')) cls += ' warning';
-                        return `<div class="${cls}">${line}</div>`;
+                        let lineLower = rawLine.toLowerCase();
+                        
+                        if (lineLower.includes('error') || lineLower.includes('failed') || lineLower.includes('fatal') || lineLower.includes('traceback') || lineLower.includes('rejected')) {
+                            cls += ' error';
+                            rawLine = '❌ ' + rawLine;
+                        } else if (lineLower.includes('warning')) {
+                            cls += ' warning';
+                            rawLine = '⚠️ ' + rawLine;
+                        } else if (lineLower.includes('success') || lineLower.includes('✅') || lineLower.includes('pushing final') || lineLower.includes('completed')) {
+                            cls += ' success';
+                            if (!rawLine.includes('✅')) rawLine = '✅ ' + rawLine;
+                        }
+
+                        // Escape HTML first
+                        let safeLine = escapeHTML(rawLine);
+                        
+                        // Then inject clickable links
+                        safeLine = safeLine.replace(urlRegex, url => `<a href="${url}" target="_blank">🔗 ${url}</a>`);
+                        
+                        return `<div class="${cls}">${safeLine}</div>`;
                     }).join('');
-                    container.scrollTop = container.scrollHeight;
+                    
+                    if (isAtBottom) {
+                        container.scrollTop = container.scrollHeight;
+                    }
                 } catch (e) {}
             }
         }

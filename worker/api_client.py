@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 def get_api_config():
-    api_url = os.getenv("LARAVEL_API_URL") or os.getenv("API_URL") or "http://localhost:9000/api"
+    api_url = os.getenv("LARAVEL_API_URL") or os.getenv("API_URL") or "http://localhost:8000/api"
     api_key = os.getenv("LARAVEL_API_KEY") or os.getenv("API_KEY") or "dummy_token"
     return api_url, api_key
 

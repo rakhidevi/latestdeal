@@ -54,6 +54,13 @@ class ScrapingPipeline:
             if deal.category and deal.category.name.lower() in ["nodeal", "no deal", "not a deal"]:
                 raise ScraperException("Deal rejected: AI classified this as 'nodeal'.")
                 
+            # Filter fake deals / unavailable products
+            if deal.price is None or deal.price <= 0:
+                raise ScraperException("Deal rejected: Current price is missing or zero (unavailable product).")
+                
+            if "currently unavailable" in deal.title.lower() or "out of stock" in deal.title.lower():
+                raise ScraperException("Deal rejected: Product title indicates it is unavailable.")
+                
             tracker.record_success(merchant)
             MetricsTracker.print_summary()
             return deal

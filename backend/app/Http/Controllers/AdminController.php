@@ -15,55 +15,124 @@ class AdminController
 {
     public function dashboard()
     {
+        // Row 1: Platform Health
+        $workerStatuses = \App\Models\WorkerStatus::orderBy('last_seen', 'desc')->get();
+        $workersOnline = $workerStatuses->filter(fn($w) => $w->health_status === 'online')->count();
+        $totalWorkers = $workerStatuses->count();
+        
         $queueCount = DB::table('jobs')->count();
         $failedJobs = DB::table('failed_jobs')->count();
+
+        $diskPath = storage_path();
+        $diskTotal = @disk_total_space($diskPath) ?: 1;
+        $diskFree = @disk_free_space($diskPath) ?: 0;
+        $storageUsedPct = round((($diskTotal - $diskFree) / $diskTotal) * 100);
+
+        // Dashboard Alerts
+        $alerts = [];
+        $offlineWorkers = $workerStatuses->filter(fn($w) => $w->health_status === 'offline');
+        foreach ($offlineWorkers as $worker) {
+            $alerts[] = ['type' => 'error', 'message' => "{$worker->worker_name} offline", 'icon' => 'alert-circle'];
+        }
+        if ($queueCount > 50) {
+            $alerts[] = ['type' => 'warning', 'message' => "Queue growing ({$queueCount})", 'icon' => 'list-plus'];
+        }
+        if ($failedJobs > 0) {
+            $alerts[] = ['type' => 'warning', 'message' => "{$failedJobs} failed jobs", 'icon' => 'alert-triangle'];
+        }
+        if (empty($alerts)) {
+            $alerts[] = ['type' => 'success', 'message' => "All systems operational", 'icon' => 'check-circle'];
+        }
+
+        // Row 2: Business Overview
+        $dealsToday = Deal::whereDate('created_at', today())->count();
+        $publishedToday = Deal::whereDate('created_at', today())->where('status', 'active')->count();
+        $pendingReview = Deal::where('status', 'pending')->count();
+        $totalClicks = DB::table('clicks')->count();
+
+        // Row 3: Money & Analytics
         $metricsController = app(\App\Http\Controllers\Api\MetricsController::class);
         $metrics = $metricsController->index(request())->getData(true);
-        $pipelineSetting = Setting::where('key', 'deal_approval_pipeline')->first();
-        $pipelineEnabled = $pipelineSetting ? $pipelineSetting->value === 'enabled' : false;
-
-        // Task 2: Click Stats & Analytics
+        
         $clickStats = DB::table('clicks')
             ->join('deals', 'clicks.deal_id', '=', 'deals.id')
             ->join('merchants', 'deals.merchant_id', '=', 'merchants.id')
-            ->select('merchants.id', 'merchants.name', 'merchants.domain', DB::raw('count(*) as click_count'))
-            ->groupBy('merchants.id', 'merchants.name', 'merchants.domain')
-            ->orderByDesc('click_count')
-            ->get();
-            
-        $topProducts = DB::table('clicks')
-            ->join('deals', 'clicks.deal_id', '=', 'deals.id')
-            ->select('deals.id', 'deals.title', 'deals.image_path', DB::raw('count(*) as click_count'))
-            ->groupBy('deals.id', 'deals.title', 'deals.image_path')
-            ->orderByDesc('click_count')
-            ->limit(10)
-            ->get();
+            ->select('merchants.name', DB::raw('count(*) as click_count'))
+            ->groupBy('merchants.name')
+            ->pluck('click_count', 'name')
+            ->toArray();
 
         $categoryStats = DB::table('clicks')
             ->join('deals', 'clicks.deal_id', '=', 'deals.id')
             ->join('categories', 'deals.category_id', '=', 'categories.id')
             ->select(
-                'categories.name', 
-                'categories.commission_rate', 
-                DB::raw('count(clicks.id) as click_count'),
                 DB::raw('SUM(deals.discounted_price * (categories.commission_rate / 100) * 0.03) as estimated_revenue')
+            )->first();
+        $estimatedEarnings = $categoryStats->estimated_revenue ?? 0;
+        
+        $ctr = $totalClicks > 0 && Deal::count() > 0 ? round(($totalClicks / Deal::count()) * 100, 2) : 0;
+
+        // Row 4: Quality
+        $rejectedDeals = Deal::where('status', 'rejected')->count();
+        $missingImages = Deal::whereNull('image_path')->orWhere('image_path', '')->count();
+
+        // Row 5: Merchant Cards (Scraper Statistics)
+        $merchantStats = DB::table('deals')
+            ->join('merchants', 'deals.merchant_id', '=', 'merchants.id')
+            ->select(
+                'merchants.name',
+                DB::raw('count(*) as total_deals'),
+                DB::raw('SUM(CASE WHEN DATE(deals.created_at) = CURDATE() THEN 1 ELSE 0 END) as today_deals')
             )
-            ->groupBy('categories.id', 'categories.name', 'categories.commission_rate')
-            ->orderByDesc('click_count')
+            ->groupBy('merchants.id', 'merchants.name')
             ->get();
+            
+        foreach ($merchantStats as $stat) {
+            $worker = $workerStatuses->first(function($w) use ($stat) {
+                return $w->worker_type === 'scraper' && stripos($w->worker_name, $stat->name) !== false;
+            });
+            if ($worker) {
+                $stat->success_pct = ($worker->success_today + $worker->failed_today) > 0 
+                    ? round(($worker->success_today / ($worker->success_today + $worker->failed_today)) * 100) 
+                    : 100;
+                $stat->retries = $worker->retry_today;
+                $stat->last_run = $worker->last_seen ? $worker->last_seen->diffForHumans() : 'N/A';
+            } else {
+                $stat->success_pct = null;
+                $stat->retries = null;
+                $stat->last_run = null;
+            }
+        }
 
-        // Task 4: Scraper Monitoring
-        $scraperStats = [
-            'ingested_1h' => Deal::where('created_at', '>=', now()->subHour())->count(),
-            'ingested_24h' => Deal::where('created_at', '>=', now()->subDay())->count(),
-            'published_24h' => Deal::where('created_at', '>=', now()->subDay())->where('status', 'active')->count(),
-            'source_counts' => Deal::select('merchant_id', DB::raw('count(*) as total'))
-                ->groupBy('merchant_id')
-                ->with('merchant')
-                ->get()
-        ];
+        // Row 6: Activity Feed
+        $feed = collect();
+        foreach(Deal::with('merchant')->orderBy('created_at', 'desc')->limit(5)->get() as $d) {
+            $feed->push((object)['type' => 'deal', 'title' => 'New Deal: ' . $d->title, 'subtitle' => $d->merchant->name ?? 'Unknown', 'time' => $d->created_at, 'bg' => 'bg-emerald-500']);
+        }
+        foreach(DB::table('failed_jobs')->orderBy('failed_at', 'desc')->limit(5)->get() as $e) {
+            $feed->push((object)['type' => 'error', 'title' => 'Job Failed: ' . $e->queue, 'subtitle' => \Illuminate\Support\Str::limit($e->exception, 50), 'time' => \Carbon\Carbon::parse($e->failed_at), 'bg' => 'bg-red-500']);
+        }
+        foreach(DB::table('clicks')->orderBy('created_at', 'desc')->limit(5)->get() as $c) {
+            $feed->push((object)['type' => 'click', 'title' => 'New Click', 'subtitle' => 'Deal ID: ' . $c->deal_id, 'time' => \Carbon\Carbon::parse($c->created_at), 'bg' => 'bg-indigo-500']);
+        }
+        foreach(\App\Models\WorkerStatus::orderBy('last_seen', 'desc')->limit(5)->get() as $w) {
+            $feed->push((object)['type' => 'heartbeat', 'title' => 'Worker Check-in', 'subtitle' => $w->worker_name, 'time' => $w->last_seen, 'bg' => 'bg-blue-500']);
+        }
+        $activityFeed = $feed->sortByDesc('time')->take(8)->values();
 
-        return view('admin.dashboard', compact('queueCount', 'failedJobs', 'metrics', 'clickStats', 'categoryStats', 'topProducts', 'scraperStats', 'pipelineEnabled'));
+        // Pipeline Setting
+        $pipelineSetting = Setting::where('key', 'deal_approval_pipeline')->first();
+        $pipelineEnabled = $pipelineSetting ? $pipelineSetting->value === 'enabled' : false;
+
+        return view('admin.dashboard', compact(
+            'workerStatuses', 'workersOnline', 'totalWorkers', 'queueCount', 'failedJobs', 'storageUsedPct', 'alerts',
+            'dealsToday', 'publishedToday', 'pendingReview', 'totalClicks',
+            'clickStats', 'estimatedEarnings', 'ctr',
+            'rejectedDeals', 'missingImages',
+            'merchantStats',
+            'activityFeed',
+            'pipelineEnabled'
+        ));
     }
 
     public function actions()
