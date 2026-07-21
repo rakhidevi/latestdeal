@@ -54,11 +54,8 @@ class AppServiceProvider extends ServiceProvider
         });
         
         \Illuminate\Support\Facades\View::composer('welcome', function ($view) {
-            $catQuery = \App\Models\Category::query();
-            if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count')) {
-                $catQuery->where('deal_count', '>', 0);
-            }
-            $view->with('categories', $catQuery->limit(8)->get());
+            $categories = \App\Models\Category::where('slug', '!=', 'general')->where('name', '!=', 'General')->get();
+            $view->with('categories', $categories);
         });
     }
 }

@@ -48,6 +48,18 @@ class ApplyFilters
             $query->where('discounted_price', '<=', $filters['max_price']);
         }
 
+        // Parse discount_range if passed (e.g. '90+', '70-89', '50-69', '25-49')
+        if (!empty($filters['discount_range'])) {
+            $rangeStr = trim($filters['discount_range']);
+            if (str_ends_with($rangeStr, '+')) {
+                $filters['discount_min'] = (float) rtrim($rangeStr, '+');
+            } elseif (str_contains($rangeStr, '-')) {
+                $parts = explode('-', $rangeStr);
+                $filters['discount_min'] = (float) $parts[0];
+                $filters['discount_max'] = (float) $parts[1];
+            }
+        }
+
         // Discount Range / Percentage Filters
         if (isset($filters['discount_min']) || isset($filters['discount_max'])) {
             $hasCol = \Illuminate\Support\Facades\Schema::hasColumn('deals', 'discount_percentage');

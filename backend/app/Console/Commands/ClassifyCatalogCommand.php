@@ -14,12 +14,35 @@ class ClassifyCatalogCommand extends Command
     protected $description = 'Consolidate duplicate merchants and reclassify deals in General category into rich specific categories.';
 
     protected array $categoryRules = [
-        'Electronics' => ['/iphone/i', '/ipad/i', '/macbook/i', '/airpods/i', '/sony/i', '/playstation/i', '/ps5/i', '/asus/i', '/acer/i', '/laptop/i', '/monitor/i', '/tv/i', '/headphone/i', '/earphone/i', '/audio/i', '/dash cam/i', '/70mai/i', '/xgimi/i', '/projector/i', '/sandisk/i', '/ssd/i', '/drive/i', '/smartwatch/i'],
-        'Home & Kitchen' => ['/atomberg/i', '/fan/i', '/singer/i', '/sewing/i', '/delonghi/i', '/coffee/i', '/espresso/i', '/kuvings/i', '/juicer/i', '/blender/i', '/mattress/i', '/kurlon/i', '/dyson/i', '/vacuum/i', '/cleaner/i', '/chair/i', '/desk/i', '/cellbell/i', '/air fryer/i', '/cooker/i'],
-        'Fashion & Accessories' => ['/shirt/i', '/shoe/i', '/sneaker/i', '/t-shirt/i', '/jeans/i', '/jacket/i', '/slovic/i', '/resistance band/i', '/fitness/i'],
-        'Beauty & Personal Care' => ['/colorbot/i', '/hair/i', '/shampoo/i', '/serum/i', '/skincare/i', '/grooming/i', '/trimmer/i'],
-        'Courses & Education' => ['/course/i', '/udemy/i', '/python/i', '/bootcamp/i', '/tutorial/i', '/degree/i'],
-        'Gaming' => ['/gaming/i', '/rog/i', '/tuf/i', '/controller/i', '/console/i']
+        'Home & Kitchen' => [
+            '/ecoflow/i', '/power station/i', '/powerstation/i', '/inverter/i', '/battery/i', 
+            '/wardrobe/i', '/bedroom/i', '/furniture/i', '/bniture/i', '/mattress/i', '/kurlon/i', 
+            '/atomberg/i', '/fan/i', '/singer/i', '/sewing/i', '/delonghi/i', '/coffee/i', '/espresso/i', 
+            '/kuvings/i', '/juicer/i', '/blender/i', '/dyson/i', '/vacuum/i', '/cleaner/i', '/chair/i', 
+            '/desk/i', '/cellbell/i', '/air fryer/i', '/cooker/i'
+        ],
+        'Sports & Fitness' => [
+            '/walking pad/i', '/treadmill/i', '/fitkit/i', '/cult/i', '/fitness/i', '/gym/i', 
+            '/slovic/i', '/resistance band/i', '/exercise/i'
+        ],
+        'Fashion & Accessories' => [
+            '/shirt/i', '/shoe/i', '/sneaker/i', '/t-shirt/i', '/jeans/i', '/jacket/i', '/bag/i', '/backpack/i'
+        ],
+        'Beauty & Personal Care' => [
+            '/colorbot/i', '/hair/i', '/shampoo/i', '/serum/i', '/skincare/i', '/grooming/i', '/trimmer/i'
+        ],
+        'Courses & Education' => [
+            '/course/i', '/udemy/i', '/python/i', '/bootcamp/i', '/tutorial/i', '/degree/i'
+        ],
+        'Gaming' => [
+            '/gaming/i', '/playstation/i', '/ps5/i', '/xbox/i', '/nintendo/i', '/controller/i', '/console/i'
+        ],
+        'Electronics' => [
+            '/iphone/i', '/ipad/i', '/macbook/i', '/airpods/i', '/sony/i', '/asus/i', '/acer/i', '/laptop/i', 
+            '/monitor/i', '/tv/i', '/headphone/i', '/earphone/i', '/audio/i', '/soundbar/i', '/zebronics/i', 
+            '/dash cam/i', '/70mai/i', '/xgimi/i', '/projector/i', '/sandisk/i', '/ssd/i', '/drive/i', '/smartwatch/i', 
+            '/noise/i', '/boat/i', '/samsung/i', '/galaxy/i', '/apple/i'
+        ],
     ];
 
     public function handle(): int
@@ -52,17 +75,8 @@ class ClassifyCatalogCommand extends Command
 
         $this->info('Starting deal category reclassification...');
 
-        // 2. Classify deals currently in General or uncategorized
-        $generalCat = Category::where('slug', 'general')->orWhere('name', 'General')->first();
-
-        $query = Deal::query();
-        if ($generalCat) {
-            $query->where('category_id', $generalCat->id)->orWhereNull('category_id');
-        } else {
-            $query->whereNull('category_id');
-        }
-
-        $dealsToClassify = $query->get();
+        // 2. Classify ALL deals into accurate categories based on rules
+        $dealsToClassify = Deal::all();
         $reclassified = 0;
 
         foreach ($dealsToClassify as $deal) {
