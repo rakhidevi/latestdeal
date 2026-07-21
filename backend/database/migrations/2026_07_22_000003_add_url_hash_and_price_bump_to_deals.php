@@ -9,19 +9,11 @@ return new class extends Migration
 {
     /**
      * Add url_hash unique constraint + price_bumped_at column for deal ingestion integrity.
-     * 
-     * Prevents:
-     *   - Duplicate deals with same URL being inserted twice
-     *   - 100% off / invalid deals (enforced at app layer, migration just adds the column)
-     * 
-     * Adds:
-     *   - url_hash: MD5 hash of the URL, used as a unique key (URLs can be too long for MySQL unique index)
-     *   - price_bumped_at: Timestamp set when deal price drops (deal is surfaced to top of feed)
+     * SQLite-compatible: no ->after(), no SHOW INDEX, no MySQL-only syntax.
      */
     public function up(): void
     {
-        // Step 1: Deduplicate existing URL duplicates before adding constraint
-        // Keep the LOWEST id (oldest record) for each URL
+        // Step 1: Deduplicate existing URL duplicates before adding unique constraint
         $duplicates = DB::table('deals')
             ->select(DB::raw('MIN(id) as keep_id, url'))
             ->groupBy('url')
@@ -35,50 +27,59 @@ return new class extends Migration
                 ->delete();
         }
 
-        // Step 2: Add url_hash column and price_bumped_at
-        Schema::table('deals', function (Blueprint $table) {
-            if (!Schema::hasColumn('deals', 'url_hash')) {
-                $table->string('url_hash', 32)->nullable()->after('url');
-            }
-            if (!Schema::hasColumn('deals', 'price_bumped_at')) {
-                $table->timestamp('price_bumped_at')->nullable()->after('url_hash');
-            }
-        });
+        // Step 2: Add url_hash column (SQLite-safe: no ->after())
+        if (!Schema::hasColumn('deals', 'url_hash')) {
+            Schema::table('deals', function (Blueprint $table) {
+                $table->string('url_hash', 32)->nullable();
+            });
+        }
 
-        // Step 3: Backfill url_hash for all existing deals
-        DB::table('deals')->whereNull('url_hash')->orWhere('url_hash', '')->get(['id', 'url'])->each(function ($deal) {
-            DB::table('deals')->where('id', $deal->id)->update([
-                'url_hash' => md5(trim($deal->url ?? ''))
-            ]);
-        });
+        // Step 3: Add price_bumped_at column (SQLite-safe: no ->after())
+        if (!Schema::hasColumn('deals', 'price_bumped_at')) {
+            Schema::table('deals', function (Blueprint $table) {
+                $table->timestamp('price_bumped_at')->nullable();
+            });
+        }
 
-        // Step 4: Add unique index on url_hash (safe — 32 chars, no length issue)
-        if (!$this->indexExists('deals', 'deals_url_hash_unique')) {
+        // Step 4: Backfill url_hash for all existing deals
+        DB::table('deals')
+            ->whereNull('url_hash')
+            ->orWhere('url_hash', '')
+            ->get(['id', 'url'])
+            ->each(function ($deal) {
+                DB::table('deals')->where('id', $deal->id)->update([
+                    'url_hash' => md5(trim($deal->url ?? ''))
+                ]);
+            });
+
+        // Step 5: Add unique index on url_hash (idempotent - catches duplicate index error)
+        try {
             Schema::table('deals', function (Blueprint $table) {
                 $table->unique('url_hash', 'deals_url_hash_unique');
             });
+        } catch (\Exception $e) {
+            // Index already exists - safe to ignore
         }
     }
 
     public function down(): void
     {
-        Schema::table('deals', function (Blueprint $table) {
-            if ($this->indexExists('deals', 'deals_url_hash_unique')) {
-                $table->dropUnique('deals_url_hash_unique');
-            }
-            $table->dropColumnIfExists('url_hash');
-            $table->dropColumnIfExists('price_bumped_at');
-        });
-    }
-
-    private function indexExists(string $table, string $indexName): bool
-    {
+        // Drop unique index first
         try {
-            $indexes = DB::select("SHOW INDEX FROM `{$table}` WHERE Key_name = '{$indexName}'");
-            return count($indexes) > 0;
+            Schema::table('deals', function (Blueprint $table) {
+                $table->dropUnique('deals_url_hash_unique');
+            });
         } catch (\Exception $e) {
-            // SQLite fallback
-            return false;
+            // Index may not exist - safe to ignore
         }
+
+        Schema::table('deals', function (Blueprint $table) {
+            if (Schema::hasColumn('deals', 'url_hash')) {
+                $table->dropColumn('url_hash');
+            }
+            if (Schema::hasColumn('deals', 'price_bumped_at')) {
+                $table->dropColumn('price_bumped_at');
+            }
+        });
     }
 };
