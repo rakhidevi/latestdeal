@@ -121,11 +121,33 @@ class AdminController
         }
         $activityFeed = $feed->sortByDesc('time')->take(8)->values();
 
+        // UIC Analytics Stats & Fallbacks for View
+        $thirtyDaysAgo = now()->subDays(30);
+        $stats = [
+            'total_visitors' => class_exists('\App\Models\UIC\UicVisitor') ? \App\Models\UIC\UicVisitor::where('created_at', '>=', $thirtyDaysAgo)->count() : 0,
+            'total_sessions' => class_exists('\App\Models\UIC\UicVisitorSession') ? \App\Models\UIC\UicVisitorSession::where('created_at', '>=', $thirtyDaysAgo)->count() : 0,
+            'total_affiliate_clicks' => class_exists('\App\Models\UIC\UicAffiliateClick') ? \App\Models\UIC\UicAffiliateClick::where('created_at', '>=', $thirtyDaysAgo)->count() : $totalClicks,
+            'total_searches' => class_exists('\App\Models\UIC\UicSearchHistory') ? \App\Models\UIC\UicSearchHistory::where('created_at', '>=', $thirtyDaysAgo)->count() : 0,
+        ];
+
+        $topSearches = class_exists('\App\Models\UIC\UicSearchHistory') ? \App\Models\UIC\UicSearchHistory::selectRaw('search_query, COUNT(*) as count')
+            ->where('created_at', '>=', $thirtyDaysAgo)
+            ->groupBy('search_query')
+            ->orderBy('count', 'desc')
+            ->limit(5)
+            ->get() : collect();
+
+        $recentClicks = class_exists('\App\Models\UIC\UicAffiliateClick') ? \App\Models\UIC\UicAffiliateClick::with('deal.merchant')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get() : collect();
+
         // Pipeline Setting
         $pipelineSetting = Setting::where('key', 'deal_approval_pipeline')->first();
         $pipelineEnabled = $pipelineSetting ? $pipelineSetting->value === 'enabled' : false;
 
         return view('admin.dashboard', compact(
+            'stats', 'topSearches', 'recentClicks',
             'workerStatuses', 'workersOnline', 'totalWorkers', 'queueCount', 'failedJobs', 'storageUsedPct', 'alerts',
             'dealsToday', 'publishedToday', 'pendingReview', 'totalClicks',
             'clickStats', 'estimatedEarnings', 'ctr',
