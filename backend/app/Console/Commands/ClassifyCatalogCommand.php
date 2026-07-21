@@ -110,25 +110,32 @@ class ClassifyCatalogCommand extends Command
 
         $this->info("Successfully reclassified {$reclassified} deals into specific categories.");
 
-        // 3. Direct Case-Insensitive DB Scrubbing & Pristine Brand Assignments
-        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = NULL, brand = NULL WHERE LOWER(title) LIKE '%noise cancelling%' OR LOWER(title) LIKE '%noise cancellation%' OR LOWER(title) LIKE '%noise reduction%'");
-
+        // 3. Robust UTF-8 PHP Brand Classification Loop (Handles Emoji titles & SQLite UTF-8 limitations)
         $bose = Brand::firstOrCreate(['slug' => 'bose'], ['name' => 'Bose', 'is_active' => true]);
-        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = {$bose->id}, brand = 'Bose' WHERE LOWER(title) LIKE '%bose%'");
-
         $grenaro = Brand::firstOrCreate(['slug' => 'grenaro'], ['name' => 'Grenaro', 'is_active' => true]);
-        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = {$grenaro->id}, brand = 'Grenaro' WHERE LOWER(title) LIKE '%grenaro%'");
-
         $oneplus = Brand::firstOrCreate(['slug' => 'oneplus'], ['name' => 'OnePlus', 'is_active' => true]);
-        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = {$oneplus->id}, brand = 'OnePlus' WHERE LOWER(title) LIKE '%oneplus%'");
-
         $zebronics = Brand::firstOrCreate(['slug' => 'zebronics'], ['name' => 'Zebronics', 'is_active' => true]);
-        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = {$zebronics->id}, brand = 'Zebronics' WHERE LOWER(title) LIKE '%zebronics%'");
-
         $noise = Brand::firstOrCreate(['slug' => 'noise'], ['name' => 'Noise', 'is_active' => true]);
-        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = {$noise->id}, brand = 'Noise' WHERE LOWER(title) LIKE '%noise colorfit%' OR LOWER(title) LIKE '%noise buds%' OR LOWER(title) LIKE '%noise pulse%' OR LOWER(title) LIKE '%noise smartwatch%'");
 
-        // 4. Resolve remaining deals using BrandResolver
+        foreach (Deal::all() as $deal) {
+            $lowerTitle = mb_strtolower($deal->title ?? '', 'UTF-8');
+
+            if (str_contains($lowerTitle, 'grenaro')) {
+                \Illuminate\Support\Facades\DB::table('deals')->where('id', $deal->id)->update(['brand_id' => $grenaro->id, 'brand' => 'Grenaro']);
+            } elseif (str_contains($lowerTitle, 'bose')) {
+                \Illuminate\Support\Facades\DB::table('deals')->where('id', $deal->id)->update(['brand_id' => $bose->id, 'brand' => 'Bose']);
+            } elseif (str_contains($lowerTitle, 'oneplus')) {
+                \Illuminate\Support\Facades\DB::table('deals')->where('id', $deal->id)->update(['brand_id' => $oneplus->id, 'brand' => 'OnePlus']);
+            } elseif (str_contains($lowerTitle, 'zebronics')) {
+                \Illuminate\Support\Facades\DB::table('deals')->where('id', $deal->id)->update(['brand_id' => $zebronics->id, 'brand' => 'Zebronics']);
+            } elseif (str_contains($lowerTitle, 'noise colorfit') || str_contains($lowerTitle, 'noise buds') || str_contains($lowerTitle, 'noise pulse') || str_contains($lowerTitle, 'noise smartwatch')) {
+                \Illuminate\Support\Facades\DB::table('deals')->where('id', $deal->id)->update(['brand_id' => $noise->id, 'brand' => 'Noise']);
+            } elseif (str_contains($lowerTitle, 'noise cancelling') || str_contains($lowerTitle, 'noise cancellation') || str_contains($lowerTitle, 'noise reduction')) {
+                \Illuminate\Support\Facades\DB::table('deals')->where('id', $deal->id)->update(['brand_id' => null, 'brand' => null]);
+            }
+        }
+
+        // 4. Resolve remaining unbranded deals using BrandResolver
         $resolver = app(\App\Services\Catalog\BrandResolver::class);
         $unbrandedDeals = Deal::whereNull('brand_id')->get();
         foreach ($unbrandedDeals as $deal) {
