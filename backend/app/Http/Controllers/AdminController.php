@@ -77,12 +77,13 @@ class AdminController
         $missingImages = Deal::whereNull('image_path')->orWhere('image_path', '')->count();
 
         // Row 5: Merchant Cards (Scraper Statistics)
+        $todayDateStr = now()->toDateString();
         $merchantStats = DB::table('deals')
             ->join('merchants', 'deals.merchant_id', '=', 'merchants.id')
             ->select(
                 'merchants.name',
                 DB::raw('count(*) as total_deals'),
-                DB::raw('SUM(CASE WHEN DATE(deals.created_at) = CURDATE() THEN 1 ELSE 0 END) as today_deals')
+                DB::raw("SUM(CASE WHEN DATE(deals.created_at) = '{$todayDateStr}' THEN 1 ELSE 0 END) as today_deals")
             )
             ->groupBy('merchants.id', 'merchants.name')
             ->get();
