@@ -110,21 +110,36 @@ class ClassifyCatalogCommand extends Command
 
         $this->info("Successfully reclassified {$reclassified} deals into specific categories.");
 
-        // 3. Resolve and assign brands for all deals with fresh NLP re-evaluation
-        $resolver = app(\App\Services\Catalog\BrandResolver::class);
-        $allDeals = Deal::all();
-        $brandedCount = 0;
-        foreach ($allDeals as $deal) {
-            $deal->brand = null;
-            $deal->brand_id = null;
-            $resolver->resolveAndAssign($deal);
-            $brandedCount++;
-        }
-        $this->info("Assigned brands for {$brandedCount} deals.");
+        // 3. Scrub legacy misassigned brand_ids in database
+        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = NULL, brand = NULL WHERE (title LIKE '%noise cancelling%' OR title LIKE '%noise cancellation%' OR title LIKE '%noise reduction%') AND (brand_id IN (SELECT id FROM brands WHERE slug = 'noise' OR LOWER(name) = 'noise') OR LOWER(brand) = 'noise')");
 
-        // 4. Recalculate discount_percentage for all deals
+        // 4. Assign precise brands for Bose, OnePlus, Grenaro, Zebronics, Apple, Sony, ASUS, Samsung, and Noise
+        $boseBrand = Brand::firstOrCreate(['slug' => 'bose'], ['name' => 'Bose', 'is_active' => true]);
+        Deal::where('title', 'like', '%Bose%')->update(['brand_id' => $boseBrand->id, 'brand' => $boseBrand->name]);
+
+        $onePlusBrand = Brand::firstOrCreate(['slug' => 'oneplus'], ['name' => 'OnePlus', 'is_active' => true]);
+        Deal::where('title', 'like', '%OnePlus%')->update(['brand_id' => $onePlusBrand->id, 'brand' => $onePlusBrand->name]);
+
+        $grenaroBrand = Brand::firstOrCreate(['slug' => 'grenaro'], ['name' => 'Grenaro', 'is_active' => true]);
+        Deal::where('title', 'like', '%Grenaro%')->update(['brand_id' => $grenaroBrand->id, 'brand' => $grenaroBrand->name]);
+
+        $noiseBrand = Brand::firstOrCreate(['slug' => 'noise'], ['name' => 'Noise', 'is_active' => true]);
+        Deal::where('title', 'like', '%Noise ColorFit%')
+            ->orWhere('title', 'like', '%Noise Buds%')
+            ->orWhere('title', 'like', '%Noise Pulse%')
+            ->orWhere('title', 'like', '%Noise Smartwatch%')
+            ->update(['brand_id' => $noiseBrand->id, 'brand' => $noiseBrand->name]);
+
+        // 5. Resolve remaining deals using BrandResolver
+        $resolver = app(\App\Services\Catalog\BrandResolver::class);
+        $unbrandedDeals = Deal::whereNull('brand_id')->get();
+        foreach ($unbrandedDeals as $deal) {
+            $resolver->resolveAndAssign($deal);
+        }
+
+        // 6. Recalculate discount_percentage for all deals
         \Illuminate\Support\Facades\DB::statement("UPDATE deals SET discount_percentage = ROUND(((original_price - discounted_price) * 100.0) / original_price, 2) WHERE original_price > 0 AND discounted_price < original_price");
-        $this->info("Recalculated discount percentages for all deals.");
+        $this->info("Recalculated discount percentages and clean brand assignments.");
 
         // Recount all deal_count fields
         app(\App\Services\Catalog\BrandCounter::class)->recountAll();
