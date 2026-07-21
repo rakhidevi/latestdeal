@@ -42,6 +42,7 @@
     <div class="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000 pointer-events-none"></div>
     <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000 pointer-events-none"></div>
 
+    @if(false)
     <!-- Search Toggle Button (Ribbon) -->
     <button x-show="!showSearch" @click="showSearch = true" x-transition.opacity.duration.300ms class="absolute top-0 left-1/2 -translate-x-1/2 z-30 bg-white/20 hover:bg-white/30 backdrop-blur-md border-x border-b border-white/30 text-white font-bold py-2 px-8 shadow-[0_10px_20px_rgba(0,0,0,0.1)] flex items-center gap-2 transition-all hover:pt-3 focus:outline-none focus:ring-4 focus:ring-white/20 rounded-b-2xl cursor-pointer">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -95,6 +96,7 @@
             </form>
         </div>
     </div>
+    @endif
 
     <div class="mx-auto max-w-7xl grid gap-4 md:gap-6 p-4 pt-16 md:p-6 md:pt-16 lg:p-8 lg:pt-16 md:grid-cols-[1.2fr_0.8fr] items-center relative z-10 transition-all duration-300">
       <div class="min-w-0 flex flex-col justify-center">
