@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('meta')
     @php
@@ -8,11 +8,11 @@
         }
     @endphp
     <title>{{ $deal->title }} | {{ $discountPercent > 0 ? "Save {$discountPercent}%" : 'Best Price' }} | LatestDeal.in</title>
-    <meta name="description" content="Get {{ $deal->title }} for just Γé╣{{ $deal->discounted_price }}. Original price: Γé╣{{ $deal->original_price }}.">
+    <meta name="description" content="Get {{ $deal->title }} for just ₹{{ number_format($deal->discounted_price) }}. Original price: ₹{{ number_format($deal->original_price) }}.">
     
     <!-- Open Graph for WhatsApp/Telegram Previews -->
     <meta property="og:title" content="{{ $deal->title }} | Save {{ $discountPercent }}%">
-    <meta property="og:description" content="Get it for just Γé╣{{ $deal->discounted_price }}! Regular Price: Γé╣{{ $deal->original_price }}.">
+    <meta property="og:description" content="Get it for just ₹{{ number_format($deal->discounted_price) }}! Regular Price: ₹{{ number_format($deal->original_price) }}.">
     <meta property="og:image" content="{{ filter_var($deal->image_path, FILTER_VALIDATE_URL) ? $deal->image_path : asset($deal->image_path) }}">
     <meta property="og:url" content="{{ route('deal.show', $deal->slug) }}">
     <meta property="og:type" content="product">
@@ -20,7 +20,7 @@
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $deal->title }} | Save {{ $discountPercent }}%">
-    <meta name="twitter:description" content="Get it for just Γé╣{{ $deal->discounted_price }}!">
+    <meta name="twitter:description" content="Get it for just ₹{{ number_format($deal->discounted_price) }}!">
     <meta name="twitter:image" content="{{ filter_var($deal->image_path, FILTER_VALIDATE_URL) ? $deal->image_path : asset($deal->image_path) }}">
     
     <script type="application/ld+json">
@@ -91,7 +91,7 @@
                     
                     @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
                         <div class="absolute top-5 left-5 bg-gradient-to-r from-red-600 to-rose-600 text-white text-sm font-black px-4 py-2 rounded-2xl shadow-lg shadow-red-500/30 transform -rotate-2">
-                            ≡ƒöÑ Save {{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}%
+                            🔥 Save {{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}%
                         </div>
                     @endif
                 </div>
@@ -124,9 +124,12 @@
                         {{ $deal->trust_metrics }}
                     </span>
                 @endif
-                @if($deal->brand)
+                @php
+                    $brandName = is_string($deal->brand) ? $deal->brand : ($deal->brandRelation->name ?? null);
+                @endphp
+                @if($brandName)
                     <span class="inline-flex items-center gap-1.5 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-3.5 py-1.5 rounded-full text-xs font-black tracking-wide border border-gray-200 dark:border-slate-700 shadow-sm uppercase">
-                        {{ $deal->brand }}
+                        🏷️ Brand: {{ $brandName }}
                     </span>
                 @endif
             </div>
@@ -165,10 +168,10 @@
                         <p class="text-[11px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-2">Deal Price</p>
                         <div class="flex flex-wrap items-baseline gap-3">
                             <span class="text-4xl sm:text-5xl font-black text-red-600 dark:text-red-500 tracking-tighter" id="deal-price-display">
-                                Γé╣{{ number_format($deal->discounted_price) }}
+                                ₹{{ number_format($deal->discounted_price) }}
                             </span>
                             @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
-                                <span class="text-lg sm:text-xl text-gray-400 dark:text-slate-500 line-through font-medium">M.R.P: Γé╣{{ number_format($deal->original_price) }}</span>
+                                <span class="text-lg sm:text-xl text-gray-400 dark:text-slate-500 line-through font-medium">M.R.P: ₹{{ number_format($deal->original_price) }}</span>
                                 <span class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 ml-1">({{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF)</span>
                             @endif
                         </div>
@@ -343,7 +346,6 @@
                 </div>
             </div>        
         </div>
-        </div>
     </div>
     
     <div class="mt-16">
@@ -351,7 +353,7 @@
     </div>
 
     <!-- Price History Chart -->
-    @if($priceHistory->count() > 1)
+    @if(isset($priceHistory) && $priceHistory->count() > 1)
     <div class="mt-16">
         <h3 class="text-2xl font-black text-gray-900 dark:text-white mb-8 flex items-center gap-3">
             <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded-xl">
@@ -370,7 +372,7 @@
                 type: 'line',
                 data: {
                     datasets: [{
-                        label: 'Price (Γé╣)',
+                        label: 'Price (₹)',
                         data: data,
                         borderColor: '#ef4444',
                         backgroundColor: 'rgba(239, 68, 68, 0.05)',
@@ -453,7 +455,7 @@
                             // Update the static HTML element
                             const el = document.getElementById('deal-price-display');
                             if (el && this.currentPrice) {
-                                el.innerText = 'Γé╣' + Number(this.currentPrice).toLocaleString('en-IN');
+                                el.innerText = '₹' + Number(this.currentPrice).toLocaleString('en-IN');
                             }
                         });
                 }
