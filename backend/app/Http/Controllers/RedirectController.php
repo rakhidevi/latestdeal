@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Deal;
 use App\Models\ClickLog;
 use App\Models\UIC\UicAffiliateClick;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 
 class RedirectController extends Controller
 {
@@ -17,13 +19,19 @@ class RedirectController extends Controller
     {
         // 1. Detect if request is from a bot / crawler
         $userAgent = $request->header('User-Agent', '');
-        $isBot = preg_match('/(bot|crawl|slurp|spider|mediapartners|facebookexternalhit)/i', $userAgent);
+        $isBot = (bool) preg_match('/(bot|crawl|slurp|spider|mediapartners|facebookexternalhit)/i', $userAgent);
 
-        // 2. Increment deal analytics counters
+        // 2. Increment deal analytics counters safely
         if (!$isBot) {
-            $deal->timestamps = false;
-            $deal->increment('clicks_count');
-            $deal->timestamps = true;
+            try {
+                if (Schema::hasColumn('deals', 'clicks_count')) {
+                    $deal->timestamps = false;
+                    $deal->increment('clicks_count');
+                    $deal->timestamps = true;
+                }
+            } catch (\Exception $e) {
+                Log::warning('Deal clicks_count increment error: ' . $e->getMessage());
+            }
         }
 
         // 3. Log the click in basic ClickLog
@@ -36,7 +44,7 @@ class RedirectController extends Controller
                 'is_bot' => $isBot,
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('ClickLog create error: ' . $e->getMessage());
+            Log::warning('ClickLog create error: ' . $e->getMessage());
         }
 
         // 4. Log the click in User Intelligence Center (UIC)
@@ -61,12 +69,16 @@ class RedirectController extends Controller
                     'referrer' => $request->server('HTTP_REFERER')
                 ]);
             } catch (\Exception $e) {
-                // Ensure tracking failure NEVER breaks the affiliate redirect!
-                \Illuminate\Support\Facades\Log::warning('UIC Click log error: ' . $e->getMessage());
+                Log::warning('UIC Click log error: ' . $e->getMessage());
             }
         }
 
-        // 5. Issue the HTTP 302 Redirect to affiliate URL
-        return redirect()->away($deal->affiliate_url ?? $deal->url, 302);
+        // 5. Always issue HTTP 302 Redirect to affiliate URL safely
+        $targetUrl = $deal->affiliate_url ?? $deal->url;
+        if (empty($targetUrl) || $targetUrl === '#') {
+            $targetUrl = '/';
+        }
+
+        return redirect()->away($targetUrl, 302);
     }
 }
