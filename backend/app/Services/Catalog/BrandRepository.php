@@ -58,11 +58,12 @@ class BrandRepository
             return $this->getTopBrands($limit);
         }
 
-        return Brand::where('is_active', true)
-            ->where('name', 'like', '%' . $cleanQuery . '%')
-            ->orderBy('deal_count', 'desc')
-            ->limit($limit)
-            ->get();
+        $bQuery = Brand::where('is_active', true)->where('name', 'like', '%' . $cleanQuery . '%');
+        if (\Illuminate\Support\Facades\Schema::hasColumn('brands', 'deal_count')) {
+            $bQuery->orderBy('deal_count', 'desc');
+        }
+
+        return $bQuery->limit($limit)->get();
     }
 
     /**
@@ -70,11 +71,12 @@ class BrandRepository
      */
     public function getTopBrands(int $limit = 20): Collection
     {
-        return Brand::where('is_active', true)
-            ->where('deal_count', '>', 0)
-            ->orderBy('deal_count', 'desc')
-            ->limit($limit)
-            ->get();
+        $bQuery = Brand::where('is_active', true);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('brands', 'deal_count')) {
+            $bQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
+        }
+
+        return $bQuery->limit($limit)->get();
     }
 
     /**

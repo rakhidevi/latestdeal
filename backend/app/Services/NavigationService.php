@@ -21,25 +21,30 @@ class NavigationService
         $cacheKey = $this->versionManager->getCacheKey();
 
         return Cache::rememberForever($cacheKey, function () {
+            $hasCatCount = \Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count');
+            $hasBrandCount = \Illuminate\Support\Facades\Schema::hasColumn('brands', 'deal_count');
+            $hasMercCount = \Illuminate\Support\Facades\Schema::hasColumn('merchants', 'deal_count');
+
             // Get user-facing categories (excluding raw 'General' fallback)
-            $categories = Category::where('deal_count', '>', 0)
-               ->where('slug', '!=', 'general')
-               ->where('name', '!=', 'General')
-               ->orderBy('deal_count', 'desc')
-               ->get();
+            $catQuery = Category::where('slug', '!=', 'general')->where('name', '!=', 'General');
+            if ($hasCatCount) {
+                $catQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
+            }
+            $categories = $catQuery->get();
 
             // Get active brands
-            $brands = Brand::where('is_active', true)
-               ->where('deal_count', '>', 0)
-               ->orderBy('deal_count', 'desc')
-               ->limit(20)
-               ->get();
+            $brandQuery = Brand::where('is_active', true);
+            if ($hasBrandCount) {
+                $brandQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
+            }
+            $brands = $brandQuery->limit(20)->get();
 
             // Get active merchants
-            $merchants = Merchant::active()
-               ->where('deal_count', '>', 0)
-               ->orderBy('deal_count', 'desc')
-               ->get();
+            $mercQuery = Merchant::active();
+            if ($hasMercCount) {
+                $mercQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
+            }
+            $merchants = $mercQuery->get();
 
             return [
                 'categories' => $categories,

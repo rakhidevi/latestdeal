@@ -19,6 +19,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Auto-run pending migrations in web environment if new schema columns are missing
+        if (!\Illuminate\Support\Facades\App::runningInConsole()) {
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('categories') && !\Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count')) {
+                    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                }
+            } catch (\Throwable $e) {
+                // Log exception silently without breaking request execution
+                \Illuminate\Support\Facades\Log::warning('Auto-migration failed: ' . $e->getMessage());
+            }
+        }
+
         // Domain Event Listener Registrations
         \Illuminate\Support\Facades\Event::listen(
             [\App\Events\DealCreated::class, \App\Events\DealUpdated::class],
@@ -42,7 +54,11 @@ class AppServiceProvider extends ServiceProvider
         });
         
         \Illuminate\Support\Facades\View::composer('welcome', function ($view) {
-            $view->with('categories', \App\Models\Category::where('deal_count', '>', 0)->limit(8)->get());
+            $catQuery = \App\Models\Category::query();
+            if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count')) {
+                $catQuery->where('deal_count', '>', 0);
+            }
+            $view->with('categories', $catQuery->limit(8)->get());
         });
     }
 }

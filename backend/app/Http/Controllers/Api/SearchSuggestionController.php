@@ -25,44 +25,52 @@ class SearchSuggestionController extends Controller
             ]);
         }
 
+        $hasBrandCount = \Illuminate\Support\Facades\Schema::hasColumn('brands', 'deal_count');
+        $hasCatCount = \Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count');
+        $hasMercCount = \Illuminate\Support\Facades\Schema::hasColumn('merchants', 'deal_count');
+
+        $brandCols = $hasBrandCount ? ['id', 'name', 'slug', 'deal_count'] : ['id', 'name', 'slug'];
+        $catCols = $hasCatCount ? ['id', 'name', 'slug', 'deal_count'] : ['id', 'name', 'slug'];
+        $mercCols = $hasMercCount ? ['id', 'name', 'deal_count'] : ['id', 'name'];
+
         $brands = Brand::where('name', 'like', "%{$query}%")
             ->where('is_active', true)
             ->take(4)
-            ->get(['id', 'name', 'slug', 'deal_count'])
+            ->get($brandCols)
             ->map(function ($b) {
                 return [
                     'name' => $b->name,
                     'type' => 'Brand',
                     'url' => route('deals.brand', $b->slug),
-                    'count' => $b->deal_count . ' deals'
+                    'count' => ($b->deal_count ?? 0) . ' deals'
                 ];
             });
 
         $categories = Category::where('name', 'like', "%{$query}%")
             ->where('slug', '!=', 'general')
             ->take(4)
-            ->get(['id', 'name', 'slug', 'deal_count'])
+            ->get($catCols)
             ->map(function ($c) {
                 return [
                     'name' => $c->name,
                     'icon' => $c->icon,
                     'type' => 'Category',
                     'url' => route('deals.category', $c->slug),
-                    'count' => $c->deal_count . ' deals'
+                    'count' => ($c->deal_count ?? 0) . ' deals'
                 ];
             });
 
         $merchants = Merchant::active()
             ->where('name', 'like', "%{$query}%")
             ->take(4)
-            ->get(['id', 'name', 'deal_count'])
+            ->get($mercCols)
             ->map(function ($m) {
                 return [
                     'name' => $m->name,
                     'icon' => $m->icon,
                     'type' => 'Merchant',
                     'url' => route('deals.merchant', Str::slug($m->name)),
-                    'count' => $m->deal_count . ' deals'
+                    'count' => ($m->deal_count ?? 0) . ' deals'
                 ];
             });
 
