@@ -123,24 +123,41 @@ class AdminController
 
         // UIC Analytics Stats & Fallbacks for View
         $thirtyDaysAgo = now()->subDays(30);
-        $stats = [
-            'total_visitors' => class_exists('\App\Models\UIC\UicVisitor') ? \App\Models\UIC\UicVisitor::where('created_at', '>=', $thirtyDaysAgo)->count() : 0,
-            'total_sessions' => class_exists('\App\Models\UIC\UicVisitorSession') ? \App\Models\UIC\UicVisitorSession::where('created_at', '>=', $thirtyDaysAgo)->count() : 0,
-            'total_affiliate_clicks' => class_exists('\App\Models\UIC\UicAffiliateClick') ? \App\Models\UIC\UicAffiliateClick::where('created_at', '>=', $thirtyDaysAgo)->count() : $totalClicks,
-            'total_searches' => class_exists('\App\Models\UIC\UicSearchHistory') ? \App\Models\UIC\UicSearchHistory::where('created_at', '>=', $thirtyDaysAgo)->count() : 0,
-        ];
+        
+        try {
+            $stats = [
+                'total_visitors' => class_exists('\App\Models\UIC\UicVisitor') ? \App\Models\UIC\UicVisitor::where('created_at', '>=', $thirtyDaysAgo)->count() : 0,
+                'total_sessions' => class_exists('\App\Models\UIC\UicVisitorSession') ? \App\Models\UIC\UicVisitorSession::where('created_at', '>=', $thirtyDaysAgo)->count() : 0,
+                'total_affiliate_clicks' => class_exists('\App\Models\UIC\UicAffiliateClick') ? \App\Models\UIC\UicAffiliateClick::where('created_at', '>=', $thirtyDaysAgo)->count() : $totalClicks,
+                'total_searches' => class_exists('\App\Models\UIC\UicSearchHistory') ? \App\Models\UIC\UicSearchHistory::where('created_at', '>=', $thirtyDaysAgo)->count() : 0,
+            ];
+        } catch (\Exception $e) {
+            $stats = ['total_visitors' => 0, 'total_sessions' => 0, 'total_affiliate_clicks' => $totalClicks, 'total_searches' => 0];
+        }
 
-        $topSearches = class_exists('\App\Models\UIC\UicSearchHistory') ? \App\Models\UIC\UicSearchHistory::selectRaw('search_query, COUNT(*) as count')
-            ->where('created_at', '>=', $thirtyDaysAgo)
-            ->groupBy('search_query')
-            ->orderBy('count', 'desc')
-            ->limit(5)
-            ->get() : collect();
+        try {
+            $topSearches = class_exists('\App\Models\UIC\UicSearchHistory') 
+                ? \App\Models\UIC\UicSearchHistory::selectRaw('search_term as search_query, COUNT(*) as count')
+                    ->where('created_at', '>=', $thirtyDaysAgo)
+                    ->groupBy('search_term')
+                    ->orderBy('count', 'desc')
+                    ->limit(5)
+                    ->get() 
+                : collect();
+        } catch (\Exception $e) {
+            $topSearches = collect();
+        }
 
-        $recentClicks = class_exists('\App\Models\UIC\UicAffiliateClick') ? \App\Models\UIC\UicAffiliateClick::with('deal.merchant')
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get() : collect();
+        try {
+            $recentClicks = class_exists('\App\Models\UIC\UicAffiliateClick') 
+                ? \App\Models\UIC\UicAffiliateClick::with('deal.merchant')
+                    ->orderBy('created_at', 'desc')
+                    ->limit(10)
+                    ->get() 
+                : collect();
+        } catch (\Exception $e) {
+            $recentClicks = collect();
+        }
 
         // Pipeline Setting
         $pipelineSetting = Setting::where('key', 'deal_approval_pipeline')->first();
