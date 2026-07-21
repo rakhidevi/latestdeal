@@ -65,6 +65,46 @@
                     <span class="font-medium">Dashboard</span>
                 </a>
                 
+                <p class="px-4 text-xs font-semibold text-red-400 uppercase tracking-wider mb-3 mt-6 flex items-center gap-1.5">
+                    <i data-lucide="brain-circuit" class="w-3.5 h-3.5"></i>
+                    User Intelligence (UIC)
+                </p>
+                
+                <a href="{{ route('admin.uic.user-intelligence') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.user-intelligence*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="users" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">User Intelligence</span>
+                </a>
+
+                <a href="{{ route('admin.uic.traffic-sources') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.traffic-sources') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="compass" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Traffic Sources</span>
+                </a>
+
+                <a href="{{ route('admin.uic.ai-conversations') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.ai-conversations') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="bot" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">AI Conversations</span>
+                </a>
+
+                <a href="{{ route('admin.uic.affiliate-analytics') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.affiliate-analytics') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="trending-up" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Affiliate Analytics</span>
+                </a>
+
+                <a href="{{ route('admin.uic.search-analytics') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.search-analytics') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="search" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Search Analytics</span>
+                </a>
+
+                <a href="{{ route('admin.uic.conversion-funnel') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.conversion-funnel') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="filter" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Conversion Funnel</span>
+                </a>
+
+                <a href="{{ route('admin.uic.geographic-insights') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.geographic-insights') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="globe" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Geographic Insights</span>
+                </a>
+                
                 <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-8">Monitoring</p>
                 <a href="{{ route('admin.actions') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.actions') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                     <i data-lucide="activity" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>

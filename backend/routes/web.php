@@ -410,6 +410,18 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', [\App\Http\Controllers\AdminController::class, 'dashboard']);
     Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/insights', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.insights');
+
+    // User Intelligence Center (UIC) Platform Routes
+    Route::prefix('uic')->name('admin.uic.')->group(function () {
+        Route::get('/user-intelligence', [\App\Http\Controllers\Admin\UicController::class, 'userIntelligence'])->name('user-intelligence');
+        Route::get('/user-detail/{uuid}', [\App\Http\Controllers\Admin\UicController::class, 'userDetail'])->name('user-detail');
+        Route::get('/traffic-sources', [\App\Http\Controllers\Admin\UicController::class, 'trafficSources'])->name('traffic-sources');
+        Route::get('/ai-conversations', [\App\Http\Controllers\Admin\UicController::class, 'aiConversations'])->name('ai-conversations');
+        Route::get('/affiliate-analytics', [\App\Http\Controllers\Admin\UicController::class, 'affiliateAnalytics'])->name('affiliate-analytics');
+        Route::get('/search-analytics', [\App\Http\Controllers\Admin\UicController::class, 'searchAnalytics'])->name('search-analytics');
+        Route::get('/conversion-funnel', [\App\Http\Controllers\Admin\UicController::class, 'conversionFunnel'])->name('conversion-funnel');
+        Route::get('/geographic-insights', [\App\Http\Controllers\Admin\UicController::class, 'geographicInsights'])->name('geographic-insights');
+    });
     Route::get('/actions', [\App\Http\Controllers\AdminController::class, 'actions'])->name('admin.actions');
     Route::post('/actions/run', [\App\Http\Controllers\AdminController::class, 'runAction'])->name('admin.actions.run');
     Route::get('/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->name('admin.settings');
