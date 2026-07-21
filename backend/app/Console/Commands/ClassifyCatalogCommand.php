@@ -49,18 +49,22 @@ class ClassifyCatalogCommand extends Command
     {
         $this->info('Deduplicating catalog deals...');
 
-        // 0. Deduplicate deals by identical URL or Title
+        // 0. Robust Canonical Key Deduplication by Title & URL
         $allDeals = Deal::orderBy('id', 'asc')->get();
         $seenKeys = [];
         $deletedDups = 0;
 
         foreach ($allDeals as $d) {
-            $key = !empty($d->url) ? trim($d->url) : md5(trim($d->title));
-            if (isset($seenKeys[$key])) {
+            $cleanTitleKey = preg_replace('/[^a-z0-9]/', '', mb_strtolower($d->title ?? '', 'UTF-8'));
+            if (empty($cleanTitleKey)) {
+                continue;
+            }
+
+            if (isset($seenKeys[$cleanTitleKey])) {
                 $d->delete();
                 $deletedDups++;
             } else {
-                $seenKeys[$key] = true;
+                $seenKeys[$cleanTitleKey] = true;
             }
         }
         if ($deletedDups > 0) {
