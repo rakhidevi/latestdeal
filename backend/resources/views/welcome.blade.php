@@ -37,7 +37,7 @@
   <style>
     [x-cloak] { display: none !important; }
   </style>
-  <div x-data="{ showSearch: {{ request()->hasAny(['q', 'min_price', 'max_price', 'min_discount', 'category']) ? 'true' : 'false' }} }" class="w-full relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white shadow-md group">
+  <div x-data="{ showSearch: false }" class="w-full relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white shadow-md group">
     <!-- Animated background accents -->
     <div class="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000 pointer-events-none"></div>
     <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000 pointer-events-none"></div>
