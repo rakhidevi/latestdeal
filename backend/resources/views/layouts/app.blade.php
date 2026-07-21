@@ -350,11 +350,11 @@
                     <!-- Popular Searches Chips -->
                     <div class="flex items-center gap-2 text-xs">
                         <span class="font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider text-[10px]">Popular:</span>
-                        <a href="/?search=Laptop" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 transition">Laptop</a>
-                        <a href="/?search=iPhone" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 transition">iPhone</a>
-                        <a href="/?search=Headphones" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 transition">Headphones</a>
-                        <a href="/?search=Mattress" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 transition">Mattress</a>
-                        <a href="/?search=Juicer" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 transition">Juicer</a>
+                        <a href="/?q=Laptop" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 transition">Laptop</a>
+                        <a href="/?q=iPhone" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 transition">iPhone</a>
+                        <a href="/?q=Headphones" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 transition">Headphones</a>
+                        <a href="/?q=Mattress" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 transition">Mattress</a>
+                        <a href="/?q=Juicer" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2.5 py-1 rounded-md font-medium hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400 transition">Juicer</a>
                     </div>
                 </div>
 
@@ -478,9 +478,9 @@
                             <li><a href="/?tag=trending" class="text-gray-600 dark:text-slate-300 hover:text-orange-600 text-[13px] font-medium transition flex items-center gap-2 py-1 px-1.5 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg">🔥 Trending Today</a></li>
                             <li><a href="/?tag=ai-picks" class="text-gray-600 dark:text-slate-300 hover:text-orange-600 text-[13px] font-medium transition flex items-center gap-2 py-1 px-1.5 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg">🤖 AI Recommendations</a></li>
                             <li><a href="/?sort=discount" class="text-gray-600 dark:text-slate-300 hover:text-orange-600 text-[13px] font-medium transition flex items-center gap-2 py-1 px-1.5 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg">⭐ Best Value Deals</a></li>
-                            <li><a href="/?tag=flash-sales" class="text-gray-600 dark:text-slate-300 hover:text-red-600 text-[13px] font-medium transition flex items-center gap-2 py-1 px-1.5 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg">⚡ Flash Sales</a></li>
-                            <li><a href="/?tag=coupons" class="text-gray-600 dark:text-slate-300 hover:text-red-600 text-[13px] font-medium transition flex items-center gap-2 py-1 px-1.5 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg">🎫 Active Coupons</a></li>
-                            <li><a href="/?tag=free-courses" class="text-gray-600 dark:text-slate-300 hover:text-blue-600 text-[13px] font-medium transition flex items-center gap-2 py-1 px-1.5 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg">🎓 Free Courses</a></li>
+                            <li><a href="/?q=Flash" class="text-gray-600 dark:text-slate-300 hover:text-red-600 text-[13px] font-medium transition flex items-center gap-2 py-1 px-1.5 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg">⚡ Flash Sales</a></li>
+                            <li><a href="{{ route('directory.categories') }}" class="text-gray-600 dark:text-slate-300 hover:text-red-600 text-[13px] font-medium transition flex items-center gap-2 py-1 px-1.5 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg">🎫 Active Categories</a></li>
+                            <li><a href="/categories/courses-education" class="text-gray-600 dark:text-slate-300 hover:text-blue-600 text-[13px] font-medium transition flex items-center gap-2 py-1 px-1.5 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg">🎓 Free Courses</a></li>
                         </ul>
                     </div>
 

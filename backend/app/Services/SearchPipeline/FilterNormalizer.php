@@ -14,8 +14,9 @@ class FilterNormalizer
         $normalized = [];
 
         // 1. Text Search Query
-        if (!empty($rawFilters['q'])) {
-            $normalized['q'] = trim((string)$rawFilters['q']);
+        $q = $rawFilters['q'] ?? $rawFilters['search'] ?? $rawFilters['query'] ?? null;
+        if (!empty($q)) {
+            $normalized['q'] = trim((string)$q);
         }
 
         // 2. Category Normalization
