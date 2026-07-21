@@ -47,28 +47,58 @@ class ClassifyCatalogCommand extends Command
 
     public function handle(): int
     {
-        $this->info('Deduplicating catalog deals...');
+        $this->info('Deduplicating catalog deals across all product variants...');
 
-        // 0. Robust Canonical Key Deduplication by Title & URL
+        // 0. Advanced Multi-Level Model & Price Deduplication Algorithm
         $allDeals = Deal::orderBy('id', 'asc')->get();
-        $seenKeys = [];
+        $seenExactKeys = [];
+        $seenModelPriceKeys = [];
         $deletedDups = 0;
 
+        $stopWords = [
+            'wireless', 'bluetooth', 'headphones', 'headphone', 'earphones', 'earphone', 'noise', 
+            'cancelling', 'cancellation', 'reduction', 'new', 'on-ear', 'over-ear', 'in-ear', 'mic', 
+            '3-level', 'adjustable', 'for', 'youtube', 'with', 'and', 'brown', 'midnight', 'blue', 
+            'black', 'white', 'silver', 'grey', 'gold', 'red', 'color', '1006834'
+        ];
+
         foreach ($allDeals as $d) {
-            $cleanTitleKey = preg_replace('/[^a-z0-9]/', '', mb_strtolower($d->title ?? '', 'UTF-8'));
-            if (empty($cleanTitleKey)) {
+            $rawTitle = mb_strtolower($d->title ?? '', 'UTF-8');
+            $exactKey = preg_replace('/[^a-z0-9]/', '', $rawTitle);
+            
+            if (empty($exactKey)) {
                 continue;
             }
 
-            if (isset($seenKeys[$cleanTitleKey])) {
+            // 0a. Check Exact Title Match
+            if (isset($seenExactKeys[$exactKey])) {
+                $d->delete();
+                $deletedDups++;
+                continue;
+            }
+            $seenExactKeys[$exactKey] = true;
+
+            // 0b. Check Core Model + Price Match (e.g. bose quietcomfort @ 19900 or marshall major v @ 11999)
+            $words = explode(' ', preg_replace('/[^a-z0-9\s]/', ' ', $rawTitle));
+            $coreTokens = array_values(array_filter($words, function($w) use ($stopWords) {
+                return strlen($w) > 1 && !in_array($w, $stopWords);
+            }));
+
+            sort($coreTokens);
+            $modelKey = implode('_', $coreTokens) . '_' . (int)$d->discounted_price;
+
+            if (!empty($coreTokens) && isset($seenModelPriceKeys[$modelKey])) {
                 $d->delete();
                 $deletedDups++;
             } else {
-                $seenKeys[$cleanTitleKey] = true;
+                if (!empty($coreTokens)) {
+                    $seenModelPriceKeys[$modelKey] = true;
+                }
             }
         }
+
         if ($deletedDups > 0) {
-            $this->info("Removed {$deletedDups} duplicate deal records.");
+            $this->info("Successfully removed {$deletedDups} duplicate deal records across all product variants.");
         }
 
         $this->info('Starting merchant consolidation...');
