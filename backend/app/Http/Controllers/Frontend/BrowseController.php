@@ -88,7 +88,18 @@ class BrowseController extends Controller
         $brand = Brand::where('slug', $slug)->firstOrFail();
         
         $filters = array_merge($request->all(), ['brand_slug' => $slug]);
-        $deals = $this->pipeline->search($filters);
+        
+        $query = Deal::where('status', 'active');
+
+        // Brand ID filter
+        $query->where('brand_id', $brand->id);
+
+        // Defensive guard: Exclude generic acoustic noise cancelling/reduction products from Noise brand page
+        if (strtolower($slug) === 'noise') {
+            $query->whereRaw("LOWER(title) NOT LIKE '%noise cancelling%' AND LOWER(title) NOT LIKE '%noise cancellation%' AND LOWER(title) NOT LIKE '%noise reduction%'");
+        }
+
+        $deals = $query->paginate(15);
         
         $pageTitle = $brand->name . ' Deals';
         $breadcrumbs = $this->breadcrumbService->generate([

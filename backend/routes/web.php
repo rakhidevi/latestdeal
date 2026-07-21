@@ -504,12 +504,19 @@ Route::get("/fix-status-constraint", function () {
 Route::get('/run-migrations', function () {
     try {
         \Illuminate\Support\Facades\Artisan::call('migrate --force');
+        $out1 = \Illuminate\Support\Facades\Artisan::output();
+
         \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'RealDealSeeder', '--force' => true]);
+        $out2 = \Illuminate\Support\Facades\Artisan::output();
+
         \Illuminate\Support\Facades\Artisan::call('deals:classify');
+        $out3 = \Illuminate\Support\Facades\Artisan::output();
+
         app(\App\Services\Catalog\BrandCounter::class)->recountAll();
         app(\App\Services\NavigationVersionManager::class)->incrementVersion();
         \Illuminate\Support\Facades\Cache::flush();
-        return "SUCCESS: Migrations, RealDealSeeder, deals:classify, brand recounts, and cache flush completed!";
+
+        return "<pre>Migrations & Catalog Recount ran successfully:\n" . $out1 . "\n" . $out2 . "\n" . $out3 . "</pre>";
     } catch (\Exception $e) {
         return "ERROR: " . $e->getMessage();
     }
