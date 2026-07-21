@@ -13,6 +13,10 @@ try {
     echo "Migrations ran successfully:\n";
     echo \Illuminate\Support\Facades\Artisan::output();
 
+    // Run UIC daily aggregates calculation
+    \Illuminate\Support\Facades\Artisan::call('uic:aggregate');
+    echo "UIC daily aggregates computed:\n" . \Illuminate\Support\Facades\Artisan::output();
+
     // Ensure admin user exists and password is set to password123
     $u = \App\Models\User::firstOrNew(['email' => 'admin@latestdeal.in']);
     $u->name = 'Admin';
