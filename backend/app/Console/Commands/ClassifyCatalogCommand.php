@@ -120,6 +120,10 @@ class ClassifyCatalogCommand extends Command
         }
         $this->info("Assigned brands for {$brandedCount} deals.");
 
+        // 4. Recalculate discount_percentage for all deals
+        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET discount_percentage = ROUND(((original_price - discounted_price) * 100.0) / original_price, 2) WHERE original_price > 0 AND discounted_price < original_price");
+        $this->info("Recalculated discount percentages for all deals.");
+
         // Recount all deal_count fields
         app(\App\Services\Catalog\BrandCounter::class)->recountAll();
         app(\App\Services\NavigationVersionManager::class)->incrementVersion();
