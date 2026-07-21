@@ -502,25 +502,28 @@ Route::get("/fix-status-constraint", function () {
 });
 
 Route::get('/run-migrations', function () {
-    if (function_exists('opcache_reset')) {
-        @opcache_reset();
+    @opcache_reset();
+
+    // Unlink cached bootstrap files if present
+    $bootstrapPath = base_path('bootstrap/cache');
+    foreach (['routes-v7.php', 'routes.php', 'config.php', 'services.php'] as $cacheFile) {
+        if (file_exists($bootstrapPath . '/' . $cacheFile)) {
+            @unlink($bootstrapPath . '/' . $cacheFile);
+        }
     }
+
     try {
-        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
         \Illuminate\Support\Facades\Artisan::call('migrate --force');
-        $out1 = \Illuminate\Support\Facades\Artisan::output();
-
         \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'RealDealSeeder', '--force' => true]);
-        $out2 = \Illuminate\Support\Facades\Artisan::output();
-
         \Illuminate\Support\Facades\Artisan::call('deals:classify');
-        $out3 = \Illuminate\Support\Facades\Artisan::output();
-
         app(\App\Services\Catalog\BrandCounter::class)->recountAll();
         app(\App\Services\NavigationVersionManager::class)->incrementVersion();
-        \Illuminate\Support\Facades\Cache::flush();
 
-        return "OPCACHE RESET COMPLETE. Output:\n" . $out1 . "\n" . $out2 . "\n" . $out3;
+        return "BOOTSTRAP CACHE UNLINKED & RECLASSIFY COMPLETE!";
     } catch (\Exception $e) {
         return "ERROR: " . $e->getMessage();
     }
