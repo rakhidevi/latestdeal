@@ -142,6 +142,10 @@
               {{ $cat->name }}
             </a>
             @endforeach
+            <a href="/categories" class="rounded-full bg-black/20 hover:bg-black/40 px-4 py-1.5 text-xs font-bold whitespace-nowrap transition-colors border border-white/30 backdrop-blur-sm text-white flex items-center gap-1">
+              <span>View All</span>
+              <span>→</span>
+            </a>
         </div>
       </div>
       
