@@ -88,8 +88,9 @@ Route::get('/deals/{range}', [BrowseController::class, 'byDiscount'])->name('dea
 // SEO Engine
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index']);
 
-// Operations & Catalog Health Dashboard
-Route::get('/admin/uic', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.uic');
+// Operations & User Intelligence Center (UIC) Dashboard
+Route::get('/admin/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
+Route::get('/admin', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
 Route::get('/admin/catalog/health', [\App\Http\Controllers\Admin\CatalogHealthController::class, 'show'])->name('admin.catalog.health');
 
 // Legal Pages
@@ -408,8 +409,7 @@ Route::middleware('auth')->group(function () {
 
 // Admin Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/', [\App\Http\Controllers\AdminController::class, 'dashboard']);
-    Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/insights', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.insights');
     Route::get('/actions', [\App\Http\Controllers\AdminController::class, 'actions'])->name('admin.actions');
     Route::post('/actions/run', [\App\Http\Controllers\AdminController::class, 'runAction'])->name('admin.actions.run');
     Route::get('/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->name('admin.settings');
