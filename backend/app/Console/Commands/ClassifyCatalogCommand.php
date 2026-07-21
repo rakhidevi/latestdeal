@@ -110,33 +110,23 @@ class ClassifyCatalogCommand extends Command
 
         $this->info("Successfully reclassified {$reclassified} deals into specific categories.");
 
-        // 3. Direct DB Table Brand Scrubbing & Explicit Brand Mapping (Bypasses Eloquent attribute/relation collision)
-        \Illuminate\Support\Facades\DB::table('deals')
-            ->where(function($q) {
-                $q->where('title', 'like', '%noise cancelling%')
-                  ->orWhere('title', 'like', '%noise cancellation%')
-                  ->orWhere('title', 'like', '%noise reduction%');
-            })
-            ->update(['brand_id' => null, 'brand' => null]);
+        // 3. Direct Case-Insensitive DB Scrubbing & Pristine Brand Assignments
+        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = NULL, brand = NULL WHERE LOWER(title) LIKE '%noise cancelling%' OR LOWER(title) LIKE '%noise cancellation%' OR LOWER(title) LIKE '%noise reduction%'");
 
         $bose = Brand::firstOrCreate(['slug' => 'bose'], ['name' => 'Bose', 'is_active' => true]);
-        \Illuminate\Support\Facades\DB::table('deals')->where('title', 'like', '%Bose%')->update(['brand_id' => $bose->id, 'brand' => 'Bose']);
+        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = {$bose->id}, brand = 'Bose' WHERE LOWER(title) LIKE '%bose%'");
 
         $grenaro = Brand::firstOrCreate(['slug' => 'grenaro'], ['name' => 'Grenaro', 'is_active' => true]);
-        \Illuminate\Support\Facades\DB::table('deals')->where('title', 'like', '%Grenaro%')->update(['brand_id' => $grenaro->id, 'brand' => 'Grenaro']);
+        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = {$grenaro->id}, brand = 'Grenaro' WHERE LOWER(title) LIKE '%grenaro%'");
 
         $oneplus = Brand::firstOrCreate(['slug' => 'oneplus'], ['name' => 'OnePlus', 'is_active' => true]);
-        \Illuminate\Support\Facades\DB::table('deals')->where('title', 'like', '%OnePlus%')->update(['brand_id' => $oneplus->id, 'brand' => 'OnePlus']);
+        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = {$oneplus->id}, brand = 'OnePlus' WHERE LOWER(title) LIKE '%oneplus%'");
+
+        $zebronics = Brand::firstOrCreate(['slug' => 'zebronics'], ['name' => 'Zebronics', 'is_active' => true]);
+        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = {$zebronics->id}, brand = 'Zebronics' WHERE LOWER(title) LIKE '%zebronics%'");
 
         $noise = Brand::firstOrCreate(['slug' => 'noise'], ['name' => 'Noise', 'is_active' => true]);
-        \Illuminate\Support\Facades\DB::table('deals')
-            ->where(function($q) {
-                $q->where('title', 'like', '%Noise ColorFit%')
-                  ->orWhere('title', 'like', '%Noise Buds%')
-                  ->orWhere('title', 'like', '%Noise Pulse%')
-                  ->orWhere('title', 'like', '%Noise Smartwatch%');
-            })
-            ->update(['brand_id' => $noise->id, 'brand' => 'Noise']);
+        \Illuminate\Support\Facades\DB::statement("UPDATE deals SET brand_id = {$noise->id}, brand = 'Noise' WHERE LOWER(title) LIKE '%noise colorfit%' OR LOWER(title) LIKE '%noise buds%' OR LOWER(title) LIKE '%noise pulse%' OR LOWER(title) LIKE '%noise smartwatch%'");
 
         // 4. Resolve remaining deals using BrandResolver
         $resolver = app(\App\Services\Catalog\BrandResolver::class);
