@@ -62,7 +62,11 @@ class BrowseController extends Controller
 
     public function byCategory(Request $request, $slug)
     {
-        $category = Category::where('slug', $slug)->firstOrFail();
+        $category = Category::where('slug', $slug)->first();
+        if (!$category) {
+            $name = ucwords(str_replace(['-', '_'], ' ', $slug));
+            $category = Category::firstOrCreate(['slug' => $slug], ['name' => $name, 'icon' => '📦']);
+        }
         
         $filters = array_merge($request->all(), ['category_slug' => $slug]);
         $deals = $this->pipeline->search($filters);
@@ -86,14 +90,22 @@ class BrowseController extends Controller
 
     public function byBrand(Request $request, $slug)
     {
-        $brand = Brand::where('slug', $slug)->firstOrFail();
+        $brand = Brand::where('slug', $slug)->first();
+        if (!$brand) {
+            $name = ucwords(str_replace(['-', '_'], ' ', $slug));
+            $brand = Brand::firstOrCreate(['slug' => $slug], ['name' => $name]);
+        }
         
         $filters = array_merge($request->all(), ['brand_slug' => $slug]);
         
         $query = Deal::where('status', 'active');
 
-        // Brand ID filter
-        $query->where('brand_id', $brand->id);
+        // Brand ID filter or string fallback
+        $query->where(function ($q) use ($brand, $slug) {
+            $q->where('brand_id', $brand->id)
+              ->orWhere('brand', 'LIKE', '%' . $slug . '%')
+              ->orWhere('title', 'LIKE', '%' . $slug . '%');
+        });
 
         // Defensive guard: Exclude generic acoustic noise cancelling/reduction products from Noise brand page
         if (strtolower($slug) === 'noise') {
