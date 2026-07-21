@@ -34,6 +34,6 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('admin.dashboard', compact('stats', 'topSearches', 'recentClicks'));
+        return view('admin.uic_dashboard', compact('stats', 'topSearches', 'recentClicks'));
     }
 }

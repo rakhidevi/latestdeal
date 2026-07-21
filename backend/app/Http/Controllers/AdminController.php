@@ -164,7 +164,7 @@ class AdminController
         $pipelineEnabled = $pipelineSetting ? $pipelineSetting->value === 'enabled' : false;
 
         return view('admin.dashboard', compact(
-            'stats', 'topSearches', 'recentClicks',
+            'stats', 'topSearches', 'recentClicks', 'metrics',
             'workerStatuses', 'workersOnline', 'totalWorkers', 'queueCount', 'failedJobs', 'storageUsedPct', 'alerts',
             'dealsToday', 'publishedToday', 'pendingReview', 'totalClicks',
             'clickStats', 'estimatedEarnings', 'ctr',
