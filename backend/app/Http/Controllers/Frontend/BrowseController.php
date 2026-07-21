@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\SearchPipeline\DealSearchPipeline;
+use App\Models\Deal;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Merchant;
