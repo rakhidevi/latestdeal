@@ -8,10 +8,10 @@ use App\Models\Deal;
 class DealSearchPipeline
 {
     protected $pipes = [
+        \App\Services\SearchPipeline\Pipes\ApplyDeduplication::class,
         \App\Services\SearchPipeline\Pipes\ApplyFilters::class,
         \App\Services\SearchPipeline\Pipes\ApplyRanking::class,
         \App\Services\SearchPipeline\Pipes\ApplyPagination::class,
-        // Later we can add SEO and Analytics pipes here
     ];
 
     /**
