@@ -34,17 +34,18 @@ class UICTrackingController extends Controller
         // 1. Ensure Visitor Profile Exists
         $visitor = UicVisitor::firstOrCreate(
             ['visitor_uuid' => $visitorUuid],
-            ['ip_hash' => $ipHash]
+            ['ip_hash' => $ipHash, 'ip_address' => $rawIp]
         );
         
-        // Update last seen
-        $visitor->update(['last_seen' => now()]);
+        // Update last seen and IP
+        $visitor->update(['last_seen' => now(), 'ip_address' => $rawIp]);
 
         // 2. Ensure Session Exists
         $session = UicVisitorSession::firstOrCreate(
             ['session_id' => $sessionId],
             [
                 'visitor_uuid' => $visitorUuid,
+                'ip_address' => $rawIp,
                 'device' => $payload['device'] ?? null,
                 'browser' => $payload['browser'] ?? null,
                 'os' => $payload['os'] ?? null,

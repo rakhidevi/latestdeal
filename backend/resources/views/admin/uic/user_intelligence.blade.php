@@ -40,8 +40,9 @@
             <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-xs">
                 <tr>
                     <th class="px-4 py-3">Visitor UUID</th>
-                    <th class="px-4 py-3">First Visit</th>
-                    <th class="px-4 py-3">Last Visit</th>
+                    <th class="px-4 py-3">IP Address</th>
+                    <th class="px-4 py-3">First Visit Time</th>
+                    <th class="px-4 py-3">Last Active Time</th>
                     <th class="px-4 py-3 text-center">Return Visits</th>
                     <th class="px-4 py-3 text-right">Actions</th>
                 </tr>
@@ -50,8 +51,9 @@
                 @forelse($visitors as $v)
                     <tr class="hover:bg-slate-50">
                         <td class="px-4 py-4 font-mono font-bold text-slate-700">{{ substr($v->visitor_uuid, 0, 16) }}...</td>
-                        <td class="px-4 py-4 text-xs text-slate-500">{{ $v->first_visit ? \Carbon\Carbon::parse($v->first_visit)->diffForHumans() : 'N/A' }}</td>
-                        <td class="px-4 py-4 text-xs text-slate-500">{{ $v->last_visit ? \Carbon\Carbon::parse($v->last_visit)->diffForHumans() : 'N/A' }}</td>
+                        <td class="px-4 py-4 font-mono text-xs text-slate-600 bg-slate-100/50 rounded-md">{{ $v->ip_address ?? '127.0.0.1' }}</td>
+                        <td class="px-4 py-4 text-xs text-slate-500">{{ $v->first_visit ? \Carbon\Carbon::parse($v->first_visit)->format('d M Y, h:i A') : 'N/A' }}</td>
+                        <td class="px-4 py-4 text-xs text-slate-500">{{ $v->last_visit ? \Carbon\Carbon::parse($v->last_visit)->format('d M Y, h:i A') : 'N/A' }}</td>
                         <td class="px-4 py-4 text-center font-bold text-indigo-600">{{ $v->return_visit_count ?? 0 }}</td>
                         <td class="px-4 py-4 text-right">
                             <a href="{{ route('admin.uic.user-detail', ['uuid' => $v->visitor_uuid]) }}" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold">View Detail</a>

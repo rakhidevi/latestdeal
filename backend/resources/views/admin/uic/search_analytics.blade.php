@@ -5,16 +5,21 @@
 @section('content')
 <div class="mb-8">
     <h1 class="text-2xl font-bold text-slate-800">Search Analytics</h1>
-    <p class="text-sm text-slate-500 mt-1">Top user searches, query volumes, and zero-result search gap analysis</p>
+    <p class="text-sm text-slate-500 mt-1">Products searched, detected brands, search query volumes, and zero-result search gap analysis</p>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <div class="glass-panel rounded-3xl p-8 shadow-lg">
-        <h3 class="text-xl font-bold text-slate-800 mb-6">Most Frequent Searches</h3>
+        <h3 class="text-xl font-bold text-slate-800 mb-6">Most Frequent Product & Brand Searches</h3>
         <ul class="divide-y divide-slate-100">
             @forelse($topSearches as $s)
-                <li class="py-3 flex justify-between items-center text-sm">
-                    <span class="font-bold text-slate-800">{{ $s->search_term }}</span>
+                <li class="py-3.5 flex justify-between items-center text-sm">
+                    <div>
+                        <span class="font-bold text-slate-800">{{ $s->search_term }}</span>
+                        @if(!empty($s->brand_detected))
+                            <span class="ml-2 px-2 py-0.5 bg-red-50 text-red-600 rounded text-xs font-semibold">Brand: {{ $s->brand_detected }}</span>
+                        @endif
+                    </div>
                     <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black">{{ number_format($s->search_count) }} searches</span>
                 </li>
             @empty
@@ -24,11 +29,16 @@
     </div>
 
     <div class="glass-panel rounded-3xl p-8 shadow-lg">
-        <h3 class="text-xl font-bold text-slate-800 mb-6 text-red-600">Zero-Result Searches (Catalog Gaps)</h3>
+        <h3 class="text-xl font-bold text-slate-800 mb-6 text-red-600">Zero-Result Searches (Products/Brands Missing in Catalog)</h3>
         <ul class="divide-y divide-slate-100">
             @forelse($zeroResultSearches as $s)
-                <li class="py-3 flex justify-between items-center text-sm">
-                    <span class="font-bold text-slate-800">{{ $s->search_term }}</span>
+                <li class="py-3.5 flex justify-between items-center text-sm">
+                    <div>
+                        <span class="font-bold text-slate-800">{{ $s->search_term }}</span>
+                        @if(!empty($s->brand_detected))
+                            <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-semibold">Brand: {{ $s->brand_detected }}</span>
+                        @endif
+                    </div>
                     <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-black">{{ number_format($s->search_count) }} missed</span>
                 </li>
             @empty

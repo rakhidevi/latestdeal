@@ -59,6 +59,27 @@ class ShopperAssistantController extends Controller
 
         $fullPrompt = $systemPrompt . "\n\nUser request: " . $userMessage . "\n\nAI Assistant (obeying all rules):";
 
+        // Log AI Query to UIC Platform
+        try {
+            $visitorUuid = $request->cookie('uic_vid') ?? $request->header('X-Visitor-UUID') ?? 'unknown';
+            $sessionId = $request->cookie('uic_sid') ?? $request->header('X-Session-ID') ?? 'unknown';
+            
+            $intent = 'General';
+            if (preg_match('/vs|compare|difference/i', $userMessage)) $intent = 'Comparison';
+            elseif (preg_match('/best|recommend|top|under|budget/i', $userMessage)) $intent = 'Recommendation';
+            elseif (preg_match('/coupon|discount|code|deal/i', $userMessage)) $intent = 'Coupon';
+
+            \App\Models\UIC\UicAiConversation::create([
+                'session_id' => $sessionId,
+                'visitor_uuid' => $visitorUuid,
+                'question' => $userMessage,
+                'intent' => $intent,
+                'brand_detected' => \App\Services\Catalog\BrandResolver::resolveFromText($userMessage),
+            ]);
+        } catch (\Exception $e) {
+            // Ignore logging error
+        }
+
         // ----------------------------------------------------------------
         // Step 1: Try local Ollama if OLLAMA_BASE_URL is set in settings or .env
         // ----------------------------------------------------------------
