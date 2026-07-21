@@ -47,6 +47,26 @@ class ClassifyCatalogCommand extends Command
 
     public function handle(): int
     {
+        $this->info('Deduplicating catalog deals...');
+
+        // 0. Deduplicate deals by identical URL or Title
+        $allDeals = Deal::orderBy('id', 'asc')->get();
+        $seenKeys = [];
+        $deletedDups = 0;
+
+        foreach ($allDeals as $d) {
+            $key = !empty($d->url) ? trim($d->url) : md5(trim($d->title));
+            if (isset($seenKeys[$key])) {
+                $d->delete();
+                $deletedDups++;
+            } else {
+                $seenKeys[$key] = true;
+            }
+        }
+        if ($deletedDups > 0) {
+            $this->info("Removed {$deletedDups} duplicate deal records.");
+        }
+
         $this->info('Starting merchant consolidation...');
 
         // 1. Merge "Amazon India" into "Amazon"

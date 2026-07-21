@@ -216,7 +216,10 @@ class RealDealSeeder extends Seeder
             
             $data['promo_code'] = $promo;
 
-            $deal = Deal::create($data);
+            $deal = Deal::updateOrCreate(
+                ['url' => $data['url']],
+                $data
+            );
 
             // Attach tags
             $tagIds = [];
