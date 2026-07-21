@@ -31,6 +31,9 @@ class NavigationService
                 $catQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
             }
             $categories = $catQuery->get();
+            if ($categories->isEmpty()) {
+                $categories = Category::where('slug', '!=', 'general')->where('name', '!=', 'General')->get();
+            }
 
             // Get active brands
             $brandQuery = Brand::where('is_active', true);
@@ -38,6 +41,9 @@ class NavigationService
                 $brandQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
             }
             $brands = $brandQuery->limit(20)->get();
+            if ($brands->isEmpty()) {
+                $brands = Brand::where('is_active', true)->limit(20)->get();
+            }
 
             // Get active merchants
             $mercQuery = Merchant::active();
@@ -45,6 +51,9 @@ class NavigationService
                 $mercQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
             }
             $merchants = $mercQuery->get();
+            if ($merchants->isEmpty()) {
+                $merchants = Merchant::active()->get();
+            }
 
             return [
                 'categories' => $categories,

@@ -100,7 +100,11 @@ Route::get('/privacy', function () {
 
 Route::get('/run-migrations', function () {
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    return "Migrations ran: " . \Illuminate\Support\Facades\Artisan::output();
+    try {
+        app(\App\Services\Catalog\BrandCounter::class)->recountAll();
+        \Illuminate\Support\Facades\Cache::flush();
+    } catch (\Throwable $e) {}
+    return "Migrations & Catalog Recount ran successfully: " . \Illuminate\Support\Facades\Artisan::output();
 });
 
 Route::get('/run-backfill', function(\Illuminate\Http\Request $request) {
