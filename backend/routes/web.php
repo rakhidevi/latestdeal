@@ -500,3 +500,17 @@ Route::get("/fix-status-constraint", function () {
         }
     }
 });
+
+Route::get('/run-migrations', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate --force');
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'RealDealSeeder', '--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('deals:classify');
+        app(\App\Services\Catalog\BrandCounter::class)->recountAll();
+        app(\App\Services\NavigationVersionManager::class)->incrementVersion();
+        \Illuminate\Support\Facades\Cache::flush();
+        return "SUCCESS: Migrations, RealDealSeeder, deals:classify, brand recounts, and cache flush completed!";
+    } catch (\Exception $e) {
+        return "ERROR: " . $e->getMessage();
+    }
+});
