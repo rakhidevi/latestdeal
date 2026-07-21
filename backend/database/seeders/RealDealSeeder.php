@@ -19,18 +19,77 @@ class RealDealSeeder extends Seeder
             ['domain' => 'amazon.in', 'affiliate_param_key' => 'tag', 'store_id' => 'latestdeal-21']
         );
 
-        $category = \App\Models\Category::firstOrCreate(
-            ['name' => 'Electronics'],
-            ['slug' => 'electronics']
-        );
+        $electronicsCat = Category::firstOrCreate(['slug' => 'electronics'], ['name' => 'Electronics']);
+        $homeCat = Category::firstOrCreate(['slug' => 'home-kitchen'], ['name' => 'Home & Kitchen']);
+        $fitnessCat = Category::firstOrCreate(['slug' => 'sports-fitness'], ['name' => 'Sports & Fitness']);
+        $fashionCat = Category::firstOrCreate(['slug' => 'fashion-accessories'], ['name' => 'Fashion & Accessories']);
+        $beautyCat = Category::firstOrCreate(['slug' => 'beauty-personal-care'], ['name' => 'Beauty & Personal Care']);
+        $courseCat = Category::firstOrCreate(['slug' => 'courses-education'], ['name' => 'Courses & Education']);
+        $gamingCat = Category::firstOrCreate(['slug' => 'gaming'], ['name' => 'Gaming']);
 
         $dealsData = [
+            [
+                'title' => 'EF ECOFLOW DELTA 2 Portable Power Station | 1024Wh LiFePO4 Battery',
+                'description' => 'Fast Charging 0-80% in 50 Mins, Solar Generator for Outdoor Camping, Home Backup Power Station.',
+                'original_price' => 659900,
+                'discounted_price' => 65990,
+                'category_id' => $homeCat->id,
+                'merchant_id' => $merchant->id,
+                'url' => 'https://www.amazon.in/dp/B0BP9RR1E6',
+                'image_path' => '/storage/deals/ecoflow.jpg',
+                'status' => 'active',
+                'expires_at' => now()->addDays(10),
+                'tags' => ['Home & Kitchen', 'Power Station', 'EF ECOFLOW'],
+                'promo' => 'ECOFLOW90'
+            ],
+            [
+                'title' => 'Fitkit by Cult Walking Pad Neo (BLDC 3.5HP Peak Power) Compact Under-desk Treadmill',
+                'description' => 'Compact Smart Motorized Under Desk Walking Treadmill with LED Display, Remote Control, Free Dietitian Consult.',
+                'original_price' => 79990,
+                'discounted_price' => 7999,
+                'category_id' => $fitnessCat->id,
+                'merchant_id' => $merchant->id,
+                'url' => 'https://www.amazon.in/dp/B0CGXB345Y',
+                'image_path' => '/storage/deals/walking_pad.jpg',
+                'status' => 'active',
+                'expires_at' => now()->addDays(5),
+                'tags' => ['Sports & Fitness', 'Treadmill', 'Fitkit'],
+                'promo' => 'FITKIT90'
+            ],
+            [
+                'title' => 'ZEBRONICS Juke BAR 9510WS PRO Dolby 5.1 Soundbar',
+                'description' => '5.1 Channel Soundbar with Wireless Subwoofer & Rear Speakers, Dolby Audio, 525W RMS Output, Bluetooth 5.0.',
+                'original_price' => 54999,
+                'discounted_price' => 9499,
+                'category_id' => $electronicsCat->id,
+                'merchant_id' => $merchant->id,
+                'url' => 'https://www.amazon.in/dp/B0C39RKQW7',
+                'image_path' => '/storage/deals/soundbar.jpg',
+                'status' => 'active',
+                'expires_at' => now()->addDays(12),
+                'tags' => ['Electronics', 'Audio', 'ZEBRONICS'],
+                'promo' => null
+            ],
+            [
+                'title' => 'Bniture 3 Door Wardrobe for Bedroom with Lockable Door & Hanging Rod',
+                'description' => 'Spacious 3 Door Engineered Wood Armoire Closet with Shelves and Lockable Drawers for Bedroom Storage.',
+                'original_price' => 99199,
+                'discounted_price' => 24148,
+                'category_id' => $homeCat->id,
+                'merchant_id' => $merchant->id,
+                'url' => 'https://www.amazon.in/dp/B0BHQ49X3K',
+                'image_path' => '/storage/deals/wardrobe.jpg',
+                'status' => 'active',
+                'expires_at' => now()->addDays(8),
+                'tags' => ['Home & Kitchen', 'Furniture', 'Bniture'],
+                'promo' => null
+            ],
             [
                 'title' => 'Apple iPhone 15 (128 GB) - Blue',
                 'description' => 'Dynamic Island bubbles up alerts and Live Activities. INNOVATIVE DESIGN — iPhone 15 features a durable color-infused glass and aluminum design.',
                 'original_price' => 79900,
                 'discounted_price' => 69900,
-                'category_id' => $category->id,
+                'category_id' => $electronicsCat->id,
                 'merchant_id' => $merchant->id,
                 'url' => 'https://www.amazon.in/dp/B0CHX1W1XY',
                 'image_path' => '/storage/deals/iphone15.jpg',
@@ -44,7 +103,7 @@ class RealDealSeeder extends Seeder
                 'description' => 'Industry Leading Noise Cancellation. Up to 30-hour battery life with quick charging. Ultra-comfortable lightweight design.',
                 'original_price' => 34990,
                 'discounted_price' => 26990,
-                'category_id' => $category->id,
+                'category_id' => $electronicsCat->id,
                 'merchant_id' => $merchant->id,
                 'url' => 'https://www.amazon.in/dp/B09Y2MYL5C',
                 'image_path' => '/storage/deals/sony_xm5.jpg',
@@ -58,13 +117,13 @@ class RealDealSeeder extends Seeder
                 'description' => '15.6" FHD 144Hz, Intel Core i5-11400H 11th Gen, RTX 3050 4GB Graphics, 8GB RAM, 512GB SSD, Windows 11',
                 'original_price' => 74990,
                 'discounted_price' => 54990,
-                'category_id' => $category->id,
+                'category_id' => $gamingCat->id,
                 'merchant_id' => $merchant->id,
                 'url' => 'https://www.amazon.in/dp/B09CCW5XW8',
                 'image_path' => '/storage/deals/asus_tuf.jpg',
                 'status' => 'active',
                 'expires_at' => now()->addDays(14),
-                'tags' => ['Electronics', 'Laptops', 'Gaming'],
+                'tags' => ['Gaming', 'Laptops', 'ASUS'],
                 'promo' => null
             ]
         ];

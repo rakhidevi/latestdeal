@@ -151,6 +151,13 @@ class BrowseController extends Controller
 
         $deals = $this->pipeline->search($filters);
 
+        // Fallback: If no deals match exact discount tier, return top discounted deals sorted by discount percentage
+        if ($deals->isEmpty()) {
+            unset($filters['discount_range'], $filters['discount_min'], $filters['discount_max']);
+            $filters['sort'] = 'discount';
+            $deals = $this->pipeline->search($filters);
+        }
+
         $breadcrumbs = $this->breadcrumbService->generate([
             ['title' => 'Home', 'url' => '/'],
             ['title' => 'Discounts', 'url' => '#'],
