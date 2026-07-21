@@ -102,6 +102,7 @@ Route::get('/run-migrations', function () {
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     try {
         app(\App\Services\Catalog\BrandCounter::class)->recountAll();
+        app(\App\Services\NavigationVersionManager::class)->incrementVersion();
         \Illuminate\Support\Facades\Cache::flush();
     } catch (\Throwable $e) {}
     return "Migrations & Catalog Recount ran successfully: " . \Illuminate\Support\Facades\Artisan::output();
