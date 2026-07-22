@@ -41,9 +41,18 @@ class AmazonParser:
             orig_tag = soup.select_one(sel)
             if orig_tag:
                 val = orig_tag.get_text(strip=True)
-                if "per g" not in val.lower() and "/100 g" not in val.lower():
+                val_lower = val.lower()
+                if "per g" not in val_lower and "/100" not in val_lower and "per 100" not in val_lower and "/ 100" not in val_lower:
                     original_price = val
                     break
+                    
+        if not original_price or "per" in original_price.lower() or "/100" in original_price.lower():
+            # Try to find M.R.P.: label directly
+            mrp_label = soup.find(lambda tag: tag.name == "span" and "M.R.P.:" in tag.get_text())
+            if mrp_label:
+                parent = mrp_label.parent
+                if parent:
+                    original_price = parent.get_text(strip=True).replace('M.R.P.:', '').strip()
                     
         # 4. Image
         image_url = ""

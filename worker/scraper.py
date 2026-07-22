@@ -50,7 +50,7 @@ async def async_crawl4ai_extract(url: str) -> dict:
         ),
         schema=DealExtractionSchema.model_json_schema(),
         extraction_type="schema",
-        instruction="Extract the MAIN product title, original price, discounted price, product features, main product image URL, star rating, review count, and brand name. IMPORTANT: ONLY extract the actual selling price and original MRP. DO NOT extract unit prices like 'per g', '/100 g', or 'per kg' (e.g. ignore '₹68,99,900.00 per g'). Original MRP MUST usually be associated with 'M.R.P.'. If you see a per-unit price, IGNORE it completely. DO NOT extract prices of related products, sponsored items, or accessories. If 'Out of Stock', set out_of_stock to true."
+        instruction="Extract the MAIN product title, original price, discounted price, product features, main product image URL, star rating, review count, and brand name. IMPORTANT: ONLY extract the actual selling price and original MRP. DO NOT extract unit prices like 'per g', '/100 g', 'per 100 g', '/ 100', or 'per kg' (e.g. ignore '₹68,99,900.00 per g', '(₹17,99,000 /100 g)'). Original MRP MUST usually be associated with 'M.R.P.'. If you see a per-unit price, IGNORE it completely. DO NOT extract prices of related products, sponsored items, or accessories. If 'Out of Stock', set out_of_stock to true."
     )
     
     proxy_server = os.getenv("PROXY_SERVER")

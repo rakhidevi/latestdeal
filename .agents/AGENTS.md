@@ -26,3 +26,7 @@ These are strict rules that MUST be followed for all future development in this 
 ## 5. Strict 100% Verification Rule
 - Whenever you complete a task based on a requirement document or implementation plan, you MUST perform a line-by-line reverification of every single requirement, UI element, and technical specification mentioned in the document.
 - If ANY part is not 100% implemented, you MUST repeat the implementation and verification process until zero percent is missing. You must not claim a task is complete until this exhaustive check confirms perfection.
+
+## 6. Price Extraction
+- MRP - Always displays like M.R.P.: ₹39,990.
+- Do not extract unit prices like (₹17,99,000 /100 g) as MRP.

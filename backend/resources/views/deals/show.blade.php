@@ -183,7 +183,7 @@
                             class="shrink-0 text-sm font-bold text-gray-700 dark:text-slate-200 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-5 py-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto shadow-sm">
                         <svg x-show="isChecking" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <svg x-show="!isChecking" class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span x-text="isChecking ? 'Checking...' : 'Verify Live Price'"></span>
+                        <span x-text="isChecking ? 'Checking...' : (justVerified ? '✓ Price Verified!' : 'Verify Live Price')"></span>
                     </button>
                 </div>
 
@@ -428,13 +428,22 @@
             dealId: dealId,
             currentPrice: initialPrice,
             isChecking: false,
+            justVerified: false,
             verifyPrice() {
                 this.isChecking = true;
+                this.justVerified = false;
                 fetch(`/api/deals/${this.dealId}/refresh-price`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+                }).then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        this.isChecking = false;
+                        alert(data.message || 'Failed to initiate price check.');
+                    }
                 }).catch(err => {
                     this.isChecking = false;
+                    alert('Network error while requesting price check.');
                 });
                 
                 // Fallback timeout just in case python worker is offline
@@ -449,14 +458,25 @@
                 if (window.Echo) {
                     window.Echo.channel(`deals.${this.dealId}`)
                         .listen('.DealUpdated', (e) => {
-                            this.currentPrice = e.new_price;
-                            this.isChecking = false;
+                            const dealData = e.deal || e;
+                            const newPrice = dealData.discounted_price || e.new_price || dealData.price;
+                            const origPrice = dealData.original_price || e.original_price;
                             
-                            // Update the static HTML element
+                            if (newPrice) {
+                                this.currentPrice = newPrice;
+                            }
+                            this.isChecking = false;
+                            this.justVerified = true;
+                            
+                            // Update the static HTML elements
                             const el = document.getElementById('deal-price-display');
                             if (el && this.currentPrice) {
                                 el.innerText = '₹' + Number(this.currentPrice).toLocaleString('en-IN');
                             }
+                            
+                            setTimeout(() => {
+                                this.justVerified = false;
+                            }, 4000);
                         });
                 }
             }

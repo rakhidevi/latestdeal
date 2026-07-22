@@ -145,11 +145,12 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                 el = page.locator(selector).first
                 if el.count() > 0:
                     text_val = el.text_content().strip()
-                    if "per g" not in text_val.lower() and "/100 g" not in text_val.lower() and "/ 100 g" not in text_val.lower():
+                    val_lower = text_val.lower()
+                    if "per g" not in val_lower and "/100" not in val_lower and "per 100" not in val_lower and "/ 100" not in val_lower:
                         original_price_html = text_val
                         break
                         
-            if not original_price_html or "per" in original_price_html.lower():
+            if not original_price_html or "per" in original_price_html.lower() or "/100" in original_price_html.lower():
                 mrp_label = page.locator("span:has-text('M.R.P.:')").first
                 if mrp_label.count() > 0:
                     parent = mrp_label.locator("..").first

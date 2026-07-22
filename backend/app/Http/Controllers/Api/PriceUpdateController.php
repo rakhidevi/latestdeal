@@ -40,36 +40,57 @@ class PriceUpdateController extends Controller
     {
         $request->validate([
             'url' => 'required|url',
-            'price' => 'required|numeric'
+            'price' => 'required|numeric',
+            'original_price' => 'nullable|numeric'
         ]);
 
-        $deal = Deal::where('url', $request->url)->first();
+        $inputUrl = $request->url;
+        
+        // Find deal by canonical url, affiliate url, or clean prefix match
+        $deal = Deal::where('url', $inputUrl)
+            ->orWhere('affiliate_url', $inputUrl)
+            ->first();
+
+        if (!$deal) {
+            $cleanInput = strtok($inputUrl, '?');
+            $deal = Deal::where('url', 'LIKE', $cleanInput . '%')->first();
+        }
 
         if ($deal) {
             $oldPrice = $deal->discounted_price;
-            $newPrice = $request->price;
+            $newPrice = (float)$request->price;
+            $newOriginalPrice = $request->original_price ? (float)$request->original_price : null;
 
-            // Only update if there's an actual change
+            // Log history if price actually changed
             if ($oldPrice != $newPrice) {
-                // Keep history
                 PriceHistory::create([
                     'deal_id' => $deal->id,
                     'price' => $newPrice,
                     'recorded_at' => now()
                 ]);
-
                 $deal->discounted_price = $newPrice;
-                $deal->save();
-
-                // Broadcast to frontend so it can update live without reload
-                event(new DealUpdated($deal->id, $newPrice));
-                
-                Log::info("Deal {$deal->id} price updated in real-time from {$oldPrice} to {$newPrice}");
             }
 
-            return response()->json(['success' => true]);
+            if ($newOriginalPrice && $newOriginalPrice > 0) {
+                $deal->original_price = $newOriginalPrice;
+            }
+
+            $deal->save();
+
+            // ALWAYS broadcast DealUpdated event to notify frontend that verification complete
+            event(new DealUpdated($deal));
+            
+            Log::info("Deal {$deal->id} price verified/updated. Discounted: {$newPrice}, MRP: {$deal->original_price}");
+
+            return response()->json([
+                'success' => true, 
+                'deal_id' => $deal->id,
+                'discounted_price' => $deal->discounted_price,
+                'original_price' => $deal->original_price
+            ]);
         }
 
         return response()->json(['success' => false, 'message' => 'Deal not found.'], 404);
     }
 }
+

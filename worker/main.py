@@ -84,7 +84,11 @@ async def process_queue():
                     import requests
                     requests.post(
                         f"{backend_url}/deals/update-price",
-                        json={"url": deal.canonical_url, "price": deal.price},
+                        json={
+                            "url": deal.canonical_url, 
+                            "price": deal.price,
+                            "original_price": deal.original_price
+                        },
                         headers={"Accept": "application/json"}
                     )
                 mark_status(item_id, 'completed')
