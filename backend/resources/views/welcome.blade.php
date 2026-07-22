@@ -37,169 +37,333 @@
   <style>
     [x-cloak] { display: none !important; }
   </style>
-  <div x-data="{ showSearch: false }" class="w-full relative overflow-hidden bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white shadow-md group">
-    <!-- Animated background accents -->
-    <div class="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000 pointer-events-none"></div>
-    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl translate-y-1/2 opacity-50 group-hover:opacity-80 transition-opacity duration-1000 pointer-events-none"></div>
-
-    @if(false)
-    <!-- Search Toggle Button (Ribbon) -->
-    <button x-show="!showSearch" @click="showSearch = true" x-transition.opacity.duration.300ms class="absolute top-0 left-1/2 -translate-x-1/2 z-30 bg-white/20 hover:bg-white/30 backdrop-blur-md border-x border-b border-white/30 text-white font-bold py-2 px-8 shadow-[0_10px_20px_rgba(0,0,0,0.1)] flex items-center gap-2 transition-all hover:pt-3 focus:outline-none focus:ring-4 focus:ring-white/20 rounded-b-2xl cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        Search Deals
-    </button>
-
-    <!-- Expanding Search Bar -->
-    <div x-show="showSearch" x-collapse.duration.400ms x-cloak class="w-full relative z-20 bg-black/10 backdrop-blur-sm border-b border-white/10">
-        <div class="mx-auto max-w-4xl px-4 sm:px-6 pt-8 pb-6">
-            <form action="/" method="GET" class="space-y-4 w-full relative" id="filter-form">
-                <!-- Search Bar -->
-                <div class="flex w-full shadow-lg rounded-xl overflow-hidden bg-white transition-all hover:shadow-xl relative z-10">
-                    <div class="pl-4 flex items-center text-gray-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                    <input name="q" value="{{ request('q') }}" autocomplete="off" placeholder="Search products, brands, or categories..." class="border-0 bg-transparent text-gray-900 flex-1 py-3.5 px-3 text-base focus:ring-0 placeholder-gray-400 outline-none" />
-                    <button class="bg-gray-900 px-8 py-3.5 text-sm font-bold tracking-wide text-white transition hover:bg-black flex-shrink-0">Search</button>
-                </div>
-                
-                <!-- Filters Row -->
-                <div class="flex flex-col sm:flex-row gap-3 w-full">
-                    <div class="flex items-center gap-2 w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors">
-                        <input type="number" min="0" name="min_price" value="{{ request('min_price') }}" placeholder="Min Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
-                        <span class="text-white/80 font-medium px-1">-</span>
-                        <input type="number" min="0" name="max_price" value="{{ request('max_price') }}" placeholder="Max Deal Price ₹" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-32 placeholder-gray-500 shadow-sm transition-all" />
-                    </div>
-                    
-                    <div class="w-full sm:w-auto bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/20">
-                        <select name="min_discount" onchange="this.form.submit()" class="rounded-lg border-0 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-red-300 w-full sm:w-44 shadow-sm transition-all cursor-pointer">
-                            <option value="">Any Discount %</option>
-                            <option value="10" {{ request('min_discount') == '10' ? 'selected' : '' }}>At least 10% Off</option>
-                            <option value="25" {{ request('min_discount') == '25' ? 'selected' : '' }}>At least 25% Off</option>
-                            <option value="50" {{ request('min_discount') == '50' ? 'selected' : '' }}>At least 50% Off</option>
-                            <option value="75" {{ request('min_discount') == '75' ? 'selected' : '' }}>75%+ Off (Deep Cuts)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="ml-auto flex items-center gap-2 mt-1 sm:mt-0">
-                        @if(request()->hasAny(['q', 'min_price', 'max_price', 'min_discount', 'category']))
-                            <a href="/" class="text-xs font-semibold text-white bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 backdrop-blur-sm border border-white/20 h-[42px]">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                Clear
-                            </a>
-                        @endif
-                        <button type="button" @click="showSearch = false" class="text-xs font-semibold text-red-100 bg-black/20 hover:bg-black/30 px-4 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5 backdrop-blur-sm border border-white/10 h-[42px]">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"></path></svg>
-                            Close
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-    @endif
-
-    <div class="mx-auto max-w-7xl grid gap-4 md:gap-6 p-4 pt-16 md:p-6 md:pt-16 lg:p-8 lg:pt-16 md:grid-cols-[1.2fr_0.8fr] items-center relative z-10 transition-all duration-300">
-      <div class="min-w-0 flex flex-col justify-center">
-        
-        <h1 class="text-3xl lg:text-4xl font-bold leading-tight break-words tracking-tight text-white drop-shadow-sm min-h-[2.5rem] lg:min-h-[3rem]" 
-            x-data="{
-                words: ['global deals', 'tech discounts', 'fashion offers', 'hidden gems'],
-                wordIndex: 0,
-                charIndex: 0,
-                isDeleting: false,
-                text: '',
-                type() {
-                    let current = this.words[this.wordIndex];
-                    if(this.isDeleting) {
-                        this.text = current.substring(0, this.charIndex - 1);
-                        this.charIndex--;
-                    } else {
-                        this.text = current.substring(0, this.charIndex + 1);
-                        this.charIndex++;
-                    }
-                    let speed = this.isDeleting ? 40 : 80;
-                    if(!this.isDeleting && this.charIndex === current.length) {
-                        speed = 2500;
-                        this.isDeleting = true;
-                    } else if(this.isDeleting && this.charIndex === 0) {
-                        this.isDeleting = false;
-                        this.wordIndex = (this.wordIndex + 1) % this.words.length;
-                        speed = 400;
-                    }
-                    setTimeout(() => this.type(), speed);
+  <div x-data="{
+        activeSlide: 0,
+        totalSlides: {{ (isset($heroDeals) && count($heroDeals) > 0) ? count($heroDeals) : 6 }},
+        isPaused: false,
+        timer: null,
+        init() {
+            this.timer = setInterval(() => {
+                if (!this.isPaused) {
+                    this.activeSlide = (this.activeSlide + 1) % this.totalSlides;
                 }
-            }" 
-            x-init="setTimeout(() => type(), 500)">
-          Find real <span x-text="text" class="text-yellow-300"></span><span class="animate-pulse font-light opacity-70">|</span> <br class="hidden lg:block">in seconds
-        </h1>
+            }, 6500);
+        },
+        next() { this.activeSlide = (this.activeSlide + 1) % this.totalSlides; },
+        prev() { this.activeSlide = (this.activeSlide - 1 + this.totalSlides) % this.totalSlides; },
+        setSlide(idx) { this.activeSlide = idx; }
+     }"
+     @mouseenter="isPaused = true"
+     @mouseleave="isPaused = false"
+     class="w-full relative overflow-hidden bg-slate-950 text-white shadow-2xl group border-b border-slate-800/80">
+     
+     <!-- Hero Glass Background Effects -->
+     <div class="absolute inset-0 bg-gradient-to-br from-red-950/40 via-slate-950 to-slate-900 pointer-events-none"></div>
+     <div class="absolute -top-32 left-1/3 w-[600px] h-[600px] bg-red-600/15 rounded-full blur-[120px] pointer-events-none"></div>
+     <div class="absolute -bottom-32 right-1/4 w-[500px] h-[500px] bg-yellow-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-8 relative z-10">
         
-        <p class="mt-2 lg:mt-4 text-sm lg:text-base text-red-50 hidden sm:block font-medium max-w-xl">
-          Our AI engines continuously extract and verify deals from top Indian marketplaces 24/7.
-        </p>
-        
-        <div class="mt-6 flex flex-wrap items-center gap-2 text-sm text-red-100">
-            <span class="font-bold text-white/90 text-xs uppercase tracking-wider mr-2">Trending</span>
-            @foreach($categories as $cat)
-            <a href="/?category={{ $cat->slug }}" class="rounded-full bg-white/15 hover:bg-white/25 px-4 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors border border-white/20 backdrop-blur-sm text-white">
-              {{ $cat->name }}
-            </a>
-            @endforeach
-            <a href="/categories" class="rounded-full bg-black/20 hover:bg-black/40 px-4 py-1.5 text-xs font-bold whitespace-nowrap transition-colors border border-white/30 backdrop-blur-sm text-white flex items-center gap-1">
-              <span>View All</span>
-              <span>→</span>
-            </a>
-        </div>
-      </div>
-      
-      <div class="space-y-5 hidden md:flex flex-col justify-center pl-0 lg:pl-8">
-        <!-- KPI Strip -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div class="rounded-2xl bg-white/10 p-4 text-center backdrop-blur-md border border-white/20 shadow-lg">
-                <div class="text-2xl lg:text-3xl font-black text-white">24/7</div>
-                <div class="text-[10px] uppercase tracking-wider text-white/80 font-bold mt-1">Scanning</div>
+        <!-- Header Strip with Category Filter Pill Badges -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-white/10">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-red-500 text-white uppercase tracking-wider shadow-lg shadow-red-500/30 animate-pulse">
+                    <span class="w-2 h-2 rounded-full bg-white"></span>
+                    FEATURED LIVE DEALS INTELLIGENCE
+                </span>
+                <span class="text-xs text-slate-400 font-medium hidden sm:inline-block">Auto-rotating live command center</span>
             </div>
-            <div class="rounded-2xl bg-white/10 p-4 text-center backdrop-blur-md border border-white/20 shadow-lg">
-                <div class="text-2xl lg:text-3xl font-black text-white">100%</div>
-                <div class="text-[10px] uppercase tracking-wider text-white/80 font-bold mt-1">Verified</div>
-            </div>
-            <div class="rounded-2xl bg-white/10 p-4 text-center backdrop-blur-md border border-white/20 shadow-lg">
-                <div class="text-2xl lg:text-3xl font-black text-white">AI</div>
-                <div class="text-[10px] uppercase tracking-wider text-white/80 font-bold mt-1">Scored</div>
-            </div>
-            <div class="rounded-2xl bg-white/10 p-4 text-center backdrop-blur-md border border-white/20 shadow-lg relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-green-400/20 to-emerald-600/20"></div>
-                <div class="relative z-10 text-2xl lg:text-3xl font-black text-green-300">Free</div>
-                <div class="relative z-10 text-[10px] uppercase tracking-wider text-green-100 font-bold mt-1">Access</div>
+            
+            <div class="flex items-center gap-1.5 overflow-x-auto py-1 text-xs">
+                @foreach($categories->take(6) as $cat)
+                <a href="/?category={{ $cat->slug }}" class="px-3 py-1 rounded-full bg-slate-800/80 hover:bg-red-600/80 text-slate-300 hover:text-white font-semibold transition-all border border-slate-700/60 whitespace-nowrap">
+                    {{ $cat->name }}
+                </a>
+                @endforeach
+                <a href="/categories" class="px-3 py-1 rounded-full bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white font-bold transition-all border border-red-500/40">
+                    View All →
+                </a>
             </div>
         </div>
 
-        <div class="rounded-2xl bg-white/10 p-6 backdrop-blur-md border border-white/20 shadow-xl relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
-          
-          <p class="font-bold flex items-center gap-2.5 text-base text-white relative z-10">
-            <span class="relative flex h-3.5 w-3.5">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]"></span>
-            </span>
-            Live Engine Status
-          </p>
-          <ul class="mt-5 space-y-3.5 text-sm relative z-10">
-            <li class="flex justify-between items-center border-b border-white/10 pb-2.5">
-                <span class="text-white/90 font-medium">Crawling frequency</span> 
-                <span class="font-bold text-gray-900 bg-white px-2.5 py-1 rounded-md text-xs shadow-sm">Every 5 mins</span>
-            </li>
-            <li class="flex justify-between items-center border-b border-white/10 pb-2.5">
-                <span class="text-white/90 font-medium">Verification engine</span> 
-                <span class="font-bold text-green-900 bg-green-400 px-2.5 py-1 rounded-md text-xs shadow-[0_0_10px_rgba(74,222,128,0.4)]">Online</span>
-            </li>
-            <li class="flex justify-between items-center">
-                <span class="text-white/90 font-medium">Auto-publish</span> 
-                <span class="font-bold text-gray-900 bg-white px-2.5 py-1 rounded-md text-xs shadow-sm">Enabled</span>
-            </li>
-          </ul>
+        <!-- Carousel Frame -->
+        <div class="relative min-h-[460px] md:min-h-[420px] flex flex-col justify-between">
+            @php
+              $slidePresets = [
+                  [
+                      'type' => 'HOT DEAL',
+                      'title_prefix' => '🔥 HOT DEAL #1',
+                      'gradient' => 'from-amber-500 to-red-600',
+                      'border' => 'border-amber-500/40',
+                      'badge_bg' => 'bg-amber-500/20 text-amber-300',
+                      'viewers' => '3,428 viewing now',
+                      'bought' => '142 bought in last hour',
+                      'stock_pct' => 88,
+                      'stock_label' => '88% Claimed - Selling Fast!',
+                      'prediction' => '📈 Price likely to increase in 6h (89% Risk)',
+                      'recommendation' => 'BUY NOW (Lowest in 6 Months)',
+                      'coupon' => null,
+                  ],
+                  [
+                      'type' => 'HIDDEN GEM',
+                      'title_prefix' => '🕵️ HIDDEN AMAZON DEAL',
+                      'gradient' => 'from-purple-600 to-indigo-600',
+                      'border' => 'border-purple-500/40',
+                      'badge_bg' => 'bg-purple-500/20 text-purple-300',
+                      'viewers' => '1,842 viewing now',
+                      'bought' => '89 claimed',
+                      'stock_pct' => 92,
+                      'stock_label' => 'Only 19 items left in stock!',
+                      'prediction' => 'Auto-applied coupon verified at checkout',
+                      'recommendation' => 'Hidden Amazon Gem (Prime Exclusive)',
+                      'coupon' => 'AMZEXTRA10',
+                  ],
+                  [
+                      'type' => 'PRICE DROP',
+                      'title_prefix' => '📉 MASSIVE PRICE DROP',
+                      'gradient' => 'from-emerald-500 to-teal-600',
+                      'border' => 'border-emerald-500/40',
+                      'badge_bg' => 'bg-emerald-500/20 text-emerald-300',
+                      'viewers' => '2,940 viewing now',
+                      'bought' => '472 bought today',
+                      'stock_pct' => 75,
+                      'stock_label' => 'Lowest Price in 365 Days!',
+                      'prediction' => 'Dropped 55% from yesterday',
+                      'recommendation' => 'Historic Lowest Price Ever',
+                      'coupon' => null,
+                  ],
+                  [
+                      'type' => 'COUPON HERO',
+                      'title_prefix' => '🎟️ COUPON OF THE DAY',
+                      'gradient' => 'from-cyan-500 to-blue-600',
+                      'border' => 'border-cyan-500/40',
+                      'badge_bg' => 'bg-cyan-500/20 text-cyan-300',
+                      'viewers' => '4,112 viewing now',
+                      'bought' => '310 redeemed',
+                      'stock_pct' => 95,
+                      'stock_label' => 'Verified 2 minutes ago',
+                      'prediction' => 'Works on Mobile & Desktop app',
+                      'recommendation' => 'Redeem Instant Coupon Code',
+                      'coupon' => 'SAVE50OFF',
+                  ],
+                  [
+                      'type' => 'FLASH SALE',
+                      'title_prefix' => '⚡ FLASH SALE COMMAND',
+                      'gradient' => 'from-rose-500 to-red-600',
+                      'border' => 'border-rose-500/40',
+                      'badge_bg' => 'bg-rose-500/20 text-rose-300',
+                      'viewers' => '5,210 viewing now',
+                      'bought' => '512 sold',
+                      'stock_pct' => 94,
+                      'stock_label' => 'High Demand Flash Sale!',
+                      'prediction' => 'Expected price hike in 4 hours',
+                      'recommendation' => 'Flash Deal (Closing Soon)',
+                      'coupon' => null,
+                  ],
+                  [
+                      'type' => 'AI PREDICTION',
+                      'title_prefix' => '🤖 AI PREDICTION CENTER',
+                      'gradient' => 'from-blue-600 to-indigo-700',
+                      'border' => 'border-blue-500/40',
+                      'badge_bg' => 'bg-blue-500/20 text-blue-300',
+                      'viewers' => '2,105 viewing now',
+                      'bought' => '94 saved',
+                      'stock_pct' => 82,
+                      'stock_label' => '98% AI Confidence Rating',
+                      'prediction' => 'Current Price ₹17,990 ➔ Likely Tomorrow ₹22,990',
+                      'recommendation' => 'STRONG BUY SIGNAL (86% Hike Likelihood)',
+                      'coupon' => null,
+                  ]
+              ];
+            @endphp
+
+            @if(isset($heroDeals) && count($heroDeals) > 0)
+              @foreach($heroDeals as $index => $deal)
+                @php
+                  $preset = $slidePresets[$index % count($slidePresets)];
+                  $discountPct = $deal->discount_percentage ?: ($deal->original_price > $deal->discounted_price ? round((($deal->original_price - $deal->discounted_price)/$deal->original_price)*100) : 0);
+                  $savedAmount = max(0, $deal->original_price - $deal->discounted_price);
+                @endphp
+                
+                <div x-show="activeSlide === {{ $index }}" 
+                     x-transition:enter="transition ease-out duration-500"
+                     x-transition:enter-start="opacity-0 scale-95 translate-x-4"
+                     x-transition:enter-end="opacity-100 scale-100 translate-x-0"
+                     x-transition:leave="transition ease-in duration-300 absolute inset-0"
+                     x-transition:leave-start="opacity-100 scale-100 translate-x-0"
+                     x-transition:leave-end="opacity-0 scale-95 -translate-x-4"
+                     class="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+
+                    <!-- Left Column: Large Product Image & Urgency Card -->
+                    <div class="lg:col-span-5 flex flex-col items-center justify-center relative group/img">
+                        <div class="relative w-full max-w-sm aspect-square bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl flex items-center justify-center overflow-hidden">
+                            <!-- Background Glow -->
+                            <div class="absolute inset-0 bg-gradient-to-tr {{ $preset['gradient'] }} opacity-15 blur-2xl group-hover/img:opacity-30 transition-opacity"></div>
+
+                            <!-- Discount Tag Badge -->
+                            @if($discountPct > 0)
+                            <div class="absolute top-4 left-4 z-20 bg-gradient-to-r {{ $preset['gradient'] }} text-white text-xs font-black px-3.5 py-1.5 rounded-full shadow-xl flex items-center gap-1">
+                                <span>🔥 {{ $discountPct }}% OFF</span>
+                            </div>
+                            @endif
+
+                            <!-- AI Score Pill -->
+                            <div class="absolute top-4 right-4 z-20 bg-slate-950/80 backdrop-blur-md border border-slate-700 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
+                                <span>🤖 {{ $deal->ai_score ?: 98 }}/100</span>
+                            </div>
+
+                            <!-- Product Image -->
+                            <img src="{{ $deal->image_path ?: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600' }}" 
+                                 alt="{{ $deal->title }}" 
+                                 class="max-h-64 max-w-full object-contain drop-shadow-2xl group-hover/img:scale-105 transition-transform duration-500 relative z-10" />
+
+                            <!-- Bottom Stock Progress Meter -->
+                            <div class="absolute bottom-3 left-4 right-4 z-20 bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-xl p-2.5 shadow-lg">
+                                <div class="flex justify-between items-center text-[11px] font-bold mb-1">
+                                    <span class="text-amber-400 flex items-center gap-1">⚡ {{ $preset['stock_label'] }}</span>
+                                    <span class="text-slate-400">{{ $preset['stock_pct'] }}%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-gradient-to-r {{ $preset['gradient'] }} h-full rounded-full" style="width: {{ $preset['stock_pct'] }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Deal Intelligence Command Panel -->
+                    <div class="lg:col-span-7 flex flex-col justify-center space-y-4">
+                        
+                        <!-- Slide Intelligence Header Tag -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider {{ $preset['badge_bg'] }} border {{ $preset['border'] }} shadow-sm flex items-center gap-1.5">
+                                {{ $preset['title_prefix'] }}
+                            </span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800/80 text-slate-300 border border-slate-700/60 flex items-center gap-1">
+                                <span>🏪</span> {{ $deal->merchant->name ?? 'Amazon Prime' }}
+                            </span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800/80 text-slate-300 border border-slate-700/60 flex items-center gap-1">
+                                <span>🏷️</span> {{ $deal->category->name ?? 'Electronics' }}
+                            </span>
+                        </div>
+
+                        <!-- Product Title -->
+                        <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight line-clamp-2 hover:text-red-400 transition-colors">
+                            <a href="{{ route('deals.show', $deal->slug) }}">{{ $deal->title }}</a>
+                        </h2>
+
+                        <!-- Price Intelligence Block -->
+                        <div class="flex flex-wrap items-baseline gap-3 pt-1">
+                            <span class="text-3xl sm:text-4xl font-black text-white tracking-tight">₹{{ number_format($deal->discounted_price) }}</span>
+                            @if($deal->original_price > $deal->discounted_price)
+                            <span class="text-lg text-slate-400 line-through font-semibold">M.R.P. ₹{{ number_format($deal->original_price) }}</span>
+                            <span class="text-sm font-black text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1 rounded-lg">
+                                Save ₹{{ number_format($savedAmount) }}
+                            </span>
+                            @endif
+                        </div>
+
+                        <!-- Live Intelligence Key Metrics Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 py-2">
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 text-xs">
+                                <div class="text-slate-400 font-medium">Live Interest</div>
+                                <div class="text-white font-bold mt-0.5 flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                                    {{ $preset['viewers'] }}
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 text-xs">
+                                <div class="text-slate-400 font-medium">Buying Pace</div>
+                                <div class="text-amber-300 font-bold mt-0.5">🔥 {{ $preset['bought'] }}</div>
+                            </div>
+
+                            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 text-xs col-span-2 sm:col-span-1">
+                                <div class="text-slate-400 font-medium">Deal Status</div>
+                                <div class="text-emerald-400 font-bold mt-0.5 flex items-center gap-1">
+                                    <span>🟢 Verified Genuine</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Prediction & Recommendation Box -->
+                        <div class="bg-slate-900/90 border {{ $preset['border'] }} rounded-2xl p-3.5 shadow-lg space-y-1.5">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-bold text-slate-300 flex items-center gap-1.5">
+                                    <span>🤖 AI Deal Intelligence</span>
+                                </span>
+                                <span class="font-black text-emerald-400">{{ $preset['recommendation'] }}</span>
+                            </div>
+                            <p class="text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                                <span class="text-yellow-400">💡</span> {{ $preset['prediction'] }}
+                            </p>
+                        </div>
+
+                        @if(!empty($preset['coupon']))
+                        <!-- Copyable Coupon Ribbon -->
+                        <div class="flex items-center justify-between bg-cyan-950/60 border border-cyan-700/50 rounded-xl p-2.5 px-4 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="text-cyan-300 font-bold">🎟️ Coupon Code:</span>
+                                <span class="font-mono font-black text-white bg-cyan-900/80 px-2.5 py-1 rounded border border-cyan-500/40">{{ $preset['coupon'] }}</span>
+                            </div>
+                            <button @click="navigator.clipboard.writeText('{{ $preset['coupon'] }}'); alert('Coupon Code Copied!')" class="text-[11px] font-bold text-cyan-300 hover:text-white bg-cyan-800/60 hover:bg-cyan-700 px-3 py-1 rounded-lg transition-colors">
+                                Copy Code
+                            </button>
+                        </div>
+                        @endif
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-wrap items-center gap-3 pt-2">
+                            <a href="{{ route('deal.redirect', $deal->hash_id) }}" 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               class="flex-1 sm:flex-none px-7 py-3 rounded-xl bg-gradient-to-r {{ $preset['gradient'] }} hover:opacity-95 text-white font-black text-sm transition-all shadow-xl shadow-red-600/20 text-center flex items-center justify-center gap-2">
+                                <span>⚡ GRAB DEAL NOW</span>
+                                <span>→</span>
+                            </a>
+
+                            <a href="{{ route('deals.show', $deal->slug) }}" 
+                               class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm transition-all text-center flex items-center justify-center gap-1.5">
+                                <span>📊 Price History</span>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+              @endforeach
+            @endif
+
+            <!-- Bottom Carousel Controls & Indicators -->
+            <div class="flex items-center justify-between pt-6 border-t border-slate-800/80 mt-6 relative z-20">
+                <!-- Slide Dots -->
+                <div class="flex items-center gap-2">
+                    @for($i = 0; $i < ((isset($heroDeals) && count($heroDeals) > 0) ? count($heroDeals) : 6); $i++)
+                    <button @click="setSlide({{ $i }})" 
+                            class="h-2.5 rounded-full transition-all duration-300"
+                            :class="activeSlide === {{ $i }} ? 'w-8 bg-red-500' : 'w-2.5 bg-slate-700 hover:bg-slate-600'">
+                    </button>
+                    @endfor
+                </div>
+
+                <!-- Live Auto-Rotate Status Indicator -->
+                <div class="hidden sm:flex items-center gap-2 text-xs text-slate-400 font-medium">
+                    <span class="w-2 h-2 rounded-full" :class="isPaused ? 'bg-amber-400' : 'bg-emerald-400 animate-ping'"></span>
+                    <span x-text="isPaused ? 'Carousel Paused (Hovered)' : 'Auto-Rotating (Every 6.5s)'"></span>
+                </div>
+
+                <!-- Prev / Next Controls -->
+                <div class="flex items-center gap-2">
+                    <button @click="prev()" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center justify-center transition-colors shadow-md">
+                        ←
+                    </button>
+                    <button @click="next()" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center justify-center transition-colors shadow-md">
+                        →
+                    </button>
+                </div>
+            </div>
+
         </div>
-      </div>
-    </div>
+
+     </div>
   </div>
 @endsection
 

@@ -59,7 +59,17 @@ class AppServiceProvider extends ServiceProvider
                 $catQuery->orderBy('deal_count', 'desc');
             }
             $categories = $catQuery->take(7)->get();
+
+            $heroDeals = \App\Models\Deal::where('status', 'active')
+                ->where('discounted_price', '>', 0)
+                ->with(['merchant', 'category'])
+                ->orderBy('ai_score', 'desc')
+                ->orderBy('clicks_count', 'desc')
+                ->take(6)
+                ->get();
+
             $view->with('categories', $categories);
+            $view->with('heroDeals', $heroDeals);
         });
     }
 }
