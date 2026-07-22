@@ -30,3 +30,8 @@ These are strict rules that MUST be followed for all future development in this 
 ## 6. Price Extraction
 - MRP - Always displays like M.R.P.: ₹39,990.
 - Do not extract unit prices like (₹17,99,000 /100 g) as MRP.
+
+## 7. Git & Deployment Branch Policy
+- **Default Branch for Development**: ALL feature updates, bug fixes, and code changes MUST be committed and pushed to the `staging` branch (`origin/staging`).
+- **Production Deployment Restriction**: NEVER push directly to `main` or `origin/main` unless the user explicitly gives the command "push to production" or "deploy to production".
+- **Verification Requirement**: All feature reverification and quality checks MUST be performed on `staging` first before any production release is requested or initiated.
