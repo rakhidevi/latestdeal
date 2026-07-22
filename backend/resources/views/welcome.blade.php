@@ -301,12 +301,12 @@
 
                             <!-- Deal Index Badge (#1 of 6) -->
                             <div class="absolute top-3 left-3 z-20 bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] font-black px-2.5 py-1 rounded-lg">
-                                🔥 Deal #{{ $index + 1 }} of {{ count($heroDeals) }}
+                                🔥 Deal #{{ $index + 1 }} of {{ count($heroItems) }}
                             </div>
 
                             <!-- Discount Tag Badge -->
                             @if($discountPct > 0)
-                            <div class="absolute top-10 left-3 z-20 bg-gradient-to-r {{ $preset['gradient'] }} text-white text-xs font-black px-3 py-1 rounded-full shadow-xl">
+                            <div class="absolute top-10 left-3 z-20 bg-gradient-to-r {{ $preset['gradient'] ?? 'from-red-600 to-amber-500' }} text-white text-xs font-black px-3 py-1 rounded-full shadow-xl">
                                 {{ $discountPct }}% OFF
                             </div>
                             @endif
@@ -324,20 +324,20 @@
                             <!-- Bottom Urgency Meter -->
                             <div class="absolute bottom-3 left-3 right-3 z-20 bg-slate-950/95 backdrop-blur-md border border-slate-800 rounded-xl p-2.5 shadow-xl">
                                 <div class="flex justify-between items-center text-[11px] font-bold mb-1">
-                                    <span class="text-amber-400 flex items-center gap-1">🔥 {{ $preset['stock_label'] }}</span>
-                                    <span class="text-slate-400">{{ $preset['stock_pct'] }}%</span>
+                                    <span class="text-amber-400 flex items-center gap-1">🔥 {{ $preset['stock_label'] ?? 'Selling Fast' }}</span>
+                                    <span class="text-slate-400">{{ $preset['stock_pct'] ?? 88 }}%</span>
                                 </div>
                                 <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-gradient-to-r {{ $preset['gradient'] }} h-full rounded-full" style="width: {{ $preset['stock_pct'] }}%"></div>
+                                    <div class="bg-gradient-to-r {{ $preset['gradient'] ?? 'from-red-600 to-amber-500' }} h-full rounded-full" style="width: {{ $preset['stock_pct'] ?? 88 }}%"></div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Deal Confidence Indicator -->
                         <div class="w-full max-w-sm mt-3 bg-slate-900/80 border border-slate-800 rounded-2xl p-2.5 text-xs flex items-center justify-between">
-                            <span class="font-bold text-slate-300">Confidence Score: <span class="text-emerald-400 font-black">{{ $preset['confidence'] }}%</span></span>
+                            <span class="font-bold text-slate-300">Confidence Score: <span class="text-emerald-400 font-black">{{ $preset['confidence'] ?? 98 }}%</span></span>
                             <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-                                @foreach(array_slice($preset['confidence_based'], 0, 3) as $cItem)
+                                @foreach(array_slice($preset['confidence_based'] ?? ['Seller Rating', 'Price History', 'Coupon Tested'], 0, 3) as $cItem)
                                 <span>✓ {{ $cItem }}</span>
                                 @endforeach
                             </div>
@@ -349,8 +349,8 @@
                         
                         <!-- Slide Header Tag & Merchant / Category Pills -->
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider {{ $preset['badge_bg'] }} border {{ $preset['border'] }} shadow-sm">
-                                {{ $preset['title_prefix'] }}
+                            <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider {{ $preset['badge_bg'] ?? 'bg-amber-500/20 text-amber-300' }} border {{ $preset['border'] ?? 'border-amber-500/40' }} shadow-sm">
+                                {{ $preset['title_prefix'] ?? '🔥 HOT DEAL' }}
                             </span>
                             <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800/80 text-slate-300 border border-slate-700/60">
                                 🏪 {{ $deal->merchant->name ?? 'Amazon Prime' }}
@@ -381,7 +381,7 @@
                                     <span class="text-slate-400">Lowest Price Ever: </span>
                                     <span class="font-bold text-emerald-400">✓ Yes</span>
                                     <span class="text-slate-400 ml-2">Stability: </span>
-                                    <span class="font-bold text-yellow-400">{{ $preset['stability'] }}</span>
+                                    <span class="font-bold text-yellow-400">{{ $preset['stability'] ?? '★★★★☆' }}</span>
                                 </div>
                             </div>
 
@@ -419,32 +419,32 @@
                         <div class="flex flex-wrap items-center gap-2 text-xs">
                             <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-white font-medium flex items-center gap-1">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                                {{ $preset['viewers'] }}
+                                {{ $preset['viewers'] ?? '3,421 viewing now' }}
                             </span>
                             <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-amber-300 font-medium">
-                                🔥 {{ $preset['bought'] }}
+                                🔥 {{ $preset['bought'] ?? '472 bought today' }}
                             </span>
                             <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-red-300 font-medium">
-                                ❤️ {{ $preset['wishlisted'] }}
+                                ❤️ {{ $preset['wishlisted'] ?? '864 wishlisted' }}
                             </span>
                             <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-blue-300 font-medium">
-                                📈 {{ $preset['trending'] }}
+                                📈 {{ $preset['trending'] ?? 'Trending #1' }}
                             </span>
                             <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium">
-                                💬 {{ $preset['reviews'] }}
+                                💬 {{ $preset['reviews'] ?? '96% Positive Reviews' }}
                             </span>
                         </div>
 
                         <!-- AI Recommendation Box with Bullet Points -->
-                        <div class="bg-slate-900/90 border {{ $preset['border'] }} rounded-2xl p-3 shadow-lg space-y-1.5">
+                        <div class="bg-slate-900/90 border {{ $preset['border'] ?? 'border-amber-500/40' }} rounded-2xl p-3 shadow-lg space-y-1.5">
                             <div class="flex items-center justify-between text-xs">
                                 <span class="font-bold text-slate-300 flex items-center gap-1">
                                     <span>★★★★★ AI Recommendation:</span>
-                                    <span class="text-emerald-400 font-black">{{ $preset['recommendation_title'] }}</span>
+                                    <span class="text-emerald-400 font-black">{{ $preset['recommendation_title'] ?? 'Excellent Buy' }}</span>
                                 </span>
                             </div>
                             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-300">
-                                @foreach($preset['reasons'] as $reason)
+                                @foreach($preset['reasons'] ?? ['Lowest in 6 months', 'Genuine seller', 'Coupon available'] as $reason)
                                 <span class="flex items-center gap-1">
                                     <span class="text-emerald-400 font-bold">•</span> {{ $reason }}
                                 </span>
@@ -455,7 +455,7 @@
                         <!-- Live Deal Status Badges -->
                         <div class="flex flex-wrap items-center gap-2 text-xs">
                             <span class="font-bold text-slate-400 text-[11px]">Deal Status:</span>
-                            @foreach($preset['status_badges'] as $sBadge)
+                            @foreach($preset['status_badges'] ?? ['🟢 Verified', '🟢 In Stock'] as $sBadge)
                             <span class="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 font-semibold text-slate-200">
                                 {{ $sBadge }}
                             </span>
