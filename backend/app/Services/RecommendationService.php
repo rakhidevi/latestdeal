@@ -12,7 +12,7 @@ class RecommendationService
      */
     public function getTrending(int $limit = 5)
     {
-        return Cache::remember("recommendations_trending_{$limit}", 3600, function () use ($limit) {
+        return Cache::remember("recommendations_trending_{$limit}", 300, function () use ($limit) {
             return Deal::where('status', 'active')
                 ->orderByRaw('(discounted_price / original_price) ASC')
                 ->orderBy('ai_score', 'desc')

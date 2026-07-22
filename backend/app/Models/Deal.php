@@ -22,6 +22,13 @@ class Deal extends Model
 
     protected static function booted()
     {
+        static::saved(function ($deal) {
+            \Illuminate\Support\Facades\Cache::forget('recommendations_trending_5');
+            \Illuminate\Support\Facades\Cache::forget('recommendations_trending_10');
+            \Illuminate\Support\Facades\Cache::forget('recommendations_trending_15');
+            \Illuminate\Support\Facades\Cache::forget('deals.assistant');
+        });
+
         static::creating(function ($deal) {
             if (empty($deal->slug)) {
                 $baseSlug = Str::slug($deal->title);

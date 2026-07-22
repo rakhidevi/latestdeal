@@ -50,3 +50,7 @@ jobs:
           
           echo "Triggering explicit migration..."
           curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://latestdeal.in/unzip.php?migrate=1"
+          
+          echo "Clearing application cache..."
+          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" https://latestdeal.in/clear-cache
+
