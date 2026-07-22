@@ -156,7 +156,7 @@
             @endif
             
             <!-- Price and Action Box -->
-            <div x-data="priceUpdater({{ $deal->id }}, {{ $deal->discounted_price }})"
+            <div x-data="priceUpdater({{ $deal->id }}, {{ $deal->discounted_price }}, {{ $deal->original_price ?? 0 }})"
                  x-init="listenForUpdates"
                  class="mt-10 bg-white dark:bg-slate-900/80 backdrop-blur-md border border-gray-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl shadow-gray-200/40 dark:shadow-none relative overflow-hidden">
                 
@@ -167,13 +167,19 @@
                     <div>
                         <p class="text-[11px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-2">Deal Price</p>
                         <div class="flex flex-wrap items-baseline gap-3">
-                            <span class="text-4xl sm:text-5xl font-black text-red-600 dark:text-red-500 tracking-tighter" id="deal-price-display">
+                            <span class="text-4xl sm:text-5xl font-black text-red-600 dark:text-red-500 tracking-tighter" id="deal-price-display" x-text="'₹' + Number(currentPrice).toLocaleString('en-IN')">
                                 ₹{{ number_format($deal->discounted_price) }}
                             </span>
-                            @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
-                                <span class="text-lg sm:text-xl text-gray-400 dark:text-slate-500 line-through font-medium">M.R.P: ₹{{ number_format($deal->original_price) }}</span>
-                                <span class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 ml-1">({{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF)</span>
-                            @endif
+                            <template x-if="originalPrice > currentPrice">
+                                <div class="inline-flex items-baseline gap-2">
+                                    <span class="text-lg sm:text-xl text-gray-400 dark:text-slate-500 line-through font-medium" id="deal-mrp-display" x-text="'M.R.P: ₹' + Number(originalPrice).toLocaleString('en-IN')">
+                                        M.R.P: ₹{{ number_format($deal->original_price) }}
+                                    </span>
+                                    <span class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 ml-1" id="deal-discount-pct-display" x-text="'(' + discountPct + '% OFF)'">
+                                        ({{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF)
+                                    </span>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
@@ -186,6 +192,7 @@
                         <span x-text="isChecking ? 'Checking...' : (justVerified ? '✓ Price Verified!' : 'Verify Live Price')"></span>
                     </button>
                 </div>
+
 
                 <hr class="my-8 border-gray-100 dark:border-slate-800">
 
@@ -424,9 +431,11 @@
 @push('scripts')
 <script>
     document.addEventListener('alpine:init', () => {
-        Alpine.data('priceUpdater', (dealId, initialPrice) => ({
+        Alpine.data('priceUpdater', (dealId, initialPrice, initialOriginalPrice) => ({
             dealId: dealId,
             currentPrice: initialPrice,
+            originalPrice: initialOriginalPrice,
+            discountPct: (initialOriginalPrice > initialPrice) ? Math.round(((initialOriginalPrice - initialPrice) / initialOriginalPrice) * 100) : 0,
             isChecking: false,
             justVerified: false,
             verifyPrice() {
@@ -437,22 +446,28 @@
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
                 }).then(res => res.json())
                 .then(data => {
-                    if (!data.success) {
-                        this.isChecking = false;
-                        alert(data.message || 'Failed to initiate price check.');
+                    this.isChecking = false;
+                    if (data.success) {
+                        if (data.discounted_price) {
+                            this.currentPrice = data.discounted_price;
+                        }
+                        if (data.original_price) {
+                            this.originalPrice = data.original_price;
+                        }
+                        if (data.discount_pct !== undefined && data.discount_pct !== null) {
+                            this.discountPct = data.discount_pct;
+                        } else if (this.originalPrice > this.currentPrice) {
+                            this.discountPct = Math.round(((this.originalPrice - this.currentPrice) / this.originalPrice) * 100);
+                        }
+                        this.justVerified = true;
+                        setTimeout(() => { this.justVerified = false; }, 4000);
+                    } else {
+                        alert(data.message || 'Price check completed.');
                     }
                 }).catch(err => {
                     this.isChecking = false;
                     alert('Network error while requesting price check.');
                 });
-                
-                // Fallback timeout just in case python worker is offline
-                setTimeout(() => {
-                    if (this.isChecking) {
-                        this.isChecking = false;
-                        alert('Verification timed out. Desktop Worker might be offline or scraping is taking unusually long.');
-                    }
-                }, 45000);
             },
             listenForUpdates() {
                 if (window.Echo) {
@@ -465,14 +480,14 @@
                             if (newPrice) {
                                 this.currentPrice = newPrice;
                             }
+                            if (origPrice) {
+                                this.originalPrice = origPrice;
+                                if (origPrice > this.currentPrice) {
+                                    this.discountPct = Math.round(((origPrice - this.currentPrice) / origPrice) * 100);
+                                }
+                            }
                             this.isChecking = false;
                             this.justVerified = true;
-                            
-                            // Update the static HTML elements
-                            const el = document.getElementById('deal-price-display');
-                            if (el && this.currentPrice) {
-                                el.innerText = '₹' + Number(this.currentPrice).toLocaleString('en-IN');
-                            }
                             
                             setTimeout(() => {
                                 this.justVerified = false;
