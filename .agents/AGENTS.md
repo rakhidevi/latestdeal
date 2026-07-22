@@ -31,7 +31,7 @@ These are strict rules that MUST be followed for all future development in this 
 - MRP - Always displays like M.R.P.: ₹39,990.
 - Do not extract unit prices like (₹17,99,000 /100 g) as MRP.
 
-## 7. Git & Deployment Branch Policy
-- **Default Branch for Development**: ALL feature updates, bug fixes, and code changes MUST be committed and pushed to the `staging` branch (`origin/staging`).
-- **Production Deployment Restriction**: NEVER push directly to `main` or `origin/main` unless the user explicitly gives the command "push to production" or "deploy to production".
-- **Verification Requirement**: All feature reverification and quality checks MUST be performed on `staging` first before any production release is requested or initiated.
+## 7. 3-Tier Git & Deployment Pipeline (Dev ➔ Staging ➔ Production)
+- **Step 1 — Local Development (`dev` branch)**: ALL new features, code modifications, and bug fixes MUST be committed and pushed to the `dev` branch (`origin/dev`).
+- **Step 2 — Staging Verification (`staging` branch)**: Once feature work on `dev` is complete, merge `dev` into `staging` and push to `origin/staging` to trigger the automated Staging deployment workflow ([.github/workflows/deploy-staging.yml](file:///k:/WhatsAppUtility/LatestDeal/.github/workflows/deploy-staging.yml)). Perform full 100% line-by-line reverification on `staging` environment first.
+- **Step 3 — Production Release (`main` branch)**: NEVER push directly to `main` or `origin/main` from local development. Only merge `staging` into `main` and push to `origin/main` when the user explicitly commands "push to production" or "deploy to production".
