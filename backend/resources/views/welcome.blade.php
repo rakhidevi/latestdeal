@@ -36,6 +36,16 @@
 @section('hero')
   <style>
     [x-cloak] { display: none !important; }
+    /* Hide scrollbar for Chrome, Safari, Opera, Edge and Firefox */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none !important;  /* IE and Edge */
+        scrollbar-width: none !important;  /* Firefox */
+    }
   </style>
   <div x-data="{
         activeSlide: 0,
