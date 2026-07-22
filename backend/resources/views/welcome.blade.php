@@ -105,6 +105,15 @@
         <!-- Carousel Frame -->
         <div class="relative min-h-[500px] md:min-h-[460px] flex flex-col justify-between">
             @php
+              $heroItems = (isset($heroDeals) && count($heroDeals) > 0) ? $heroDeals : [
+                  (object)['id' => 1, 'title' => 'Apple AirPods Pro (2nd Gen) with MagSafe USB-C Case', 'slug' => 'apple-airpods-pro-2', 'hash_id' => 'hp1', 'discounted_price' => 16499, 'original_price' => 24990, 'discount_percentage' => 34, 'ai_score' => 98, 'image_path' => 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Electronics']],
+                  (object)['id' => 2, 'title' => 'Sony WH-1000XM5 Wireless Noise Cancelling Headphones', 'slug' => 'sony-wh-1000xm5', 'hash_id' => 'hp2', 'discounted_price' => 26990, 'original_price' => 34990, 'discount_percentage' => 23, 'ai_score' => 97, 'image_path' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Electronics']],
+                  (object)['id' => 3, 'title' => 'ASUS ROG Strix G16 (2024) Intel Core i7 14th Gen Gaming Laptop', 'slug' => 'asus-rog-strix-g16', 'hash_id' => 'hp3', 'discounted_price' => 114990, 'original_price' => 159990, 'discount_percentage' => 28, 'ai_score' => 99, 'image_path' => 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Gaming']],
+                  (object)['id' => 4, 'title' => 'Norton 360 Premium 2024 - 10 Devices 1 Year Subscription', 'slug' => 'norton-360-premium', 'hash_id' => 'hp4', 'discounted_price' => 999, 'original_price' => 4999, 'discount_percentage' => 80, 'ai_score' => 96, 'image_path' => 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Software']],
+                  (object)['id' => 5, 'title' => 'Fitkit by Cult Walking Pad Neo BLDC 3.5HP Peak Power Treadmill', 'slug' => 'fitkit-walking-pad-neo', 'hash_id' => 'hp5', 'discounted_price' => 7999, 'original_price' => 79990, 'discount_percentage' => 90, 'ai_score' => 95, 'image_path' => 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Sports & Fitness']],
+                  (object)['id' => 6, 'title' => 'Samsung Galaxy Tab S9 FE+ 12.4 inch WQXGA Display 8GB RAM', 'slug' => 'samsung-galaxy-tab-s9-fe', 'hash_id' => 'hp6', 'discounted_price' => 31999, 'original_price' => 46999, 'discount_percentage' => 32, 'ai_score' => 98, 'image_path' => 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Electronics']]
+              ];
+
               $slidePresets = [
                   [
                       'type' => 'HOT DEAL',
@@ -264,8 +273,8 @@
               ];
             @endphp
 
-            @if(isset($heroDeals) && count($heroDeals) > 0)
-              @foreach($heroDeals as $index => $deal)
+            @if(count($heroItems) > 0)
+              @foreach($heroItems as $index => $deal)
                 @php
                   $preset = $slidePresets[$index % count($slidePresets)];
                   $discountPct = $deal->discount_percentage ?: ($deal->original_price > $deal->discounted_price ? round((($deal->original_price - $deal->discounted_price)/$deal->original_price)*100) : 0);
