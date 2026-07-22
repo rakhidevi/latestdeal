@@ -25,9 +25,9 @@ if (isset($_GET['debug_deals'])) {
 }
 
 if (isset($_GET['read_log'])) {
-    $logPath = __DIR__ . '/../storage/logs/queue-work-error.txt';
+    $logPath = __DIR__ . '/../storage/logs/laravel.log';
     if (file_exists($logPath)) {
-        echo file_get_contents($logPath);
+        echo nl2br(htmlspecialchars(substr(file_get_contents($logPath), -4000)));
     } else {
         echo "Log file not found.";
     }
