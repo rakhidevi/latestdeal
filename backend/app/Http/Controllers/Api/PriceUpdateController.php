@@ -42,6 +42,16 @@ class PriceUpdateController extends Controller
                 'Accept-Language' => 'en-US,en;q=0.5'
             ])->timeout(10)->get($deal->url);
 
+            if ($response->status() === 404 || str_contains($response->body(), 'Looking for something?') || str_contains($response->body(), 'not a functioning page')) {
+                $deal->status = 'expired';
+                $deal->save();
+                return response()->json([
+                    'success' => false,
+                    'is_expired' => true,
+                    'message' => 'This product listing has been removed or expired on Amazon.'
+                ]);
+            }
+
             if ($response->successful()) {
                 $html = $response->body();
                 [$newPrice, $newOriginalPrice] = $this->parseAmazonPriceAndMrp($html);

@@ -462,7 +462,12 @@
                         this.justVerified = true;
                         setTimeout(() => { this.justVerified = false; }, 4000);
                     } else {
-                        alert(data.message || 'Price check completed.');
+                        if (data.is_expired) {
+                            alert('⚠️ This deal has expired or the product listing was removed on Amazon.');
+                            window.location.reload();
+                        } else {
+                            alert(data.message || 'Price check completed.');
+                        }
                     }
                 }).catch(err => {
                     this.isChecking = false;

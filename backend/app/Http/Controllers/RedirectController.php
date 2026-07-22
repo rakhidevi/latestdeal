@@ -74,6 +74,10 @@ class RedirectController extends Controller
         }
 
         // 5. Always issue HTTP 302 Redirect to affiliate URL safely
+        if ($deal->status === 'expired') {
+            return redirect()->route('deals.show', $deal->slug)->with('error', 'This deal has expired on Amazon.');
+        }
+
         $targetUrl = $deal->affiliate_url ?? $deal->url;
         if (empty($targetUrl) || $targetUrl === '#') {
             $targetUrl = '/';
