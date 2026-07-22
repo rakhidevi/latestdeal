@@ -164,6 +164,31 @@ class ClassifyCatalogCommand extends Command
 
         $this->info("Successfully reclassified {$reclassified} deals into specific categories.");
 
+        // Merge duplicate / alias categories into standard main categories
+        $mergeMap = [
+            'Apparel & Accessories' => 'Fashion & Accessories',
+            'Shoes' => 'Fashion & Accessories',
+            'Beauty' => 'Beauty & Personal Care',
+            'Health and Personal Care' => 'Beauty & Personal Care',
+            'Personal Care Appliances' => 'Beauty & Personal Care',
+            'Kitchen' => 'Home & Kitchen',
+            'Home' => 'Home & Kitchen',
+            'Furniture' => 'Home & Kitchen',
+            'Sports' => 'Sports & Fitness',
+            'Video Games' => 'Gaming',
+        ];
+
+        foreach ($mergeMap as $oldName => $targetName) {
+            $oldCat = Category::where('name', $oldName)->first();
+            $targetCat = Category::where('name', $targetName)->first();
+
+            if ($oldCat && $targetCat && $oldCat->id !== $targetCat->id) {
+                Deal::where('category_id', $oldCat->id)->update(['category_id' => $targetCat->id]);
+                $oldCat->delete();
+                $this->info("Merged duplicate category '{$oldName}' into '{$targetName}'");
+            }
+        }
+
         // 3. Robust UTF-8 PHP Brand Classification Loop (Handles Emoji titles & SQLite UTF-8 limitations)
         $bose = Brand::firstOrCreate(['slug' => 'bose'], ['name' => 'Bose', 'is_active' => true]);
         $grenaro = Brand::firstOrCreate(['slug' => 'grenaro'], ['name' => 'Grenaro', 'is_active' => true]);

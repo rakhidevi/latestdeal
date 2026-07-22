@@ -19,6 +19,9 @@ class DirectoryController extends Controller
                 $q->where('status', 'active');
             }])
             ->get()
+            ->filter(function ($cat) {
+                return ($cat->active_deals_count ?? 0) > 0;
+            })
             ->map(function ($cat) {
                 $cat->deal_count = $cat->active_deals_count ?? $cat->deal_count ?? 0;
                 if (empty($cat->icon) || $cat->icon === '📦') {
@@ -54,6 +57,9 @@ class DirectoryController extends Controller
                 $q->where('status', 'active');
             }])
             ->get()
+            ->filter(function ($b) {
+                return ($b->active_deals_count ?? 0) > 0;
+            })
             ->map(function ($b) {
                 $b->deal_count = $b->active_deals_count ?? $b->deal_count ?? 0;
                 return $b;
@@ -71,6 +77,9 @@ class DirectoryController extends Controller
                 $q->where('status', 'active');
             }])
             ->get()
+            ->filter(function ($m) {
+                return ($m->active_deals_count ?? 0) > 0;
+            })
             ->map(function ($m) {
                 $m->deal_count = $m->active_deals_count ?? $m->deal_count ?? 0;
                 return $m;
