@@ -12,33 +12,71 @@ class DirectoryController extends Controller
 {
     public function categories(Request $request)
     {
-        $query = Category::where('slug', '!=', 'general');
-        if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count')) {
-            $query->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
-        }
-        $categories = $query->get();
+        $categories = Category::where('slug', '!=', 'general')
+            ->where('name', '!=', 'General')
+            ->where('name', '!=', 'All Other Categories')
+            ->withCount(['deals as active_deals_count' => function ($q) {
+                $q->where('status', 'active');
+            }])
+            ->get()
+            ->map(function ($cat) {
+                $cat->deal_count = $cat->active_deals_count ?? $cat->deal_count ?? 0;
+                if (empty($cat->icon) || $cat->icon === '📦') {
+                    $icons = [
+                        'electronics' => '💻',
+                        'home-kitchen' => '🏡',
+                        'sports-fitness' => '🏋️',
+                        'fashion-accessories' => '👗',
+                        'beauty-personal-care' => '💄',
+                        'mobile-phones' => '📱',
+                        'data-storage-devices' => '💾',
+                        'televisions' => '📺',
+                        'smart-watches' => '⌚',
+                        'personal-computers' => '🖥️',
+                        'bill-payment-recharges' => '💳',
+                        'gaming' => '🎮',
+                        'courses-education' => '🎓'
+                    ];
+                    $cat->icon = $icons[$cat->slug] ?? '📦';
+                }
+                return $cat;
+            })
+            ->sortByDesc('deal_count')
+            ->values();
 
         return view('directory.categories', compact('categories'));
     }
 
     public function brands(Request $request)
     {
-        $query = Brand::where('is_active', true);
-        if (\Illuminate\Support\Facades\Schema::hasColumn('brands', 'deal_count')) {
-            $query->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
-        }
-        $brands = $query->get();
+        $brands = Brand::where('is_active', true)
+            ->withCount(['deals as active_deals_count' => function ($q) {
+                $q->where('status', 'active');
+            }])
+            ->get()
+            ->map(function ($b) {
+                $b->deal_count = $b->active_deals_count ?? $b->deal_count ?? 0;
+                return $b;
+            })
+            ->sortByDesc('deal_count')
+            ->values();
 
         return view('directory.brands', compact('brands'));
     }
 
     public function merchants(Request $request)
     {
-        $query = Merchant::active();
-        if (\Illuminate\Support\Facades\Schema::hasColumn('merchants', 'deal_count')) {
-            $query->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
-        }
-        $merchants = $query->get();
+        $merchants = Merchant::active()
+            ->withCount(['deals as active_deals_count' => function ($q) {
+                $q->where('status', 'active');
+            }])
+            ->get()
+            ->map(function ($m) {
+                $m->deal_count = $m->active_deals_count ?? $m->deal_count ?? 0;
+                return $m;
+            })
+            ->sortByDesc('deal_count')
+            ->values();
 
         return view('directory.merchants', compact('merchants'));
     }
