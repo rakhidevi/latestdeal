@@ -59,21 +59,20 @@
      @mouseleave="isPaused = false"
      class="w-full relative overflow-hidden bg-slate-950 text-white shadow-2xl group border-b border-slate-800/80">
      
-     <!-- Hero Background Glow Effects -->
-     <div class="absolute inset-0 bg-gradient-to-br from-red-950/50 via-slate-950 to-slate-900 pointer-events-none"></div>
-     <div class="absolute -top-32 left-1/3 w-[650px] h-[650px] bg-red-600/15 rounded-full blur-[130px] pointer-events-none"></div>
-     <div class="absolute -bottom-32 right-1/4 w-[550px] h-[550px] bg-yellow-500/10 rounded-full blur-[110px] pointer-events-none"></div>
+     <!-- Hero Glass Background Glows -->
+     <div class="absolute inset-0 bg-gradient-to-br from-red-950/40 via-slate-950 to-slate-900 pointer-events-none"></div>
+     <div class="absolute -top-32 left-1/3 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+     <div class="absolute -bottom-32 right-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 lg:py-8 relative z-10">
+     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 relative z-10">
         
-        <!-- Auto-Rotating Categories Strip -->
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-white/10">
+        <!-- Category Filter Pills Header -->
+        <div class="flex items-center justify-between gap-3 mb-6 pb-3 border-b border-white/10">
             <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-gradient-to-r from-red-600 to-amber-500 text-white uppercase tracking-wider shadow-lg shadow-red-500/30 animate-pulse">
-                    <span class="w-2 h-2 rounded-full bg-white"></span>
-                    FEATURED LIVE DEALS INTELLIGENCE
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-red-600 text-white uppercase tracking-wider shadow-md">
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                    FEATURED DEALS
                 </span>
-                <span class="text-xs text-slate-400 font-medium hidden sm:inline-block">Real-time Deal Command Center</span>
             </div>
             
             <div class="flex items-center gap-1.5 overflow-x-auto py-1 text-xs no-scrollbar">
@@ -92,18 +91,18 @@
                   ];
                 @endphp
                 @foreach($categoriesRibbon as $catItem)
-                <a href="/?category={{ $catItem['slug'] }}" class="px-3 py-1 rounded-full bg-slate-800/90 hover:bg-red-600 text-slate-200 hover:text-white font-semibold transition-all border border-slate-700/60 whitespace-nowrap">
+                <a href="/?category={{ $catItem['slug'] }}" class="px-3 py-1 rounded-full bg-slate-900/90 hover:bg-red-600 text-slate-300 hover:text-white font-medium transition-all border border-slate-800 whitespace-nowrap">
                     {{ $catItem['name'] }}
                 </a>
                 @endforeach
-                <a href="/categories" class="px-3.5 py-1 rounded-full bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white font-bold transition-all border border-red-500/40 whitespace-nowrap">
+                <a href="/categories" class="px-3 py-1 rounded-full bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white font-bold transition-all border border-red-500/30 whitespace-nowrap">
                     View All →
                 </a>
             </div>
         </div>
 
         <!-- Carousel Frame -->
-        <div class="relative min-h-[500px] md:min-h-[460px] flex flex-col justify-between">
+        <div class="relative min-h-[380px] flex flex-col justify-between">
             @php
               $heroItems = (isset($heroDeals) && count($heroDeals) > 0) ? $heroDeals : [
                   (object)['id' => 1, 'title' => 'Apple AirPods Pro (2nd Gen) with MagSafe USB-C Case', 'slug' => 'apple-airpods-pro-2', 'hash_id' => 'hp1', 'discounted_price' => 16499, 'original_price' => 24990, 'discount_percentage' => 34, 'ai_score' => 98, 'image_path' => 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Electronics']],
@@ -118,156 +117,49 @@
                   [
                       'type' => 'HOT DEAL',
                       'title_prefix' => '🔥 HOT DEAL',
-                      'gradient' => 'from-amber-500 to-red-600',
-                      'border' => 'border-amber-500/40',
-                      'badge_bg' => 'bg-amber-500/20 text-amber-300',
-                      'viewers' => '3,421 viewing now',
-                      'wishlisted' => '864 wishlisted',
+                      'viewers' => '3.4k viewing',
                       'bought' => '472 bought today',
-                      'trending' => 'Trending #4',
-                      'updated' => 'Updated 48 sec ago',
-                      'reviews' => '94% Positive Reviews',
                       'stock_pct' => 89,
-                      'stock_left' => 19,
-                      'stock_label' => 'Selling Fast - 89% Claimed',
-                      'prediction' => '📈 Price likely to increase in 6h (92% Risk)',
-                      'lowest_ever' => true,
-                      'avg_price' => 22999,
-                      'stability' => '★★★★☆',
-                      'recommendation_title' => 'Excellent Buy',
-                      'reasons' => ['Lowest in 6 months', 'Genuine seller', 'Coupon available', 'Cashback available', 'Prime eligible'],
-                      'confidence' => 98,
-                      'confidence_based' => ['Seller Rating', 'Price History', 'Coupon Tested', 'Review Analysis', 'Return Policy'],
-                      'status_badges' => ['🟢 Verified', '🟢 Coupon Tested', '🟢 In Stock', '🟡 Selling Fast'],
                       'coupon' => null,
                   ],
                   [
                       'type' => 'HIDDEN GEM',
-                      'title_prefix' => '🕵️ HIDDEN AMAZON DEAL',
-                      'gradient' => 'from-purple-600 to-indigo-600',
-                      'border' => 'border-purple-500/40',
-                      'badge_bg' => 'bg-purple-500/20 text-purple-300',
-                      'viewers' => '1,842 viewing now',
-                      'wishlisted' => '624 wishlisted',
-                      'bought' => '189 bought today',
-                      'trending' => 'Trending #2 in Tech',
-                      'updated' => 'Updated 12 sec ago',
-                      'reviews' => '98% Positive Reviews',
+                      'title_prefix' => '🕵️ HIDDEN AMAZON GEM',
+                      'viewers' => '1.8k viewing',
+                      'bought' => '189 claimed',
                       'stock_pct' => 92,
-                      'stock_left' => 12,
-                      'stock_label' => 'Normally invisible in search - Only 12 left!',
-                      'prediction' => 'Auto-applied coupon verified at checkout',
-                      'lowest_ever' => true,
-                      'avg_price' => 18999,
-                      'stability' => '★★★★★',
-                      'recommendation_title' => 'Prime Exclusive Hidden Gem',
-                      'reasons' => ['Hidden coupon applied', 'Prime free shipping', 'Historic low price', 'Official brand warranty'],
-                      'confidence' => 97,
-                      'confidence_based' => ['Seller Rating', 'Price History', 'Coupon Tested', 'Stock Availability'],
-                      'status_badges' => ['🟢 Verified', '🟢 Coupon Tested', '🟢 In Stock', '🔴 Ends in 58 mins'],
                       'coupon' => 'SAVE1200OFF',
                   ],
                   [
                       'type' => 'PRICE DROP',
                       'title_prefix' => '📉 MASSIVE PRICE DROP',
-                      'gradient' => 'from-emerald-500 to-teal-600',
-                      'border' => 'border-emerald-500/40',
-                      'badge_bg' => 'bg-emerald-500/20 text-emerald-300',
-                      'viewers' => '2,940 viewing now',
-                      'wishlisted' => '1,204 wishlisted',
+                      'viewers' => '2.9k viewing',
                       'bought' => '512 bought today',
-                      'trending' => 'Trending #1 Price Crash',
-                      'updated' => 'Updated 30 sec ago',
-                      'reviews' => '96% Positive Reviews',
                       'stock_pct' => 75,
-                      'stock_left' => 34,
-                      'stock_label' => 'Lowest Price in 365 Days!',
-                      'prediction' => 'Dropped 33% from yesterday price',
-                      'lowest_ever' => true,
-                      'avg_price' => 32999,
-                      'stability' => '★★★★★',
-                      'recommendation_title' => '365-Day Price Crash',
-                      'reasons' => ['Lowest price in 365 days', 'Massive ₹8,000 drop', 'Verified seller', 'No cost EMI'],
-                      'confidence' => 99,
-                      'confidence_based' => ['365-Day History', 'Verified Seller', 'Review Analysis', 'No Cost EMI'],
-                      'status_badges' => ['🟢 Verified', '🟢 Coupon Tested', '🟢 In Stock', '🟢 Lowest 365 Days'],
                       'coupon' => null,
                   ],
                   [
                       'type' => 'COUPON HERO',
                       'title_prefix' => '🎟️ COUPON OF THE DAY',
-                      'gradient' => 'from-cyan-500 to-blue-600',
-                      'border' => 'border-cyan-500/40',
-                      'badge_bg' => 'bg-cyan-500/20 text-cyan-300',
-                      'viewers' => '4,112 viewing now',
-                      'wishlisted' => '950 wishlisted',
+                      'viewers' => '4.1k viewing',
                       'bought' => '310 redeemed',
-                      'trending' => 'Top Coupon Today',
-                      'updated' => 'Updated 2 mins ago',
-                      'reviews' => '95% Positive Reviews',
                       'stock_pct' => 95,
-                      'stock_left' => 15,
-                      'stock_label' => 'Verified 2 mins ago - Extra 80% OFF',
-                      'prediction' => 'Works for Windows, Mac, Android',
-                      'lowest_ever' => true,
-                      'avg_price' => 4999,
-                      'stability' => '★★★★☆',
-                      'recommendation_title' => 'Verified Coupon Deal',
-                      'reasons' => ['Exclusive coupon code', 'Instant 80% OFF', 'Tested live on checkout', 'Multi-device support'],
-                      'confidence' => 96,
-                      'confidence_based' => ['Live Checkout Test', 'Code Verification', 'Multi-platform support'],
-                      'status_badges' => ['🟢 Verified', '🟢 Coupon Tested', '🟢 In Stock'],
                       'coupon' => 'SAVE80',
                   ],
                   [
                       'type' => 'FLASH SALE',
-                      'title_prefix' => '⚡ FLASH SALE COMMAND',
-                      'gradient' => 'from-rose-500 to-red-600',
-                      'border' => 'border-rose-500/40',
-                      'badge_bg' => 'bg-rose-500/20 text-rose-300',
-                      'viewers' => '5,210 viewing now',
+                      'title_prefix' => '⚡ FLASH SALE',
+                      'viewers' => '5.2k viewing',
                       'bought' => '512 sold',
-                      'trending' => 'High Demand Flash Sale',
-                      'updated' => 'Updated 5 sec ago',
-                      'reviews' => '92% Positive Reviews',
                       'stock_pct' => 94,
-                      'stock_left' => 11,
-                      'stock_label' => 'Only 11 units remaining out of 400!',
-                      'prediction' => 'Expected price hike in next 4 hours',
-                      'lowest_ever' => true,
-                      'avg_price' => 7999,
-                      'stability' => '★★★☆☆',
-                      'recommendation_title' => 'Flash Sale (Closing Soon)',
-                      'reasons' => ['Limited 400 units', 'Flash discount', 'Free replacement', 'Fast delivery'],
-                      'confidence' => 95,
-                      'confidence_based' => ['Stock Monitor', 'Price Tracker', 'Seller Reputation'],
-                      'status_badges' => ['🟢 Verified', '🟡 Selling Fast', '🔴 Ends in 24 mins'],
                       'coupon' => null,
                   ],
                   [
                       'type' => 'AI PREDICTION',
-                      'title_prefix' => '🤖 AI PREDICTION CENTER',
-                      'gradient' => 'from-blue-600 to-indigo-700',
-                      'border' => 'border-blue-500/40',
-                      'badge_bg' => 'bg-blue-500/20 text-blue-300',
-                      'viewers' => '2,105 viewing now',
-                      'wishlisted' => '780 wishlisted',
-                      'bought' => '164 bought',
-                      'trending' => 'AI High Confidence',
-                      'updated' => 'Updated 1 min ago',
-                      'reviews' => '97% Positive Reviews',
+                      'title_prefix' => '🤖 AI PREDICTION',
+                      'viewers' => '2.1k viewing',
+                      'bought' => '164 saved',
                       'stock_pct' => 82,
-                      'stock_left' => 24,
-                      'stock_label' => 'Current ₹14,999 ➔ Likely Tomorrow ₹17,999 (86% Hike Likelihood)',
-                      'prediction' => '86% Probability of price increase tomorrow',
-                      'lowest_ever' => true,
-                      'avg_price' => 19999,
-                      'stability' => '★★★★★',
-                      'recommendation_title' => 'Strong Buy Signal (BUY NOW)',
-                      'reasons' => ['AI predicted price hike', 'Lowest in 6 months', 'High confidence score', 'Free shipping'],
-                      'confidence' => 98,
-                      'confidence_based' => ['AI Price Forecasting', 'Historical Cyclicity', 'Seller Integrity'],
-                      'status_badges' => ['🟢 Verified', '🟢 Coupon Tested', '🟢 In Stock'],
                       'coupon' => null,
                   ]
               ];
@@ -279,197 +171,97 @@
                   $preset = $slidePresets[$index % count($slidePresets)];
                   $discountPct = $deal->discount_percentage ?: ($deal->original_price > $deal->discounted_price ? round((($deal->original_price - $deal->discounted_price)/$deal->original_price)*100) : 0);
                   $savedAmount = max(0, $deal->original_price - $deal->discounted_price);
-                  $yesterdayPrice = round($deal->discounted_price * 1.25);
-                  $lastWeekPrice = round($deal->discounted_price * 1.35);
-                  $lastMonthPrice = round($deal->original_price > 0 ? $deal->original_price : $deal->discounted_price * 1.5);
                 @endphp
                 
                 <div x-show="activeSlide === {{ $index }}" 
                      x-transition:enter="transition ease-out duration-500"
-                     x-transition:enter-start="opacity-0 scale-95 translate-x-4"
-                     x-transition:enter-end="opacity-100 scale-100 translate-x-0"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
                      x-transition:leave="transition ease-in duration-300 absolute inset-0"
-                     x-transition:leave-start="opacity-100 scale-100 translate-x-0"
-                     x-transition:leave-end="opacity-0 scale-95 -translate-x-4"
-                     class="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-md shadow-2xl">
 
-                    <!-- Left Column: Product Image, Urgency Meter & Deal Confidence -->
-                    <div class="lg:col-span-5 flex flex-col items-center justify-center relative group/img">
-                        <div class="relative w-full max-w-sm aspect-square bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl flex items-center justify-center overflow-hidden">
-                            <!-- Background Glow -->
-                            <div class="absolute inset-0 bg-gradient-to-tr {{ $preset['gradient'] }} opacity-15 blur-2xl group-hover/img:opacity-30 transition-opacity"></div>
-
-                            <!-- Deal Index Badge (#1 of 6) -->
-                            <div class="absolute top-3 left-3 z-20 bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] font-black px-2.5 py-1 rounded-lg">
-                                🔥 Deal #{{ $index + 1 }} of {{ count($heroItems) }}
-                            </div>
-
-                            <!-- Discount Tag Badge -->
+                    <!-- Left Column: Product Image Card -->
+                    <div class="md:col-span-5 flex items-center justify-center relative">
+                        <div class="relative w-full max-w-xs aspect-square bg-slate-950/80 border border-slate-800/80 rounded-2xl p-5 shadow-xl flex items-center justify-center overflow-hidden group/img">
+                            
+                            <!-- Clean Discount Tag -->
                             @if($discountPct > 0)
-                            <div class="absolute top-10 left-3 z-20 bg-gradient-to-r {{ $preset['gradient'] ?? 'from-red-600 to-amber-500' }} text-white text-xs font-black px-3 py-1 rounded-full shadow-xl">
-                                {{ $discountPct }}% OFF
+                            <div class="absolute top-3 left-3 z-20 bg-red-600 text-white text-xs font-black px-3 py-1 rounded-full shadow-lg">
+                                🔥 {{ $discountPct }}% OFF
                             </div>
                             @endif
 
-                            <!-- AI Score Pill -->
-                            <div class="absolute top-3 right-3 z-20 bg-slate-950/80 backdrop-blur-md border border-slate-700 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                                🤖 AI Score {{ $deal->ai_score ?: 98 }}/100
-                            </div>
-
-                            <!-- Product Image -->
+                            <!-- Clean Product Image -->
                             <img src="{{ $deal->image_path ?: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600' }}" 
                                  alt="{{ $deal->title }}" 
-                                 class="max-h-60 max-w-full object-contain drop-shadow-2xl group-hover/img:scale-105 transition-transform duration-500 relative z-10" />
+                                 class="max-h-56 max-w-full object-contain drop-shadow-xl group-hover/img:scale-105 transition-transform duration-500 relative z-10" />
 
-                            <!-- Bottom Urgency Meter -->
-                            <div class="absolute bottom-3 left-3 right-3 z-20 bg-slate-950/95 backdrop-blur-md border border-slate-800 rounded-xl p-2.5 shadow-xl">
-                                <div class="flex justify-between items-center text-[11px] font-bold mb-1">
-                                    <span class="text-amber-400 flex items-center gap-1">🔥 {{ $preset['stock_label'] ?? 'Selling Fast' }}</span>
-                                    <span class="text-slate-400">{{ $preset['stock_pct'] ?? 88 }}%</span>
+                            <!-- Minimal Stock Meter -->
+                            <div class="absolute bottom-3 left-3 right-3 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-lg p-2 text-[11px]">
+                                <div class="flex justify-between items-center font-bold mb-1 text-slate-300">
+                                    <span class="text-amber-400">⚡ Selling Fast</span>
+                                    <span>{{ $preset['stock_pct'] ?? 88 }}% Claimed</span>
                                 </div>
-                                <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-gradient-to-r {{ $preset['gradient'] ?? 'from-red-600 to-amber-500' }} h-full rounded-full" style="width: {{ $preset['stock_pct'] ?? 88 }}%"></div>
+                                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-gradient-to-r from-amber-500 to-red-600 h-full rounded-full" style="width: {{ $preset['stock_pct'] ?? 88 }}%"></div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Deal Confidence Indicator -->
-                        <div class="w-full max-w-sm mt-3 bg-slate-900/80 border border-slate-800 rounded-2xl p-2.5 text-xs flex items-center justify-between">
-                            <span class="font-bold text-slate-300">Confidence Score: <span class="text-emerald-400 font-black">{{ $preset['confidence'] ?? 98 }}%</span></span>
-                            <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-                                @foreach(array_slice($preset['confidence_based'] ?? ['Seller Rating', 'Price History', 'Coupon Tested'], 0, 3) as $cItem)
-                                <span>✓ {{ $cItem }}</span>
-                                @endforeach
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right Column: Full Deal Intelligence Command Panel -->
-                    <div class="lg:col-span-7 flex flex-col justify-center space-y-3.5">
+                    <!-- Right Column: Clean Deal Details -->
+                    <div class="md:col-span-7 flex flex-col justify-center space-y-4">
                         
-                        <!-- Slide Header Tag & Merchant / Category Pills -->
+                        <!-- Badges Header -->
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider {{ $preset['badge_bg'] ?? 'bg-amber-500/20 text-amber-300' }} border {{ $preset['border'] ?? 'border-amber-500/40' }} shadow-sm">
+                            <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30">
                                 {{ $preset['title_prefix'] ?? '🔥 HOT DEAL' }}
                             </span>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800/80 text-slate-300 border border-slate-700/60">
-                                🏪 {{ $deal->merchant->name ?? 'Amazon Prime' }}
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700/60">
+                                🏪 {{ $deal->merchant->name ?? 'Amazon' }}
                             </span>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800/80 text-slate-300 border border-slate-700/60">
-                                🏷️ {{ $deal->category->name ?? 'Electronics' }}
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-yellow-400 border border-slate-700/60">
+                                🤖 AI Score {{ $deal->ai_score ?: 98 }}/100
                             </span>
                         </div>
 
                         <!-- Product Title -->
-                        <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight line-clamp-2 hover:text-red-400 transition-colors">
-                            <a href="{{ route('deals.show', $deal->slug) }}">{{ $deal->title }}</a>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white leading-tight line-clamp-2">
+                            <a href="{{ route('deals.show', $deal->slug) }}" class="hover:text-red-400 transition-colors">{{ $deal->title }}</a>
                         </h2>
 
-                        <!-- Price Intelligence & Sparkline Block -->
-                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-2">
-                            <div class="flex flex-wrap items-baseline justify-between gap-3">
-                                <div class="flex items-baseline gap-3">
-                                    <span class="text-3xl sm:text-4xl font-black text-white tracking-tight">₹{{ number_format($deal->discounted_price) }}</span>
-                                    @if($deal->original_price > $deal->discounted_price)
-                                    <span class="text-lg text-slate-400 line-through font-semibold">M.R.P. ₹{{ number_format($deal->original_price) }}</span>
-                                    <span class="text-xs font-black text-emerald-400 bg-emerald-950/90 border border-emerald-800/80 px-2.5 py-1 rounded-lg">
-                                        Save ₹{{ number_format($savedAmount) }}
-                                    </span>
-                                    @endif
-                                </div>
-                                <div class="text-xs text-right">
-                                    <span class="text-slate-400">Lowest Price Ever: </span>
-                                    <span class="font-bold text-emerald-400">✓ Yes</span>
-                                    <span class="text-slate-400 ml-2">Stability: </span>
-                                    <span class="font-bold text-yellow-400">{{ $preset['stability'] ?? '★★★★☆' }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Historical Price Comparison & Sparkline Graph -->
-                            <div class="grid grid-cols-4 gap-2 pt-1 text-center border-t border-slate-800/80 text-[11px]">
-                                <div>
-                                    <div class="text-slate-400">Current</div>
-                                    <div class="font-bold text-emerald-400">₹{{ number_format($deal->discounted_price) }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-slate-400">Yesterday</div>
-                                    <div class="font-semibold text-slate-300">₹{{ number_format($yesterdayPrice) }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-slate-400">Last Week</div>
-                                    <div class="font-semibold text-slate-300">₹{{ number_format($lastWeekPrice) }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-slate-400">Last Month</div>
-                                    <div class="font-semibold text-slate-300">₹{{ number_format($lastMonthPrice) }}</div>
-                                </div>
-                            </div>
-
-                            <!-- Sparkline Price Trend Graph SVG -->
-                            <div class="w-full pt-1 flex items-center gap-2">
-                                <span class="text-[10px] text-slate-400 font-medium">30-Day Trend:</span>
-                                <svg class="w-full h-5 text-emerald-400 overflow-visible" viewBox="0 0 300 20" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M 0 5 L 50 8 L 100 6 L 150 14 L 200 12 L 250 18 L 300 3" stroke-linecap="round" stroke-linejoin="round" />
-                                    <circle cx="300" cy="3" r="3" fill="#34d399" />
-                                </svg>
-                            </div>
+                        <!-- Price Block -->
+                        <div class="flex flex-wrap items-baseline gap-3">
+                            <span class="text-4xl font-black text-white tracking-tight">₹{{ number_format($deal->discounted_price) }}</span>
+                            @if($deal->original_price > $deal->discounted_price)
+                            <span class="text-lg text-slate-400 line-through font-semibold">M.R.P. ₹{{ number_format($deal->original_price) }}</span>
+                            <span class="text-xs font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2.5 py-1 rounded-lg">
+                                Save ₹{{ number_format($savedAmount) }}
+                            </span>
+                            @endif
                         </div>
 
-                        <!-- Live Intelligence Metrics Bar -->
-                        <div class="flex flex-wrap items-center gap-2 text-xs">
-                            <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-white font-medium flex items-center gap-1">
+                        <!-- Key Highlights -->
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300 pt-1">
+                            <span class="flex items-center gap-1 bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700/50">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                                {{ $preset['viewers'] ?? '3,421 viewing now' }}
+                                {{ $preset['viewers'] ?? '3.4k viewing' }}
                             </span>
-                            <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-amber-300 font-medium">
+                            <span class="flex items-center gap-1 bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700/50 text-amber-300">
                                 🔥 {{ $preset['bought'] ?? '472 bought today' }}
                             </span>
-                            <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-red-300 font-medium">
-                                ❤️ {{ $preset['wishlisted'] ?? '864 wishlisted' }}
+                            <span class="flex items-center gap-1 bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700/50 text-emerald-400">
+                                ✓ Verified Deal
                             </span>
-                            <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-blue-300 font-medium">
-                                📈 {{ $preset['trending'] ?? 'Trending #1' }}
-                            </span>
-                            <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 font-medium">
-                                💬 {{ $preset['reviews'] ?? '96% Positive Reviews' }}
-                            </span>
-                        </div>
-
-                        <!-- AI Recommendation Box with Bullet Points -->
-                        <div class="bg-slate-900/90 border {{ $preset['border'] ?? 'border-amber-500/40' }} rounded-2xl p-3 shadow-lg space-y-1.5">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-slate-300 flex items-center gap-1">
-                                    <span>★★★★★ AI Recommendation:</span>
-                                    <span class="text-emerald-400 font-black">{{ $preset['recommendation_title'] ?? 'Excellent Buy' }}</span>
-                                </span>
-                            </div>
-                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-300">
-                                @foreach($preset['reasons'] ?? ['Lowest in 6 months', 'Genuine seller', 'Coupon available'] as $reason)
-                                <span class="flex items-center gap-1">
-                                    <span class="text-emerald-400 font-bold">•</span> {{ $reason }}
-                                </span>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <!-- Live Deal Status Badges -->
-                        <div class="flex flex-wrap items-center gap-2 text-xs">
-                            <span class="font-bold text-slate-400 text-[11px]">Deal Status:</span>
-                            @foreach($preset['status_badges'] ?? ['🟢 Verified', '🟢 In Stock'] as $sBadge)
-                            <span class="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 font-semibold text-slate-200">
-                                {{ $sBadge }}
-                            </span>
-                            @endforeach
                         </div>
 
                         @if(!empty($preset['coupon']))
-                        <!-- Copyable Coupon Box -->
-                        <div class="flex items-center justify-between bg-cyan-950/70 border border-cyan-700/60 rounded-xl p-2.5 px-4 text-xs">
-                            <div class="flex items-center gap-2">
-                                <span class="text-cyan-300 font-bold">🎟️ Coupon Code:</span>
-                                <span class="font-mono font-black text-white bg-cyan-900 px-2.5 py-1 rounded border border-cyan-500/40">{{ $preset['coupon'] }}</span>
-                            </div>
-                            <button @click="navigator.clipboard.writeText('{{ $preset['coupon'] }}'); alert('Coupon Code Copied to Clipboard!')" class="text-xs font-bold text-cyan-300 hover:text-white bg-cyan-800/80 hover:bg-cyan-700 px-3 py-1 rounded-lg transition-colors">
+                        <!-- Copyable Coupon Ribbon -->
+                        <div class="flex items-center justify-between bg-cyan-950/60 border border-cyan-700/40 rounded-xl p-2.5 px-4 text-xs max-w-md">
+                            <span class="text-cyan-300 font-bold">🎟️ Coupon: <span class="font-mono text-white bg-cyan-900/80 px-2 py-0.5 rounded border border-cyan-500/40">{{ $preset['coupon'] }}</span></span>
+                            <button @click="navigator.clipboard.writeText('{{ $preset['coupon'] }}'); alert('Coupon Code Copied!')" class="font-bold text-cyan-300 hover:text-white bg-cyan-800/60 hover:bg-cyan-700 px-3 py-1 rounded-lg transition">
                                 Copy Code
                             </button>
                         </div>
@@ -480,19 +272,19 @@
                             <a href="{{ route('deal.redirect', $deal->hash_id) }}" 
                                target="_blank" 
                                rel="noopener noreferrer" 
-                               class="flex-1 sm:flex-none px-7 py-3 rounded-xl bg-gradient-to-r {{ $preset['gradient'] }} hover:opacity-95 text-white font-black text-sm transition-all shadow-xl shadow-red-600/20 text-center flex items-center justify-center gap-2">
+                               class="px-8 py-3 rounded-xl bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-black text-sm transition-all shadow-xl shadow-red-600/30 flex items-center justify-center gap-2">
                                 <span>⚡ GRAB DEAL NOW</span>
                                 <span>→</span>
                             </a>
 
                             <a href="{{ route('deals.show', $deal->slug) }}" 
-                               class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm transition-all text-center flex items-center justify-center gap-1.5">
-                                <span>📊 Price History</span>
+                               class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm transition-all">
+                                📊 Price History
                             </a>
 
                             <button @click="showAlertModal = true" 
-                                    class="px-5 py-3 rounded-xl bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500/40 text-amber-300 hover:text-white font-bold text-sm transition-all text-center flex items-center justify-center gap-1.5">
-                                <span>🔔 Watch Price</span>
+                                    class="px-5 py-3 rounded-xl bg-slate-800/60 hover:bg-slate-700 border border-slate-700 text-amber-300 hover:text-white font-bold text-sm transition-all">
+                                🔔 Watch Price
                             </button>
                         </div>
 
@@ -502,13 +294,13 @@
             @endif
 
             <!-- Bottom Carousel Controls & Status Indicator -->
-            <div class="flex items-center justify-between pt-5 border-t border-slate-800/80 mt-5 relative z-20">
+            <div class="flex items-center justify-between pt-4 border-t border-slate-800/80 mt-4 relative z-20">
                 <!-- Slide Dots -->
                 <div class="flex items-center gap-2">
                     @for($i = 0; $i < ((isset($heroDeals) && count($heroDeals) > 0) ? count($heroDeals) : 6); $i++)
                     <button @click="setSlide({{ $i }})" 
-                            class="h-2.5 rounded-full transition-all duration-300"
-                            :class="activeSlide === {{ $i }} ? 'w-8 bg-red-500' : 'w-2.5 bg-slate-700 hover:bg-slate-600'">
+                            class="h-2 rounded-full transition-all duration-300"
+                            :class="activeSlide === {{ $i }} ? 'w-8 bg-red-500' : 'w-2 bg-slate-700 hover:bg-slate-600'">
                     </button>
                     @endfor
                 </div>
@@ -516,15 +308,15 @@
                 <!-- Live Auto-Rotate Status Indicator -->
                 <div class="hidden sm:flex items-center gap-2 text-xs text-slate-400 font-medium">
                     <span class="w-2 h-2 rounded-full" :class="isPaused ? 'bg-amber-400' : 'bg-emerald-400 animate-ping'"></span>
-                    <span x-text="isPaused ? 'Carousel Paused (Hovered)' : 'Auto-Rotating Live Deals (Every 6.5s)'"></span>
+                    <span x-text="isPaused ? 'Paused (Hovered)' : 'Auto-Rotating (Every 6.5s)'"></span>
                 </div>
 
                 <!-- Prev / Next Controls -->
                 <div class="flex items-center gap-2">
-                    <button @click="prev()" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center justify-center transition-colors shadow-md">
+                    <button @click="prev()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center justify-center transition-colors">
                         ←
                     </button>
-                    <button @click="next()" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center justify-center transition-colors shadow-md">
+                    <button @click="next()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center justify-center transition-colors">
                         →
                     </button>
                 </div>
