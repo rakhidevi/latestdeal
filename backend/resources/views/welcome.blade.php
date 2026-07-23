@@ -488,45 +488,8 @@
   <x-ad-banner slot="home-top" />
 
   <div class="space-y-4">
-    @if(isset($breadcrumbs))
-        <nav class="flex text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
-                @foreach($breadcrumbs as $index => $crumb)
-                    <li class="inline-flex items-center">
-                        @if(!$loop->first)
-                            <svg class="w-4 h-4 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                        @endif
-                        @if($crumb['url'])
-                            <a href="{{ $crumb['url'] }}" class="text-gray-500 hover:text-red-600 transition font-medium">{{ $crumb['title'] }}</a>
-                        @else
-                            <span class="text-gray-900 font-bold">{{ $crumb['title'] }}</span>
-                        @endif
-                    </li>
-                @endforeach
-            </ol>
-        </nav>
-    @endif
 
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-        <div>
-            <h2 class="section-title">{{ $pageTitle ?? 'Featured Deals' }}</h2>
-            <p class="text-sm text-gray-500 mt-1">Found {{ $deals->total() }} matching deals</p>
-        </div>
-        <div class="flex items-center gap-2 self-start sm:self-auto">
-            <a href="/assistant" class="btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center px-3 py-1.5 text-sm sm:px-4 sm:py-2">
-                <i data-lucide="sparkles" class="w-4 h-4 mr-1.5"></i> AI Assistant
-            </a>
-            <button x-data @click="$dispatch('open-alert-modal')" class="btn-secondary px-3 py-1.5 text-sm sm:px-4 sm:py-2 text-red-600 border-red-200 bg-red-50 hover:bg-red-100 flex items-center dark:bg-red-900/30 dark:text-red-400 dark:border-red-800">
-                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                Price Alert
-            </button>
-            <a href="/?category=all" class="btn-secondary px-3 py-1.5 text-sm sm:px-4 sm:py-2 hidden sm:inline-block">View all</a>
-        </div>
-    </div>
-
-    <!-- Interactive Entity Intelligence Landing Header -->
+    <!-- Interactive Entity Intelligence Landing Header (Positioned Above Breadcrumbs) -->
     @if(isset($brand) || isset($category) || isset($merchant) || (isset($pageTitle) && !request()->is('/')))
         @php
             $entityName = isset($brand) ? $brand->name : (isset($category) ? $category->name : (isset($merchant) ? $merchant->name : ($pageTitle ?? 'Deals')));
@@ -536,7 +499,7 @@
             $totalDeals = $deals->total() > 0 ? $deals->total() : (isset($category) ? ($category->deal_count ?? 12) : 8);
         @endphp
         
-        <div class="relative overflow-hidden bg-slate-950 text-white rounded-3xl p-6 lg:p-8 mb-8 border border-slate-800/80 shadow-2xl">
+        <div class="relative overflow-hidden bg-slate-950 text-white rounded-3xl p-6 lg:p-8 mb-6 border border-slate-800/80 shadow-2xl">
             <!-- Ambient Glow Effects -->
             <div class="absolute -top-24 -right-24 w-96 h-96 bg-red-600/20 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -607,6 +570,46 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    @if(isset($breadcrumbs))
+        <nav class="flex text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800">
+                @foreach($breadcrumbs as $index => $crumb)
+                    <li class="inline-flex items-center">
+                        @if(!$loop->first)
+                            <svg class="w-4 h-4 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        @endif
+                        @if($crumb['url'])
+                            <a href="{{ $crumb['url'] }}" class="text-gray-500 dark:text-slate-400 hover:text-red-600 transition font-medium">{{ $crumb['title'] }}</a>
+                        @else
+                            <span class="text-gray-900 dark:text-white font-bold">{{ $crumb['title'] }}</span>
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+        </nav>
+    @endif
+
+    @if(request()->is('/'))
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+        <div>
+            <h2 class="section-title">{{ $pageTitle ?? 'Featured Deals' }}</h2>
+            <p class="text-sm text-gray-500 mt-1">Found {{ $deals->total() }} matching deals</p>
+        </div>
+        <div class="flex items-center gap-2 self-start sm:self-auto">
+            <a href="/assistant" class="btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center px-3 py-1.5 text-sm sm:px-4 sm:py-2">
+                <i data-lucide="sparkles" class="w-4 h-4 mr-1.5"></i> AI Assistant
+            </a>
+            <button x-data @click="$dispatch('open-alert-modal')" class="btn-secondary px-3 py-1.5 text-sm sm:px-4 sm:py-2 text-red-600 border-red-200 bg-red-50 hover:bg-red-100 flex items-center dark:bg-red-900/30 dark:text-red-400 dark:border-red-800">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                Price Alert
+            </button>
+            <a href="/?category=all" class="btn-secondary px-3 py-1.5 text-sm sm:px-4 sm:py-2 hidden sm:inline-block">View all</a>
+        </div>
+    </div>
     @endif
 
     @if(isset($trendingDeals) && $trendingDeals->isNotEmpty())
