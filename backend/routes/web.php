@@ -59,7 +59,7 @@ Route::get('/assistant', function () {
                     'original_price' => (float) $deal->original_price,
                     'discount_pct' => $deal->original_price > 0 ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) : 0,
                     'url' => $deal->url,
-                    'image_path' => $deal->image_path,
+                    'image_path' => $deal->image_url,
                     'merchant' => $deal->merchant->name ?? 'Marketplace',
                     'category' => $deal->category->name ?? 'General',
                 ];

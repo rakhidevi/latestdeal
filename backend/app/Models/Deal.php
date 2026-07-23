@@ -149,6 +149,33 @@ class Deal extends Model
     }
 
     /**
+     * Get the fully qualified absolute URL for the deal image.
+     */
+    public function getImageUrlAttribute()
+    {
+        $path = $this->attributes['image_path'] ?? '';
+        if (empty($path)) {
+            return asset('images/logo.png');
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL) || Str::startsWith($path, ['http://', 'https://'])) {
+            return $path;
+        }
+
+        $cleanPath = ltrim($path, '/');
+
+        if (Str::startsWith($cleanPath, 'storage/')) {
+            return asset($cleanPath);
+        }
+
+        if (Str::startsWith($cleanPath, 'deals/')) {
+            return asset('storage/' . $cleanPath);
+        }
+
+        return asset($cleanPath);
+    }
+
+    /**
      * Helper to get the fully constructed affiliate URL.
      */
     public function getAffiliateUrlAttribute()

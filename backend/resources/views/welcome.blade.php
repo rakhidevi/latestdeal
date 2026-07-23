@@ -277,7 +277,7 @@
                             </div>
 
                             <!-- Large Product Image (Prominent 45% visual weight) -->
-                            <img src="{{ $deal->image_path ?: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600' }}" 
+                            <img src="{{ $deal->image_url ?: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600' }}" 
                                  alt="{{ $deal->title }}" 
                                  class="max-h-72 max-w-full object-contain drop-shadow-2xl group-hover/img:scale-105 transition-transform duration-500 relative z-10" />
 
