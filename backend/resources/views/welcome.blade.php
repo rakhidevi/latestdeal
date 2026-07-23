@@ -47,6 +47,8 @@
         scrollbar-width: none !important;  /* Firefox */
     }
   </style>
+
+@if(request()->is('/'))
   <div x-data="{
         activeSlide: 0,
         totalSlides: {{ (isset($heroDeals) && count($heroDeals) > 0) ? min(count($heroDeals), 10) : 10 }},
@@ -471,7 +473,7 @@
                  <button @click="showAlertModal = false" class="text-slate-400 hover:text-white font-bold">✕</button>
              </div>
              <p class="text-xs text-slate-300">Enter your email address to receive immediate notifications when this item drops to your target price.</p>
-             <input type="email" x-model="alertEmail" placeholder="Enter your email address..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-red-500" />
+             <input type="email" x-model="alertEmail" placeholder="Enter your email address..." class="w-full bg-slate-800 border border-slate-700 rounded-p-3 text-sm text-white focus:outline-none focus:border-red-500" />
              <div class="flex items-center gap-2 pt-2">
                  <button @click="if(alertEmail){ alert('✓ Price Alert set! We will email you when the price drops.'); showAlertModal = false; alertEmail = ''; }" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl transition">
                      Activate Price Alert
@@ -480,6 +482,91 @@
          </div>
      </div>
   </div>
+@else
+  <!-- 100% Full-Width Edge-to-Edge Brand / Category Command Banner -->
+  @if(isset($brand) || isset($category) || isset($merchant) || (isset($pageTitle) && !request()->is('/')))
+      @php
+          $entityName = isset($brand) ? $brand->name : (isset($category) ? $category->name : (isset($merchant) ? $merchant->name : ($pageTitle ?? 'Deals')));
+          $entityType = isset($brand) ? 'Brand' : (isset($category) ? 'Category' : (isset($merchant) ? 'Store' : 'Deals'));
+          $avgDiscount = isset($brand) ? ($brand->average_discount ?: 34.9) : (isset($category) ? ($category->average_discount ?: 41.2) : 38.5);
+          $popularity = isset($brand) ? ($brand->trending_score ?: 85) : (isset($category) ? ($category->trending_score ?: 92) : 88);
+          $totalDeals = $deals->total() > 0 ? $deals->total() : (isset($category) ? ($category->deal_count ?? 12) : 8);
+      @endphp
+      
+      <div class="w-full relative overflow-hidden bg-slate-950 text-white shadow-2xl border-b border-slate-800/80">
+          <!-- Ambient Glow Effects -->
+          <div class="absolute inset-0 bg-gradient-to-br from-red-950/40 via-slate-950 to-slate-900 pointer-events-none"></div>
+          <div class="absolute -top-32 left-1/3 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+          <div class="absolute -bottom-32 right-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+          <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 relative z-10 space-y-6">
+              <!-- Top Row: Badge, Title & Metrics -->
+              <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                  <div class="space-y-2">
+                      <div class="flex flex-wrap items-center gap-2 text-xs">
+                          <span class="px-3.5 py-1 rounded-full font-black uppercase tracking-wider bg-red-600 text-white shadow-md">
+                              🎯 {{ $entityType }} Intelligence Hub
+                          </span>
+                          <span class="px-3 py-1 rounded-full font-bold bg-slate-900 border border-slate-800 text-emerald-400 flex items-center gap-1.5">
+                              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                              Live Crawler Sync Active
+                          </span>
+                          <span class="px-3 py-1 rounded-full font-bold bg-slate-900 border border-slate-800 text-amber-300">
+                              🤖 AI Trust Verified
+                          </span>
+                      </div>
+
+                      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+                          {{ $entityName }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-400">Deals & Offers</span>
+                      </h1>
+                      <p class="text-slate-300 text-sm sm:text-base max-w-2xl font-medium">
+                          Real-time AI algorithm tracking {{ number_format($totalDeals) }}+ verified discounts on {{ $entityName }}. Updated continuously.
+                      </p>
+                  </div>
+
+                  <!-- Right Metrics Cards -->
+                  <div class="grid grid-cols-3 gap-3 shrink-0">
+                      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 text-center shadow-lg">
+                          <div class="text-2xl sm:text-3xl font-black text-red-500 tracking-tight">{{ number_format($avgDiscount, 1) }}%</div>
+                          <div class="text-[10px] uppercase font-black tracking-wider text-slate-400 mt-1">Avg Savings</div>
+                      </div>
+                      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 text-center shadow-lg">
+                          <div class="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">{{ $popularity }}</div>
+                          <div class="text-[10px] uppercase font-black tracking-wider text-slate-400 mt-1">Popularity</div>
+                      </div>
+                      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 text-center shadow-lg">
+                          <div class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">{{ $totalDeals }}</div>
+                          <div class="text-[10px] uppercase font-black tracking-wider text-slate-400 mt-1">Active Offers</div>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- Interactive Filter Tabs & Quick Action Bar -->
+              <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800/80">
+                  <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+                      <span class="text-slate-400 mr-1 text-[11px] uppercase tracking-wider font-extrabold">Quick Sort:</span>
+                      <a href="?sort=featured" class="px-3.5 py-2 rounded-xl {{ (request('sort') == 'featured' || !request('sort')) ? 'bg-red-600 text-white font-black shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800' }} transition">
+                          🔥 Top Rated
+                      </a>
+                      <a href="?sort=discount" class="px-3.5 py-2 rounded-xl {{ request('sort') == 'discount' ? 'bg-red-600 text-white font-black shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800' }} transition">
+                          📉 Biggest Discount
+                      </a>
+                      <a href="?sort=price_low" class="px-3.5 py-2 rounded-xl {{ request('sort') == 'price_low' ? 'bg-red-600 text-white font-black shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800' }} transition">
+                          💵 Lowest Price
+                      </a>
+                      <a href="?sort=newest" class="px-3.5 py-2 rounded-xl {{ request('sort') == 'newest' ? 'bg-red-600 text-white font-black shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800' }} transition">
+                          ⚡ Just Added
+                      </a>
+                  </div>
+
+                  <button x-data @click="$dispatch('open-alert-modal')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-white font-black text-xs transition-all shadow-lg flex items-center gap-1.5">
+                      <span>🔔 Track {{ $entityName }} Price Drops</span>
+                  </button>
+              </div>
+          </div>
+      </div>
+  @endif
+@endif
 @endsection
 
 @section('content')
@@ -489,88 +576,6 @@
 
   <div class="space-y-4">
 
-    <!-- Interactive Entity Intelligence Landing Header (Positioned Above Breadcrumbs) -->
-    @if(isset($brand) || isset($category) || isset($merchant) || (isset($pageTitle) && !request()->is('/')))
-        @php
-            $entityName = isset($brand) ? $brand->name : (isset($category) ? $category->name : (isset($merchant) ? $merchant->name : ($pageTitle ?? 'Deals')));
-            $entityType = isset($brand) ? 'Brand' : (isset($category) ? 'Category' : (isset($merchant) ? 'Store' : 'Deals'));
-            $avgDiscount = isset($brand) ? ($brand->average_discount ?: 34.9) : (isset($category) ? ($category->average_discount ?: 41.2) : 38.5);
-            $popularity = isset($brand) ? ($brand->trending_score ?: 85) : (isset($category) ? ($category->trending_score ?: 92) : 88);
-            $totalDeals = $deals->total() > 0 ? $deals->total() : (isset($category) ? ($category->deal_count ?? 12) : 8);
-        @endphp
-        
-        <div class="relative overflow-hidden bg-slate-950 text-white rounded-3xl p-6 lg:p-8 mb-6 border border-slate-800/80 shadow-2xl">
-            <!-- Ambient Glow Effects -->
-            <div class="absolute -top-24 -right-24 w-96 h-96 bg-red-600/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
-
-            <div class="relative z-10 space-y-6">
-                <!-- Top Row: Badge, Title & Metrics -->
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <div class="space-y-2">
-                        <div class="flex flex-wrap items-center gap-2 text-xs">
-                            <span class="px-3.5 py-1 rounded-full font-black uppercase tracking-wider bg-red-600 text-white shadow-md">
-                                🎯 {{ $entityType }} Intelligence Hub
-                            </span>
-                            <span class="px-3 py-1 rounded-full font-bold bg-slate-900 border border-slate-800 text-emerald-400 flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                                Live Crawler Sync Active
-                            </span>
-                            <span class="px-3 py-1 rounded-full font-bold bg-slate-900 border border-slate-800 text-amber-300">
-                                🤖 AI Trust Verified
-                            </span>
-                        </div>
-
-                        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-                            {{ $entityName }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-400">Deals & Offers</span>
-                        </h1>
-                        <p class="text-slate-300 text-sm sm:text-base max-w-2xl font-medium">
-                            Real-time AI algorithm tracking {{ number_format($totalDeals) }}+ verified discounts on {{ $entityName }}. Updated continuously.
-                        </p>
-                    </div>
-
-                    <!-- Right Metrics Cards -->
-                    <div class="grid grid-cols-3 gap-3 shrink-0">
-                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 text-center shadow-lg">
-                            <div class="text-2xl sm:text-3xl font-black text-red-500 tracking-tight">{{ number_format($avgDiscount, 1) }}%</div>
-                            <div class="text-[10px] uppercase font-black tracking-wider text-slate-400 mt-1">Avg Savings</div>
-                        </div>
-                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 text-center shadow-lg">
-                            <div class="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">{{ $popularity }}</div>
-                            <div class="text-[10px] uppercase font-black tracking-wider text-slate-400 mt-1">Popularity</div>
-                        </div>
-                        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 text-center shadow-lg">
-                            <div class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">{{ $totalDeals }}</div>
-                            <div class="text-[10px] uppercase font-black tracking-wider text-slate-400 mt-1">Active Offers</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Interactive Filter Tabs & Quick Action Bar -->
-                <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800/80">
-                    <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
-                        <span class="text-slate-400 mr-1 text-[11px] uppercase tracking-wider font-extrabold">Quick Sort:</span>
-                        <a href="?sort=featured" class="px-3.5 py-2 rounded-xl {{ (request('sort') == 'featured' || !request('sort')) ? 'bg-red-600 text-white font-black shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800' }} transition">
-                            🔥 Top Rated
-                        </a>
-                        <a href="?sort=discount" class="px-3.5 py-2 rounded-xl {{ request('sort') == 'discount' ? 'bg-red-600 text-white font-black shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800' }} transition">
-                            📉 Biggest Discount
-                        </a>
-                        <a href="?sort=price_low" class="px-3.5 py-2 rounded-xl {{ request('sort') == 'price_low' ? 'bg-red-600 text-white font-black shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800' }} transition">
-                            💵 Lowest Price
-                        </a>
-                        <a href="?sort=newest" class="px-3.5 py-2 rounded-xl {{ request('sort') == 'newest' ? 'bg-red-600 text-white font-black shadow-md' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800' }} transition">
-                            ⚡ Just Added
-                        </a>
-                    </div>
-
-                    <button @click="$dispatch('open-alert-modal')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-white font-black text-xs transition-all shadow-lg flex items-center gap-1.5">
-                        <span>🔔 Track {{ $entityName }} Price Drops</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
 
     @if(isset($breadcrumbs))
         <nav class="flex text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
