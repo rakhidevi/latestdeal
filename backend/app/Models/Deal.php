@@ -151,16 +151,15 @@ class Deal extends Model
     /**
      * Get the fully qualified absolute URL for the deal image.
      */
-    public function getImageUrlAttribute(): string
+    public function getImageUrlAttribute()
     {
         $path = $this->attributes['image_path'] ?? '';
         if (empty($path)) {
             return asset('images/logo.png');
         }
 
-        // External image URL: force HTTPS to avoid mixed-content blocking
         if (filter_var($path, FILTER_VALIDATE_URL) || Str::startsWith($path, ['http://', 'https://'])) {
-            return preg_replace('/^http:/i', 'https:', $path);
+            return $path;
         }
 
         $cleanPath = ltrim($path, '/');

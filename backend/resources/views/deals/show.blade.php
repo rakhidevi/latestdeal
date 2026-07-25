@@ -87,14 +87,7 @@
             <div class="sticky top-28 flex flex-col gap-6">
                 <!-- Image Container -->
                 <div class="relative group rounded-3xl overflow-hidden bg-white dark:bg-slate-900/60 p-6 sm:p-10 flex items-center justify-center border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-500 min-h-[300px] md:min-h-[450px]">
-                    <img src="{{ $deal->image_url }}" 
-                         alt="{{ Str::limit($deal->title, 50) }}" 
-                         loading="eager" 
-                         decoding="async" 
-                         fetchpriority="high" 
-                         referrerpolicy="no-referrer" 
-                         class="max-w-full h-auto max-h-[350px] md:max-h-[400px] object-contain drop-shadow-xl transition-transform duration-700 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal" 
-                         onerror="console.warn('Deal detail image failed:', this.src); this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
+                    <img src="{{ filter_var($deal->image_path, FILTER_VALIDATE_URL) ? $deal->image_path : asset($deal->image_path) }}" alt="{{ Str::limit($deal->title, 50) }}" class="max-w-full h-auto max-h-[350px] md:max-h-[400px] object-contain drop-shadow-xl transition-transform duration-700 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal" onerror="this.style.display='none';">
                     
                     @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
                         <div class="absolute top-5 left-5 bg-gradient-to-r from-red-600 to-rose-600 text-white text-sm font-black px-4 py-2 rounded-2xl shadow-lg shadow-red-500/30 transform -rotate-2">
