@@ -1,76 +1,90 @@
 <?php
 /**
- * Emergency fix for broken images on latestdeal.in
- * - Patches APP_URL=https://latestdeal.in in .env
- * - Creates public/storage symlink
- * - Clears Laravel caches
- *
+ * Emergency fix: APP_URL + storage symlink for latestdeal.in
  * Access: https://latestdeal.in/fix_images.php
- * Self-destructs after running.
  */
 
 $results = [];
+$root = dirname(__DIR__); // Laravel root (parent of public_html)
+$publicDir = __DIR__;     // public_html/
 
-// 1. Patch .env
-$envFile = __DIR__ . '/../.env';
-if (!file_exists($envFile)) {
-    die(json_encode(['error' => '.env not found at: ' . $envFile]));
+// 1. Patch APP_URL in .env
+$envFile = $root . '/.env';
+$results['env_path'] = $envFile;
+$results['env_exists'] = file_exists($envFile);
+
+if (file_exists($envFile)) {
+    $env = file_get_contents($envFile);
+    $results['env_before_snippet'] = substr($env, 0, 250);
+
+    // Fix APP_URL
+    if (preg_match('/^APP_URL=/m', $env)) {
+        $env = preg_replace('/^APP_URL=.*/m', 'APP_URL=https://latestdeal.in', $env);
+        $results['app_url_action'] = 'replaced';
+    } else {
+        $env = "APP_URL=https://latestdeal.in\n" . $env;
+        $results['app_url_action'] = 'prepended';
+    }
+    file_put_contents($envFile, $env);
+    $results['env_saved'] = true;
 }
 
-$env = file_get_contents($envFile);
-$envBefore = substr($env, 0, 300);
+// 2. Create storage symlink using PHP symlink() — more reliable than artisan on shared hosts
+$storageTarget = $root . '/storage/app/public';
+$linkPath      = $publicDir . '/storage';
 
-// Fix APP_URL
-if (preg_match('/^APP_URL=/m', $env)) {
-    $env = preg_replace('/^APP_URL=.*/m', 'APP_URL=https://latestdeal.in', $env);
-    $results['app_url'] = 'replaced existing APP_URL';
-} else {
-    $env = "APP_URL=https://latestdeal.in\n" . $env;
-    $results['app_url'] = 'prepended APP_URL (was missing)';
-}
+$results['storage_target'] = $storageTarget;
+$results['target_exists']  = is_dir($storageTarget);
+$results['link_path']      = $linkPath;
+$results['link_before']    = file_exists($linkPath) ? (is_link($linkPath) ? 'symlink' : 'dir/file') : 'none';
 
-// Fix APP_DEBUG (do NOT touch APP_ENV - it controls coming-soon mode)
-if (preg_match('/^APP_DEBUG=true/m', $env)) {
-    $env = preg_replace('/^APP_DEBUG=.*/m', 'APP_DEBUG=false', $env);
-    $results['app_debug'] = 'set to false';
-}
-
-file_put_contents($envFile, $env);
-$results['env_saved'] = true;
-$results['env_before_sample'] = $envBefore;
-
-// 2. Create/refresh storage symlink
-$artisan  = __DIR__ . '/../artisan';
-$php      = PHP_BINARY;
-$linkPath = __DIR__ . '/storage';
-
-// Remove old link if exists
-if (is_link($linkPath) || is_dir($linkPath)) {
+// Remove old link/dir if exists
+if (is_link($linkPath)) {
+    unlink($linkPath);
+    $results['removed_old_link'] = true;
+} elseif (is_dir($linkPath)) {
+    // Can't easily rmdir a non-empty dir, try exec
     exec('rm -rf ' . escapeshellarg($linkPath), $rmOut, $rmCode);
-    $results['rm_old_link'] = $rmCode === 0 ? 'removed' : 'failed: ' . implode(' ', $rmOut);
+    $results['removed_old_dir'] = $rmCode === 0;
 }
 
-// Create symlink via artisan
-exec($php . ' ' . escapeshellarg($artisan) . ' storage:link 2>&1', $slOut, $slCode);
-$results['storage_link'] = $slCode === 0 ? 'success' : 'failed';
-$results['storage_link_output'] = implode("\n", $slOut);
+// Create symlink via PHP
+if (is_dir($storageTarget)) {
+    $symlinkResult = symlink($storageTarget, $linkPath);
+    $results['php_symlink'] = $symlinkResult ? 'success' : 'failed: ' . error_get_last()['message'];
+} else {
+    $results['php_symlink'] = 'skipped - target does not exist';
+}
 
-// 3. Clear caches
-exec($php . ' ' . escapeshellarg($artisan) . ' config:clear 2>&1', $o1);
-exec($php . ' ' . escapeshellarg($artisan) . ' cache:clear 2>&1', $o2);
-exec($php . ' ' . escapeshellarg($artisan) . ' view:clear 2>&1', $o3);
-$results['config_clear'] = implode("\n", $o1);
-$results['cache_clear']  = implode("\n", $o2);
-$results['view_clear']   = implode("\n", $o3);
+// Verify
+$results['link_after_is_link'] = is_link($linkPath);
+$results['link_after_is_dir']  = is_dir($linkPath);
+$results['link_target']        = is_link($linkPath) ? readlink($linkPath) : null;
+$results['deals_accessible']   = is_dir($linkPath . '/deals');
+$results['deals_count']        = is_dir($linkPath . '/deals') ? count(scandir($linkPath . '/deals')) - 2 : 0;
 
-// 4. Verify symlink
-$results['symlink_exists'] = is_link($linkPath);
-$results['symlink_target'] = is_link($linkPath) ? readlink($linkPath) : null;
-$results['deals_dir_accessible'] = is_dir($linkPath . '/deals');
+// 3. Try artisan storage:link as fallback
+$artisan = $root . '/artisan';
+if (!$results['link_after_is_link'] && file_exists($artisan)) {
+    exec(PHP_BINARY . ' ' . escapeshellarg($artisan) . ' storage:link 2>&1', $slOut);
+    $results['artisan_storage_link'] = implode("\n", $slOut);
+    $results['link_after_artisan'] = is_link($linkPath);
+}
 
-// 5. Self-destruct
-@unlink(__FILE__);
-$results['self_destruct'] = 'done';
+// 4. Clear caches
+if (file_exists($artisan)) {
+    exec(PHP_BINARY . ' ' . escapeshellarg($artisan) . ' config:clear 2>&1', $o1);
+    exec(PHP_BINARY . ' ' . escapeshellarg($artisan) . ' cache:clear 2>&1', $o2);
+    exec(PHP_BINARY . ' ' . escapeshellarg($artisan) . ' view:clear 2>&1', $o3);
+    $results['config_clear'] = implode("\n", $o1);
+    $results['cache_clear']  = implode("\n", $o2);
+    $results['view_clear']   = implode("\n", $o3);
+}
 
+// 5. Test a sample image
+$sampleImage = is_dir($linkPath . '/deals') ? array_values(array_filter(scandir($linkPath . '/deals'), fn($f) => str_ends_with($f, '.jpeg')))[0] ?? null : null;
+$results['sample_image'] = $sampleImage ? "https://latestdeal.in/storage/deals/{$sampleImage}" : null;
+
+// NOTE: NOT self-destructing so we can read the result
 header('Content-Type: application/json');
 echo json_encode($results, JSON_PRETTY_PRINT);
