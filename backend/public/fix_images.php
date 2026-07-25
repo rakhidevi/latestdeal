@@ -25,6 +25,16 @@ if (file_exists($envFile)) {
         $env = "APP_URL=https://latestdeal.in\n" . $env;
         $results['app_url_action'] = 'prepended';
     }
+    
+    // Disable coming soon
+    if (preg_match('/^COMING_SOON_ENABLED=/m', $env)) {
+        $env = preg_replace('/^COMING_SOON_ENABLED=.*/m', 'COMING_SOON_ENABLED=false', $env);
+        $results['coming_soon_action'] = 'replaced';
+    } else {
+        $env .= "\nCOMING_SOON_ENABLED=false\n";
+        $results['coming_soon_action'] = 'appended';
+    }
+
     file_put_contents($envFile, $env);
     $results['env_saved'] = true;
 }

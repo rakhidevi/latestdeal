@@ -109,6 +109,13 @@ if ($return_var === 0) {
         if (preg_match('/^APP_DEBUG=/m', $envContent)) {
             $envContent = preg_replace('/^APP_DEBUG=.*/m', 'APP_DEBUG=false', $envContent);
         }
+        
+        // Disable coming soon
+        if (preg_match('/^COMING_SOON_ENABLED=/m', $envContent)) {
+            $envContent = preg_replace('/^COMING_SOON_ENABLED=.*/m', 'COMING_SOON_ENABLED=false', $envContent);
+        } else {
+            $envContent .= "\nCOMING_SOON_ENABLED=false\n";
+        }
         file_put_contents($envFile, $envContent);
         echo "ENV file patched with APP_URL=https://latestdeal.in\n";
     }
