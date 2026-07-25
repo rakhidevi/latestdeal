@@ -339,9 +339,7 @@ Route::get('/fix-env-appurl', function() {
     } else {
         $env = "APP_URL=https://latestdeal.in\n" . $env;
     }
-    if (preg_match('/^APP_ENV=/m', $env)) {
-        $env = preg_replace('/^APP_ENV=.*/m', 'APP_ENV=production', $env);
-    }
+    // NOTE: Do NOT change APP_ENV to production — it enables ComingSoonMiddleware
     if (preg_match('/^APP_DEBUG=/m', $env)) {
         $env = preg_replace('/^APP_DEBUG=.*/m', 'APP_DEBUG=false', $env);
     }

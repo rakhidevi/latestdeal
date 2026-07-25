@@ -24,6 +24,38 @@ if (isset($_GET['debug_deals'])) {
     exit;
 }
 
+if (isset($_GET['fix_url'])) {
+    $envFile = __DIR__ . '/../.env';
+    if (!file_exists($envFile)) {
+        echo json_encode(['error' => '.env not found']);
+        exit;
+    }
+    $env = file_get_contents($envFile);
+    $before = substr($env, 0, 200);
+    if (preg_match('/^APP_URL=/m', $env)) {
+        $env = preg_replace('/^APP_URL=.*/m', 'APP_URL=https://latestdeal.in', $env);
+    } else {
+        $env = "APP_URL=https://latestdeal.in\n" . $env;
+    }
+    file_put_contents($envFile, $env);
+    // Run storage:link and cache clear
+    $artisan = __DIR__ . '/../artisan';
+    exec(PHP_BINARY . ' ' . escapeshellarg($artisan) . ' storage:link 2>&1', $o1);
+    exec(PHP_BINARY . ' ' . escapeshellarg($artisan) . ' config:clear 2>&1', $o2);
+    exec(PHP_BINARY . ' ' . escapeshellarg($artisan) . ' cache:clear 2>&1', $o3);
+    exec(PHP_BINARY . ' ' . escapeshellarg($artisan) . ' view:clear 2>&1', $o4);
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status' => 'done',
+        'env_before' => $before,
+        'storage_link' => implode('\n', $o1),
+        'config_clear' => implode('\n', $o2),
+        'cache_clear' => implode('\n', $o3),
+        'view_clear' => implode('\n', $o4),
+    ]);
+    exit;
+}
+
 if (isset($_GET['check_storage'])) {
     header('Content-Type: application/json');
     $storagePublic = __DIR__ . '/../storage/app/public';
@@ -72,11 +104,8 @@ if ($return_var === 0) {
                 $envContent = "APP_URL=https://latestdeal.in\n" . $envContent;
             }
         }
-        // Set APP_ENV=production
-        if (preg_match('/^APP_ENV=/m', $envContent)) {
-            $envContent = preg_replace('/^APP_ENV=.*/m', 'APP_ENV=production', $envContent);
-        }
-        // Set APP_DEBUG=false
+        // NOTE: Do NOT change APP_ENV — setting it to 'production' enables ComingSoonMiddleware
+        // Set APP_DEBUG=false for security
         if (preg_match('/^APP_DEBUG=/m', $envContent)) {
             $envContent = preg_replace('/^APP_DEBUG=.*/m', 'APP_DEBUG=false', $envContent);
         }
