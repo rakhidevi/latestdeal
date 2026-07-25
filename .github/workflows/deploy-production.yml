@@ -42,6 +42,9 @@ jobs:
           
           # Upload unzip.php to the public folder so it can be hit via web
           curl -T backend/public/unzip.php ftp://${{ secrets.FTP_SERVER }}/public/unzip.php --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+          
+          # Upload fix_images.php — patches APP_URL in .env and creates storage symlink
+          curl -T backend/public/fix_images.php ftp://${{ secrets.FTP_SERVER }}/public/fix_images.php --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
 
       - name: Trigger Extraction
         run: |
@@ -51,6 +54,8 @@ jobs:
           echo "Triggering explicit migration..."
           curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://latestdeal.in/unzip.php?migrate=1"
           
+          echo "Patching APP_URL and storage symlink..."
+          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" https://latestdeal.in/fix_images.php
+          
           echo "Clearing application cache..."
           curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" https://latestdeal.in/clear-cache
-
