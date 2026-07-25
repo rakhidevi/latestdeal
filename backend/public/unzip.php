@@ -60,6 +60,30 @@ exec("unzip -o " . escapeshellarg($zipFile) . " -d " . escapeshellarg($extractPa
 file_put_contents(__DIR__ . '/unzip_log.txt', "Return var: $return_var\nOutput:\n" . implode("\n", $output));
 
 if ($return_var === 0) {
+    // Fix .env: ensure APP_URL and APP_ENV are set correctly for production
+    $envFile = __DIR__ . '/../.env';
+    if (file_exists($envFile)) {
+        $envContent = file_get_contents($envFile);
+        // Set APP_URL if missing or wrong
+        if (!preg_match('/^APP_URL=https:\/\/latestdeal\.in/m', $envContent)) {
+            if (preg_match('/^APP_URL=/m', $envContent)) {
+                $envContent = preg_replace('/^APP_URL=.*/m', 'APP_URL=https://latestdeal.in', $envContent);
+            } else {
+                $envContent = "APP_URL=https://latestdeal.in\n" . $envContent;
+            }
+        }
+        // Set APP_ENV=production
+        if (preg_match('/^APP_ENV=/m', $envContent)) {
+            $envContent = preg_replace('/^APP_ENV=.*/m', 'APP_ENV=production', $envContent);
+        }
+        // Set APP_DEBUG=false
+        if (preg_match('/^APP_DEBUG=/m', $envContent)) {
+            $envContent = preg_replace('/^APP_DEBUG=.*/m', 'APP_DEBUG=false', $envContent);
+        }
+        file_put_contents($envFile, $envContent);
+        echo "ENV file patched with APP_URL=https://latestdeal.in\n";
+    }
+
     // Run Laravel commands
     $artisan = __DIR__ . '/../artisan';
     if (file_exists($artisan)) {
