@@ -87,7 +87,7 @@
             <div class="sticky top-28 flex flex-col gap-6">
                 <!-- Image Container -->
                 <div class="relative group rounded-3xl overflow-hidden bg-white dark:bg-slate-900/60 p-6 sm:p-10 flex items-center justify-center border border-gray-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-500 min-h-[300px] md:min-h-[450px]">
-                    <img src="{{ filter_var($deal->image_path, FILTER_VALIDATE_URL) ? $deal->image_path : asset($deal->image_path) }}" alt="{{ Str::limit($deal->title, 50) }}" class="max-w-full h-auto max-h-[350px] md:max-h-[400px] object-contain drop-shadow-xl transition-transform duration-700 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal" onerror="this.style.display='none';">
+                    <img src="{{ $deal->image_url }}" alt="{{ Str::limit($deal->title, 50) }}" class="max-w-full h-auto max-h-[350px] md:max-h-[400px] object-contain drop-shadow-xl transition-transform duration-700 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal" onerror="this.onerror=null;this.src='{{ asset('images/logo.png') }}';">
                     
                     @if($deal->original_price > 0 && $deal->original_price > $deal->discounted_price)
                         <div class="absolute top-5 left-5 bg-gradient-to-r from-red-600 to-rose-600 text-white text-sm font-black px-4 py-2 rounded-2xl shadow-lg shadow-red-500/30 transform -rotate-2">
@@ -176,7 +176,9 @@
                                         M.R.P: ₹{{ number_format($deal->original_price) }}
                                     </span>
                                     <span class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 ml-1" id="deal-discount-pct-display" x-text="'(' + discountPct + '% OFF)'">
-                                        ({{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF)
+                                        @if($deal->original_price > 0)
+                                            ({{ round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) }}% OFF)
+                                        @endif
                                     </span>
                                 </div>
                             </template>
@@ -243,7 +245,7 @@
                         </div>
                         <div>
                             <h4 class="text-sm font-bold text-gray-900 dark:text-white">Is this a good deal?</h4>
-                            <p class="text-sm text-gray-600 dark:text-slate-400 mt-1">Yes, at {{ $deal->discounted_price ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) : 0 }}% off, this matches or beats typical seasonal sale prices for this brand.</p>
+                            <p class="text-sm text-gray-600 dark:text-slate-400 mt-1">Yes, at {{ ($deal->original_price > 0 && $deal->discounted_price) ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) : 0 }}% off, this matches or beats typical seasonal sale prices for this brand.</p>
                         </div>
                     </div>
                     

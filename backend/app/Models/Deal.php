@@ -150,28 +150,26 @@ class Deal extends Model
 
     /**
      * Get the fully qualified absolute URL for the deal image.
+     *
+     * Images are stored in public/deals/ directly (not via storage symlink).
+     * This matches the logic used in show.blade.php: asset($deal->image_path).
      */
-    public function getImageUrlAttribute()
+    public function getImageUrlAttribute(): string
     {
         $path = $this->attributes['image_path'] ?? '';
         if (empty($path)) {
             return asset('images/logo.png');
         }
 
+        // Already a full HTTP/HTTPS URL — upgrade to https and return as-is
         if (filter_var($path, FILTER_VALIDATE_URL) || Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
+            return preg_replace('/^http:/i', 'https:', $path);
         }
 
         $cleanPath = ltrim($path, '/');
 
-        if (Str::startsWith($cleanPath, 'storage/')) {
-            return asset($cleanPath);
-        }
-
-        if (Str::startsWith($cleanPath, 'deals/')) {
-            return asset('storage/' . $cleanPath);
-        }
-
+        // Images are served directly from public/ (e.g. public/deals/filename.jpeg)
+        // asset('deals/filename.jpeg') → /deals/filename.jpeg  ✓
         return asset($cleanPath);
     }
 
