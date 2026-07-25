@@ -169,17 +169,12 @@ class Deal extends Model
 
         $cleanPath = ltrim($path, '/');
 
-        // Paths already prefixed with storage/ (e.g. from older seeded deals)
-        if (Str::startsWith($cleanPath, 'storage/')) {
+        // Some images were manually uploaded to public/deals, others to storage/app/public/deals
+        if (file_exists(public_path($cleanPath))) {
             return asset($cleanPath);
         }
 
-        // Paths like "deals/uuid.jpeg" → served via storage symlink at /storage/deals/uuid.jpeg
-        if (Str::startsWith($cleanPath, 'deals/')) {
-            return asset('storage/' . $cleanPath);
-        }
-
-        return asset($cleanPath);
+        return asset('storage/' . $cleanPath);
     }
 
     /**
