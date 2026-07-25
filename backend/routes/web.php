@@ -209,7 +209,7 @@ Route::get('/setup-ai-keys', function(\Illuminate\Http\Request $request) {
     
     $geminiKey  = $request->query('gemini_key');
     $ollamaUrl  = $request->query('ollama_url');
-    $ollamaModel= $request->query('ollama_model', 'llama3');
+    $ollamaModel= $request->query('ollama_model', 'qwen3-coder:latest');
     
     if (!$geminiKey && !$ollamaUrl) {
         return response()->json(['error' => 'No keys provided. Use ?token=APP_KEY&gemini_key=YOUR_KEY&ollama_url=YOUR_TUNNEL_URL']);
@@ -324,6 +324,35 @@ Route::get('/clear-cache', function() {
     \Illuminate\Support\Facades\Artisan::call('route:clear');
     \Illuminate\Support\Facades\Artisan::call('config:clear');
     return "Cache cleared.";
+});
+
+// Temporary: Fix APP_URL in production .env so images load correctly
+Route::get('/fix-env-appurl', function() {
+    $envFile = base_path('.env');
+    if (!file_exists($envFile)) {
+        return "ERROR: .env not found at " . $envFile;
+    }
+    $env = file_get_contents($envFile);
+    $original = $env;
+    if (preg_match('/^APP_URL=/m', $env)) {
+        $env = preg_replace('/^APP_URL=.*/m', 'APP_URL=https://latestdeal.in', $env);
+    } else {
+        $env = "APP_URL=https://latestdeal.in\n" . $env;
+    }
+    if (preg_match('/^APP_ENV=/m', $env)) {
+        $env = preg_replace('/^APP_ENV=.*/m', 'APP_ENV=production', $env);
+    }
+    if (preg_match('/^APP_DEBUG=/m', $env)) {
+        $env = preg_replace('/^APP_DEBUG=.*/m', 'APP_DEBUG=false', $env);
+    }
+    file_put_contents($envFile, $env);
+    // Also run storage:link and clear caches
+    \Illuminate\Support\Facades\Artisan::call('storage:link');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    $changed = ($env !== $original) ? "ENV patched." : "ENV already correct.";
+    return $changed . " Storage linked. Caches cleared. APP_URL=https://latestdeal.in";
 });
 
 Route::get('/debug-error', function() {
@@ -558,3 +587,24 @@ Route::get('/run-migrations', function () {
         return "ERROR: " . $e->getMessage();
     }
 });
+
+// Direct storage file server route for production hosts where public/storage symlink is missing
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . ltrim($path, '/'));
+    if (!file_exists($fullPath) || !is_file($fullPath)) {
+        // Fallback placeholder image
+        $placeholder = public_path('images/logo.png');
+        if (file_exists($placeholder)) {
+            return response()->file($placeholder, [
+                'Content-Type' => 'image/png',
+                'Cache-Control' => 'no-cache',
+            ]);
+        }
+        abort(404);
+    }
+    $mimeType = @mime_content_type($fullPath) ?: 'image/jpeg';
+    return response()->file($fullPath, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=31536000',
+    ]);
+})->where('path', '.*');
