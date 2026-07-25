@@ -151,9 +151,8 @@ class Deal extends Model
     /**
      * Get the fully qualified absolute URL for the deal image.
      *
-     * Production images are stored via Storage::disk('public') in storage/app/public/deals/
-     * and served via the public/storage symlink at /storage/deals/filename.jpeg.
-     * This requires `php artisan storage:link` which is run automatically by unzip.php on deploy.
+     * Images are stored in public/deals/ directly (not via storage symlink).
+     * This matches the logic used in show.blade.php: asset($deal->image_path).
      */
     public function getImageUrlAttribute(): string
     {
@@ -169,16 +168,8 @@ class Deal extends Model
 
         $cleanPath = ltrim($path, '/');
 
-        // Paths already prefixed with storage/ (e.g. from older seeded deals)
-        if (Str::startsWith($cleanPath, 'storage/')) {
-            return asset($cleanPath);
-        }
-
-        // Paths like "deals/uuid.jpeg" → served via storage symlink at /storage/deals/uuid.jpeg
-        if (Str::startsWith($cleanPath, 'deals/')) {
-            return asset('storage/' . $cleanPath);
-        }
-
+        // Images are served directly from public/ (e.g. public/deals/filename.jpeg)
+        // asset('deals/filename.jpeg') → /deals/filename.jpeg  ✓
         return asset($cleanPath);
     }
 
