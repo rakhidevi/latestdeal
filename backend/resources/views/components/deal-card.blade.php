@@ -16,7 +16,13 @@
 
 <article class="group overflow-hidden rounded-xl border border-red-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 flex flex-col h-full {{ $deal->status === 'expired' ? 'opacity-75 grayscale-[0.5]' : '' }}">
   <div class="relative h-32 sm:h-40 bg-gradient-to-br from-red-100 to-rose-100 p-2 dark:from-slate-800 dark:to-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
-    <img src="{{ $imageUrl }}" alt="{{ Str::limit($deal->title, 20) }}" class="max-h-full max-w-full rounded-lg object-contain mix-blend-multiply dark:mix-blend-normal" onerror="this.style.display='none';" />
+    <img src="{{ $imageUrl }}" 
+         alt="{{ Str::limit($deal->title, 20) }}" 
+         loading="lazy" 
+         decoding="async" 
+         referrerpolicy="no-referrer" 
+         class="max-h-full max-w-full rounded-lg object-contain mix-blend-multiply dark:mix-blend-normal" 
+         onerror="console.warn('Deal card image failed:', this.src); this.onerror=null; this.src='{{ asset('images/logo.png') }}';" />
     
     @if($deal->status === 'expired')
     <div class="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px] z-10">
