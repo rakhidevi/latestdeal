@@ -32,7 +32,7 @@ jobs:
       - name: Zip Application
         run: |
           cd backend
-          zip -rq ../deploy.zip . -x "**/.git*" "**/node_modules/**" "**/tests/**" "*.log"
+          zip -rq ../deploy.zip . -x "**/.git*" "**/node_modules/**" "**/tests/**" "*.log" "**/*.sqlite" "**/.env*"
           cd ..
           
       - name: Upload to FTP
