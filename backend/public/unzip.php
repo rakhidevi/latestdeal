@@ -24,13 +24,22 @@ if (isset($_GET['debug_deals'])) {
     exit;
 }
 
-if (isset($_GET['read_log'])) {
-    $logPath = __DIR__ . '/../storage/logs/laravel.log';
-    if (file_exists($logPath)) {
-        echo nl2br(htmlspecialchars(substr(file_get_contents($logPath), -4000)));
-    } else {
-        echo "Log file not found.";
-    }
+if (isset($_GET['check_storage'])) {
+    header('Content-Type: application/json');
+    $storagePublic = __DIR__ . '/../storage/app/public';
+    $dealsDir = $storagePublic . '/deals';
+    $pubStorage = __DIR__ . '/storage';
+    $sampleFile = '5435aefe-80ee-4d71-8c6d-2bd82a2fdc9a.jpeg';
+    echo json_encode([
+        'storage_app_public_exists' => is_dir($storagePublic),
+        'deals_dir_exists' => is_dir($dealsDir),
+        'deals_count' => is_dir($dealsDir) ? count(scandir($dealsDir)) - 2 : 0,
+        'sample_file_exists' => file_exists($dealsDir . '/' . $sampleFile),
+        'public_storage_exists' => file_exists($pubStorage),
+        'public_storage_is_link' => is_link($pubStorage),
+        'public_storage_is_dir' => is_dir($pubStorage),
+        'public_storage_target' => is_link($pubStorage) ? readlink($pubStorage) : null,
+    ]);
     exit;
 }
 
