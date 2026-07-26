@@ -41,10 +41,12 @@
             html.dark #page-preloader {
                 background-color: #020617;
             }
-            #page-preloader.preloader-hidden {
+            #page-preloader.preloader-hidden,
+            #page-preloader.preloader-hidden * {
                 opacity: 0 !important;
                 visibility: hidden !important;
                 pointer-events: none !important;
+                display: none !important;
             }
             .preloader-content {
                 display: flex;
@@ -1179,45 +1181,29 @@
 
     <script>
         (function() {
-            function hidePreloader() {
+            function removePreloader() {
                 const preloader = document.getElementById('page-preloader');
-                if (preloader && !preloader.classList.contains('preloader-hidden')) {
+                if (preloader) {
                     preloader.classList.add('preloader-hidden');
+                    preloader.style.setProperty('display', 'none', 'important');
                     setTimeout(function() {
                         if (preloader && preloader.parentNode) {
-                            preloader.style.display = 'none';
+                            preloader.parentNode.removeChild(preloader);
                         }
-                    }, 400);
+                    }, 350);
                 }
             }
 
             if (document.readyState === 'complete') {
-                hidePreloader();
+                removePreloader();
             } else {
-                window.addEventListener('load', hidePreloader);
+                window.addEventListener('load', removePreloader);
                 document.addEventListener('DOMContentLoaded', function() {
-                    setTimeout(hidePreloader, 300);
+                    setTimeout(removePreloader, 200);
                 });
-                // Fallback hide timer
-                setTimeout(hidePreloader, 1200);
+                // Fallback guarantee
+                setTimeout(removePreloader, 1000);
             }
-
-            // Re-show loader on navigation links to smooth out page refreshes
-            document.addEventListener('click', function(e) {
-                const anchor = e.target.closest('a');
-                if (anchor && anchor.href && !anchor.target && !anchor.hasAttribute('download') && !anchor.href.startsWith('javascript:')) {
-                    try {
-                        const targetUrl = new URL(anchor.href, window.location.origin);
-                        if (targetUrl.origin === window.location.origin && (targetUrl.pathname !== window.location.pathname || targetUrl.search !== window.location.search)) {
-                            const preloader = document.getElementById('page-preloader');
-                            if (preloader) {
-                                preloader.style.display = 'flex';
-                                preloader.classList.remove('preloader-hidden');
-                            }
-                        }
-                    } catch(err) {}
-                }
-            });
         })();
     </script>
 </body>
