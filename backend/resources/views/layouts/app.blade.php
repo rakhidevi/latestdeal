@@ -63,6 +63,30 @@
             justify-content: center !important;
             text-align: center !important;
         }
+        .preloader-logo-mark {
+            width: 220px;
+            height: 180px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: preloaderPulse 1.5s ease-in-out infinite;
+        }
+        .preloader-logo-mark img {
+            height: 160px;
+            width: auto;
+            max-width: 220px;
+            object-fit: contain;
+        }
+        html.dark .preloader-logo-dark { display: block !important; }
+        html.dark .preloader-logo-light { display: none !important; }
+        html:not(.dark) .preloader-logo-dark { display: none !important; }
+        html:not(.dark) .preloader-logo-light { display: block !important; }
+
+        @keyframes preloaderPulse {
+            0%, 100% { transform: scale(0.95); opacity: 0.85; }
+            50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.4)); }
+        }
         .preloader-wordmark {
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
             font-size: 26px;
@@ -310,16 +334,13 @@
 </head>
 <body x-data="themeSwitcher" class="antialiased">
     
-    <!-- Fullscreen Animated Lottie Storyteller Page Loader -->
+    <!-- Fullscreen Animated Page Loader -->
     <div id="page-preloader" aria-label="Loading page">
         <div class="preloader-content">
-            <!-- 300px x 300px Lottie 60FPS Storyteller Animation Container -->
-            <div id="lottie-logo-container" style="width: 300px; height: 300px; max-width: 90vw; max-height: 90vw; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
-                <!-- Embedded Aligned Vector SVG Mark -->
-                <svg viewBox="0 0 88 202" class="preloader-svg" xmlns="http://www.w3.org/2000/svg" style="width: 140px; height: 140px;">
-                    <path class="preloader-svg-red" fill="#ef4444" d="M 41.50,69.11 C 43.10,69.89 43.64,71.16 43.58,72.93 C 43.27,82.43 46.27,91.04 50.91,99.17 C 55.04,106.41 60.12,113.01 64.96,119.78 C 71.49,128.92 76.97,138.56 79.45,149.65 C 82.20,161.92 79.48,172.96 71.54,182.63 C 65.47,190.03 57.49,194.20 48.05,195.65 C 47.81,195.68 47.57,195.79 47.33,195.86 C 37.42,195.73 36.90,195.59 36.36,195.47 C 20.57,192.15 10.46,182.74 6.05,167.21 C 5.53,165.38 5.39,163.49 5.00,161.64 C 5.08,154.47 5.18,154.14 5.23,153.81 C 5.56,151.58 6.82,150.12 9.06,149.89 C 12.96,149.48 16.59,151.68 16.91,155.93 C 17.01,157.20 17.15,158.45 17.42,159.69 C 19.95,171.16 29.99,178.51 41.42,177.15 C 52.22,175.86 60.68,166.70 60.72,155.84 C 60.75,148.75 58.00,142.84 52.48,138.37 C 48.25,134.95 43.31,133.36 37.87,133.59 C 31.92,133.84 27.34,136.87 23.46,141.12 C 21.85,142.89 19.89,143.69 17.57,143.35 C 15.25,143.01 13.51,141.74 12.54,139.55 C 11.62,137.50 12.29,135.78 13.70,134.22 C 13.98,133.91 14.22,133.56 14.50,133.25 C 23.32,123.79 34.14,119.57 47.05,120.77 C 47.78,120.83 48.51,121.14 49.31,120.95 C 49.25,120.75 49.24,120.62 49.17,120.52 C 48.90,120.15 48.61,119.78 48.32,119.42 C 43.62,113.65 39.18,107.71 36.07,100.88 C 31.77,91.45 31.61,82.11 36.70,72.91 C 37.49,71.49 38.13,69.91 39.73,69.11 Z" />
-                    <path class="preloader-svg-dark" fill="currentColor" d="M 65.85,69.09 C 65.35,68.80 65.26,68.28 65.05,67.85 C 59.42,56.22 52.56,45.33 44.96,34.92 C 43.38,32.76 43.33,30.45 43.47,28.06 C 43.85,20.96 46.30,14.66 51.06,9.30 C 52.13,8.10 53.35,7.06 54.58,6.03 C 55.72,5.08 57.52,5.00 58.62,5.72 C 59.80,6.48 60.41,7.93 60.01,9.50 C 58.40,15.79 57.58,22.20 57.71,28.67 C 57.93,39.16 59.85,49.39 62.87,59.42 C 63.72,62.25 64.68,65.04 65.58,67.86 C 65.71,68.24 65.96,68.61 65.85,69.09 Z" />
-                </svg>
+            <!-- 100% Official Aligned Logo Icon Mark -->
+            <div class="preloader-logo-mark">
+                <img src="{{ asset('/images/logo-icon-mark.png') }}" alt="LatestDeal Icon" class="preloader-logo-light" style="height: 160px; width: auto; object-fit: contain; display: block;" />
+                <img src="{{ asset('/images/logo-icon-mark-white.png') }}" alt="LatestDeal Icon" class="preloader-logo-dark" style="height: 160px; width: auto; object-fit: contain; display: none;" />
             </div>
             
             <!-- Brand Wordmark -->
