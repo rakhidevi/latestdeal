@@ -19,7 +19,7 @@
         <meta name="twitter:card" content="summary_large_image">
         <style>
             [x-cloak] { display: none !important; }
-            /* Instant Preloader & Theme Styles */
+            /* Instant SVG Animated Preloader & Theme Styles */
             #page-preloader {
                 position: fixed;
                 top: 0;
@@ -53,22 +53,54 @@
                 justify-content: center;
                 text-align: center;
             }
-            .preloader-logo {
-                height: 42px !important;
-                max-height: 42px !important;
-                width: auto !important;
-                max-width: 220px !important;
-                object-fit: contain !important;
-                animation: preloaderPulse 1.8s ease-in-out infinite;
+            .preloader-logo-mark {
+                width: 76px;
+                height: 76px;
+                margin-bottom: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: preloaderPulse 1.5s ease-in-out infinite;
             }
-            html.dark .preloader-logo-dark { display: block !important; }
-            html.dark .preloader-logo-light { display: none !important; }
-            html:not(.dark) .preloader-logo-dark { display: none !important; }
-            html:not(.dark) .preloader-logo-light { display: block !important; }
+            .preloader-svg {
+                width: 76px;
+                height: 76px;
+                overflow: visible;
+            }
+            .preloader-red-path {
+                stroke-dasharray: 220;
+                stroke-dashoffset: 220;
+                animation: drawRedPath 1.5s ease-in-out infinite;
+            }
+            .preloader-black-path {
+                stroke-dasharray: 80;
+                stroke-dashoffset: 80;
+                animation: drawBlackPath 1.5s ease-in-out infinite;
+                color: #334155;
+            }
+            html.dark .preloader-black-path {
+                color: #f1f5f9;
+            }
+            .preloader-wordmark {
+                font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+                font-size: 26px;
+                font-weight: 900;
+                letter-spacing: -0.03em;
+                margin-bottom: 6px;
+            }
+            .preloader-word-latest {
+                color: #0f172a;
+            }
+            html.dark .preloader-word-latest {
+                color: #ffffff;
+            }
+            .preloader-word-deal {
+                color: #ef4444;
+            }
 
             .preloader-progress-track {
-                margin-top: 24px;
-                width: 160px;
+                margin-top: 16px;
+                width: 150px;
                 height: 4px;
                 background: rgba(239, 68, 68, 0.15);
                 border-radius: 999px;
@@ -86,26 +118,50 @@
                 animation: preloaderSlide 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
             }
             .preloader-text {
-                margin-top: 14px;
+                margin-top: 12px;
                 font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 700;
                 color: #64748b;
-                letter-spacing: 0.06em;
+                letter-spacing: 0.08em;
                 text-transform: uppercase;
             }
             html.dark .preloader-text {
                 color: #94a3b8;
             }
 
+            @keyframes drawRedPath {
+                0% {
+                    stroke-dashoffset: 220;
+                }
+                40%, 80% {
+                    stroke-dashoffset: 0;
+                }
+                100% {
+                    stroke-dashoffset: 0;
+                }
+            }
+            @keyframes drawBlackPath {
+                0%, 18% {
+                    stroke-dashoffset: 80;
+                }
+                58%, 80% {
+                    stroke-dashoffset: 0;
+                }
+                100% {
+                    stroke-dashoffset: 0;
+                }
+            }
             @keyframes preloaderPulse {
                 0%, 100% {
-                    transform: scale(1);
+                    transform: scale(0.95);
+                    opacity: 0.85;
                     filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0));
                 }
                 50% {
-                    transform: scale(1.05);
-                    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.35));
+                    transform: scale(1.06);
+                    opacity: 1;
+                    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.4));
                 }
             }
             @keyframes preloaderSlide {
@@ -307,17 +363,42 @@
 </head>
 <body x-data="themeSwitcher" class="antialiased">
     
-    <!-- Fullscreen Animated Page Loader -->
+    <!-- Fullscreen Animated SVG Page Loader -->
     <div id="page-preloader" aria-label="Loading page">
         <div class="preloader-content">
-            <img src="{{ asset('/images/logo.png') }}" alt="LatestDeal Logo" class="preloader-logo preloader-logo-light" style="height: 42px !important; max-height: 42px !important; width: auto !important; max-width: 220px !important; object-fit: contain !important; display: block;" />
-            <img src="{{ asset('/images/logo-white.png') }}" alt="LatestDeal Logo" class="preloader-logo preloader-logo-dark" style="height: 42px !important; max-height: 42px !important; width: auto !important; max-width: 220px !important; object-fit: contain !important; display: none;" />
+            <!-- Animated Vector Logo Mark -->
+            <div class="preloader-logo-mark">
+                <svg viewBox="0 0 100 100" class="preloader-svg" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Red Flame & 'd' Loop (0 - 40% draw) -->
+                    <path class="preloader-red-path" 
+                          d="M 36 50 C 22 58 20 84 46 84 C 68 84 66 56 56 42 C 44 26 42 16 46 8" 
+                          fill="none" 
+                          stroke="#ef4444" 
+                          stroke-width="11" 
+                          stroke-linecap="round" 
+                          stroke-linejoin="round" />
+                    
+                    <!-- Black / Dark Accent Tip (20 - 60% draw) -->
+                    <path class="preloader-black-path" 
+                          d="M 65 46 C 67 34 63 22 61 10" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          stroke-width="9" 
+                          stroke-linecap="round" 
+                          stroke-linejoin="round" />
+                </svg>
+            </div>
+            
+            <!-- Brand Wordmark -->
+            <div class="preloader-wordmark">
+                <span class="preloader-word-latest">Latest</span><span class="preloader-word-deal">Deal</span>
+            </div>
             
             <div class="preloader-progress-track">
                 <div class="preloader-progress-bar"></div>
             </div>
             
-            <div class="preloader-text">Loading Best Deals...</div>
+            <div class="preloader-text">Finding Best Deals...</div>
         </div>
     </div>
     
