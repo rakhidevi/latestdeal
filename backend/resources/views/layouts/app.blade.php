@@ -17,156 +17,126 @@
         <meta property="og:type" content="website">
         <meta property="og:image" content="{{ asset('/images/logo.png') }}">
         <meta name="twitter:card" content="summary_large_image">
-        <!-- Lottie Web Animation Engine -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
-        <style>
-            [x-cloak] { display: none !important; }
-            /* Instant SVG Animated Preloader & Theme Styles */
-            body:not(.loaded) {
-                overflow: hidden !important;
-            }
-            #page-preloader {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                background-color: #ffffff !important;
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
-                justify-content: center !important;
-                z-index: 9999999 !important;
-                opacity: 1 !important;
-                visibility: visible !important;
-                transition: opacity 0.35s ease, visibility 0.35s ease !important;
-            }
-            html.dark #page-preloader {
-                background-color: #020617 !important;
-            }
-            #page-preloader.preloader-hidden,
-            #page-preloader.preloader-hidden * {
-                opacity: 0 !important;
-                visibility: hidden !important;
-                pointer-events: none !important;
-                display: none !important;
-            }
-            .preloader-content {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-            }
-            .preloader-logo-mark {
-                width: 300px;
-                height: 300px;
-                margin-bottom: 16px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                animation: preloaderPulse 1.5s ease-in-out infinite;
-            }
-            .preloader-svg {
-                width: 300px;
-                height: 300px;
-                overflow: visible;
-            }
-            .preloader-svg-dark {
-                color: #334155;
-            }
-            html.dark .preloader-svg-dark {
-                color: #f1f5f9;
-            }
-            .preloader-wordmark {
-                font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-                font-size: 24px;
-                font-weight: 900;
-                letter-spacing: -0.03em;
-                margin-bottom: 6px;
-            }
-            .preloader-word-latest {
-                color: #0f172a;
-            }
-            html.dark .preloader-word-latest {
-                color: #ffffff;
-            }
-            .preloader-word-deal {
-                color: #ef4444;
-            }
-
-            .preloader-progress-track {
-                margin-top: 14px;
-                width: 140px;
-                height: 4px;
-                background: rgba(239, 68, 68, 0.15);
-                border-radius: 999px;
-                overflow: hidden;
-                position: relative;
-            }
-            .preloader-progress-bar {
-                position: absolute;
-                top: 0;
-                left: 0;
-                height: 100%;
-                width: 45%;
-                background: linear-gradient(90deg, #ef4444, #f87171, #ef4444);
-                border-radius: 999px;
-                animation: preloaderSlide 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-            }
-            .preloader-text {
-                margin-top: 10px;
-                font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-                font-size: 11px;
-                font-weight: 700;
-                color: #64748b;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-            }
-            html.dark .preloader-text {
-                color: #94a3b8;
-            }
-
-            @keyframes preloaderPulse {
-                0%, 100% {
-                    transform: scale(0.95);
-                    opacity: 0.82;
-                    filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0));
-                }
-                50% {
-                    transform: scale(1.06);
-                    opacity: 1;
-                    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.45));
-                }
-            }
-            @keyframes preloaderSlide {
-                0% { left: -45%; }
-                100% { left: 100%; }
-            }
-        </style>
-        <script>
-            // Instant theme application to prevent FOUC & dark mode white flashes
-            (function() {
-                try {
-                    const storedDark = localStorage.getItem("adh-dark");
-                    const storedTheme = localStorage.getItem("adh-color") || 'red';
-                    document.documentElement.setAttribute('data-theme', storedTheme);
-                    let isDark = false;
-                    if (storedDark) {
-                        isDark = storedDark === "dark";
-                    } else {
-                        const hour = new Date().getHours();
-                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                        isDark = (hour >= 20 || hour < 7) || prefersDark;
-                    }
-                    if (isDark) document.documentElement.classList.add("dark");
-                    else document.documentElement.classList.remove("dark");
-                } catch(e) {}
-            })();
-        </script>
+        <style>[x-cloak] { display: none !important; }</style>
     @endif
+
+    <!-- Lottie Web Animation Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+
+    <!-- Instant Preloader & Core Theme Styles -->
+    <style>
+        body:not(.loaded) {
+            overflow: hidden !important;
+        }
+        #page-preloader {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background-color: #ffffff !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 9999999 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            transition: opacity 0.35s ease, visibility 0.35s ease !important;
+        }
+        html.dark #page-preloader {
+            background-color: #020617 !important;
+        }
+        #page-preloader.preloader-hidden,
+        #page-preloader.preloader-hidden * {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            display: none !important;
+        }
+        .preloader-content {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+        .preloader-wordmark {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            margin-bottom: 6px;
+        }
+        .preloader-word-latest {
+            color: #0f172a;
+        }
+        html.dark .preloader-word-latest {
+            color: #ffffff;
+        }
+        .preloader-word-deal {
+            color: #ef4444;
+        }
+
+        .preloader-progress-track {
+            margin-top: 14px;
+            width: 140px;
+            height: 4px;
+            background: rgba(239, 68, 68, 0.15);
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+        }
+        .preloader-progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 45%;
+            background: linear-gradient(90deg, #ef4444, #f87171, #ef4444);
+            border-radius: 999px;
+            animation: preloaderSlide 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+        }
+        .preloader-text {
+            margin-top: 10px;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        html.dark .preloader-text {
+            color: #94a3b8;
+        }
+
+        @keyframes preloaderSlide {
+            0% { left: -45%; }
+            100% { left: 100%; }
+        }
+    </style>
+    <script>
+        // Instant theme application to prevent FOUC & dark mode white flashes
+        (function() {
+            try {
+                const storedDark = localStorage.getItem("adh-dark");
+                const storedTheme = localStorage.getItem("adh-color") || 'red';
+                document.documentElement.setAttribute('data-theme', storedTheme);
+                let isDark = false;
+                if (storedDark) {
+                    isDark = storedDark === "dark";
+                } else {
+                    const hour = new Date().getHours();
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    isDark = (hour >= 20 || hour < 7) || prefersDark;
+                }
+                if (isDark) document.documentElement.classList.add("dark");
+                else document.documentElement.classList.remove("dark");
+            } catch(e) {}
+        })();
+    </script>
 
     <script type="application/ld+json">
     {
