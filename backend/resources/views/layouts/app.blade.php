@@ -20,26 +20,29 @@
         <style>
             [x-cloak] { display: none !important; }
             /* Instant SVG Animated Preloader & Theme Styles */
+            body:not(.loaded) {
+                overflow: hidden !important;
+            }
             #page-preloader {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                width: 100vw;
-                height: 100vh;
-                background-color: #ffffff;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                z-index: 9999999;
-                opacity: 1;
-                visibility: visible;
-                transition: opacity 0.35s ease, visibility 0.35s ease;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                background-color: #ffffff !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                z-index: 9999999 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                transition: opacity 0.35s ease, visibility 0.35s ease !important;
             }
             html.dark #page-preloader {
-                background-color: #020617;
+                background-color: #020617 !important;
             }
             #page-preloader.preloader-hidden,
             #page-preloader.preloader-hidden * {
@@ -56,36 +59,28 @@
                 text-align: center;
             }
             .preloader-logo-mark {
-                width: 76px;
-                height: 76px;
-                margin-bottom: 14px;
+                width: 72px;
+                height: 72px;
+                margin-bottom: 12px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 animation: preloaderPulse 1.5s ease-in-out infinite;
             }
             .preloader-svg {
-                width: 76px;
-                height: 76px;
+                width: 64px;
+                height: 64px;
                 overflow: visible;
             }
-            .preloader-red-path {
-                stroke-dasharray: 220;
-                stroke-dashoffset: 220;
-                animation: drawRedPath 1.5s ease-in-out infinite;
-            }
-            .preloader-black-path {
-                stroke-dasharray: 80;
-                stroke-dashoffset: 80;
-                animation: drawBlackPath 1.5s ease-in-out infinite;
+            .preloader-svg-dark {
                 color: #334155;
             }
-            html.dark .preloader-black-path {
+            html.dark .preloader-svg-dark {
                 color: #f1f5f9;
             }
             .preloader-wordmark {
                 font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-                font-size: 26px;
+                font-size: 24px;
                 font-weight: 900;
                 letter-spacing: -0.03em;
                 margin-bottom: 6px;
@@ -101,8 +96,8 @@
             }
 
             .preloader-progress-track {
-                margin-top: 16px;
-                width: 150px;
+                margin-top: 14px;
+                width: 140px;
                 height: 4px;
                 background: rgba(239, 68, 68, 0.15);
                 border-radius: 999px;
@@ -120,9 +115,9 @@
                 animation: preloaderSlide 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
             }
             .preloader-text {
-                margin-top: 12px;
+                margin-top: 10px;
                 font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-                font-size: 12px;
+                font-size: 11px;
                 font-weight: 700;
                 color: #64748b;
                 letter-spacing: 0.08em;
@@ -132,38 +127,16 @@
                 color: #94a3b8;
             }
 
-            @keyframes drawRedPath {
-                0% {
-                    stroke-dashoffset: 220;
-                }
-                40%, 80% {
-                    stroke-dashoffset: 0;
-                }
-                100% {
-                    stroke-dashoffset: 0;
-                }
-            }
-            @keyframes drawBlackPath {
-                0%, 18% {
-                    stroke-dashoffset: 80;
-                }
-                58%, 80% {
-                    stroke-dashoffset: 0;
-                }
-                100% {
-                    stroke-dashoffset: 0;
-                }
-            }
             @keyframes preloaderPulse {
                 0%, 100% {
                     transform: scale(0.95);
-                    opacity: 0.85;
+                    opacity: 0.82;
                     filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0));
                 }
                 50% {
                     transform: scale(1.06);
                     opacity: 1;
-                    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.4));
+                    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.45));
                 }
             }
             @keyframes preloaderSlide {
@@ -365,29 +338,17 @@
 </head>
 <body x-data="themeSwitcher" class="antialiased">
     
-    <!-- Fullscreen Animated SVG Page Loader -->
+    <!-- Fullscreen Animated Vector SVG Page Loader -->
     <div id="page-preloader" aria-label="Loading page">
         <div class="preloader-content">
-            <!-- Animated Vector Logo Mark -->
+            <!-- Animated Official Vector SVG Logo Mark -->
             <div class="preloader-logo-mark">
-                <svg viewBox="0 0 100 100" class="preloader-svg" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Red Flame & 'd' Loop (0 - 40% draw) -->
-                    <path class="preloader-red-path" 
-                          d="M 36 50 C 22 58 20 84 46 84 C 68 84 66 56 56 42 C 44 26 42 16 46 8" 
-                          fill="none" 
-                          stroke="#ef4444" 
-                          stroke-width="11" 
-                          stroke-linecap="round" 
-                          stroke-linejoin="round" />
+                <svg viewBox="0 0 85 255" class="preloader-svg" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Red Flame & 'd' Loop -->
+                    <path class="preloader-svg-red" fill="#ef4444" d="M 41.49,123.58 C 43.09,124.36 43.63,125.63 43.57,127.40 C 43.26,136.90 46.26,145.51 50.90,153.64 C 55.03,160.88 60.11,167.48 64.95,174.25 C 71.48,183.39 76.96,193.03 79.44,204.12 C 82.19,216.39 79.47,227.43 71.53,237.10 C 65.46,244.50 57.48,248.67 48.04,250.12 C 47.80,250.15 47.56,250.26 47.32,250.33 C 37.41,250.20 36.89,250.06 36.35,249.94 C 20.56,246.62 10.45,237.21 6.04,221.68 C 5.52,219.85 5.38,217.96 4.99,216.11 C 5.07,208.94 5.17,208.61 5.22,208.28 C 5.55,206.05 6.81,204.59 9.05,204.36 C 12.95,203.95 16.58,206.15 16.90,210.40 C 17.00,211.67 17.14,212.92 17.41,214.16 C 19.94,225.63 29.98,232.98 41.41,231.62 C 52.21,230.33 60.67,221.17 60.71,210.31 C 60.74,203.22 57.99,197.31 52.47,192.84 C 48.24,189.42 43.30,187.83 37.86,188.06 C 31.91,188.31 27.33,191.34 23.45,195.59 C 21.84,197.36 19.88,198.16 17.56,197.82 C 15.24,197.48 13.50,196.21 12.53,194.02 C 11.61,191.97 12.28,190.25 13.69,188.69 C 13.97,188.38 14.21,188.03 14.49,187.72 C 23.31,178.26 34.13,174.04 47.04,175.24 C 47.77,175.30 48.50,175.61 49.30,175.42 C 49.24,175.22 49.23,175.09 49.16,174.99 C 48.89,174.62 48.60,174.25 48.31,173.89 C 43.61,168.12 39.17,162.18 36.06,155.35 C 31.76,145.92 31.60,136.58 36.69,127.38 C 37.48,125.96 38.12,124.38 39.72,123.58 Z" />
                     
-                    <!-- Black / Dark Accent Tip (20 - 60% draw) -->
-                    <path class="preloader-black-path" 
-                          d="M 65 46 C 67 34 63 22 61 10" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          stroke-width="9" 
-                          stroke-linecap="round" 
-                          stroke-linejoin="round" />
+                    <!-- Dark Accent Tip -->
+                    <path class="preloader-svg-dark" fill="currentColor" d="M 77.84,69.06 C 77.34,68.77 77.25,68.25 77.04,67.82 C 71.41,56.19 64.55,45.30 56.95,34.89 C 55.37,32.73 55.32,30.42 55.46,28.03 C 55.84,20.93 58.29,14.63 63.05,9.27 C 64.12,8.07 65.34,7.03 66.57,6.00 C 67.71,5.05 69.51,4.97 70.61,5.69 C 71.79,6.45 72.40,7.90 72.00,9.47 C 70.39,15.76 69.57,22.17 69.70,28.64 C 69.92,39.13 71.84,49.36 74.86,59.39 C 75.71,62.22 76.67,65.01 77.57,67.83 C 77.70,68.21 77.95,68.58 77.84,69.06 Z" />
                 </svg>
             </div>
             
@@ -1181,28 +1142,28 @@
 
     <script>
         (function() {
-            function removePreloader() {
+            function completeLoading() {
                 const preloader = document.getElementById('page-preloader');
                 if (preloader) {
                     preloader.classList.add('preloader-hidden');
-                    preloader.style.setProperty('display', 'none', 'important');
+                    document.body.classList.add('loaded');
                     setTimeout(function() {
                         if (preloader && preloader.parentNode) {
                             preloader.parentNode.removeChild(preloader);
                         }
-                    }, 350);
+                    }, 400);
                 }
             }
 
             if (document.readyState === 'complete') {
-                removePreloader();
+                completeLoading();
             } else {
-                window.addEventListener('load', removePreloader);
+                window.addEventListener('load', completeLoading);
                 document.addEventListener('DOMContentLoaded', function() {
-                    setTimeout(removePreloader, 200);
+                    setTimeout(completeLoading, 250);
                 });
-                // Fallback guarantee
-                setTimeout(removePreloader, 1000);
+                // Absolute fallback guarantee: 1.2s max
+                setTimeout(completeLoading, 1200);
             }
         })();
     </script>
