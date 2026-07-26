@@ -22,7 +22,10 @@
             /* Instant Preloader & Theme Styles */
             #page-preloader {
                 position: fixed;
-                inset: 0;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
                 width: 100vw;
                 height: 100vh;
                 background-color: #ffffff;
@@ -30,26 +33,32 @@
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                z-index: 999999;
-                transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 9999999;
+                opacity: 1;
+                visibility: visible;
+                transition: opacity 0.35s ease, visibility 0.35s ease;
             }
             html.dark #page-preloader {
                 background-color: #020617;
             }
             #page-preloader.preloader-hidden {
-                opacity: 0;
-                visibility: hidden;
-                pointer-events: none;
+                opacity: 0 !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
             }
             .preloader-content {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
+                text-align: center;
             }
             .preloader-logo {
-                height: 52px;
-                width: auto;
+                height: 42px !important;
+                max-height: 42px !important;
+                width: auto !important;
+                max-width: 220px !important;
+                object-fit: contain !important;
                 animation: preloaderPulse 1.8s ease-in-out infinite;
             }
             html.dark .preloader-logo-dark { display: block !important; }
@@ -301,8 +310,8 @@
     <!-- Fullscreen Animated Page Loader -->
     <div id="page-preloader" aria-label="Loading page">
         <div class="preloader-content">
-            <img src="{{ asset('/images/logo.png') }}" alt="LatestDeal Logo" class="preloader-logo preloader-logo-light" />
-            <img src="{{ asset('/images/logo-white.png') }}" alt="LatestDeal Logo" class="preloader-logo preloader-logo-dark" />
+            <img src="{{ asset('/images/logo.png') }}" alt="LatestDeal Logo" class="preloader-logo preloader-logo-light" style="height: 42px !important; max-height: 42px !important; width: auto !important; max-width: 220px !important; object-fit: contain !important; display: block;" />
+            <img src="{{ asset('/images/logo-white.png') }}" alt="LatestDeal Logo" class="preloader-logo preloader-logo-dark" style="height: 42px !important; max-height: 42px !important; width: auto !important; max-width: 220px !important; object-fit: contain !important; display: none;" />
             
             <div class="preloader-progress-track">
                 <div class="preloader-progress-bar"></div>
@@ -1093,15 +1102,24 @@
                 const preloader = document.getElementById('page-preloader');
                 if (preloader && !preloader.classList.contains('preloader-hidden')) {
                     preloader.classList.add('preloader-hidden');
+                    setTimeout(function() {
+                        if (preloader && preloader.parentNode) {
+                            preloader.style.display = 'none';
+                        }
+                    }, 400);
                 }
             }
 
-            if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                setTimeout(hidePreloader, 100);
+            if (document.readyState === 'complete') {
+                hidePreloader();
+            } else {
+                window.addEventListener('load', hidePreloader);
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(hidePreloader, 300);
+                });
+                // Fallback hide timer
+                setTimeout(hidePreloader, 1200);
             }
-            
-            window.addEventListener('load', hidePreloader);
-            document.addEventListener('DOMContentLoaded', () => setTimeout(hidePreloader, 600));
 
             // Re-show loader on navigation links to smooth out page refreshes
             document.addEventListener('click', function(e) {
@@ -1112,6 +1130,7 @@
                         if (targetUrl.origin === window.location.origin && (targetUrl.pathname !== window.location.pathname || targetUrl.search !== window.location.search)) {
                             const preloader = document.getElementById('page-preloader');
                             if (preloader) {
+                                preloader.style.display = 'flex';
                                 preloader.classList.remove('preloader-hidden');
                             }
                         }
