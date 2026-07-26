@@ -59,17 +59,17 @@
                 text-align: center;
             }
             .preloader-logo-mark {
-                width: 72px;
-                height: 72px;
-                margin-bottom: 12px;
+                width: 300px;
+                height: 300px;
+                margin-bottom: 16px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 animation: preloaderPulse 1.5s ease-in-out infinite;
             }
             .preloader-svg {
-                width: 64px;
-                height: 64px;
+                width: 300px;
+                height: 300px;
                 overflow: visible;
             }
             .preloader-svg-dark {
