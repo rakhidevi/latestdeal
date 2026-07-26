@@ -452,7 +452,11 @@ document.addEventListener('alpine:init', () => {
                 if (!data) return;
                 const msgIndex = this.messages.findIndex(m => m.id === aiMessageId);
                 if (msgIndex !== -1) {
-                    this.messages[msgIndex].text = data.reply || "I found some deals that match your criteria.";
+                    if (this.aiSearchResults && this.aiSearchResults.length > 0) {
+                        this.messages[msgIndex].text = data.reply || "I found some deals that match your criteria.";
+                    } else {
+                        this.messages[msgIndex].text = data.reply || `I couldn't find any active deals matching "${text}" right now. Try expanding your search or adjusting your budget!`;
+                    }
                 }
                 this.$nextTick(() => {
                     const el = document.getElementById('chat-window');
