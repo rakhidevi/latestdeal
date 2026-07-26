@@ -1,11 +1,18 @@
 import re
 
 def clean_number(val, return_type=float):
-    """Extracts numeric value from a string."""
+    """Extracts numeric value from a string, stripping out unit-price notations (Rule 6)."""
     if not val:
         return 0
+    val_str = str(val)
+    
+    # Rule 6 (AGENTS.md): Remove unit prices like (₹70,99,000 / 100 g), (per g), / 100 g
+    val_str = re.sub(r'\([^)]*?(?:per|\/|100\s*g|100\s*ml|kg|count)[^)]*?\)', '', val_str, flags=re.IGNORECASE)
+    val_str = re.sub(r'₹?\s*[\d,.]+\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b', '', val_str, flags=re.IGNORECASE)
+    val_str = re.sub(r'(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b', '', val_str, flags=re.IGNORECASE)
+    
     # Remove commas to keep numbers contiguous
-    val_str = str(val).replace(',', '')
+    val_str = val_str.replace(',', '')
     
     # Extract the first sequence of digits with an optional decimal
     match = re.search(r'(\d+(?:\.\d+)?)', val_str)
@@ -48,6 +55,11 @@ def evaluate_deal(raw_data: dict) -> dict:
     original_price = clean_number(raw_data.get("raw_original_price", 0))
     discounted_price = clean_number(raw_data.get("raw_discounted_price", 0))
     
+    # Rule 6 Guardrail: Filter out erroneous unit prices (e.g. MRP 70 Lakhs for a 70k deal)
+    if discounted_price > 0 and original_price > discounted_price:
+        if (original_price / discounted_price) > 10 or (original_price > 500000 and discounted_price < 200000):
+            original_price = 0
+
     # If there is no original price, we can't calculate a deal
     if original_price <= 0 or discounted_price <= 0:
         return {"is_approved": False, "reason": "Missing Price Information"}

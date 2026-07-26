@@ -155,7 +155,10 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                 if mrp_label.count() > 0:
                     parent = mrp_label.locator("..").first
                     if parent.count() > 0:
-                        original_price_html = parent.text_content().replace('M.R.P.:', '').strip()
+                        raw_txt = parent.text_content()
+                        raw_txt = re.sub(r'\([^)]*?(?:per|\/|100\s*g|100\s*ml|kg|count)[^)]*?\)', '', raw_txt, flags=re.IGNORECASE)
+                        raw_txt = re.sub(r'₹?\s*[\d,.]+\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b', '', raw_txt, flags=re.IGNORECASE)
+                        original_price_html = raw_txt.replace('M.R.P.:', '').strip()
                     
             image_url = ""
             img_element = page.locator("#landingImage").first

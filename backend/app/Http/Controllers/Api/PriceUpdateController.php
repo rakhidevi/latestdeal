@@ -115,21 +115,25 @@ class PriceUpdateController extends Controller
             $discountedPrice = (float)str_replace(',', '', $m[1]);
         }
 
-        // 2. Extract Original Price (MRP)
+        // 2. Extract Original Price (MRP) - Rule 6 (AGENTS.md)
+        // Clean out unit price expressions like (₹70,99,000 / 100 g) before extracting numbers
+        $cleanHtml = preg_replace('/\([^)]*?(?:per|\/|100\s*g|100\s*ml|kg|count)[^)]*?\)/i', '', $html);
+        $cleanHtml = preg_replace('/₹?\s*[\d,.]+\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b/i', '', $cleanHtml);
+
         // Check explicit M.R.P.: tag first
-        if (preg_match('/M\.R\.P\.?:?\s*(?:<\/?[^>]+>)*\s*₹?\s*([\d,]+)/i', $html, $m)) {
+        if (preg_match('/M\.R\.P\.?:?\s*(?:<\/?[^>]+>)*\s*₹?\s*([\d,]+)/i', $cleanHtml, $m)) {
             $candidate = (float)str_replace(',', '', $m[1]);
-            if ($candidate > 0) {
+            if ($candidate > 0 && (!$discountedPrice || ($candidate / $discountedPrice) < 10)) {
                 $originalPrice = $candidate;
             }
         }
 
         if (!$originalPrice) {
-            if (preg_match_all('/class="a-text-price[^"]*"[^>]*>.*?class="a-offscreen"[^>]*>\s*₹?\s*([\d,.]+)/s', $html, $matches)) {
+            if (preg_match_all('/class="a-text-price[^"]*"[^>]*>.*?class="a-offscreen"[^>]*>\s*₹?\s*([\d,.]+)/s', $cleanHtml, $matches)) {
                 foreach ($matches[1] as $priceStr) {
                     $candidate = (float)str_replace(',', '', $priceStr);
-                    // Filter out per-unit prices (e.g. 100x multiplier)
-                    if ($discountedPrice && $candidate > $discountedPrice && ($candidate / $discountedPrice) < 40) {
+                    // Filter out per-unit prices (e.g. max 10x multiplier)
+                    if ($discountedPrice && $candidate > $discountedPrice && ($candidate / $discountedPrice) < 10) {
                         $originalPrice = $candidate;
                         break;
                     }

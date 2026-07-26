@@ -52,7 +52,10 @@ class AmazonParser:
             if mrp_label:
                 parent = mrp_label.parent
                 if parent:
-                    original_price = parent.get_text(strip=True).replace('M.R.P.:', '').strip()
+                    raw_txt = parent.get_text(strip=True)
+                    raw_txt = re.sub(r'\([^)]*?(?:per|\/|100\s*g|100\s*ml|kg|count)[^)]*?\)', '', raw_txt, flags=re.IGNORECASE)
+                    raw_txt = re.sub(r'₹?\s*[\d,.]+\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b', '', raw_txt, flags=re.IGNORECASE)
+                    original_price = raw_txt.replace('M.R.P.:', '').strip()
                     
         # 4. Image
         image_url = ""
