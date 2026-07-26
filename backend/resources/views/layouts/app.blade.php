@@ -17,6 +17,8 @@
         <meta property="og:type" content="website">
         <meta property="og:image" content="{{ asset('/images/logo.png') }}">
         <meta name="twitter:card" content="summary_large_image">
+        <!-- Lottie Web Animation Engine -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
         <style>
             [x-cloak] { display: none !important; }
             /* Instant SVG Animated Preloader & Theme Styles */
@@ -338,16 +340,14 @@
 </head>
 <body x-data="themeSwitcher" class="antialiased">
     
-    <!-- Fullscreen Animated Vector SVG Page Loader -->
+    <!-- Fullscreen Animated Lottie Storyteller Page Loader -->
     <div id="page-preloader" aria-label="Loading page">
         <div class="preloader-content">
-            <!-- Animated Official Vector SVG Logo Mark -->
-            <div class="preloader-logo-mark">
-                <svg viewBox="0 0 85 255" class="preloader-svg" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Red Flame & 'd' Loop -->
+            <!-- 300px x 300px Lottie 60FPS Storyteller Animation Container -->
+            <div id="lottie-logo-container" style="width: 300px; height: 300px; max-width: 90vw; max-height: 90vw; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
+                <!-- Embedded Fallback Vector Mark -->
+                <svg viewBox="0 0 85 255" class="preloader-svg" xmlns="http://www.w3.org/2000/svg" style="width: 140px; height: 140px;">
                     <path class="preloader-svg-red" fill="#ef4444" d="M 41.49,123.58 C 43.09,124.36 43.63,125.63 43.57,127.40 C 43.26,136.90 46.26,145.51 50.90,153.64 C 55.03,160.88 60.11,167.48 64.95,174.25 C 71.48,183.39 76.96,193.03 79.44,204.12 C 82.19,216.39 79.47,227.43 71.53,237.10 C 65.46,244.50 57.48,248.67 48.04,250.12 C 47.80,250.15 47.56,250.26 47.32,250.33 C 37.41,250.20 36.89,250.06 36.35,249.94 C 20.56,246.62 10.45,237.21 6.04,221.68 C 5.52,219.85 5.38,217.96 4.99,216.11 C 5.07,208.94 5.17,208.61 5.22,208.28 C 5.55,206.05 6.81,204.59 9.05,204.36 C 12.95,203.95 16.58,206.15 16.90,210.40 C 17.00,211.67 17.14,212.92 17.41,214.16 C 19.94,225.63 29.98,232.98 41.41,231.62 C 52.21,230.33 60.67,221.17 60.71,210.31 C 60.74,203.22 57.99,197.31 52.47,192.84 C 48.24,189.42 43.30,187.83 37.86,188.06 C 31.91,188.31 27.33,191.34 23.45,195.59 C 21.84,197.36 19.88,198.16 17.56,197.82 C 15.24,197.48 13.50,196.21 12.53,194.02 C 11.61,191.97 12.28,190.25 13.69,188.69 C 13.97,188.38 14.21,188.03 14.49,187.72 C 23.31,178.26 34.13,174.04 47.04,175.24 C 47.77,175.30 48.50,175.61 49.30,175.42 C 49.24,175.22 49.23,175.09 49.16,174.99 C 48.89,174.62 48.60,174.25 48.31,173.89 C 43.61,168.12 39.17,162.18 36.06,155.35 C 31.76,145.92 31.60,136.58 36.69,127.38 C 37.48,125.96 38.12,124.38 39.72,123.58 Z" />
-                    
-                    <!-- Dark Accent Tip -->
                     <path class="preloader-svg-dark" fill="currentColor" d="M 77.84,69.06 C 77.34,68.77 77.25,68.25 77.04,67.82 C 71.41,56.19 64.55,45.30 56.95,34.89 C 55.37,32.73 55.32,30.42 55.46,28.03 C 55.84,20.93 58.29,14.63 63.05,9.27 C 64.12,8.07 65.34,7.03 66.57,6.00 C 67.71,5.05 69.51,4.97 70.61,5.69 C 71.79,6.45 72.40,7.90 72.00,9.47 C 70.39,15.76 69.57,22.17 69.70,28.64 C 69.92,39.13 71.84,49.36 74.86,59.39 C 75.71,62.22 76.67,65.01 77.57,67.83 C 77.70,68.21 77.95,68.58 77.84,69.06 Z" />
                 </svg>
             </div>
@@ -361,7 +361,7 @@
                 <div class="preloader-progress-bar"></div>
             </div>
             
-            <div class="preloader-text">Finding Best Deals...</div>
+            <div class="preloader-text" id="preloader-story-text">Discovering Best Deals...</div>
         </div>
     </div>
     
@@ -1142,7 +1142,41 @@
 
     <script>
         (function() {
+            // 1. Initialize Lottie Storyteller Animation
+            try {
+                if (typeof lottie !== 'undefined') {
+                    const lottieContainer = document.getElementById('lottie-logo-container');
+                    if (lottieContainer) {
+                        lottie.loadAnimation({
+                            container: lottieContainer,
+                            renderer: 'svg',
+                            loop: true,
+                            autoplay: true,
+                            path: '{{ asset("animations/latestdeal-logo.json") }}'
+                        });
+                    }
+                }
+            } catch(err) {}
+
+            // 2. Storytelling text stage ticker
+            const storyTexts = [
+                '🔥 Discovering Verified Deals...',
+                '🏷️ Unlocking 90% OFF Discounts...',
+                '🛍️ Filling Shopping Bag...',
+                '🎁 Opening Jackpot Savings...'
+            ];
+            let textIdx = 0;
+            const textEl = document.getElementById('preloader-story-text');
+            const storyTimer = setInterval(function() {
+                if (textEl) {
+                    textIdx = (textIdx + 1) % storyTexts.length;
+                    textEl.innerText = storyTexts[textIdx];
+                }
+            }, 850);
+
+            // 3. Complete loading dismissal
             function completeLoading() {
+                clearInterval(storyTimer);
                 const preloader = document.getElementById('page-preloader');
                 if (preloader) {
                     preloader.classList.add('preloader-hidden');
@@ -1160,10 +1194,10 @@
             } else {
                 window.addEventListener('load', completeLoading);
                 document.addEventListener('DOMContentLoaded', function() {
-                    setTimeout(completeLoading, 250);
+                    setTimeout(completeLoading, 300);
                 });
-                // Absolute fallback guarantee: 1.2s max
-                setTimeout(completeLoading, 1200);
+                // Absolute safety fallback: 1.5s max
+                setTimeout(completeLoading, 1500);
             }
         })();
     </script>
