@@ -63,20 +63,19 @@
             justify-content: center !important;
             text-align: center !important;
         }
-        .preloader-logo-mark {
-            width: 220px;
-            height: 180px;
-            margin-bottom: 12px;
+        .preloader-logo-wrap {
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: preloaderPulse 1.5s ease-in-out infinite;
+            animation: preloaderPulse 1.8s ease-in-out infinite;
         }
-        .preloader-logo-mark img {
-            height: 160px;
-            width: auto;
-            max-width: 220px;
-            object-fit: contain;
+        .preloader-brand-logo {
+            height: 54px !important;
+            max-height: 54px !important;
+            width: auto !important;
+            max-width: 280px !important;
+            object-fit: contain !important;
         }
         html.dark .preloader-logo-dark { display: block !important; }
         html.dark .preloader-logo-light { display: none !important; }
@@ -84,24 +83,8 @@
         html:not(.dark) .preloader-logo-light { display: block !important; }
 
         @keyframes preloaderPulse {
-            0%, 100% { transform: scale(0.95); opacity: 0.85; }
-            50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.4)); }
-        }
-        .preloader-wordmark {
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            font-size: 26px;
-            font-weight: 900;
-            letter-spacing: -0.03em;
-            margin-bottom: 6px;
-        }
-        .preloader-word-latest {
-            color: #0f172a;
-        }
-        html.dark .preloader-word-latest {
-            color: #ffffff;
-        }
-        .preloader-word-deal {
-            color: #ef4444;
+            0%, 100% { transform: scale(0.96); opacity: 0.88; }
+            50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 18px rgba(239, 68, 68, 0.35)); }
         }
 
         .preloader-progress-track {
@@ -337,22 +320,17 @@
     <!-- Fullscreen Animated Page Loader -->
     <div id="page-preloader" aria-label="Loading page">
         <div class="preloader-content">
-            <!-- 100% Official Aligned Logo Icon Mark -->
-            <div class="preloader-logo-mark">
-                <img src="{{ asset('/images/logo-icon-mark.png') }}" alt="LatestDeal Icon" class="preloader-logo-light" style="height: 160px; width: auto; object-fit: contain; display: block;" />
-                <img src="{{ asset('/images/logo-icon-mark-white.png') }}" alt="LatestDeal Icon" class="preloader-logo-dark" style="height: 160px; width: auto; object-fit: contain; display: none;" />
-            </div>
-            
-            <!-- Brand Wordmark -->
-            <div class="preloader-wordmark">
-                <span class="preloader-word-latest">Latest</span><span class="preloader-word-deal">Deal</span>
+            <!-- Official Brand Logo -->
+            <div class="preloader-logo-wrap">
+                <img src="{{ asset('/images/logo.png') }}" alt="LatestDeal" class="preloader-brand-logo preloader-logo-light" style="height: 54px !important; max-height: 54px !important; width: auto !important; max-width: 280px !important; object-fit: contain !important; display: block;" />
+                <img src="{{ asset('/images/logo-white.png') }}" alt="LatestDeal" class="preloader-brand-logo preloader-logo-dark" style="height: 54px !important; max-height: 54px !important; width: auto !important; max-width: 280px !important; object-fit: contain !important; display: none;" />
             </div>
             
             <div class="preloader-progress-track">
                 <div class="preloader-progress-bar"></div>
             </div>
             
-            <div class="preloader-text" id="preloader-story-text">Discovering Best Deals...</div>
+            <div class="preloader-text">Discovering Best Deals...</div>
         </div>
     </div>
     
