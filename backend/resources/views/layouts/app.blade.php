@@ -17,7 +17,113 @@
         <meta property="og:type" content="website">
         <meta property="og:image" content="{{ asset('/images/logo.png') }}">
         <meta name="twitter:card" content="summary_large_image">
-        <style>[x-cloak] { display: none !important; }</style>
+        <style>
+            [x-cloak] { display: none !important; }
+            /* Instant Preloader & Theme Styles */
+            #page-preloader {
+                position: fixed;
+                inset: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: #ffffff;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 999999;
+                transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            html.dark #page-preloader {
+                background-color: #020617;
+            }
+            #page-preloader.preloader-hidden {
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+            }
+            .preloader-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            .preloader-logo {
+                height: 52px;
+                width: auto;
+                animation: preloaderPulse 1.8s ease-in-out infinite;
+            }
+            html.dark .preloader-logo-dark { display: block !important; }
+            html.dark .preloader-logo-light { display: none !important; }
+            html:not(.dark) .preloader-logo-dark { display: none !important; }
+            html:not(.dark) .preloader-logo-light { display: block !important; }
+
+            .preloader-progress-track {
+                margin-top: 24px;
+                width: 160px;
+                height: 4px;
+                background: rgba(239, 68, 68, 0.15);
+                border-radius: 999px;
+                overflow: hidden;
+                position: relative;
+            }
+            .preloader-progress-bar {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 45%;
+                background: linear-gradient(90deg, #ef4444, #f87171, #ef4444);
+                border-radius: 999px;
+                animation: preloaderSlide 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+            }
+            .preloader-text {
+                margin-top: 14px;
+                font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+                font-size: 13px;
+                font-weight: 700;
+                color: #64748b;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+            html.dark .preloader-text {
+                color: #94a3b8;
+            }
+
+            @keyframes preloaderPulse {
+                0%, 100% {
+                    transform: scale(1);
+                    filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0));
+                }
+                50% {
+                    transform: scale(1.05);
+                    filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.35));
+                }
+            }
+            @keyframes preloaderSlide {
+                0% { left: -45%; }
+                100% { left: 100%; }
+            }
+        </style>
+        <script>
+            // Instant theme application to prevent FOUC & dark mode white flashes
+            (function() {
+                try {
+                    const storedDark = localStorage.getItem("adh-dark");
+                    const storedTheme = localStorage.getItem("adh-color") || 'red';
+                    document.documentElement.setAttribute('data-theme', storedTheme);
+                    let isDark = false;
+                    if (storedDark) {
+                        isDark = storedDark === "dark";
+                    } else {
+                        const hour = new Date().getHours();
+                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        isDark = (hour >= 20 || hour < 7) || prefersDark;
+                    }
+                    if (isDark) document.documentElement.classList.add("dark");
+                    else document.documentElement.classList.remove("dark");
+                } catch(e) {}
+            })();
+        </script>
     @endif
 
     <script type="application/ld+json">
@@ -191,6 +297,20 @@
 
 </head>
 <body x-data="themeSwitcher" class="antialiased">
+    
+    <!-- Fullscreen Animated Page Loader -->
+    <div id="page-preloader" aria-label="Loading page">
+        <div class="preloader-content">
+            <img src="{{ asset('/images/logo.png') }}" alt="LatestDeal Logo" class="preloader-logo preloader-logo-light" />
+            <img src="{{ asset('/images/logo-white.png') }}" alt="LatestDeal Logo" class="preloader-logo preloader-logo-dark" />
+            
+            <div class="preloader-progress-track">
+                <div class="preloader-progress-bar"></div>
+            </div>
+            
+            <div class="preloader-text">Loading Best Deals...</div>
+        </div>
+    </div>
     
     <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-40 border-b border-red-100 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
       <div class="mx-auto flex max-w-7xl px-4 sm:px-6 lg:px-8 py-3 items-center justify-between relative">
@@ -966,5 +1086,39 @@
     <div x-show="colorTheme === 'amber'" class="fixed inset-0 z-[99999] pointer-events-none bg-[#451a03]/5 backdrop-brightness-95 backdrop-contrast-90" x-transition.opacity></div>
     
     @stack('scripts')
+
+    <script>
+        (function() {
+            function hidePreloader() {
+                const preloader = document.getElementById('page-preloader');
+                if (preloader && !preloader.classList.contains('preloader-hidden')) {
+                    preloader.classList.add('preloader-hidden');
+                }
+            }
+
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                setTimeout(hidePreloader, 100);
+            }
+            
+            window.addEventListener('load', hidePreloader);
+            document.addEventListener('DOMContentLoaded', () => setTimeout(hidePreloader, 600));
+
+            // Re-show loader on navigation links to smooth out page refreshes
+            document.addEventListener('click', function(e) {
+                const anchor = e.target.closest('a');
+                if (anchor && anchor.href && !anchor.target && !anchor.hasAttribute('download') && !anchor.href.startsWith('javascript:')) {
+                    try {
+                        const targetUrl = new URL(anchor.href, window.location.origin);
+                        if (targetUrl.origin === window.location.origin && (targetUrl.pathname !== window.location.pathname || targetUrl.search !== window.location.search)) {
+                            const preloader = document.getElementById('page-preloader');
+                            if (preloader) {
+                                preloader.classList.remove('preloader-hidden');
+                            }
+                        }
+                    } catch(err) {}
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
