@@ -189,9 +189,9 @@
                     </div>
 
                     <div class="relative aspect-square overflow-hidden bg-slate-50 p-4 rounded-xl">
-                        <img :src="deal.image_path ? (deal.image_path.startsWith('http') || deal.image_path.startsWith('/') ? deal.image_path : '/storage/' + deal.image_path) : '/images/logo.png'"
+                        <img :src="deal.image_url || deal.image_path || '/images/logo.png'"
                              :alt="deal.title"
-                             class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply"
+                             class="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                              onerror="this.src='/images/logo.png'" />
                     </div>
 

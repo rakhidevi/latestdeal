@@ -121,7 +121,8 @@ class SmartSearchController extends Controller
                     : 0,
                 'url'           => $deal->url,
                 'merchant'      => optional($deal->merchant)->name ?? 'Marketplace',
-                'image_path'    => $deal->image_path,
+                'image_url'     => $deal->image_url,
+                'image_path'    => $deal->image_url,
             ];
         });
 
