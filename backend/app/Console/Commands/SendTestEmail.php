@@ -9,10 +9,11 @@ use App\Mail\WelcomeShopperMail;
 use App\Mail\VerifyEmailMail;
 use App\Mail\NewsletterWelcomeMail;
 use App\Mail\ResetPasswordMail;
+use App\Mail\PromoDealDigestMail;
 
 class SendTestEmail extends Command
 {
-    protected $signature = 'email:send-test {email=hi.pankajtiwari86@gmail.com : Recipient email address} {--type=welcome : Type of email: welcome, verify, newsletter, reset}';
+    protected $signature = 'email:send-test {email=hi.pankajtiwari86@gmail.com : Recipient email address} {--type=welcome : Type of email: welcome, verify, newsletter, reset, promo}';
 
     protected $description = 'Send a test email using info-noreply@latestdeal.in sender configuration';
 
@@ -44,6 +45,16 @@ class SendTestEmail extends Command
                 case 'reset':
                     $url = url('/password/reset/test-token-1234567890');
                     Mail::to($recipient)->send(new ResetPasswordMail($url));
+                    break;
+
+                case 'promo':
+                    $unsub = url('/unsubscribe/test-token-1234567890');
+                    Mail::to($recipient)->send(new PromoDealDigestMail(
+                        deals: null, // Auto-pulls top 6 from DB
+                        headline: "Today's Hot Deals 🔥",
+                        subheadline: 'Handpicked savings up to 80% off — verified & live right now.',
+                        unsubscribeUrl: $unsub
+                    ));
                     break;
 
                 case 'welcome':
