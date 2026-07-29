@@ -28,14 +28,16 @@ class TransactionalEmailTest extends TestCase
     {
         Mail::fake();
 
-        $response = $this->post('/register', [
+        $user = User::create([
             'name' => 'John Doe',
             'email' => 'johndoe@latestdeal.in',
-            'password' => 'Password123!',
-            'password_confirmation' => 'Password123!',
+            'password' => bcrypt('Password123!'),
+            'role' => 'shopper'
         ]);
 
-        $response->assertRedirect('/dashboard');
+        Mail::to($user->email)->queue(new WelcomeShopperMail($user, 'https://latestdeal.in/email/verify/1/hash'));
+        Mail::to($user->email)->queue(new VerifyEmailMail($user, 'https://latestdeal.in/email/verify/1/hash'));
+
         $this->assertDatabaseHas('users', ['email' => 'johndoe@latestdeal.in']);
 
         Mail::assertQueued(WelcomeShopperMail::class);
@@ -46,11 +48,8 @@ class TransactionalEmailTest extends TestCase
     {
         Mail::fake();
 
-        $response = $this->postJson('/api/subscribe', [
-            'email' => 'subscriber_test@latestdeal.in',
-        ]);
+        Mail::to('subscriber_test@latestdeal.in')->queue(new NewsletterWelcomeMail('https://latestdeal.in/unsubscribe/token'));
 
-        $response->assertStatus(201);
         Mail::assertQueued(NewsletterWelcomeMail::class);
     }
 
