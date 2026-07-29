@@ -39,7 +39,7 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME', 'ssl'),
+            'scheme' => env('MAIL_SCHEME', 'smtps'),
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', 'mail.latestdeal.in'),
             'port' => env('MAIL_PORT', 465),

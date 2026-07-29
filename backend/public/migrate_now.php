@@ -14,48 +14,23 @@ try {
         $env = file_get_contents($envFile);
         $modified = false;
 
-        if (isset($_REQUEST['set_mailer'])) {
-            $m = $_REQUEST['set_mailer'];
-            if (preg_match('/^MAIL_MAILER=.*/m', $env)) {
-                $env = preg_replace('/^MAIL_MAILER=.*/m', 'MAIL_MAILER="' . $m . '"', $env);
-            } else {
-                $env .= "\nMAIL_MAILER=\"{$m}\"";
-            }
-            $modified = true;
-            echo "MAIL_MAILER set to {$m} in .env.\n";
-        }
+        $smtpSettings = [
+            'MAIL_MAILER' => 'smtp',
+            'MAIL_HOST' => 'mail.latestdeal.in',
+            'MAIL_PORT' => '465',
+            'MAIL_SCHEME' => 'smtps',
+            'MAIL_USERNAME' => 'info-noreply@latestdeal.in',
+            'MAIL_FROM_ADDRESS' => 'info-noreply@latestdeal.in',
+            'MAIL_FROM_NAME' => 'LatestDeal.in',
+        ];
 
-        if (isset($_REQUEST['set_host'])) {
-            $h = $_REQUEST['set_host'];
-            if (preg_match('/^MAIL_HOST=.*/m', $env)) {
-                $env = preg_replace('/^MAIL_HOST=.*/m', 'MAIL_HOST="' . $h . '"', $env);
+        foreach ($smtpSettings as $key => $val) {
+            if (preg_match("/^{$key}=.*/m", $env)) {
+                $env = preg_replace("/^{$key}=.*/m", "{$key}=\"{$val}\"", $env);
             } else {
-                $env .= "\nMAIL_HOST=\"{$h}\"";
+                $env .= "\n{$key}=\"{$val}\"";
             }
             $modified = true;
-            echo "MAIL_HOST set to {$h} in .env.\n";
-        }
-
-        if (isset($_REQUEST['set_port'])) {
-            $p = $_REQUEST['set_port'];
-            if (preg_match('/^MAIL_PORT=.*/m', $env)) {
-                $env = preg_replace('/^MAIL_PORT=.*/m', 'MAIL_PORT="' . $p . '"', $env);
-            } else {
-                $env .= "\nMAIL_PORT=\"{$p}\"";
-            }
-            $modified = true;
-            echo "MAIL_PORT set to {$p} in .env.\n";
-        }
-
-        if (isset($_REQUEST['set_scheme'])) {
-            $s = $_REQUEST['set_scheme'];
-            if (preg_match('/^MAIL_SCHEME=.*/m', $env)) {
-                $env = preg_replace('/^MAIL_SCHEME=.*/m', 'MAIL_SCHEME="' . $s . '"', $env);
-            } else {
-                $env .= "\nMAIL_SCHEME=\"{$s}\"";
-            }
-            $modified = true;
-            echo "MAIL_SCHEME set to {$s} in .env.\n";
         }
 
         if (isset($_REQUEST['smtp_pass']) && !empty($_REQUEST['smtp_pass'])) {
@@ -103,7 +78,6 @@ try {
         $type = $_REQUEST['type'] ?? $_GET['type'] ?? 'welcome';
         echo "\nDispatching {$type} test email to {$target}...\n";
         
-        // Test socket connection first
         $host = config('mail.mailers.smtp.host');
         $port = config('mail.mailers.smtp.port');
         echo "Testing TCP Socket connection to {$host}:{$port}...\n";
