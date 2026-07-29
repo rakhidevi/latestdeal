@@ -29,11 +29,14 @@ class PromoDealDigestMail extends Mailable implements ShouldQueue
         ?string $unsubscribeUrl = null
     ) {
         // If no deals provided, pull top 6 active deals sorted by discount
+        // Prioritize deals with external (HTTP) image URLs since those always work in emails
         $this->deals = $deals ?? Deal::where('status', 'active')
             ->whereNotNull('image_path')
             ->where('image_path', '!=', '')
             ->whereNotNull('discounted_price')
             ->where('discounted_price', '>', 0)
+            ->with(['brandRelation', 'merchant'])
+            ->orderByRaw("CASE WHEN image_path LIKE 'http%' THEN 0 ELSE 1 END")
             ->orderByDesc('discount_percentage')
             ->limit(6)
             ->get();

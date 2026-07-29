@@ -169,11 +169,32 @@ class Deal extends Model
 
         $cleanPath = ltrim($path, '/');
 
-        // Some images were manually uploaded to public/deals, others to storage/app/public/deals
+        // If path already starts with "storage/", don't double-prefix it
+        if (Str::startsWith($cleanPath, 'storage/')) {
+            // Check if file exists at public_path (via symlink)
+            if (file_exists(public_path($cleanPath))) {
+                return asset($cleanPath);
+            }
+            // Try the actual storage location
+            $storageSub = Str::after($cleanPath, 'storage/');
+            if (file_exists(storage_path('app/public/' . $storageSub))) {
+                return asset($cleanPath);
+            }
+            // File doesn't exist — use the route-based fallback
+            return asset($cleanPath);
+        }
+
+        // Non-storage paths (e.g. "deals/uuid.jpeg" in public/)
         if (file_exists(public_path($cleanPath))) {
             return asset($cleanPath);
         }
 
+        // Fallback: try storage path
+        if (file_exists(storage_path('app/public/' . $cleanPath))) {
+            return asset('storage/' . $cleanPath);
+        }
+
+        // Last resort — return the asset URL anyway (may 404 but won't break)
         return asset('storage/' . $cleanPath);
     }
 

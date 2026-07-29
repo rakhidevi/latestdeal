@@ -148,9 +148,9 @@
 
                                             <!-- Product Image with Discount Badge overlay -->
                                             <tr>
-                                                <td style="position: relative; padding: 0;">
-                                                    <a href="{{ url('/deal/' . $deal->slug . '/' . $deal->hash_id) }}" target="_blank" style="text-decoration: none;">
-                                                        <img src="{{ $deal->image_url }}" alt="{{ $deal->title }}" width="264" style="display: block; width: 100%; height: 160px; object-fit: cover; border-radius: 12px 12px 0 0;" />
+                                                <td style="position: relative; padding: 0; background-color: #ffffff;" align="center">
+                                                    <a href="{{ url('/deal/' . $deal->slug . '/' . $deal->hash_id) }}" target="_blank" style="text-decoration: none; display: block;">
+                                                        <img src="{{ $deal->image_url }}" alt="{{ $deal->title }}" width="240" height="160" style="display: block; width: 100%; max-width: 264px; max-height: 160px; border-radius: 12px 12px 0 0; background-color: #ffffff;" />
                                                     </a>
                                                     <!-- Discount Badge — positioned absolutely -->
                                                     @if($deal->discount_percentage > 0)
