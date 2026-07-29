@@ -104,6 +104,33 @@ try {
         echo "Artisan Result (Exit Code {$exitCode}):\n" . \Illuminate\Support\Facades\Artisan::output() . "\n";
     }
 
+    // Debug deal images
+    if (isset($_REQUEST['debug_deals'])) {
+        $deals = \App\Models\Deal::where('status', 'active')
+            ->whereNotNull('image_path')
+            ->where('image_path', '!=', '')
+            ->whereNotNull('discounted_price')
+            ->where('discounted_price', '>', 0)
+            ->orderByDesc('discount_percentage')
+            ->limit(6)
+            ->get();
+
+        echo "\n\n=== DEAL IMAGE DEBUG (Top 6 by discount) ===\n";
+        echo "APP_URL: " . config('app.url') . "\n\n";
+        foreach ($deals as $i => $deal) {
+            echo ($i+1) . ". {$deal->title}\n";
+            echo "   image_path (raw): {$deal->getRawOriginal('image_path')}\n";
+            echo "   image_url (computed): {$deal->image_url}\n";
+            $rawPath = $deal->getRawOriginal('image_path') ?? '';
+            $cleanPath = ltrim($rawPath, '/');
+            echo "   public_path exists: " . (file_exists(public_path($cleanPath)) ? 'YES' : 'NO') . " (" . public_path($cleanPath) . ")\n";
+            echo "   storage_path exists: " . (file_exists(storage_path('app/public/' . $cleanPath)) ? 'YES' : 'NO') . "\n";
+            echo "   discount: {$deal->discount_percentage}%\n";
+            echo "   price: ₹{$deal->discounted_price} (MRP ₹{$deal->original_price})\n\n";
+        }
+    }
+
 } catch (\Throwable $e) {
     echo "ERROR IN RUNNER SCRIPT:\n" . $e->getMessage() . "\n" . $e->getTraceAsString();
 }
+
