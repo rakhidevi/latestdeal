@@ -77,6 +77,17 @@ class SubscriptionController
             );
         }
 
+        // 4. Dispatch Newsletter Welcome Mailable if email provided
+        if ($email) {
+            try {
+                $unsubscribeToken = Str::random(40);
+                $unsubscribeUrl = url('/unsubscribe/' . $unsubscribeToken);
+                \Illuminate\Support\Facades\Mail::to($email)->queue(new \App\Mail\NewsletterWelcomeMail($unsubscribeUrl));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to queue newsletter welcome mail: " . $e->getMessage());
+            }
+        }
+
         return response()->json([
             'message' => 'Subscribed successfully to self-hosted notification engine',
             'subscriber_id' => $subscriber->id,

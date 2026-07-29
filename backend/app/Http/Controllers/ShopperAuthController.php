@@ -4,8 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Mail\WelcomeShopperMail;
+use App\Mail\VerifyEmailMail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Auth::Events\Verified;
 
 class ShopperAuthController extends Controller
 {
@@ -52,8 +57,39 @@ class ShopperAuthController extends Controller
             'role' => 'shopper'
         ]);
 
+        // Generate 60-minute signed email verification link
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => $user->id, 'hash' => sha1($user->email)]
+        );
+
+        // Dispatch Welcome & Email Verification Mailables to Transactional Queues
+        try {
+            Mail::to($user->email)->queue(new WelcomeShopperMail($user, $verificationUrl));
+            Mail::to($user->email)->queue(new VerifyEmailMail($user, $verificationUrl));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to queue registration emails: " . $e->getMessage());
+        }
+
         Auth::login($user);
-        return redirect('/dashboard');
+        return redirect('/dashboard')->with('status', 'Registration successful! Please check your email to verify your account.');
+    }
+
+    public function verifyEmail(Request $request, $id, $hash)
+    {
+        $user = User::findOrFail($id);
+
+        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            abort(403, 'Invalid verification link.');
+        }
+
+        if (!$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new Verified($user));
+        }
+
+        return redirect('/dashboard')->with('status', 'Email verified successfully! Welcome to LatestDeal.');
     }
 
     public function logout(Request $request)

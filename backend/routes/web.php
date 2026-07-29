@@ -14,6 +14,10 @@ use App\Http\Controllers\RedirectController;
 |
 */
 
+Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\ShopperAuthController::class, 'verifyEmail'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
+
 Route::get('/setup-scraper', function () {
     \App\Models\Category::firstOrCreate(['id' => 1], ['name' => 'Electronics', 'slug' => 'electronics']);
     \App\Models\Merchant::firstOrCreate(['id' => 1], [
@@ -201,54 +205,13 @@ Route::get('/debug-env', function () {
     ];
 });
 
-// One-time env setup for AI keys (protected by token)
-Route::get('/setup-ai-keys', function(\Illuminate\Http\Request $request) {
+// One-time env setup for AI keys
+Route::get('/setup-ai-keys', function (\Illuminate\Http\Request $request) {
     $token = $request->query('token');
     if ($token !== 'temp-setup-123') {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
-    
-    $geminiKey  = $request->query('gemini_key');
-    $ollamaUrl  = $request->query('ollama_url');
-    $ollamaModel= $request->query('ollama_model', 'qwen3-coder:latest');
-    
-    if (!$geminiKey && !$ollamaUrl) {
-        return response()->json(['error' => 'No keys provided. Use ?token=APP_KEY&gemini_key=YOUR_KEY&ollama_url=YOUR_TUNNEL_URL']);
-    }
-    
-    $envPath = base_path('.env');
-    $envContent = file_get_contents($envPath);
-    
-    $updates = [];
-    
-    if ($geminiKey) {
-        if (str_contains($envContent, 'GEMINI_API_KEY=')) {
-            $envContent = preg_replace('/^GEMINI_API_KEY=.*/m', 'GEMINI_API_KEY=' . $geminiKey, $envContent);
-        } else {
-            $envContent .= "\nGEMINI_API_KEY=" . $geminiKey;
-        }
-        $updates[] = 'GEMINI_API_KEY set';
-    }
-    
-    if ($ollamaUrl) {
-        if (str_contains($envContent, 'OLLAMA_BASE_URL=')) {
-            $envContent = preg_replace('/^OLLAMA_BASE_URL=.*/m', 'OLLAMA_BASE_URL=' . $ollamaUrl, $envContent);
-        } else {
-            $envContent .= "\nOLLAMA_BASE_URL=" . $ollamaUrl;
-        }
-        if (str_contains($envContent, 'OLLAMA_MODEL=')) {
-            $envContent = preg_replace('/^OLLAMA_MODEL=.*/m', 'OLLAMA_MODEL=' . $ollamaModel, $envContent);
-        } else {
-            $envContent .= "\nOLLAMA_MODEL=" . $ollamaModel;
-        }
-        $updates[] = 'OLLAMA_BASE_URL set';
-    }
-    
-    file_put_contents($envPath, $envContent);
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    
-    return response()->json(['success' => true, 'updated' => $updates]);
+    return response()->json(['success' => true]);
 });
 
 
@@ -329,29 +292,7 @@ Route::get('/clear-cache', function() {
 
 // Temporary: Fix APP_URL in production .env so images load correctly
 Route::get('/fix-env-appurl', function() {
-    $envFile = base_path('.env');
-    if (!file_exists($envFile)) {
-        return "ERROR: .env not found at " . $envFile;
-    }
-    $env = file_get_contents($envFile);
-    $original = $env;
-    if (preg_match('/^APP_URL=/m', $env)) {
-        $env = preg_replace('/^APP_URL=.*/m', 'APP_URL=https://latestdeal.in', $env);
-    } else {
-        $env = "APP_URL=https://latestdeal.in\n" . $env;
-    }
-    // NOTE: Do NOT change APP_ENV to production — it enables ComingSoonMiddleware
-    if (preg_match('/^APP_DEBUG=/m', $env)) {
-        $env = preg_replace('/^APP_DEBUG=.*/m', 'APP_DEBUG=false', $env);
-    }
-    file_put_contents($envFile, $env);
-    // Also run storage:link and clear caches
-    \Illuminate\Support\Facades\Artisan::call('storage:link');
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    $changed = ($env !== $original) ? "ENV patched." : "ENV already correct.";
-    return $changed . " Storage linked. Caches cleared. APP_URL=https://latestdeal.in";
+    return "APP_URL=https://latestdeal.in";
 });
 
 Route::get('/debug-error', function() {
