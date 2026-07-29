@@ -2,10 +2,8 @@
 // Persistent migrate runner & admin user seeder
 require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-$response = $kernel->handle(
-    $request = Illuminate\Http\Request::capture()
-);
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
 
 header('Content-Type: text/plain');
 try {
@@ -34,7 +32,7 @@ try {
             $modified = true;
         }
 
-        if (isset($_GET['smtp_pass'])) {
+        if (isset($_GET['smtp_pass']) && !empty($_GET['smtp_pass'])) {
             $pass = $_GET['smtp_pass'];
             if (preg_match('/^MAIL_PASSWORD=.*/m', $env)) {
                 $env = preg_replace('/^MAIL_PASSWORD=.*/m', 'MAIL_PASSWORD="' . $pass . '"', $env);
@@ -53,8 +51,7 @@ try {
     }
 
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    echo "Migrations ran successfully:\n";
-    echo \Illuminate\Support\Facades\Artisan::output();
+    echo "Migrations ran successfully:\n" . \Illuminate\Support\Facades\Artisan::output();
 
     \Illuminate\Support\Facades\Artisan::call('push:generate-vapid');
     echo "VAPID key generation output:\n" . \Illuminate\Support\Facades\Artisan::output();
@@ -71,14 +68,18 @@ try {
     $u->save();
     echo "\nAdmin user verified/seeded: admin@latestdeal.in / password123\n";
 
-    // Optional test email dispatcher
+    // Dispatch Test Email
     if (isset($_GET['send_test'])) {
         $target = $_GET['email'] ?? 'hi.pankajtiwari86@gmail.com';
         $type = $_GET['type'] ?? 'welcome';
-        \Illuminate\Support\Facades\Artisan::call('email:send-test', ['email' => $target, '--type' => $type]);
-        echo "\nTest Email Dispatch Output:\n" . \Illuminate\Support\Facades\Artisan::output();
+        echo "\nDispatching {$type} test email to {$target}...\n";
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('email:send-test', [
+            'email' => $target,
+            '--type' => $type
+        ]);
+        echo "Artisan Result (Exit Code {$exitCode}):\n" . \Illuminate\Support\Facades\Artisan::output() . "\n";
     }
 
 } catch (\Exception $e) {
-    echo "Error running runner script: " . $e->getMessage();
+    echo "Error running runner script: " . $e->getMessage() . "\n" . $e->getTraceAsString();
 }
