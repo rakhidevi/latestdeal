@@ -13,6 +13,9 @@ try {
     echo "Migrations ran successfully:\n";
     echo \Illuminate\Support\Facades\Artisan::output();
 
+    \Illuminate\Support\Facades\Artisan::call('push:generate-vapid');
+    echo "VAPID key generation output:\n" . \Illuminate\Support\Facades\Artisan::output();
+
     // Run UIC daily aggregates calculation
     \Illuminate\Support\Facades\Artisan::call('uic:aggregate');
     echo "UIC daily aggregates computed:\n" . \Illuminate\Support\Facades\Artisan::output();
