@@ -78,6 +78,14 @@ if (isset($_GET['check_storage'])) {
 // Simple script to extract deploy.zip and self-destruct
 
 $zipFile = __DIR__ . '/../deploy.zip';
+if (!file_exists($zipFile)) {
+    if (file_exists(__DIR__ . '/deploy.zip')) {
+        $zipFile = __DIR__ . '/deploy.zip';
+    } elseif (file_exists(dirname(__DIR__, 2) . '/deploy.zip')) {
+        $zipFile = dirname(__DIR__, 2) . '/deploy.zip';
+    }
+}
+
 $extractPath = __DIR__ . '/../';
 
 if (!file_exists($zipFile)) {
