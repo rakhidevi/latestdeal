@@ -133,6 +133,13 @@ try {
             echo "    discounted_price: {$d->discounted_price}, original_price: {$d->original_price}, discount_pct: {$d->discount_percentage}\n";
         }
 
+        echo "\n--- EcoFlow Deal Debug ---\n";
+        $ecoflow = \App\Models\Deal::where('title', 'like', '%ECOFLOW%')->get();
+        foreach ($ecoflow as $d) {
+            echo "  ID {$d->id}: {$d->title}\n";
+            echo "    discounted_price: {$d->discounted_price}, original_price: {$d->original_price}, discount_pct: {$d->discount_percentage}\n";
+        }
+
         // Top 6 deals by discount
         $deals = \App\Models\Deal::where('status', 'active')
             ->whereNotNull('image_path')
