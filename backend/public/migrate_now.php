@@ -7,7 +7,7 @@ $kernel->bootstrap();
 
 header('Content-Type: text/plain');
 try {
-    // 1. Force update SMTP Configuration in .env
+    // 1. Force update SMTP Configuration in .env if query param set
     $envFile = base_path('.env');
     if (file_exists($envFile)) {
         $env = file_get_contents($envFile);
@@ -16,8 +16,8 @@ try {
         $smtpSettings = [
             'MAIL_MAILER' => 'smtp',
             'MAIL_HOST' => 'mail.latestdeal.in',
-            'MAIL_PORT' => '465',
-            'MAIL_SCHEME' => 'ssl',
+            'MAIL_PORT' => '587',
+            'MAIL_SCHEME' => 'tls',
             'MAIL_USERNAME' => 'info-noreply@latestdeal.in',
             'MAIL_FROM_ADDRESS' => 'info-noreply@latestdeal.in',
             'MAIL_FROM_NAME' => 'LatestDeal.in',
@@ -46,19 +46,22 @@ try {
         if ($modified) {
             file_put_contents($envFile, $env);
             \Illuminate\Support\Facades\Artisan::call('config:clear');
-            echo "ENV SMTP configuration updated to mail.latestdeal.in:465.\n";
+            echo "ENV SMTP configuration updated to mail.latestdeal.in.\n";
         }
     }
+
+    echo "Current Mail Configuration:\n";
+    echo "MAILER: " . config('mail.default') . "\n";
+    echo "HOST: " . config('mail.mailers.smtp.host') . "\n";
+    echo "PORT: " . config('mail.mailers.smtp.port') . "\n";
+    echo "USERNAME: " . config('mail.mailers.smtp.username') . "\n";
+    echo "FROM: " . config('mail.from.address') . "\n\n";
 
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     echo "Migrations ran successfully:\n" . \Illuminate\Support\Facades\Artisan::output();
 
     \Illuminate\Support\Facades\Artisan::call('push:generate-vapid');
     echo "VAPID key generation output:\n" . \Illuminate\Support\Facades\Artisan::output();
-
-    // Run UIC daily aggregates calculation
-    \Illuminate\Support\Facades\Artisan::call('uic:aggregate');
-    echo "UIC daily aggregates computed:\n" . \Illuminate\Support\Facades\Artisan::output();
 
     // Ensure admin user exists and password is set to password123
     $u = \App\Models\User::firstOrNew(['email' => 'admin@latestdeal.in']);
@@ -80,6 +83,6 @@ try {
         echo "Artisan Result (Exit Code {$exitCode}):\n" . \Illuminate\Support\Facades\Artisan::output() . "\n";
     }
 
-} catch (\Exception $e) {
-    echo "Error running runner script: " . $e->getMessage() . "\n" . $e->getTraceAsString();
+} catch (\Throwable $e) {
+    echo "ERROR IN RUNNER SCRIPT:\n" . $e->getMessage() . "\n" . $e->getTraceAsString();
 }

@@ -55,8 +55,8 @@ class SendTestEmail extends Command
 
             $this->info("✅ Test email ({$type}) dispatched successfully to {$recipient}!");
             return 0;
-        } catch (\Exception $e) {
-            $this->error("❌ Failed to send email: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            $this->error("❌ Failed to send email: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             return 1;
         }
     }
