@@ -162,30 +162,63 @@
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ config('services.google.adsense_id') }}" crossorigin="anonymous"></script>
     @endif
 
-    <!-- OneSignal Push Notifications -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <!-- Enterprise Native W3C Web Push Engine -->
     <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "dummy-onesignal-app-id", // Replace with real App ID
-          safari_web_id: "web.onesignal.auto.dummy",
-          notifyButton: { enable: true },
-        });
-        
-        OneSignal.User.PushSubscription.addEventListener("change", (subscription) => {
-            if (subscription.current.optedIn) {
-                const token = subscription.current.token;
-                if(token) {
-                    fetch('/api/subscribe', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                        body: JSON.stringify({ push_token: token })
-                    }).catch(err => console.error("Error saving push token", err));
-                }
+        window.VAPID_PUBLIC_KEY = "{{ config('services.vapid.public_key') }}";
+
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('LatestDeal ServiceWorker registered:', registration.scope);
+                }).catch(function(err) {
+                    console.error('ServiceWorker registration failed:', err);
+                });
+            });
+        }
+
+        async function subscribeToNativeWebPush() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                alert('Web Push Notifications are not supported by your browser.');
+                return null;
             }
-        });
-      });
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    alert('Notification permission was denied.');
+                    return null;
+                }
+                const convertedVapidKey = urlBase64ToUint8Array(window.VAPID_PUBLIC_KEY);
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: convertedVapidKey
+                });
+
+                // Send PushSubscription to self-hosted API endpoint
+                await fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ push_subscription: subscription })
+                });
+
+                return subscription;
+            } catch (e) {
+                console.error('Failed to subscribe to Web Push:', e);
+                return null;
+            }
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            if (!base64String) return new Uint8Array();
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
     </script>
 
     <!-- User Intelligence Center (UIC) Tracker -->

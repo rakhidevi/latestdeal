@@ -16,20 +16,8 @@ class ComingSoonMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        // Check if we are in coming soon mode
-        if (env('APP_ENV') === 'production' && env('COMING_SOON_ENABLED', true)) {
-            
-            // Allow bypassing via query parameter
-            if ($request->has('admin_bypass') && $request->admin_bypass === 'true') {
-                session(['bypassed_coming_soon' => true]);
-                return redirect($request->url());
-            }
-
-            // Check if user has bypassed or is accessing admin routes
-            if (!session('bypassed_coming_soon') && !$request->is('admin*') && !$request->is('login')) {
-                return response()->view('coming-soon');
-            }
-        }
+        // Coming soon mode is permanently disabled for production
+        // if (env('APP_ENV') === 'production' && env('COMING_SOON_ENABLED', true)) { ... }
 
         return $next($request);
     }
