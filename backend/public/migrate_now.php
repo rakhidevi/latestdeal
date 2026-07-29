@@ -17,7 +17,7 @@ try {
         $host = $_REQUEST['set_host'] ?? '127.0.0.1';
         $port = $_REQUEST['set_port'] ?? '465';
         $scheme = $_REQUEST['set_scheme'] ?? 'smtps';
-        $mailer = $_REQUEST['set_mailer'] ?? 'smtp';
+        $mailer = $_REQUEST['set_mailer'] ?? 'sendmail';
 
         $smtpSettings = [
             'MAIL_MAILER' => $mailer,
