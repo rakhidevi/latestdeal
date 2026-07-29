@@ -9,13 +9,13 @@ $response = $kernel->handle(
 
 header('Content-Type: text/plain');
 try {
-    // 1. Ensure SMTP Configuration in .env
+    // 1. Force update SMTP Configuration in .env
     $envFile = base_path('.env');
     if (file_exists($envFile)) {
         $env = file_get_contents($envFile);
         $modified = false;
 
-        $defaults = [
+        $smtpSettings = [
             'MAIL_MAILER' => 'smtp',
             'MAIL_HOST' => 'mail.latestdeal.in',
             'MAIL_PORT' => '465',
@@ -25,28 +25,30 @@ try {
             'MAIL_FROM_NAME' => 'LatestDeal.in',
         ];
 
-        foreach ($defaults as $key => $val) {
-            if (!str_contains($env, "{$key}=")) {
-                $env .= "\n{$key}={$val}";
-                $modified = true;
+        foreach ($smtpSettings as $key => $val) {
+            if (preg_match("/^{$key}=.*/m", $env)) {
+                $env = preg_replace("/^{$key}=.*/m", "{$key}=\"{$val}\"", $env);
+            } else {
+                $env .= "\n{$key}=\"{$val}\"";
             }
+            $modified = true;
         }
 
         if (isset($_GET['smtp_pass'])) {
             $pass = $_GET['smtp_pass'];
-            if (str_contains($env, 'MAIL_PASSWORD=')) {
-                $env = preg_replace('/^MAIL_PASSWORD=.*/m', 'MAIL_PASSWORD=' . $pass, $env);
+            if (preg_match('/^MAIL_PASSWORD=.*/m', $env)) {
+                $env = preg_replace('/^MAIL_PASSWORD=.*/m', 'MAIL_PASSWORD="' . $pass . '"', $env);
             } else {
-                $env .= "\nMAIL_PASSWORD={$pass}";
+                $env .= "\nMAIL_PASSWORD=\"{$pass}\"";
             }
             $modified = true;
-            echo "SMTP Password set successfully.\n";
+            echo "SMTP Password updated in .env successfully.\n";
         }
 
         if ($modified) {
             file_put_contents($envFile, $env);
             \Illuminate\Support\Facades\Artisan::call('config:clear');
-            echo "ENV SMTP configuration updated.\n";
+            echo "ENV SMTP configuration updated to mail.latestdeal.in:465.\n";
         }
     }
 
