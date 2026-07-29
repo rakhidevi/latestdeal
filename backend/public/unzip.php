@@ -127,6 +127,7 @@ if ($return_var === 0) {
         exec(PHP_BINARY . " " . escapeshellarg($artisan) . " view:clear", $output);
         exec(PHP_BINARY . " " . escapeshellarg($artisan) . " cache:clear", $output);
         exec(PHP_BINARY . " " . escapeshellarg($artisan) . " migrate --force", $output);
+        exec(PHP_BINARY . " " . escapeshellarg($artisan) . " push:generate-vapid", $output);
         
         // Fix 403 error by ensuring public/storage is a fresh symlink
         $storageLink = __DIR__ . '/../public/storage';
