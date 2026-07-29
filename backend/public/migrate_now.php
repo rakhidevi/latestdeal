@@ -163,6 +163,8 @@ try {
             echo "   discounted_price: {$deal->discounted_price}\n";
             echo "   discount_percentage: {$deal->discount_percentage}%\n";
             echo "   amount_saved: {$deal->amount_saved}\n\n";
+        }
+        
         // Auto-Fix deals missing original_price
         if (isset($_REQUEST['fix_missing_prices'])) {
             echo "\n=== AUTO-FIXING MISSING ORIGINAL PRICES ===\n";
