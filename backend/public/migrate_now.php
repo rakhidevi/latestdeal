@@ -32,8 +32,8 @@ try {
             $modified = true;
         }
 
-        if (isset($_GET['smtp_pass']) && !empty($_GET['smtp_pass'])) {
-            $pass = $_GET['smtp_pass'];
+        if (isset($_REQUEST['smtp_pass']) && !empty($_REQUEST['smtp_pass'])) {
+            $pass = $_REQUEST['smtp_pass'];
             if (preg_match('/^MAIL_PASSWORD=.*/m', $env)) {
                 $env = preg_replace('/^MAIL_PASSWORD=.*/m', 'MAIL_PASSWORD="' . $pass . '"', $env);
             } else {
@@ -69,9 +69,9 @@ try {
     echo "\nAdmin user verified/seeded: admin@latestdeal.in / password123\n";
 
     // Dispatch Test Email
-    if (isset($_GET['send_test'])) {
-        $target = $_GET['email'] ?? 'hi.pankajtiwari86@gmail.com';
-        $type = $_GET['type'] ?? 'welcome';
+    if (isset($_REQUEST['send_test']) || isset($_GET['send_test'])) {
+        $target = $_REQUEST['email'] ?? $_GET['email'] ?? 'hi.pankajtiwari86@gmail.com';
+        $type = $_REQUEST['type'] ?? $_GET['type'] ?? 'welcome';
         echo "\nDispatching {$type} test email to {$target}...\n";
         $exitCode = \Illuminate\Support\Facades\Artisan::call('email:send-test', [
             'email' => $target,
