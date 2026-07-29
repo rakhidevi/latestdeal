@@ -118,7 +118,7 @@ def parse_telegram_message(message_text: str, ollama_url: str = "http://localhos
     
     try:
         response = llm_client.chat.completions.create(
-            model="qwen2.5-coder:7b", # fallback to llama3.1 if needed
+            model="qwen3-coder:latest", # fallback to llama3.1 if needed
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that outputs strictly in JSON format."},

@@ -4,7 +4,7 @@ import time
 
 print("Testing direct Ollama connection...")
 data = json.dumps({
-    "model": "llama3:latest",
+    "model": "qwen3-coder:latest",
     "prompt": "Say hello in exactly one word.",
     "stream": False
 }).encode('utf-8')

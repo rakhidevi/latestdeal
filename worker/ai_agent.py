@@ -14,8 +14,8 @@ class DealCaptionSchema(BaseModel):
     tags: List[str] = Field(default_factory=list, description="3-5 relevant tags for the deal (e.g. Electronics, Fashion)")
     ai_score: int = Field(description="Score this deal out of 100 based on price drop, brand value, and features. Be realistic (e.g., 75-99).")
 
-# The Fallback Chain - utilizing local Ollama models (like qwen2.5-coder or llama3)
-MODELS = ["qwen2.5-coder:7b", "llama3.1", "phi3"]
+# The Fallback Chain - utilizing local Ollama models (like qwen3-coder:latest or llama3)
+MODELS = ["qwen3-coder:latest", "llama3.1", "phi3"]
 
 def generate_caption(raw_data: dict, ollama_url: str = "http://localhost:11434") -> dict:
     """

@@ -57,7 +57,7 @@ async def calculate_value_score(title: str, deal_price: float, results: list) ->
     try:
         fallback_client = AsyncOpenAI(base_url=fallback_url, api_key="ollama")
         resp = await fallback_client.chat.completions.create(
-            model="llama3.1",
+            model="qwen3-coder:latest",
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that outputs strictly in JSON format."},

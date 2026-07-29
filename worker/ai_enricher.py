@@ -29,7 +29,7 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434") -> Deal:
         """
         
         response = client.chat.completions.create(
-            model="llama3.1",
+            model="qwen3-coder:latest",
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": "You output strictly valid JSON."},

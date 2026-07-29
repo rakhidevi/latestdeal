@@ -6,7 +6,7 @@ async def main():
     print("Initializing extraction strategy...")
     extraction_strategy = LLMExtractionStrategy(
         llm_config=LLMConfig(
-            provider="ollama/llama3", 
+            provider="ollama/qwen3-coder:latest", 
             api_token="no-token",
             base_url="http://localhost:11434"
         ),

@@ -2,7 +2,7 @@ from litellm import completion
 
 try:
     response = completion(
-        model="ollama/llama3:latest",
+        model="ollama/qwen3-coder:latest",
         messages=[{"role": "user", "content": "Hello"}],
         api_base="http://localhost:11434"
     )

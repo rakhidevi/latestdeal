@@ -68,9 +68,9 @@ def verify_doc(doc_path):
     
     print("Thinking (sending to Ollama)...")
     
-    # We use llama3 or whichever default model is available
+    # We use qwen3-coder:latest or whichever default model is available
     payload = {
-        "model": "llama3",
+        "model": "qwen3-coder:latest",
         "prompt": prompt,
         "stream": False
     }
