@@ -104,8 +104,36 @@ try {
         echo "Artisan Result (Exit Code {$exitCode}):\n" . \Illuminate\Support\Facades\Artisan::output() . "\n";
     }
 
-    // Debug deal images
+    // Debug deal images & data quality
     if (isset($_REQUEST['debug_deals'])) {
+        $total = \App\Models\Deal::where('status', 'active')->count();
+        $missingOrigPrice = \App\Models\Deal::where('status', 'active')
+            ->where(function($q) { $q->whereNull('original_price')->orWhere('original_price', 0); })->count();
+        $missingDiscPrice = \App\Models\Deal::where('status', 'active')
+            ->where(function($q) { $q->whereNull('discounted_price')->orWhere('discounted_price', 0); })->count();
+        $missingDiscount = \App\Models\Deal::where('status', 'active')
+            ->where(function($q) { $q->whereNull('discount_percentage')->orWhere('discount_percentage', 0); })->count();
+        $missingImage = \App\Models\Deal::where('status', 'active')
+            ->where(function($q) { $q->whereNull('image_path')->orWhere('image_path', ''); })->count();
+
+        echo "\n\n=== DATA QUALITY AUDIT ===\n";
+        echo "Total active deals: {$total}\n";
+        echo "Missing original_price: {$missingOrigPrice} (" . ($total > 0 ? round($missingOrigPrice/$total*100) : 0) . "%)\n";
+        echo "Missing discounted_price: {$missingDiscPrice} (" . ($total > 0 ? round($missingDiscPrice/$total*100) : 0) . "%)\n";
+        echo "Missing discount_percentage: {$missingDiscount} (" . ($total > 0 ? round($missingDiscount/$total*100) : 0) . "%)\n";
+        echo "Missing image_path: {$missingImage} (" . ($total > 0 ? round($missingImage/$total*100) : 0) . "%)\n";
+
+        // Show some deals missing original_price
+        echo "\n--- Deals missing original_price (first 5) ---\n";
+        $broken = \App\Models\Deal::where('status', 'active')
+            ->where(function($q) { $q->whereNull('original_price')->orWhere('original_price', 0); })
+            ->limit(5)->get();
+        foreach ($broken as $d) {
+            echo "  ID {$d->id}: {$d->title}\n";
+            echo "    discounted_price: {$d->discounted_price}, original_price: {$d->original_price}, discount_pct: {$d->discount_percentage}\n";
+        }
+
+        // Top 6 deals by discount
         $deals = \App\Models\Deal::where('status', 'active')
             ->whereNotNull('image_path')
             ->where('image_path', '!=', '')
@@ -115,7 +143,7 @@ try {
             ->limit(6)
             ->get();
 
-        echo "\n\n=== DEAL IMAGE DEBUG (Top 6 by discount) ===\n";
+        echo "\n\n=== TOP 6 DEALS BY DISCOUNT ===\n";
         echo "APP_URL: " . config('app.url') . "\n\n";
         foreach ($deals as $i => $deal) {
             echo ($i+1) . ". {$deal->title}\n";
@@ -123,10 +151,11 @@ try {
             echo "   image_url (computed): {$deal->image_url}\n";
             $rawPath = $deal->getRawOriginal('image_path') ?? '';
             $cleanPath = ltrim($rawPath, '/');
-            echo "   public_path exists: " . (file_exists(public_path($cleanPath)) ? 'YES' : 'NO') . " (" . public_path($cleanPath) . ")\n";
-            echo "   storage_path exists: " . (file_exists(storage_path('app/public/' . $cleanPath)) ? 'YES' : 'NO') . "\n";
-            echo "   discount: {$deal->discount_percentage}%\n";
-            echo "   price: ₹{$deal->discounted_price} (MRP ₹{$deal->original_price})\n\n";
+            echo "   public_path exists: " . (file_exists(public_path($cleanPath)) ? 'YES' : 'NO') . "\n";
+            echo "   original_price: {$deal->original_price}\n";
+            echo "   discounted_price: {$deal->discounted_price}\n";
+            echo "   discount_percentage: {$deal->discount_percentage}%\n";
+            echo "   amount_saved: {$deal->amount_saved}\n\n";
         }
     }
 
