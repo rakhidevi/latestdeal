@@ -163,6 +163,70 @@ try {
             echo "   discounted_price: {$deal->discounted_price}\n";
             echo "   discount_percentage: {$deal->discount_percentage}%\n";
             echo "   amount_saved: {$deal->amount_saved}\n\n";
+        // Auto-Fix deals missing original_price
+        if (isset($_REQUEST['fix_missing_prices'])) {
+            echo "\n=== AUTO-FIXING MISSING ORIGINAL PRICES ===\n";
+            $brokenDeals = \App\Models\Deal::where('status', 'active')
+                ->where(function($q) { $q->whereNull('original_price')->orWhere('original_price', 0); })
+                ->limit(10)->get();
+            
+            $controller = new \App\Http\Controllers\Api\PriceUpdateController();
+            
+            foreach ($brokenDeals as $d) {
+                echo "Fixing Deal ID {$d->id} ({$d->title})...\n";
+                if ($d->url) {
+                    try {
+                        $userAgents = [
+                            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+                        ];
+                        $response = \Illuminate\Support\Facades\Http::withHeaders([
+                            'User-Agent' => $userAgents[array_rand($userAgents)],
+                            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                        ])->timeout(10)->get($d->url);
+
+                        if ($response->successful()) {
+                            $html = $response->body();
+                            
+                            // Use reflection to call the private parse method
+                            $reflection = new \ReflectionClass($controller);
+                            $method = $reflection->getMethod('parseAmazonPriceAndMrp');
+                            $method->setAccessible(true);
+                            $prices = $method->invokeArgs($controller, [$html]);
+                            
+                            $newDiscount = $prices[0];
+                            $newOriginal = $prices[1];
+                            
+                            echo "  -> Found Live: Discounted: {$newDiscount}, Original: {$newOriginal}\n";
+                            
+                            if ($newOriginal && $newOriginal > 0) {
+                                $d->original_price = $newOriginal;
+                                $d->save();
+                                echo "  -> ✅ UPDATED original_price to {$newOriginal}\n";
+                            } else {
+                                // Hardcode fix for known deals if regex fails
+                                if (str_contains($d->title, 'Walking Pad')) {
+                                    $d->original_price = 79990;
+                                    $d->save();
+                                    echo "  -> ✅ HARDCODED original_price to 79990\n";
+                                } elseif (str_contains($d->title, 'ECOFLOW RIVER 2 Pro')) {
+                                    $d->original_price = 109999;
+                                    $d->save();
+                                    echo "  -> ✅ HARDCODED original_price to 109999\n";
+                                } elseif (str_contains($d->title, 'ECOFLOW DELTA 2')) {
+                                    $d->original_price = 159999;
+                                    $d->save();
+                                    echo "  -> ✅ HARDCODED original_price to 159999\n";
+                                } else {
+                                    echo "  -> ❌ Still couldn't find original price\n";
+                                }
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        echo "  -> ERROR: " . $e->getMessage() . "\n";
+                    }
+                }
+            }
         }
     }
 
