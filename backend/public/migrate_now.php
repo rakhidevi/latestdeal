@@ -9,6 +9,47 @@ $response = $kernel->handle(
 
 header('Content-Type: text/plain');
 try {
+    // 1. Ensure SMTP Configuration in .env
+    $envFile = base_path('.env');
+    if (file_exists($envFile)) {
+        $env = file_get_contents($envFile);
+        $modified = false;
+
+        $defaults = [
+            'MAIL_MAILER' => 'smtp',
+            'MAIL_HOST' => 'mail.latestdeal.in',
+            'MAIL_PORT' => '465',
+            'MAIL_SCHEME' => 'ssl',
+            'MAIL_USERNAME' => 'info-noreply@latestdeal.in',
+            'MAIL_FROM_ADDRESS' => 'info-noreply@latestdeal.in',
+            'MAIL_FROM_NAME' => 'LatestDeal.in',
+        ];
+
+        foreach ($defaults as $key => $val) {
+            if (!str_contains($env, "{$key}=")) {
+                $env .= "\n{$key}={$val}";
+                $modified = true;
+            }
+        }
+
+        if (isset($_GET['smtp_pass'])) {
+            $pass = $_GET['smtp_pass'];
+            if (str_contains($env, 'MAIL_PASSWORD=')) {
+                $env = preg_replace('/^MAIL_PASSWORD=.*/m', 'MAIL_PASSWORD=' . $pass, $env);
+            } else {
+                $env .= "\nMAIL_PASSWORD={$pass}";
+            }
+            $modified = true;
+            echo "SMTP Password set successfully.\n";
+        }
+
+        if ($modified) {
+            file_put_contents($envFile, $env);
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            echo "ENV SMTP configuration updated.\n";
+        }
+    }
+
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     echo "Migrations ran successfully:\n";
     echo \Illuminate\Support\Facades\Artisan::output();
@@ -28,6 +69,14 @@ try {
     $u->save();
     echo "\nAdmin user verified/seeded: admin@latestdeal.in / password123\n";
 
+    // Optional test email dispatcher
+    if (isset($_GET['send_test'])) {
+        $target = $_GET['email'] ?? 'hi.pankajtiwari86@gmail.com';
+        $type = $_GET['type'] ?? 'welcome';
+        \Illuminate\Support\Facades\Artisan::call('email:send-test', ['email' => $target, '--type' => $type]);
+        echo "\nTest Email Dispatch Output:\n" . \Illuminate\Support\Facades\Artisan::output();
+    }
+
 } catch (\Exception $e) {
-    echo "Error running migrations: " . $e->getMessage();
+    echo "Error running runner script: " . $e->getMessage();
 }
