@@ -14,11 +14,16 @@ try {
         $env = file_get_contents($envFile);
         $modified = false;
 
+        $host = $_REQUEST['set_host'] ?? '127.0.0.1';
+        $port = $_REQUEST['set_port'] ?? '465';
+        $scheme = $_REQUEST['set_scheme'] ?? 'smtps';
+        $mailer = $_REQUEST['set_mailer'] ?? 'smtp';
+
         $smtpSettings = [
-            'MAIL_MAILER' => 'smtp',
-            'MAIL_HOST' => 'mail.latestdeal.in',
-            'MAIL_PORT' => '465',
-            'MAIL_SCHEME' => 'smtps',
+            'MAIL_MAILER' => $mailer,
+            'MAIL_HOST' => $host,
+            'MAIL_PORT' => $port,
+            'MAIL_SCHEME' => $scheme,
             'MAIL_USERNAME' => 'info-noreply@latestdeal.in',
             'MAIL_FROM_ADDRESS' => 'info-noreply@latestdeal.in',
             'MAIL_FROM_NAME' => 'LatestDeal.in',
@@ -78,14 +83,14 @@ try {
         $type = $_REQUEST['type'] ?? $_GET['type'] ?? 'welcome';
         echo "\nDispatching {$type} test email to {$target}...\n";
         
-        $host = config('mail.mailers.smtp.host');
-        $port = config('mail.mailers.smtp.port');
-        echo "Testing TCP Socket connection to {$host}:{$port}...\n";
-        $fp = @fsockopen($host, $port, $errno, $errstr, 5);
+        $h = config('mail.mailers.smtp.host');
+        $p = config('mail.mailers.smtp.port');
+        echo "Testing TCP Socket connection to {$h}:{$p}...\n";
+        $fp = @fsockopen($h, $p, $errno, $errstr, 5);
         if (!$fp) {
-            echo "FAILED TCP SOCKET CONNECT to {$host}:{$port} -> Error #{$errno}: {$errstr}\n";
+            echo "FAILED TCP SOCKET CONNECT to {$h}:{$p} -> Error #{$errno}: {$errstr}\n";
         } else {
-            echo "SUCCESSFUL TCP SOCKET CONNECT to {$host}:{$port}!\n";
+            echo "SUCCESSFUL TCP SOCKET CONNECT to {$h}:{$p}!\n";
             fclose($fp);
         }
 
