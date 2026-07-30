@@ -422,6 +422,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/social-accounts', [\App\Http\Controllers\AdminController::class, 'storeSocialAccount'])->name('admin.social-accounts.store');
     Route::delete('/social-accounts/{socialAccount}', [\App\Http\Controllers\AdminController::class, 'deleteSocialAccount'])->name('admin.social-accounts.delete');
     Route::put('/social-accounts/{socialAccount}/toggle', [\App\Http\Controllers\AdminController::class, 'toggleSocialAccount'])->name('admin.social-accounts.toggle');
+
+    // Marketing Center
+    Route::prefix('marketing')->name('admin.marketing.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\MarketingController::class, 'dashboard'])->name('dashboard');
+        Route::get('/campaigns', [\App\Http\Controllers\Admin\MarketingController::class, 'campaigns'])->name('campaigns');
+        Route::get('/settings', [\App\Http\Controllers\Admin\MarketingController::class, 'settings'])->name('settings');
+    });
 });
 
 // Setup Route for initializing SQLite Database on Server
@@ -432,6 +439,13 @@ Route::get('/setup-db', function () {
     }
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     return 'Database initialized and migrated successfully!';
+});
+
+Route::get('/generate-events', function() {
+    require base_path('generate_events.php');
+    require base_path('generate_services.php');
+    require base_path('generate_livewire.php');
+    return "Events, Services & Livewire Generated!";
 });
 Route::get("/run-queue", function () { try { $exitCode = \Illuminate\Support\Facades\Artisan::call("queue:work", ["--stop-when-empty" => true]); return "Queue executed. Exit code: " . $exitCode . "<br>Output:<br><pre>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>"; } catch (\Exception $e) { return "Error: " . $e->getMessage(); } });
 Route::get("/debug-failed-jobs", function () { 
