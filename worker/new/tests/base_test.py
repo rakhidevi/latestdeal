@@ -1,3 +1,4 @@
+import os
 import unittest
 from abc import ABC, abstractmethod
 
@@ -19,6 +20,7 @@ class ProviderTestSuite(ABC, unittest.TestCase):
         self.provider.initialize()
         self.url = self.get_test_url()
 
+    @unittest.skipIf(os.environ.get("CI"), "Requires live network and Ollama")
     def test_lifecycle(self):
         """Runs the entire 8-step lifecycle and asserts contracts."""
         # 1. Health check
