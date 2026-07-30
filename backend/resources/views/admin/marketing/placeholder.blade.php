@@ -99,5 +99,6 @@
         </div>
     @else
         <!-- Removed generic Action 1 and Action 2 dummy buttons -->
+    @endif
 </div>
 @endsection
