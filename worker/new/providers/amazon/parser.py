@@ -9,6 +9,9 @@ class AmazonParser:
         # 1. Product Title
         title = ""
         title_tag = soup.find(id="productTitle") or soup.find(id="title")
+        if not title_tag:
+            title_tag = soup.select_one(".product-title-word-break")
+            
         if title_tag:
             title = title_tag.get_text(strip=True)
         if not title and soup.title:
