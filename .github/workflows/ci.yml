@@ -64,7 +64,7 @@ jobs:
       - name: Run Tests
         run: |
           cd worker
-          pytest
+          PYTHONPATH=.. pytest
 
   extension-build:
     name: Chrome Extension Check
