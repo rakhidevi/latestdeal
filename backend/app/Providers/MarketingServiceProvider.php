@@ -13,7 +13,7 @@ class MarketingServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        ->app->bind(QueueProviderInterface::class, function () {
+        $this->app->bind(QueueProviderInterface::class, function () {
             // Fallback to database for now.
             return new DatabaseQueueProvider();
         });
