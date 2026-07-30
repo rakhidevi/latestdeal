@@ -1,64 +1,50 @@
-<div wire:poll.5s>
-    <div class="mb-6 flex items-center justify-between">
-        <h3 class="text-lg font-bold text-gray-800">Queue Infrastructure</h3>
+<div wire:poll.10s>
+    <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-slate-800">Queue Monitor</h3>
+        <span class="text-xs text-slate-400">Updates every 10s</span>
     </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-            <div class="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Workers Online</div>
-            <div class="text-2xl font-semibold text-green-600">{{ $metrics->workers }}</div>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-            <div class="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Failed Jobs</div>
-            <div class="text-2xl font-semibold {{ $metrics->failedJobs > 0 ? 'text-red-600' : 'text-gray-800' }}">
-                {{ number_format($metrics->failedJobs) }}
+    <div class="space-y-3">
+        <div class="flex items-center justify-between p-4 bg-white/80 rounded-xl border border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center">
+                    <i data-lucide="inbox" class="w-4 h-4 text-yellow-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-slate-700">All Queued Jobs</p>
+                    <p class="text-xs text-slate-400">Waiting to process</p>
+                </div>
             </div>
+            <span class="text-xl font-black {{ $metrics['jobs_waiting'] > 0 ? 'text-yellow-600' : 'text-green-600' }}">
+                {{ $metrics['jobs_waiting'] }}
+            </span>
         </div>
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-            <div class="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Throughput / min</div>
-            <div class="text-2xl font-semibold text-gray-800">{{ number_format($metrics->throughput) }}</div>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-            <div class="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Oldest Pending</div>
-            <div class="text-xl font-semibold text-gray-800">
-                @if($metrics->oldestPending)
-                    {{ \Carbon\Carbon::createFromTimestamp($metrics->oldestPending)->diffForHumans() }}
-                @else
-                    None
-                @endif
+
+        <div class="flex items-center justify-between p-4 bg-white/80 rounded-xl border border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-slate-700">Failed Jobs</p>
+                    <p class="text-xs text-slate-400">Requires manual retry</p>
+                </div>
             </div>
+            <span class="text-xl font-black {{ $metrics['jobs_failed'] > 0 ? 'text-red-600' : 'text-green-600' }}">
+                {{ $metrics['jobs_failed'] }}
+            </span>
         </div>
-    </div>
-    
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h4 class="text-sm font-semibold text-gray-700">Active Queues</h4>
+
+        <div class="flex items-center justify-between p-4 bg-white/80 rounded-xl border border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <i data-lucide="mail" class="w-4 h-4 text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-slate-700">Marketing Email Queue</p>
+                    <p class="text-xs text-slate-400">marketing_emails channel</p>
+                </div>
+            </div>
+            <span class="text-xl font-black text-slate-700">{{ $metrics['marketing_jobs'] }}</span>
         </div>
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queue Name</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                @forelse($metrics->queues as $queueName => $queueData)
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $queueName }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ number_format($queueData['size']) }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            {{ ucfirst($queueData['status']) }}
-                        </span>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No active queues found.</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
     </div>
 </div>

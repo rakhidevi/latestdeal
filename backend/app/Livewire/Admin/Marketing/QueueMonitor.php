@@ -3,19 +3,24 @@
 namespace App\Livewire\Admin\Marketing;
 
 use Livewire\Component;
-use App\Services\Marketing\QueueMonitorService;
 use App\Livewire\Traits\AuthorizesMarketing;
+use Illuminate\Support\Facades\DB;
 
 class QueueMonitor extends Component
 {
     use AuthorizesMarketing;
 
-    public function render(QueueMonitorService $queueMonitorService)
+    public function render()
     {
         $this->authorizeMarketing('marketing.queue.view');
-        
-        return view('livewire.admin.marketing.queue-monitor', [
-            'metrics' => $queueMonitorService->getMetrics()
-        ]);
+
+        $metrics = [
+            'jobs_waiting'    => DB::table('jobs')->count(),
+            'jobs_failed'     => DB::table('failed_jobs')->count(),
+            'marketing_jobs'  => DB::table('jobs')->where('queue', 'marketing_emails')->count(),
+            'default_jobs'    => DB::table('jobs')->where('queue', 'default')->count(),
+        ];
+
+        return view('livewire.admin.marketing.queue-monitor', compact('metrics'));
     }
 }
