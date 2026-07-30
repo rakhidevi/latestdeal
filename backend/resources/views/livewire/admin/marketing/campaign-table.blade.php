@@ -140,12 +140,12 @@
                                 <h3 class="text-lg font-bold text-slate-800 mb-1">No campaigns found</h3>
                                 <p class="text-sm text-slate-500 mb-6">Create your first campaign to start engaging with your audience.</p>
                                 <div class="flex items-center justify-center gap-3">
-                                    <button class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors shadow-sm">
+                                    <button onclick="alert('The Campaign Creation Wizard will open in the next sprint.')" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors shadow-sm">
                                         Create Campaign
                                     </button>
-                                    <button class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                                    <a href="{{ route('admin.marketing.templates') }}" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
                                         Browse Templates
-                                    </button>
+                                    </a>
                                 </div>
                             </td>
                         </tr>

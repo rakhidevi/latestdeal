@@ -429,7 +429,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/campaigns', [\App\Http\Controllers\Admin\MarketingController::class, 'campaigns'])->name('campaigns');
         
         // Modules (Placeholders for now)
-        Route::get('/templates', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'templates')->name('templates');
+        Route::get('/templates', \App\Livewire\Admin\Marketing\TemplateLibrary::class)->name('templates');
         Route::get('/themes', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'themes')->name('themes');
         Route::get('/assets', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'assets')->name('assets');
         Route::get('/subscribers', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'subscribers')->name('subscribers');
