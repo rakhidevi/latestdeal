@@ -27,7 +27,7 @@ jobs:
       - name: Install Composer Dependencies
         run: |
           cd backend
-          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+          composer update --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
       - name: Zip Application
         run: |
