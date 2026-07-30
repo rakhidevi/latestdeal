@@ -2,12 +2,13 @@
 
 namespace App\Livewire\Traits;
 
-use Illuminate\Support\Facades\Gate;
-
 trait AuthorizesMarketing
 {
-    public function authorizeMarketing(string ): void
+    public function authorizeMarketing(string $ability): void
     {
-        abort_if(Gate::denies(), 403, \'Unauthorized action.\');
+        // Only admins can access marketing features (role check)
+        if (auth()->user()?->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
     }
 }
