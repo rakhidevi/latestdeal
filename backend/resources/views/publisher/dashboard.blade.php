@@ -108,7 +108,7 @@
     <div class="bg-white shadow sm:rounded-lg border mb-8" x-data="{ 
             rawUrl: '', 
             generatedUrl: '', 
-            tag: '{{ $integrations->first()->affiliate_tag ?? '' }}',
+            tag: '{{ $integrations->first()?->affiliate_tag ?? '' }}',
             generate() {
                 if(!this.rawUrl || !this.tag) return;
                 try {
@@ -193,7 +193,7 @@
                                     </p>
                                     <p class="text-sm text-gray-500">
                                         Min Discount: <span class="font-bold">{{ $rule->min_discount }}%</span> | 
-                                        Category: <span class="font-bold">{{ $rule->category_id ? $categories->firstWhere('id', $rule->category_id)->name : 'Any' }}</span>
+                                        Category: <span class="font-bold">{{ $rule->category_id ? $categories->firstWhere('id', $rule->category_id)?->name : 'Any' }}</span>
                                     </p>
                                 </div>
                                 <div>
