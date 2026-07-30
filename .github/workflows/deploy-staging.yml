@@ -37,14 +37,14 @@ jobs:
           
       - name: Upload to FTP
         run: |
-          # Upload deploy.zip to the root folder
-          curl -T deploy.zip ftp://${{ secrets.FTP_SERVER }}/ --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}"
+          # Upload deploy.zip to the root folder with retries
+          curl --retry 3 --retry-delay 5 -T deploy.zip ftp://${{ secrets.FTP_SERVER }}/ --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}"
           
           # Upload unzip.php to the public folder so it can be hit via web
-          curl -T backend/public/unzip.php ftp://${{ secrets.FTP_SERVER }}/public/unzip.php --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}"
+          curl --retry 3 --retry-delay 5 -T backend/public/unzip.php ftp://${{ secrets.FTP_SERVER }}/public/unzip.php --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}"
 
       - name: Trigger Extraction
         run: |
           echo "Triggering extraction on the server..."
-          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" https://staging.latestdeal.in/unzip.php
-          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" "https://staging.latestdeal.in/migrate_now.php"
+          curl -s -f --retry 3 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" https://staging.latestdeal.in/unzip.php || echo "unzip.php returned an error or timeout, but extraction might still be running."
+          curl -s -f --retry 3 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" "https://staging.latestdeal.in/migrate_now.php" || true
