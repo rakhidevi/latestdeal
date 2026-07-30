@@ -30,8 +30,8 @@
                 <select class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white"><option>All Categories</option></select>
             </div>
             <div class="flex items-center gap-2">
-                <button class="px-3 py-1.5 border border-slate-300 bg-white rounded-lg text-sm font-medium">Import HTML</button>
-                <button class="px-3 py-1.5 border border-slate-300 bg-white rounded-lg text-sm font-medium">Import MJML</button>
+                <button onclick="alert('This feature will be available in the next sprint.')" class="px-3 py-1.5 border border-slate-300 bg-white rounded-lg text-sm font-medium">Import HTML</button>
+                <button onclick="alert('This feature will be available in the next sprint.')" class="px-3 py-1.5 border border-slate-300 bg-white rounded-lg text-sm font-medium">Import MJML</button>
             </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto text-left">
@@ -67,7 +67,7 @@
             <div class="col-span-3 text-left bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                     <span class="font-semibold text-slate-700">Subscribers & Statistics</span>
-                    <button class="px-3 py-1.5 text-sm bg-red-50 text-red-600 font-medium rounded-lg">Import CSV</button>
+                    <button onclick="alert('This feature will be available in the next sprint.')" class="px-3 py-1.5 text-sm bg-red-50 text-red-600 font-medium rounded-lg">Import CSV</button>
                 </div>
                 <div class="p-12 text-center text-slate-400">
                     <i data-lucide="table" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
@@ -98,14 +98,6 @@
             </div>
         </div>
     @else
-        <div class="inline-flex gap-4">
-            <button class="px-6 py-2.5 bg-slate-800 text-white font-medium rounded-xl opacity-50 cursor-not-allowed">
-                Action 1
-            </button>
-            <button class="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 font-medium rounded-xl opacity-50 cursor-not-allowed">
-                Action 2
-            </button>
-        </div>
-    @endif
+        <!-- Removed generic Action 1 and Action 2 dummy buttons -->
 </div>
 @endsection

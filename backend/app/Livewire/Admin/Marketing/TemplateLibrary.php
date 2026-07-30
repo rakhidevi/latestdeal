@@ -74,6 +74,6 @@ class TemplateLibrary extends Component
         return view('livewire.admin.marketing.template-library', [
             'categories' => $this->getCategories(),
             'templates' => $this->getTemplates()
-        ]);
+        ])->layout('admin.layout');
     }
 }
