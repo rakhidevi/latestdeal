@@ -17,12 +17,12 @@ class CampaignTable extends Component
 
     // Search & Filters
     public string $search = '';
+    public string $tab = 'all'; // all, draft, scheduled, sending, completed, archived
+
     public array $filters = [
-        'status' => '',
         'queue' => '',
         'provider' => '',
         'hasFailures' => false,
-        'scheduledToday' => false,
     ];
 
     // Bulk Actions
@@ -52,6 +52,13 @@ class CampaignTable extends Component
     protected function buildQuery()
     {
         return EmailCampaign::query()
+            ->when($this->tab !== 'all', function ($q) {
+                if ($this->tab === 'draft') $q->whereIn('status', ['Draft', 'draft']);
+                if ($this->tab === 'scheduled') $q->whereIn('status', ['Scheduled', 'scheduled']);
+                if ($this->tab === 'sending') $q->whereIn('status', ['Sending', 'sending', 'Queued', 'queued']);
+                if ($this->tab === 'completed') $q->whereIn('status', ['Completed', 'completed', 'Sent', 'sent']);
+                if ($this->tab === 'archived') $q->whereIn('status', ['Archived', 'archived', 'Cancelled', 'cancelled']);
+            })
             ->when($this->search, function ($query) {
                 $query->where(function($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
@@ -59,11 +66,9 @@ class CampaignTable extends Component
                       ->orWhere('id', 'like', '%' . $this->search . '%');
                 });
             })
-            ->when($this->filters['status'], fn($q, $status) => $q->where('status', $status))
             ->when($this->filters['queue'], fn($q, $queue) => $q->where('queue', $queue))
             ->when($this->filters['provider'], fn($q, $provider) => $q->where('provider', $provider))
             ->when($this->filters['hasFailures'], fn($q) => $q->where('failed_count', '>', 0))
-            ->when($this->filters['scheduledToday'], fn($q) => $q->whereDate('scheduled_at', today()))
             ->orderBy('created_at', 'desc');
     }
 

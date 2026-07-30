@@ -427,6 +427,22 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::prefix('marketing')->name('admin.marketing.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\MarketingController::class, 'dashboard'])->name('dashboard');
         Route::get('/campaigns', [\App\Http\Controllers\Admin\MarketingController::class, 'campaigns'])->name('campaigns');
+        
+        // Modules (Placeholders for now)
+        Route::get('/templates', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'templates')->name('templates');
+        Route::get('/themes', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'themes')->name('themes');
+        Route::get('/assets', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'assets')->name('assets');
+        Route::get('/subscribers', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'subscribers')->name('subscribers');
+        Route::get('/segments', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'segments')->name('segments');
+        Route::get('/analytics', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'analytics')->name('analytics');
+        Route::get('/preview-center', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'preview-center')->name('preview-center');
+        
+        // Operations
+        Route::get('/health', \App\Livewire\Admin\Marketing\HealthCenter::class)->name('health');
+        Route::get('/queue', \App\Livewire\Admin\Marketing\QueueMonitor::class)->name('queue');
+        Route::get('/timeline', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'activity-timeline')->name('timeline');
+        Route::get('/audit', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'audit-logs')->name('audit');
+        
         Route::get('/settings', [\App\Http\Controllers\Admin\MarketingController::class, 'settings'])->name('settings');
     });
 });

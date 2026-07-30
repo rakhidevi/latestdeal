@@ -40,4 +40,10 @@ class MarketingController extends Controller
         $settings = Setting::all()->groupBy('category');
         return view('admin.marketing.settings', compact('settings'));
     }
+
+    public function placeholder($module)
+    {
+        $moduleName = ucwords(str_replace('-', ' ', $module));
+        return view('admin.marketing.placeholder', compact('moduleName'));
+    }
 }
