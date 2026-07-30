@@ -47,6 +47,10 @@ class HealthCenter extends Component
         $metrics['disk_percentage'] = $diskPercentage;
         $metrics['disk_status'] = $diskPercentage > 90 ? 'warning' : 'healthy';
 
+        // Queue & Scheduler
+        $metrics['queue_status'] = DB::table('jobs')->count() > 1000 ? 'warning' : 'healthy'; // Placeholder check
+        $metrics['scheduler_status'] = Cache::has('illuminate:schedule:maintenance') ? 'paused' : 'healthy';
+
         return view('livewire.admin.marketing.health-center', compact('metrics'))
             ->extends('admin.layout')
             ->section('content');

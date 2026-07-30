@@ -46,22 +46,46 @@
                 <x-status-badge :status="$metrics['storage_status']" />
             </div>
 
-            <!-- Disk Space -->
-            <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex items-start justify-between">
-                <div class="w-full">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                            <i data-lucide="pie-chart" class="w-4 h-4"></i>
-                        </div>
-                        <x-status-badge :status="$metrics['disk_status']" />
+        <!-- Disk Space -->
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex items-start justify-between">
+            <div class="w-full">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                        <i data-lucide="pie-chart" class="w-4 h-4"></i>
                     </div>
-                    <h4 class="font-bold text-slate-800">Disk Space</h4>
-                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
-                        <div class="h-full rounded-full {{ $metrics['disk_percentage'] > 90 ? 'bg-red-500' : 'bg-purple-500' }}" style="width: {{ $metrics['disk_percentage'] }}%"></div>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-1.5">{{ $metrics['disk_percentage'] }}% used</p>
+                    <x-status-badge :status="$metrics['disk_status']" />
                 </div>
+                <h4 class="font-bold text-slate-800">Disk Space</h4>
+                <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                    <div class="h-full rounded-full {{ $metrics['disk_percentage'] > 90 ? 'bg-red-500' : 'bg-purple-500' }}" style="width: {{ $metrics['disk_percentage'] }}%"></div>
+                </div>
+                <p class="text-xs text-slate-500 mt-1.5">{{ $metrics['disk_percentage'] }}% used</p>
             </div>
+        </div>
+
+        <!-- Queue -->
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex items-start justify-between">
+            <div>
+                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3">
+                    <i data-lucide="list-ordered" class="w-4 h-4"></i>
+                </div>
+                <h4 class="font-bold text-slate-800">Queue</h4>
+                <p class="text-xs text-slate-500 mt-0.5">Background Workers</p>
+            </div>
+            <x-status-badge :status="$metrics['queue_status']" />
+        </div>
+
+        <!-- Scheduler -->
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex items-start justify-between">
+            <div>
+                <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center mb-3">
+                    <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+                </div>
+                <h4 class="font-bold text-slate-800">Scheduler</h4>
+                <p class="text-xs text-slate-500 mt-0.5">Cron Automation</p>
+            </div>
+            <x-status-badge :status="$metrics['scheduler_status']" />
+        </div>
 
         </div>
     </div>
