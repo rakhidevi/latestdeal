@@ -6,12 +6,12 @@
             <p class="text-sm text-slate-500 mt-1">Manage and monitor all omnichannel broadcasts.</p>
         </div>
         <div class="flex gap-2">
-            <button class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+            <button onclick="alert('Template Import will be available in the next sprint.')" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
                 Import Template
             </button>
-            <a href="{{ route('admin.marketing.campaigns') }}" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2">
+            <button onclick="alert('The Campaign Creation Wizard will open in the next sprint.')" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2">
                 <i data-lucide="plus" class="w-4 h-4"></i> Create Campaign
-            </a>
+            </button>
         </div>
     </div>
 

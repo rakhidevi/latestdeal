@@ -6,10 +6,10 @@
             <p class="text-sm text-slate-500 mt-1">Choose from 20+ predesigned responsive templates or build your own.</p>
         </div>
         <div class="flex gap-2">
-            <button class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
+            <button onclick="alert('The Custom HTML Editor will be available in the next sprint.')" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
                 <i data-lucide="code" class="w-4 h-4"></i> Custom HTML
             </button>
-            <button class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2">
+            <button onclick="alert('The Visual Template Builder will be available in the next sprint.')" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2">
                 <i data-lucide="plus" class="w-4 h-4"></i> New Template
             </button>
         </div>
@@ -50,7 +50,7 @@
                         <button wire:click="selectTemplate({{ $template['id'] }})" class="px-5 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
                             Use Template
                         </button>
-                        <button class="px-5 py-2 bg-white text-slate-800 text-sm font-bold rounded-lg hover:bg-slate-50 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75">
+                        <button onclick="alert('Preview mode will be available in the next sprint.')" class="px-5 py-2 bg-white text-slate-800 text-sm font-bold rounded-lg hover:bg-slate-50 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75">
                             Preview
                         </button>
                     </div>
