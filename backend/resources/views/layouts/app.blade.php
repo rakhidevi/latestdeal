@@ -689,10 +689,17 @@
           </a>
           
           @auth
-            <a href="{{ route('shopper.dashboard') }}" class="btn-primary flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                Dashboard
-            </a>
+            @if(auth()->user()->role === 'admin')
+                <a href="{{ route('admin.dashboard') }}" class="btn-primary flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all bg-indigo-600 hover:bg-indigo-700">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Admin Panel
+                </a>
+            @else
+                <a href="{{ route('shopper.dashboard') }}" class="btn-primary flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    Dashboard
+                </a>
+            @endif
           @else
             <a href="{{ route('shopper.login') }}" class="btn-primary flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all whitespace-nowrap">
                 <svg class="w-[13.5px] h-[13.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4" stroke-width="2"/></svg>
@@ -939,9 +946,15 @@
         <!-- Auth CTA -->
         <div class="pt-3 border-t border-gray-100 dark:border-slate-800">
             @auth
-              <a href="{{ route('shopper.dashboard') }}" class="btn-primary w-full text-center flex items-center justify-center gap-2 shadow-lg text-sm">
-                  Dashboard
-              </a>
+              @if(auth()->user()->role === 'admin')
+                  <a href="{{ route('admin.dashboard') }}" class="btn-primary w-full text-center flex items-center justify-center gap-2 shadow-lg text-sm bg-indigo-600 hover:bg-indigo-700">
+                      Admin Panel
+                  </a>
+              @else
+                  <a href="{{ route('shopper.dashboard') }}" class="btn-primary w-full text-center flex items-center justify-center gap-2 shadow-lg text-sm">
+                      Dashboard
+                  </a>
+              @endif
             @else
               <a href="{{ route('shopper.login') }}" class="btn-primary w-full text-center flex items-center justify-center gap-2 shadow-lg text-sm">
                   Login / Signup
@@ -970,10 +983,17 @@
             <span>Brands</span>
         </a>
         @auth
-        <a href="{{ route('shopper.dashboard') }}" class="flex flex-col items-center gap-1 hover:text-red-600 transition">
-            <span class="text-lg">👤</span>
-            <span>Account</span>
-        </a>
+            @if(auth()->user()->role === 'admin')
+            <a href="{{ route('admin.dashboard') }}" class="flex flex-col items-center gap-1 hover:text-indigo-600 transition text-indigo-600">
+                <span class="text-lg">⚙️</span>
+                <span>Admin</span>
+            </a>
+            @else
+            <a href="{{ route('shopper.dashboard') }}" class="flex flex-col items-center gap-1 hover:text-red-600 transition">
+                <span class="text-lg">👤</span>
+                <span>Account</span>
+            </a>
+            @endif
         @else
         <a href="{{ route('shopper.login') }}" class="flex flex-col items-center gap-1 hover:text-red-600 transition">
             <span class="text-lg">👤</span>

@@ -16,6 +16,11 @@ class ShopperAuthController extends Controller
 {
     public function loginView()
     {
+        if (Auth::check()) {
+            return Auth::user()->role === 'admin' 
+                ? redirect('/admin/dashboard') 
+                : redirect('/dashboard');
+        }
         return view('auth.shopper-login');
     }
 
@@ -39,6 +44,11 @@ class ShopperAuthController extends Controller
 
     public function registerView()
     {
+        if (Auth::check()) {
+            return Auth::user()->role === 'admin' 
+                ? redirect('/admin/dashboard') 
+                : redirect('/dashboard');
+        }
         return view('auth.shopper-register');
     }
 

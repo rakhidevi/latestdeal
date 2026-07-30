@@ -9,7 +9,12 @@
             </h2>
             <p class="text-sm text-gray-500 mt-1">Welcome back, {{ $user->name }}!</p>
         </div>
-        <div class="mt-4 flex md:ml-4 md:mt-0">
+        <div class="mt-4 flex md:ml-4 md:mt-0 items-center">
+            @if(auth()->user()->role === 'admin')
+                <a href="{{ route('admin.dashboard') }}" class="mr-3">
+                    <x-button variant="primary">Admin Panel</x-button>
+                </a>
+            @endif
             <form action="{{ url('/publisher/logout') }}" method="POST">
                 @csrf
                 <x-button variant="secondary">Sign Out</x-button>

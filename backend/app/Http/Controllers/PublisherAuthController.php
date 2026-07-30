@@ -13,11 +13,21 @@ class PublisherAuthController
 {
     public function loginView()
     {
+        if (Auth::check()) {
+            return Auth::user()->role === 'admin' 
+                ? redirect('/admin/dashboard') 
+                : redirect('/publisher/dashboard');
+        }
         return view('publisher.login');
     }
 
     public function registerView()
     {
+        if (Auth::check()) {
+            return Auth::user()->role === 'admin' 
+                ? redirect('/admin/dashboard') 
+                : redirect('/publisher/dashboard');
+        }
         return view('publisher.register');
     }
 
