@@ -1,6 +1,6 @@
-@extends('layouts.admin')
+@extends('admin.layout')
 
-@section('header', 'Marketing Operations Dashboard')
+@section('title', 'Marketing Home')
 
 @section('content')
 <div class="space-y-8">

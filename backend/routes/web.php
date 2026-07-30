@@ -436,6 +436,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/segments', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'segments')->name('segments');
         Route::get('/analytics', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'analytics')->name('analytics');
         Route::get('/preview-center', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'preview-center')->name('preview-center');
+        Route::get('/module/{module}', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->name('placeholder');
+
         
         // Operations
         Route::get('/health', \App\Livewire\Admin\Marketing\HealthCenter::class)->name('health');

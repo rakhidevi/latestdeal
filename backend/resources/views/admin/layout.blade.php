@@ -6,7 +6,6 @@
     <meta name='impact-site-verification' value='dcd870d6-a11b-48ec-8df2-15ba5c96630b'>
     <title>Admin Dashboard - LatestDeal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Heroicons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -45,6 +44,7 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
+    @livewireStyles
 </head>
 <body class="h-full overflow-hidden text-slate-800">
     <div class="h-full flex">
@@ -267,5 +267,6 @@
         // Initialize Lucide icons
         lucide.createIcons();
     </script>
+    @livewireScripts
 </body>
 </html>
