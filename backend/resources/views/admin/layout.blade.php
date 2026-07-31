@@ -258,6 +258,7 @@
             <main class="flex-1 overflow-x-hidden overflow-y-auto p-10 relative z-0">
                 <div class="max-w-7xl mx-auto animate-fade-in">
                     @yield('content')
+                    {{ $slot ?? '' }}
                 </div>
             </main>
         </div>

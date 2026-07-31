@@ -15,6 +15,11 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\MailProviderInterface::class,
             \App\Services\Mail\SendmailProvider::class
         );
+
+        $this->app->bind(
+            \App\Contracts\Communications\AssetStorageInterface::class,
+            \App\Services\Communications\Storage\LocalStorageProvider::class
+        );
     }
 
     /**

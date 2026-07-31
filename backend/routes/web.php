@@ -430,12 +430,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         
         // Modules (Placeholders for now)
         Route::get('/templates', \App\Livewire\Admin\Marketing\TemplateLibrary::class)->name('templates');
-        Route::get('/themes', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'themes')->name('themes');
-        Route::get('/assets', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'assets')->name('assets');
-        Route::get('/subscribers', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'subscribers')->name('subscribers');
-        Route::get('/segments', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'segments')->name('segments');
-        Route::get('/analytics', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'analytics')->name('analytics');
-        Route::get('/preview-center', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->defaults('module', 'preview-center')->name('preview-center');
+        Route::get('/templates/create', \App\Livewire\Admin\Marketing\TemplateEditor::class)->name('templates.create');
+        Route::get('/templates/{id}/edit', \App\Livewire\Admin\Marketing\TemplateEditor::class)->name('templates.edit');
+        Route::get('/themes', \App\Livewire\Admin\Marketing\ThemesModule::class)->name('themes');
+        Route::get('/assets', \App\Livewire\Admin\Marketing\AssetsModule::class)->name('assets');
+        Route::get('/subscribers', \App\Livewire\Admin\Marketing\SubscribersModule::class)->name('subscribers');
+        Route::get('/segments', \App\Livewire\Admin\Marketing\SegmentsModule::class)->name('segments');
+        Route::get('/analytics', \App\Livewire\Admin\Marketing\AnalyticsModule::class)->name('analytics');
+        Route::get('/preview-center', \App\Livewire\Admin\Marketing\PreviewCenter::class)->name('preview-center');
         Route::get('/module/{module}', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->name('placeholder');
 
         

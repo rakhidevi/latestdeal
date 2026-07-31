@@ -8,23 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create(\'worker_heartbeats\', function (Blueprint ) {
-            ->id();
-            ->string(\'worker_name\')->unique();
-            ->string(\'queue\')->nullable();
-            ->string(\'host\')->nullable();
-            ->integer(\'pid\')->nullable();
-            ->timestamp(\'last_heartbeat\');
-            ->string(\'status\')->default(\'running\');
-            ->integer(\'memory_usage\')->nullable();
-            ->string(\'laravel_version\')->nullable();
-            ->string(\'app_version\')->nullable();
-            ->timestamps();
+        Schema::create('worker_heartbeats', function (Blueprint $table) {
+            $table->id();
+            $table->string('worker_name')->unique();
+            $table->string('queue')->nullable();
+            $table->string('host')->nullable();
+            $table->integer('pid')->nullable();
+            $table->timestamp('last_heartbeat');
+            $table->string('status')->default('running');
+            $table->integer('memory_usage')->nullable();
+            $table->string('laravel_version')->nullable();
+            $table->string('app_version')->nullable();
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists(\'worker_heartbeats\');
+        Schema::dropIfExists('worker_heartbeats');
     }
 };
