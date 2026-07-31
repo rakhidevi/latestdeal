@@ -121,7 +121,7 @@ class PriceUpdateController extends Controller
         $cleanHtml = preg_replace('/₹?\s*[\d,.]+\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b/i', '', $cleanHtml);
 
         // Check explicit M.R.P.: tag first
-        if (preg_match('/M\.R\.P\.?:?\s*(?:<\/?[^>]+>)*\s*₹?\s*([\d,]+)/i', $cleanHtml, $m)) {
+        if (preg_match('/M\.R\.P\.?:?\s*(?:(?:<\/?[^>]+>)|&nbsp;|\s)*₹?\s*([\d,]+)/i', $cleanHtml, $m)) {
             $candidate = (float)str_replace(',', '', $m[1]);
             if ($candidate > 0 && (!$discountedPrice || ($candidate / $discountedPrice) < 10)) {
                 $originalPrice = $candidate;
