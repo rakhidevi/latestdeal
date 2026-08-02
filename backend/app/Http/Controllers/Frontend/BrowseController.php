@@ -53,11 +53,20 @@ class BrowseController extends Controller
         );
 
         $trendingDeals = null;
+        $heroDeals = null;
         if (empty($filters)) {
             $trendingDeals = $this->recommendationService->getTrending(5);
+            $heroDeals = \Illuminate\Support\Facades\Cache::remember("hero_deals_10", 300, function () {
+                return Deal::with(['merchant', 'category'])
+                    ->where('status', 'active')
+                    ->where('created_at', '>=', now()->subDays(3))
+                    ->orderBy('ai_score', 'desc')
+                    ->limit(10)
+                    ->get();
+            });
         }
 
-        return view('welcome', compact('deals', 'pageTitle', 'filters', 'seoMeta', 'trendingDeals'));
+        return view('welcome', compact('deals', 'pageTitle', 'filters', 'seoMeta', 'trendingDeals', 'heroDeals'));
     }
 
     public function byCategory(Request $request, $slug)
