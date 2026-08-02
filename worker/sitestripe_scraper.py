@@ -197,14 +197,14 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                 sitestripe_text_btn = page.locator("#amzn-ss-text-link").first
                     
                 print("Clicking SiteStripe 'Get Link' button...")
-                sitestripe_text_btn.click()
+                sitestripe_text_btn.click(force=True)
                 
                 # Wait for popover to appear
                 print("Waiting for popover...")
                 page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce", timeout=10000)
                 
                 copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce").first
-                copy_btn.click()
+                copy_btn.click(force=True)
                 
                 # Wait for the "Copied to clipboard" toast to ensure it copied
                 try:

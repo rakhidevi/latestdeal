@@ -16,6 +16,9 @@ from dotenv import load_dotenv
 from domains import is_amazon_or_aggregator
 import argparse
 
+# Global lock to serialize browser access
+browser_lock = asyncio.Lock()
+
 from database import init_db, get_next_pending, mark_status, add_to_queue, update_job_data
 from image_composer import compose_image
 from api_client import push_to_production, create_job, update_job
@@ -71,7 +74,8 @@ async def process_queue():
             else:
                 add_log("Starting standard pipeline extraction...")
                 from pipeline import ScrapingPipeline
-                deal = await asyncio.to_thread(ScrapingPipeline.process_url, url, "dashboard")
+                async with browser_lock:
+                    deal = await asyncio.to_thread(ScrapingPipeline.process_url, url, "dashboard")
                 
             update_job(job_id, type=f"ingestion ({deal.merchant})")
             
@@ -185,7 +189,8 @@ async def expiry_checker():
                     
                     is_expired = False
                     try:
-                        scraped_deal = await asyncio.to_thread(ScrapingPipeline.process_url, deal['url'], "expiry_check")
+                        async with browser_lock:
+                            scraped_deal = await asyncio.to_thread(ScrapingPipeline.process_url, deal['url'], "expiry_check")
                         
                         # Basic Expiry Logic: if title says 'currently unavailable' or price isn't found
                         if "currently unavailable" in (scraped_deal.title or "").lower():
