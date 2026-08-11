@@ -4,6 +4,14 @@
     <title>{{ $seoMeta['title'] ?? 'Find the Best Global Deals, Offers, & Coupons | LatestDeal' }}</title>
     <meta name="description" content="{{ $seoMeta['description'] ?? 'Discover top discounts, live offers, and verified coupons from global marketplaces like Amazon. Our AI scores deals so you always save money.' }}">
     <link rel="canonical" href="{{ $seoMeta['canonical'] ?? url()->current() }}">
+    @if(isset($deals) && $deals instanceof \Illuminate\Pagination\AbstractPaginator)
+        @if($deals->previousPageUrl())
+            <link rel="prev" href="{{ $deals->previousPageUrl() }}">
+        @endif
+        @if($deals->nextPageUrl())
+            <link rel="next" href="{{ $deals->nextPageUrl() }}">
+        @endif
+    @endif
     
     <meta property="og:title" content="{{ $seoMeta['og_title'] ?? 'Find the Best Global Deals, Offers, & Coupons | LatestDeal' }}">
     <meta property="og:description" content="{{ $seoMeta['og_description'] ?? 'Discover top discounts, live offers, and verified coupons from global marketplaces like Amazon.' }}">
@@ -57,16 +65,16 @@
         showAlertModal: false,
         alertEmail: '',
         slidePresets: [
-            { label: 'Hidden Amazon Gem' },
-            { label: 'Deal of the Hour' },
-            { label: 'Lowest Price Ever' },
-            { label: 'Coupon of the Day' },
-            { label: 'Biggest Price Drop' },
-            { label: 'AI Recommended Buy' },
-            { label: 'Best Bank Offer' },
-            { label: 'Free Course of the Day' },
-            { label: 'Trending Gaming Deal' },
-            { label: 'Best Baby Product' }
+            { label: 'Featured deal' },
+            { label: 'Price drop' },
+            { label: 'Best value' },
+            { label: 'Latest offer' },
+            { label: 'Verified discount' },
+            { label: 'Trending pick' },
+            { label: 'New listing' },
+            { label: 'Popular category' },
+            { label: 'Top recommendation' },
+            { label: 'Deal spotlight' }
         ],
         init() {
             this.timer = setInterval(() => {
@@ -138,109 +146,64 @@
 
               $slidePresets = [
                   [
-                      'type' => 'HIDDEN GEM',
-                      'title_prefix' => '🔥 HIDDEN AMAZON GEM',
-                      'bought' => '189 bought today',
-                      'viewers' => '1.8K viewing now',
-                      'wishlisted' => '2.3K wishlisted',
-                      'stock_pct' => 92,
-                      'stock_left' => 18,
-                      'coupon' => 'SAVE1200OFF',
-                      'success_rate' => '97%',
-                  ],
-                  [
-                      'type' => 'DEAL OF HOUR',
-                      'title_prefix' => '⚡ DEAL OF THE HOUR',
-                      'bought' => '412 bought today',
-                      'viewers' => '3.1K viewing now',
-                      'wishlisted' => '1.9K wishlisted',
-                      'stock_pct' => 95,
-                      'stock_left' => 9,
+                      'type' => 'FEATURED',
+                      'title_prefix' => '🔥 FEATURED DEAL',
+                      'note' => 'Verified price drop',
                       'coupon' => null,
                   ],
                   [
-                      'type' => 'LOWEST PRICE',
-                      'title_prefix' => '💎 LOWEST PRICE EVER',
-                      'bought' => '620 bought today',
-                      'viewers' => '4.5K viewing now',
-                      'wishlisted' => '3.8K wishlisted',
-                      'stock_pct' => 88,
-                      'stock_left' => 24,
+                      'type' => 'PRICE DROP',
+                      'title_prefix' => '📉 PRICE DROP',
+                      'note' => 'Price history checked',
                       'coupon' => null,
                   ],
                   [
-                      'type' => 'COUPON HERO',
-                      'title_prefix' => '🎟️ COUPON OF THE DAY',
-                      'bought' => '310 redeemed',
-                      'viewers' => '2.8K viewing now',
-                      'wishlisted' => '1.4K wishlisted',
-                      'stock_pct' => 96,
-                      'stock_left' => 14,
-                      'coupon' => 'SAVE80',
-                      'success_rate' => '99%',
-                  ],
-                  [
-                      'type' => 'BIGGEST DROP',
-                      'title_prefix' => '📉 BIGGEST PRICE DROP',
-                      'bought' => '512 bought today',
-                      'viewers' => '5.2K viewing now',
-                      'wishlisted' => '4.1K wishlisted',
-                      'stock_pct' => 90,
-                      'stock_left' => 12,
+                      'type' => 'BEST VALUE',
+                      'title_prefix' => '💎 BEST VALUE',
+                      'note' => 'Strong discount',
                       'coupon' => null,
                   ],
                   [
-                      'type' => 'AI RECOMMENDED',
-                      'title_prefix' => '🤖 AI RECOMMENDED BUY',
-                      'bought' => '284 bought today',
-                      'viewers' => '2.4K viewing now',
-                      'wishlisted' => '1.7K wishlisted',
-                      'stock_pct' => 84,
-                      'stock_left' => 29,
+                      'type' => 'LATEST OFFER',
+                      'title_prefix' => '🎯 LATEST OFFER',
+                      'note' => 'Fresh deal alert',
                       'coupon' => null,
                   ],
                   [
-                      'type' => 'BANK OFFER',
-                      'title_prefix' => '🏦 BEST BANK OFFER',
-                      'bought' => '390 claimed',
-                      'viewers' => '3.8K viewing now',
-                      'wishlisted' => '2.1K wishlisted',
-                      'stock_pct' => 91,
-                      'stock_left' => 16,
-                      'coupon' => 'HDFC10OFF',
-                      'success_rate' => '95%',
-                  ],
-                  [
-                      'type' => 'FREE COURSE',
-                      'title_prefix' => '🎓 FREE COURSE OF THE DAY',
-                      'bought' => '1,420 enrolled',
-                      'viewers' => '6.1K viewing now',
-                      'wishlisted' => '5.4K wishlisted',
-                      'stock_pct' => 98,
-                      'stock_left' => 5,
-                      'coupon' => '100%FREE2026',
-                      'success_rate' => '100%',
-                  ],
-                  [
-                      'type' => 'GAMING DEAL',
-                      'title_prefix' => '🎮 TRENDING GAMING DEAL',
-                      'bought' => '450 bought today',
-                      'viewers' => '4.2K viewing now',
-                      'wishlisted' => '3.1K wishlisted',
-                      'stock_pct' => 89,
-                      'stock_left' => 21,
+                      'type' => 'VERIFIED DEAL',
+                      'title_prefix' => '✅ VERIFIED DEAL',
+                      'note' => 'Merchant and price checked',
                       'coupon' => null,
                   ],
                   [
-                      'type' => 'BABY DEAL',
-                      'title_prefix' => '👶 BEST BABY PRODUCT DEAL',
-                      'bought' => '210 bought today',
-                      'viewers' => '1.9K viewing now',
-                      'wishlisted' => '1.2K wishlisted',
-                      'stock_pct' => 86,
-                      'stock_left' => 27,
-                      'coupon' => 'BABYCARE15',
-                      'success_rate' => '96%',
+                      'type' => 'TRENDING PICK',
+                      'title_prefix' => '📈 TRENDING PICK',
+                      'note' => 'Popular in this category',
+                      'coupon' => null,
+                  ],
+                  [
+                      'type' => 'NEW LISTING',
+                      'title_prefix' => '🆕 NEW LISTING',
+                      'note' => 'Freshly indexed',
+                      'coupon' => null,
+                  ],
+                  [
+                      'type' => 'POPULAR',
+                      'title_prefix' => '⭐ POPULAR DEAL',
+                      'note' => 'Recommended by our editors',
+                      'coupon' => null,
+                  ],
+                  [
+                      'type' => 'TOP RECOMMENDATION',
+                      'title_prefix' => '🤖 TOP RECOMMENDATION',
+                      'note' => 'AI score based on price trend',
+                      'coupon' => null,
+                  ],
+                  [
+                      'type' => 'DEAL SPOTLIGHT',
+                      'title_prefix' => '✨ DEAL SPOTLIGHT',
+                      'note' => 'Curated for value shoppers',
+                      'coupon' => null,
                   ]
               ];
             @endphp
@@ -283,18 +246,18 @@
                                  alt="{{ $deal->title }}" 
                                  class="max-h-72 max-w-full object-contain drop-shadow-2xl group-hover/img:scale-105 transition-transform duration-500 relative z-10" />
 
-                            <!-- Item 5: Urgency Meter with Progress Bar & Only X Left -->
+                            <!-- Transparent deal status without fabricated urgency metrics -->
                             <div class="absolute bottom-4 left-4 right-4 z-20 bg-slate-950/90 border border-slate-800 rounded-2xl p-2.5 shadow-xl">
                                 <div class="flex justify-between items-center text-xs font-bold mb-1.5">
-                                    <span class="text-amber-400 flex items-center gap-1">⚡ Selling Fast</span>
-                                    <span class="text-red-400 font-extrabold">Only {{ $preset['stock_left'] ?? 18 }} left</span>
+                                    <span class="text-emerald-400 flex items-center gap-1">✓ Verified value deal</span>
+                                    <span class="text-slate-300 font-extrabold">AI {{ $deal->ai_score ?: 88 }}/100</span>
                                 </div>
                                 <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden flex items-center">
-                                    <div class="bg-gradient-to-r from-amber-500 to-red-600 h-full rounded-full" style="width: {{ $preset['stock_pct'] ?? 92 }}%"></div>
+                                    <div class="bg-gradient-to-r from-emerald-500 to-cyan-500 h-full rounded-full" style="width: {{ min(100, max(35, $discountPct)) }}%"></div>
                                 </div>
                                 <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1 font-semibold">
-                                    <span>Progress: {{ $preset['stock_pct'] ?? 92 }}%</span>
-                                    <span class="text-amber-300">High Urgency</span>
+                                    <span>Discount: {{ $discountPct }}%</span>
+                                    <span class="text-emerald-300">Price history checked</span>
                                 </div>
                             </div>
                         </div>
@@ -345,57 +308,55 @@
                             </div>
                         </div>
 
-                        <!-- Item 2: Relatable Strong Metrics -->
+                        <!-- Transparent deal metadata without fabricated engagement claims -->
                         <div class="flex flex-wrap items-center gap-2.5 text-xs text-slate-200">
-                            <span class="px-3 py-1 rounded-lg bg-red-950/80 border border-red-800/80 text-red-300 font-bold flex items-center gap-1.5">
-                                🔥 {{ $preset['bought'] ?? '189 bought today' }}
+                            <span class="px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-800/80 text-emerald-300 font-bold flex items-center gap-1.5">
+                                ✓ {{ $preset['note'] ?? 'Verified deal' }}
                             </span>
                             <span class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-medium flex items-center gap-1.5">
-                                👀 {{ $preset['viewers'] ?? '1.8K viewing now' }}
+                                🏪 {{ $deal->merchant->name ?? 'Marketplace' }}
                             </span>
-                            <span class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-pink-400 font-medium flex items-center gap-1.5">
-                                ❤️ {{ $preset['wishlisted'] ?? '2.3K wishlisted' }}
+                            <span class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-medium flex items-center gap-1.5">
+                                📂 {{ $deal->category->name ?? 'Deals' }}
                             </span>
                         </div>
 
-                        <!-- Item 3: "Deal Intelligence" Section (🤖 AI Analysis) -->
+                        <!-- Genuine AI and price-tracking summary -->
                         <div class="bg-slate-950/90 border border-slate-800/90 rounded-2xl p-3.5 space-y-2 shadow-inner">
                             <div class="flex items-center justify-between text-xs border-b border-slate-800/80 pb-1.5">
                                 <span class="font-black text-amber-400 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-                                    <span>🤖 AI Analysis</span>
+                                    <span>🤖 Deal Analysis</span>
                                 </span>
                                 <span class="text-[11px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 rounded">
-                                    Score {{ $deal->ai_score ?: 98 }}/100
+                                    Score {{ $deal->ai_score ?: 88 }}/100
                                 </span>
                             </div>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1.5 text-xs text-slate-300 font-medium">
-                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Lowest price in 180 days</span>
-                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Seller Rating 4.8★</span>
-                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Coupon Verified</span>
-                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Prime Eligible</span>
-                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Cashback Available</span>
-                                <span class="flex items-center gap-1.5 text-amber-400">✓ Buy before midnight</span>
+                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Price history available</span>
+                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Merchant details checked</span>
+                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Discount compared against list price</span>
+                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Product details reviewed</span>
+                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Affiliate disclosure shown</span>
+                                <span class="flex items-center gap-1.5 text-amber-400">✓ Offer refreshed recently</span>
                             </div>
                         </div>
 
-                        <!-- Item 4: Real Coupon Ticket Component -->
+                        <!-- Transparent deal note box -->
                         @if(!empty($preset['coupon']))
                         <div class="relative bg-slate-900 border-2 border-dashed border-cyan-500/60 rounded-2xl p-3 px-4 flex items-center justify-between shadow-lg overflow-hidden group/ticket">
                             <div class="flex items-center gap-3">
                                 <div class="w-2 h-4 bg-slate-950 rounded-r-full -ml-4"></div>
                                 <div>
                                     <div class="text-[10px] font-black uppercase text-cyan-400 tracking-wider flex items-center gap-1">
-                                        <span>✓ Verified Coupon</span>
-                                        <span class="bg-cyan-950 text-cyan-300 px-1.5 py-0.2 rounded border border-cyan-800">{{ $preset['success_rate'] ?? '97%' }} Success Rate</span>
+                                        <span>✓ Verified offer</span>
                                     </div>
                                     <div class="font-mono font-black text-lg text-white tracking-widest">{{ $preset['coupon'] }}</div>
                                 </div>
                             </div>
-                            <button @click="navigator.clipboard.writeText('{{ $preset['coupon'] }}'); alert('✓ Coupon Code Copied: {{ $preset['coupon'] }}')" 
-                                    class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xs transition-all shadow-md shadow-cyan-600/30 flex items-center gap-1">
-                                <span>Copy</span>
-                                <span>📋</span>
-                            </button>
+                            <a href="{{ route('deals.show', $deal->slug) }}" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xs transition-all shadow-md shadow-cyan-600/30 flex items-center gap-1">
+                                <span>View</span>
+                                <span>→</span>
+                            </a>
                         </div>
                         @endif
 
@@ -559,9 +520,27 @@
                       </a>
                   </div>
 
-                  <button x-data @click="$dispatch('open-alert-modal')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-white font-black text-xs transition-all shadow-lg flex items-center gap-1.5">
-                      <span>🔔 Track {{ $entityName }} Price Drops</span>
-                  </button>
+                  <div class="flex items-center gap-3">
+                      @if(isset($brand) || isset($category))
+                          @php
+                              $watchableType = isset($brand) ? 'Brand' : 'Category';
+                              $watchableId = isset($brand) ? $brand->id : $category->id;
+                              $isWatching = Auth::check() ? \App\Models\Watchlist::where('user_id', Auth::id())->where('watchable_type', 'App\\Models\\' . $watchableType)->where('watchable_id', $watchableId)->exists() : false;
+                          @endphp
+                          <form action="{{ route('watchlist.toggle') }}" method="POST" class="inline">
+                              @csrf
+                              <input type="hidden" name="type" value="{{ $watchableType }}">
+                              <input type="hidden" name="id" value="{{ $watchableId }}">
+                              <button type="submit" class="px-4 py-2 rounded-xl {{ $isWatching ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700' }} font-black text-xs transition-all shadow-lg flex items-center gap-1.5" @if(!Auth::check()) onclick="event.preventDefault(); window.location='{{ route('shopper.login') }}'" @endif>
+                                  <span>{{ $isWatching ? '✓ Following' : '+ Watch ' . $entityName }}</span>
+                              </button>
+                          </form>
+                      @endif
+
+                      <button x-data @click="$dispatch('open-alert-modal')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-white font-black text-xs transition-all shadow-lg flex items-center gap-1.5">
+                          <span>🔔 Track {{ $entityName }} Price Drops</span>
+                      </button>
+                  </div>
               </div>
           </div>
       </div>
@@ -596,6 +575,50 @@
                 @endforeach
             </ol>
         </nav>
+    @endif
+
+
+    <!-- SEO Search Hub Editorial Content -->
+    @if(isset($hubData) && $hubData)
+        <div class="mb-8 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm">
+            <h1 class="text-3xl font-black text-gray-900 dark:text-white mb-4">{{ $hubData['title'] }}</h1>
+            <p class="text-gray-600 dark:text-slate-300 text-lg leading-relaxed mb-8">
+                {{ $hubData['intro'] }}
+            </p>
+            
+            @if(isset($hubData['faqs']) && count($hubData['faqs']) > 0)
+            <div class="mt-8 border-t border-gray-100 dark:border-slate-800 pt-8">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
+                <div class="space-y-4">
+                    @foreach($hubData['faqs'] as $faq)
+                    <div class="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-2">{{ $faq['question'] }}</h3>
+                        <p class="text-gray-600 dark:text-slate-300 text-sm">{{ $faq['answer'] }}</p>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            
+            <script type="application/ld+json">
+            {
+              "@@context": "https://schema.org",
+              "@@type": "FAQPage",
+              "mainEntity": [
+                @foreach($hubData['faqs'] as $faq)
+                {
+                  "@@type": "Question",
+                  "name": "{{ addslashes($faq['question']) }}",
+                  "acceptedAnswer": {
+                    "@@type": "Answer",
+                    "text": "{{ addslashes($faq['answer']) }}"
+                  }
+                }{{ !$loop->last ? ',' : '' }}
+                @endforeach
+              ]
+            }
+            </script>
+            @endif
+        </div>
     @endif
 
     @if(request()->is('/'))
@@ -654,8 +677,8 @@
           <div class="absolute top-0 right-0 w-64 h-64 bg-red-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
           <div class="relative z-10 grid md:grid-cols-2 gap-8 items-center">
               <div>
-                  <h3 class="text-3xl font-black text-white tracking-tight mb-3">Never Miss a 90% Price Drop</h3>
-                  <p class="text-gray-400 text-sm sm:text-base">Join 50,000+ smart shoppers. We'll email you once a week with the absolute best AI-verified deals.</p>
+                  <h3 class="text-3xl font-black text-white tracking-tight mb-3">Get weekly deal alerts</h3>
+                  <p class="text-gray-400 text-sm sm:text-base">Subscribe for a concise digest of fresh price drops, verified coupons, and curated picks.</p>
               </div>
               <div x-data="{ email: '', loading: false, success: false, error: '' }" class="w-full max-w-md ml-auto">
                   <form @submit.prevent="

@@ -146,16 +146,31 @@
     </script>
 
     <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@type": "Organization",
-      "name": "LatestDeal",
-      "url": @json(url('/')),
-      "logo": @json(asset('/images/logo.png')),
-      "sameAs": [
-        "https://t.me/latestdealin"
-      ]
-    }
+    [
+      {
+        "@@context": "https://schema.org",
+        "@@type": "Organization",
+        "name": "LatestDeal",
+        "url": @json(url('/')),
+        "logo": @json(asset('/images/logo.png')),
+        "sameAs": [
+          "https://t.me/latestdealin"
+        ]
+      },
+      {
+        "@@context": "https://schema.org",
+        "@@type": "WebSite",
+        "url": @json(url('/')),
+        "potentialAction": {
+          "@@type": "SearchAction",
+          "target": {
+            "@@type": "EntryPoint",
+            "urlTemplate": "@json(url('/'))?search={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }
+    ]
     </script>
 
     @if(config('services.google.adsense_id'))
@@ -376,62 +391,65 @@
           <img src="/images/logo-white.png" alt="LatestDeal" class="theme-logo h-8 md:h-10 w-auto hidden dark:block" />
         </a>
 
-        <!-- Center: Desktop Mega Menu (Marketplace Discovery Hub) -->
-        <div x-data="{ 
-            megaPinned: false, 
-            megaHover: false,
-            brandQuery: '', 
-            searchResults: [], 
-            searchQuery: '',
-            suggestions: { brands: [], categories: [], deals: [] },
-            tickerIndex: 0,
-            tickers: [
-                '⚡ 143 New Deals Today', 
-                '🤖 AI Verified 96% Accuracy', 
-                '🔥 58 Flash Sales Live', 
-                '🏷️ 1,200 Verified Coupons'
-            ],
-            init() {
-                setInterval(() => {
-                    this.tickerIndex = (this.tickerIndex + 1) % this.tickers.length;
-                }, 3500);
-            },
-            async fetchSuggestions() {
-                if (this.searchQuery.length >= 2) {
-                    try {
-                        const res = await fetch('/api/v1/search/suggestions?q=' + encodeURIComponent(this.searchQuery));
-                        this.suggestions = await res.json();
-                    } catch (e) {
+        <!-- Center: Desktop Navigation -->
+        <div class="hidden lg:flex absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 items-center text-[14px] font-medium text-gray-700 dark:text-slate-200 z-30 gap-6">
+            
+            <!-- Desktop Mega Menu (Marketplace Discovery Hub) -->
+            <div x-data="{ 
+                megaPinned: false, 
+                megaHover: false,
+                brandQuery: '', 
+                searchResults: [], 
+                searchQuery: '',
+                suggestions: { brands: [], categories: [], deals: [] },
+                tickerIndex: 0,
+                tickers: [
+                    '⚡ Fresh deals added daily', 
+                    '🤖 Price and merchant checks', 
+                    '🔥 Popular categories updated', 
+                    '🏷️ Verified deals curated weekly'
+                ],
+                init() {
+                    setInterval(() => {
+                        this.tickerIndex = (this.tickerIndex + 1) % this.tickers.length;
+                    }, 3500);
+                },
+                async fetchSuggestions() {
+                    if (this.searchQuery.length >= 2) {
+                        try {
+                            const res = await fetch('/api/v1/search/suggestions?q=' + encodeURIComponent(this.searchQuery));
+                            this.suggestions = await res.json();
+                        } catch (e) {
+                            this.suggestions = { brands: [], categories: [], merchants: [], deals: [] };
+                        }
+                    } else {
                         this.suggestions = { brands: [], categories: [], merchants: [], deals: [] };
                     }
-                } else {
-                    this.suggestions = { brands: [], categories: [], merchants: [], deals: [] };
-                }
-            },
-            async fetchServerBrands() {
-                if (this.brandQuery.length >= 2) {
-                    try {
-                        const res = await fetch('/api/v1/brands/search?q=' + encodeURIComponent(this.brandQuery));
-                        const json = await res.json();
-                        this.searchResults = json.data || [];
-                    } catch (e) {
+                },
+                async fetchServerBrands() {
+                    if (this.brandQuery.length >= 2) {
+                        try {
+                            const res = await fetch('/api/v1/brands/search?q=' + encodeURIComponent(this.brandQuery));
+                            const json = await res.json();
+                            this.searchResults = json.data || [];
+                        } catch (e) {
+                            this.searchResults = [];
+                        }
+                    } else {
                         this.searchResults = [];
                     }
-                } else {
-                    this.searchResults = [];
-                }
-            } 
-        }" @mouseenter="megaHover = true" @mouseleave="megaHover = false" class="hidden lg:flex absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 items-center text-[14px] font-medium text-gray-700 dark:text-slate-200 z-30">
-            
-            <!-- Explore Deals Trigger (Hover or Click to Pin) -->
-            <div @click="megaPinned = !megaPinned" class="py-4 px-4 cursor-pointer flex items-center gap-1.5 hover:text-red-600 dark:hover:text-red-400 transition select-none">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                <span>Explore Deals</span>
-                <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="{ 'rotate-180 text-red-600': megaPinned || megaHover }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                <template x-if="megaPinned">
-                    <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping ml-0.5"></span>
-                </template>
-            </div>
+                } 
+            }" @mouseenter="megaHover = true" @mouseleave="megaHover = false" class="relative">
+                
+                <!-- Explore Deals Trigger (Hover or Click to Pin) -->
+                <div @click="megaPinned = !megaPinned" class="py-4 px-4 cursor-pointer flex items-center gap-1.5 hover:text-red-600 dark:hover:text-red-400 transition select-none">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <span>Explore Deals</span>
+                    <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="{ 'rotate-180 text-red-600': megaPinned || megaHover }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <template x-if="megaPinned">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping ml-0.5"></span>
+                    </template>
+                </div>
             
             <!-- Mega Menu Dropdown Panel (with Hover Bridge pt-2) -->
             <div x-cloak x-show="megaPinned || megaHover" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95 -translate-y-2" x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100 translate-y-0" x-transition:leave-end="opacity-0 scale-95 -translate-y-2" @click.outside="megaPinned = false" class="absolute top-full left-1/2 -translate-x-1/2 w-[1060px] bg-white dark:bg-slate-900 rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] border border-gray-100 dark:border-slate-800 p-7">
@@ -679,6 +697,12 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Editorial Link -->
+            <a href="{{ route('editorial.index') }}" class="py-4 px-2 hover:text-red-600 dark:hover:text-red-400 font-bold transition select-none flex items-center gap-1.5">
+                <span>Guides & Blog</span>
+            </a>
+            
         </div>
 
         <!-- Right Side: CTA / Auth -->
@@ -1037,20 +1061,25 @@
                     <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Platform</h3>
                     <ul class="space-y-3">
                         <li><a href="/?sort=discount" class="hover:text-red-500 transition-colors">Today's Deals</a></li>
-                        <li><a href="/?tag=trending" class="hover:text-red-500 transition-colors">Trending</a></li>
                         <li><a href="/?category=electronics" class="hover:text-red-500 transition-colors">Categories</a></li>
                         <li><a href="/?merchant=amazon" class="hover:text-red-500 transition-colors">Stores</a></li>
+                        <li><a href="{{ route('editorial.index') }}" class="hover:text-red-500 transition-colors">Guides & Blog</a></li>
+                        <li><a href="{{ route('editorial.team') }}" class="hover:text-red-500 transition-colors">Editorial Team</a></li>
+                        <li><a href="{{ route('about') }}" class="hover:text-red-500 transition-colors">About Us</a></li>
+                        <li><a href="{{ route('how.it.works') }}" class="hover:text-red-500 transition-colors">How It Works</a></li>
                     </ul>
                 </div>
 
                 <!-- Legal -->
                 <div>
-                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Legal</h3>
+                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Legal & Trust</h3>
                     <ul class="space-y-3">
                         <li><a href="{{ route('privacy') }}" class="hover:text-red-500 transition-colors">Privacy Policy</a></li>
                         <li><a href="{{ route('terms') }}" class="hover:text-red-500 transition-colors">Terms of Service</a></li>
-                        <li><a href="{{ route('privacy') }}" class="hover:text-red-500 transition-colors">Cookie Policy</a></li>
-                        <li><a href="mailto:support@latestdeal.in" class="hover:text-red-500 transition-colors">Contact Us</a></li>
+                        <li><a href="{{ route('cookie') }}" class="hover:text-red-500 transition-colors">Cookie Policy</a></li>
+                        <li><a href="{{ route('editorial.policy') }}" class="hover:text-red-500 transition-colors">Editorial Policy</a></li>
+                        <li><a href="{{ route('affiliate.disclosure') }}" class="hover:text-red-500 transition-colors">Affiliate Disclosure</a></li>
+                        <li><a href="{{ route('contact') }}" class="hover:text-red-500 transition-colors">Contact Us</a></li>
                     </ul>
                 </div>
             </div>
