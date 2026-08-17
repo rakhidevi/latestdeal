@@ -1,0 +1,31 @@
+# brands/electronics.yaml
+brands:
+  - id: samsung
+    name: "Samsung"
+    aliases: ["Samsung India", "SAMSUNG", "samsung"]
+    priority: 100
+    departments: ["electronics", "appliances"]
+    categories: ["television", "smartphone", "refrigerator"]
+    amazon_brand_name: "Samsung"
+    official_seller: "Appario Retail Private Ltd"
+    keywords: ["galaxy", "qled", "neo qled"]
+    competitors: ["lg", "sony", "apple"]
+    popularity: high
+    premium: true
+    country: "KR"
+    lifecycle: active
+    
+  - id: apple
+    name: "Apple"
+    aliases: ["APPLE", "apple", "Apple Inc"]
+    priority: 100
+    departments: ["electronics"]
+    categories: ["smartphone", "laptop", "tablet"]
+    amazon_brand_name: "Apple"
+    official_seller: "Appario Retail Private Ltd"
+    keywords: ["iphone", "macbook", "ipad", "airpods"]
+    competitors: ["samsung", "oneplus"]
+    popularity: high
+    premium: true
+    country: "US"
+    lifecycle: active

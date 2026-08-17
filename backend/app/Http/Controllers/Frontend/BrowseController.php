@@ -18,17 +18,20 @@ class BrowseController extends Controller
     protected $seoService;
     protected $breadcrumbService;
     protected $recommendationService;
+    protected $hubService;
 
     public function __construct(
         DealSearchPipeline $pipeline, 
         SeoService $seoService, 
         BreadcrumbService $breadcrumbService,
-        \App\Services\RecommendationService $recommendationService
+        \App\Services\RecommendationService $recommendationService,
+        \App\Services\HubDataService $hubService
     ) {
         $this->pipeline = $pipeline;
         $this->seoService = $seoService;
         $this->breadcrumbService = $breadcrumbService;
         $this->recommendationService = $recommendationService;
+        $this->hubService = $hubService;
     }
 
     public function index(Request $request)
@@ -94,7 +97,18 @@ class BrowseController extends Controller
         );
         $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
 
-        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'category'));
+        // Fetch Editorial SEO Hub Data
+        $hubData = $this->hubService->getHubData('category', $slug);
+        
+        // Track Interaction if logged in
+        if (auth()->check()) {
+            app(\App\Services\User\InteractionService::class)->record('watch_category', 'category_page', null, [
+                'category' => $category->name,
+                'slug' => $category->slug
+            ]);
+        }
+
+        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'category', 'hubData'));
     }
 
     public function byBrand(Request $request, $slug)
@@ -146,7 +160,18 @@ class BrowseController extends Controller
         );
         $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
 
-        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'brand'));
+        // Fetch Editorial SEO Hub Data
+        $hubData = $this->hubService->getHubData('brand', $slug);
+        
+        // Track Interaction if logged in
+        if (auth()->check()) {
+            app(\App\Services\User\InteractionService::class)->record('watch_brand', 'brand_page', null, [
+                'brand' => $brand->name,
+                'slug' => $brand->slug
+            ]);
+        }
+
+        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'brand', 'hubData'));
     }
 
     public function byMerchant(Request $request, $slug)
@@ -173,7 +198,18 @@ class BrowseController extends Controller
         );
         $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
 
-        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'merchant'));
+        // Fetch Editorial SEO Hub Data
+        $hubData = $this->hubService->getHubData('merchant', $slug);
+        
+        // Track Interaction if logged in
+        if (auth()->check()) {
+            app(\App\Services\User\InteractionService::class)->record('watch_merchant', 'merchant_page', null, [
+                'merchant' => $merchant->name,
+                'slug' => $slug
+            ]);
+        }
+
+        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'merchant', 'hubData'));
     }
 
     public function byDiscount(Request $request, $range)
@@ -222,6 +258,23 @@ class BrowseController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
 
+        // 1. Direct Access Enforcement: Unpublished deals conceptually do not exist publicly
+        if (!$deal->isPublishable()) {
+            abort(404);
+        }
+
+        // 2. Expired Lifecycle Enforcement
+        if ($deal->status === \App\Models\Deal::STATUS_EXPIRED) {
+            // If it doesn't have substantial historical value (isIndexable), it's obsolete.
+            if (!$deal->isIndexable()) {
+                abort(410); // 410 Gone
+            }
+            // (Future enhancement: return 301 Redirect if $deal->replacement_id exists)
+        }
+
+        // 3. Server-Generated Canonical URL (Strips UTMs and params)
+        $canonicalUrl = route('deals.show', $deal->slug);
+
         // Price history for the chart section
         $priceHistory = $deal->priceHistories()->orderBy('recorded_at', 'asc')->get();
 
@@ -245,8 +298,10 @@ class BrowseController extends Controller
         $seoMeta = $this->seoService->generateMeta(
             $pageTitle . ' | LatestDeal',
             $deal->title . ' - Best deal price ₹' . number_format($deal->discounted_price),
-            url('/deal/' . $deal->slug)
+            $canonicalUrl
         );
+        $seoMeta['canonical'] = $canonicalUrl; // Force clean canonical
+        
         $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
 
         return view('deals.show', compact('deal', 'pageTitle', 'breadcrumbs', 'seoMeta', 'schema', 'priceHistory', 'similarDeals'));

@@ -624,7 +624,7 @@
     @if(request()->is('/'))
     <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
         <div>
-            <h2 class="section-title">{{ $pageTitle ?? 'Featured Deals' }}</h2>
+            <h2 class="section-title">{{ $pageTitle ?? "Know whether it's actually a good deal." }}</h2>
             <p class="text-sm text-gray-500 mt-1">Found {{ $deals->total() }} matching deals</p>
         </div>
         <div class="flex items-center gap-2 self-start sm:self-auto">
@@ -637,6 +637,24 @@
             </button>
             <a href="/?category=all" class="btn-secondary px-3 py-1.5 text-sm sm:px-4 sm:py-2 hidden sm:inline-block">View all</a>
         </div>
+    </div>
+    @endif
+    
+    <!-- Editorial Guides Section -->
+    @if(request()->is('/'))
+    <div class="mb-10 mt-6 bg-indigo-50 dark:bg-indigo-900/10 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-900/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="bg-indigo-600 text-white p-3 rounded-2xl shadow-md">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            </div>
+            <div>
+                <h2 class="text-xl font-black text-gray-900 dark:text-white">Expert Buying Guides</h2>
+                <p class="text-gray-600 dark:text-indigo-200 text-sm mt-1">Data-driven analysis on when to buy and what to avoid.</p>
+            </div>
+        </div>
+        <a href="{{ route('articles.index') }}" class="shrink-0 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-md">
+            Read Our Guides &rarr;
+        </a>
     </div>
     @endif
 

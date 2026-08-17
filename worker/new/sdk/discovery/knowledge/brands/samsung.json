@@ -1,0 +1,12 @@
+{
+    "schema": 1,
+    "version": "2026.08",
+    "generated_at": "2026-08-01T00:00:00Z",
+    "name": "Samsung",
+    "priority": 100,
+    "parent": "Electronics",
+    "provider_support": ["amazon", "flipkart"],
+    "aliases": ["samsung electronics", "samsung india"],
+    "tier": "premium",
+    "departments": ["mobiles", "electronics", "home_appliances"]
+}

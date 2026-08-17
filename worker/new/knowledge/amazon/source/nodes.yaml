@@ -1,0 +1,18 @@
+departments:
+  - id: electronics
+    name: Electronics
+    nodes:
+      - id: 976419031
+        name: Electronics
+        subcategories:
+          - id: 1389401031
+            name: Mobiles
+          - id: 1375424031
+            name: Laptops
+          - id: 1389396031
+            name: Televisions
+  - id: appliances
+    name: Large Appliances
+    nodes:
+      - id: 3474656031
+        name: Large Appliances

@@ -7,11 +7,23 @@ use Illuminate\Support\Str;
 
 class Deal extends Model
 {
+    // Editorial Status Constants
+    public const STATUS_DISCOVERED = 'DISCOVERED';
+    public const STATUS_QUALIFIED = 'QUALIFIED';
+    public const STATUS_DRAFT = 'DRAFT';
+    public const STATUS_IN_REVIEW = 'IN_REVIEW';
+    public const STATUS_PUBLISHED = 'PUBLISHED';
+    public const STATUS_EXPIRED = 'EXPIRED';
+    public const STATUS_ARCHIVED = 'ARCHIVED';
+    public const STATUS_REJECTED = 'REJECTED';
+
     protected $fillable = [
         'category_id', 'merchant_id', 'brand_id', 'title', 'original_price', 
         'discounted_price', 'discount_percentage', 'amount_saved', 'price_drop', 'effective_price',
         'needs_brand_review', 'coupon_code', 'promo_code', 'url', 'short_url', 'image_path', 'status', 'brand',
-        'features', 'verdict', 'trust_metrics', 'ai_caption', 'ai_score', 'slug', 'hash_id'
+        'features', 'verdict', 'trust_metrics', 'ai_caption', 'ai_score', 'slug', 'hash_id',
+        'editorial_status', 'editorial_summary', 'editorial_verdict', 'pros', 'cons', 
+        'best_for', 'not_for', 'editor_id', 'reviewed_at', 'is_editor_pick', 'typical_price'
     ];
 
     protected $dispatchesEvents = [
@@ -46,11 +58,31 @@ class Deal extends Model
                 }
                 $deal->hash_id = $hash;
             }
+            
+            // Critical Scraper Safeguard
+            if (!auth()->check() && $deal->editorial_status === self::STATUS_PUBLISHED) {
+                $deal->editorial_status = self::STATUS_AUTO; // Default to AUTO if unauthenticated system tries to publish
+            }
+        });
+
+        static::updating(function ($deal) {
+            // Critical Scraper Safeguard
+            if (!auth()->check() && $deal->isDirty('editorial_status') && $deal->editorial_status === self::STATUS_PUBLISHED) {
+                $deal->editorial_status = $deal->getOriginal('editorial_status'); // Revert
+            }
         });
     }
 
     protected $casts = [
         'features' => 'array',
+        'trust_metrics' => 'array',
+        'confidence_reasons' => 'array',
+        'pros' => 'array',
+        'cons' => 'array',
+        'best_for' => 'array',
+        'not_for' => 'array',
+        'reviewed_at' => 'datetime',
+        'is_editor_pick' => 'boolean'
     ];
 
     public function merchant()
@@ -258,5 +290,66 @@ class Deal extends Model
 
         $separator = \Illuminate\Support\Str::contains($url, '?') ? '&' : '?';
         return $url . $separator . $merchant->affiliate_param_key . '=' . $merchant->store_id;
+    }
+
+    /**
+     * Database scope mirroring the isPublishable() logic.
+     */
+    public function scopePublishable($query)
+    {
+        return $query->where('editorial_status', self::STATUS_PUBLISHED)
+                     ->whereNotNull('editorial_summary')
+                     ->whereNotNull('editorial_verdict')
+                     ->whereNotNull('pros')
+                     ->whereNotNull('cons')
+                     ->whereNotNull('editor_id')
+                     ->whereNotNull('reviewed_at');
+    }
+
+    /**
+     * Publication Quality Firewall logic gate.
+     * Determines if a deal has sufficient original value to exist publicly.
+     */
+    public function isPublishable(): bool
+    {
+        if ($this->editorial_status !== self::STATUS_PUBLISHED) return false;
+        if (empty($this->editorial_summary) || empty($this->editorial_verdict)) return false;
+        if (empty($this->pros) || empty($this->cons)) return false;
+        if (empty($this->editor_id) || empty($this->reviewed_at)) return false;
+
+        return true;
+    }
+
+    /**
+     * Determines if the deal should be indexed by search engines.
+     */
+    public function isIndexable(): bool
+    {
+        if (!$this->isPublishable()) return false;
+        
+        if ($this->status === self::STATUS_EXPIRED) {
+            // Expired deals are only indexable if they have substantial historical value
+            // Proxy for high value: Editor's pick or lengthy editorial summary
+            return $this->is_editor_pick || strlen((string)$this->editorial_summary) > 200;
+        }
+
+        return true;
+    }
+
+    /**
+     * Determines if the deal is eligible for AdSense.
+     */
+    public function isAdsEligible(): bool
+    {
+        return $this->isIndexable() && $this->status === 'active';
+    }
+
+    /**
+     * Editor's Pick logic gate.
+     * Must be publishable AND explicitly flagged.
+     */
+    public function isEditorPick(): bool
+    {
+        return $this->isPublishable() && $this->is_editor_pick;
     }
 }

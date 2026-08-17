@@ -1,0 +1,29 @@
+# promotions/types.yaml
+promotions:
+  - id: prime
+    name: "Prime Exclusive"
+    type: "shipping"
+    priority: 10
+    url_parameter: "p_85/10440599031"
+    requires_auth: false
+    
+  - id: lightning
+    name: "Lightning Deal"
+    type: "deal"
+    priority: 90
+    url_parameter: "" # Lightning deals are dynamically discovered
+    requires_auth: false
+
+  - id: warehouse
+    name: "Amazon Warehouse"
+    type: "condition"
+    priority: 80
+    url_parameter: "p_n_condition-type/8609960031"
+    requires_auth: false
+    
+  - id: coupon
+    name: "Coupon Applied"
+    type: "discount"
+    priority: 70
+    url_parameter: "" 
+    requires_auth: false

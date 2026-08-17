@@ -90,17 +90,29 @@ Route::get('/brands/{slug}', [BrowseController::class, 'byBrand'])->name('deals.
 Route::get('/merchants/{slug}', [BrowseController::class, 'byMerchant'])->name('deals.merchant');
 Route::get('/deals/{range}', [BrowseController::class, 'byDiscount'])->name('deals.discount');
 
-// SEO Engine
+// --- SEO & Static Pages ---
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index']);
+
+// Trust Pages (Phase 1)
+Route::view('/about', 'about')->name('about');
+Route::view('/contact', 'contact')->name('contact');
+Route::view('/privacy', 'privacy')->name('privacy');
+Route::view('/terms', 'terms')->name('terms');
+Route::view('/cookie-policy', 'cookie-policy')->name('cookie');
+Route::view('/editorial-policy', 'editorial-policy')->name('editorial.policy');
+Route::view('/how-it-works', 'how-it-works')->name('how.it.works');
+Route::view('/affiliate-disclosure', 'affiliate-disclosure')->name('affiliate.disclosure');
+Route::view('/editorial-team', 'editorial-team')->name('editorial.team');
+
+// --- Phase 4 & Phase 9: Editorial Content Hub ---
+use App\Http\Controllers\ArticleController;
+Route::get('/guides', [ArticleController::class, 'index'])->name('articles.index');
+Route::get('/guides/{slug}', [ArticleController::class, 'show'])->name('articles.show');
 
 // Operations & Catalog Health Dashboard
 Route::get('/admin/catalog/health', [\App\Http\Controllers\Admin\CatalogHealthController::class, 'show'])->name('admin.catalog.health');
 
-// Legal Pages
-Route::view('/terms', 'terms')->name('terms');
-Route::get('/privacy', function () {
-    return view('privacy');
-})->name('privacy');
+
 
 Route::get('/seed-admin-now', function () {
     \App\Models\User::where('email', 'admin@latestdeal.in')->delete();
@@ -326,6 +338,13 @@ Route::post('/price-alerts', function (\Illuminate\Http\Request $request) {
         'target_price' => $request->price
     ]);
 
+    if (auth()->check()) {
+        app(\App\Services\User\InteractionService::class)->record('price_alert_created', 'dashboard', null, [
+            'keyword' => $request->keyword,
+            'target_price' => $request->price
+        ]);
+    }
+
     return back()->with('success', 'Price alert set successfully!');
 });
 
@@ -361,6 +380,9 @@ Route::middleware('auth')->group(function () {
         $alert->delete();
         return back()->with('success', 'Price alert removed.');
     })->name('price-alerts.destroy');
+    
+    // Watchlist
+    Route::post('/watchlist/toggle', [\App\Http\Controllers\ShopperAuthController::class, 'toggleWatchlist'])->name('watchlist.toggle');
 
     Route::get('/publisher/dashboard', [\App\Http\Controllers\PublisherAuthController::class, 'dashboard']);
     Route::post('/publisher/logout', [\App\Http\Controllers\PublisherAuthController::class, 'logout']);

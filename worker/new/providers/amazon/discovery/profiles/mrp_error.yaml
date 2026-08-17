@@ -1,0 +1,19 @@
+name: "MRP Error (90%+ Discount)"
+id: "profile_mrp_error"
+priority: 100
+provider: "amazon"
+filters:
+  discount:
+    min: 90
+    max: null
+  nodes:
+    - "1571271031"  # Fashion
+    - "1380065031"  # Kitchen
+    - "1375924031"  # Beauty
+    - "4859499031"  # Grocery
+    - "1350380031"  # Toys
+    - "1984443031"  # Sports
+    - "1389396031"  # Electronics/TV
+    - "1389401031"  # Smartphones
+sort: "discount-desc-rank"
+description: "Hunts for aggressive 90%+ discounts across all categories which are often MRP errors or massive liquidations."

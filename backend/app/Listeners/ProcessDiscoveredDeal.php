@@ -12,6 +12,9 @@ use App\Models\Setting;
 use App\Events\DealIngested;
 use App\Jobs\PublishDealToTelegramJob;
 use App\Jobs\PingGoogleIndexingApiJob;
+use App\Services\DistributionManager;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ProcessDiscoveredDeal implements ShouldQueue
@@ -25,9 +28,9 @@ class ProcessDiscoveredDeal implements ShouldQueue
         $deal = $event->deal;
         $payload = $event->metadata['raw_payload'];
 
-        // 1. Process Base64 Image
+        // 1. Process Image
         $imagePath = null;
-        if (preg_match('/^data:image\/(\w+);base64,/', $payload['image_base64'], $type)) {
+        if (!empty($payload['image_base64']) && preg_match('/^data:image\/(\w+);base64,/', $payload['image_base64'], $type)) {
             $data = substr($payload['image_base64'], strpos($payload['image_base64'], ',') + 1);
             $type = strtolower($type[1]);
 
@@ -40,6 +43,26 @@ class ProcessDiscoveredDeal implements ShouldQueue
                 }
                 file_put_contents($path . '/' . $fileName, $data);
                 $imagePath = 'deals/' . $fileName;
+            }
+        } elseif (!empty($payload['image_url'])) {
+            try {
+                $response = Http::timeout(10)->get($payload['image_url']);
+                if ($response->successful()) {
+                    $ext = 'jpg';
+                    $contentType = $response->header('Content-Type');
+                    if ($contentType && str_contains($contentType, 'image/')) {
+                        $ext = explode('/', $contentType)[1];
+                    }
+                    $fileName = Str::uuid() . '.' . $ext;
+                    $path = public_path('deals');
+                    if (!file_exists($path)) {
+                        mkdir($path, 0755, true);
+                    }
+                    file_put_contents($path . '/' . $fileName, $response->body());
+                    $imagePath = 'deals/' . $fileName;
+                }
+            } catch (\Exception $e) {
+                Log::warning("Failed to download image from URL: " . $e->getMessage());
             }
         }
 
@@ -110,8 +133,14 @@ class ProcessDiscoveredDeal implements ShouldQueue
             }
 
             // Async Jobs (Legacy flow bridging)
-            PublishDealToTelegramJob::dispatch($deal)->delay(now()->addSeconds(30));
             PingGoogleIndexingApiJob::dispatch($deal)->delay(now()->addMinutes(1));
+            
+            // Distribute to Marketing Channels if it's an active deal
+            if ($deal->status === 'active') {
+                $distributionManager = new DistributionManager();
+                // Pass metadata for effective price calculation
+                $distributionManager->distribute($deal, $event->metadata['score_metrics'] ?? []);
+            }
         }
 
         // Log Price History

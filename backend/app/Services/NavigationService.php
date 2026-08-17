@@ -21,42 +21,61 @@ class NavigationService
         $cacheKey = $this->versionManager->getCacheKey();
 
         $cached = Cache::get($cacheKey);
-        if (is_array($cached) && isset($cached['categories']) && $cached['categories']->isNotEmpty() && isset($cached['brands']) && $cached['brands']->isNotEmpty()) {
+        // The cache is valid if it's a structured array, even if some collections are empty.
+        if (is_array($cached) && isset($cached['categories'], $cached['brands'], $cached['merchants'])) {
             return $cached;
         }
 
-        $hasCatCount = \Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count');
-        $hasBrandCount = \Illuminate\Support\Facades\Schema::hasColumn('brands', 'deal_count');
-        $hasMercCount = \Illuminate\Support\Facades\Schema::hasColumn('merchants', 'deal_count');
-
-        // Get user-facing categories (excluding raw 'General' fallback)
-        $catQuery = Category::where('slug', '!=', 'general')->where('name', '!=', 'General');
-        if ($hasCatCount) {
-            $catQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
-        }
-        $categories = $catQuery->get();
-        if ($categories->isEmpty()) {
-            $categories = Category::where('slug', '!=', 'general')->where('name', '!=', 'General')->get();
+        try {
+            $hasCategoriesTable = \Illuminate\Support\Facades\Schema::hasTable('categories');
+            $hasBrandsTable = \Illuminate\Support\Facades\Schema::hasTable('brands');
+            $hasMerchantsTable = \Illuminate\Support\Facades\Schema::hasTable('merchants');
+        } catch (\Throwable $e) {
+            return [
+                'categories' => collect(),
+                'brands' => collect(),
+                'merchants' => collect(),
+            ];
         }
 
-        // Get active brands
-        $brandQuery = Brand::where('is_active', true);
-        if ($hasBrandCount) {
-            $brandQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
-        }
-        $brands = $brandQuery->limit(20)->get();
-        if ($brands->isEmpty()) {
-            $brands = Brand::limit(20)->get();
+        if (!$hasCategoriesTable && !$hasBrandsTable && !$hasMerchantsTable) {
+            return [
+                'categories' => collect(),
+                'brands' => collect(),
+                'merchants' => collect(),
+            ];
         }
 
-        // Get active merchants
-        $mercQuery = Merchant::active();
-        if ($hasMercCount) {
-            $mercQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
+        $hasCatCount = $hasCategoriesTable && \Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count');
+        $hasBrandCount = $hasBrandsTable && \Illuminate\Support\Facades\Schema::hasColumn('brands', 'deal_count');
+        $hasMercCount = $hasMerchantsTable && \Illuminate\Support\Facades\Schema::hasColumn('merchants', 'deal_count');
+
+        $categories = collect();
+        if ($hasCategoriesTable) {
+            $catQuery = Category::where('slug', '!=', 'general')->where('name', '!=', 'General');
+            if ($hasCatCount) {
+                // Prioritize categories with deals, then order by deal count. Single query.
+                $catQuery->orderByRaw('deal_count > 0 DESC, deal_count DESC');
+            }
+            $categories = $catQuery->get();
         }
-        $merchants = $mercQuery->get();
-        if ($merchants->isEmpty()) {
-            $merchants = Merchant::active()->get();
+
+        $brands = collect();
+        if ($hasBrandsTable) {
+            $brandQuery = Brand::where('is_active', true);
+            if ($hasBrandCount) {
+                $brandQuery->orderByRaw('deal_count > 0 DESC, deal_count DESC');
+            }
+            $brands = $brandQuery->limit(20)->get();
+        }
+
+        $merchants = collect();
+        if ($hasMerchantsTable) {
+            $mercQuery = Merchant::active();
+            if ($hasMercCount) {
+                $mercQuery->orderByRaw('deal_count > 0 DESC, deal_count DESC');
+            }
+            $merchants = $mercQuery->get();
         }
 
         $tree = [

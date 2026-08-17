@@ -1,0 +1,9 @@
+2026/08/03-02:20:21.484 d004 Reusing MANIFEST K:\WhatsAppUtility\LatestDeal\chrome_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/08/03-02:20:21.493 d004 Recovering log #36
+2026/08/03-02:20:21.495 d004 Reusing old log K:\WhatsAppUtility\LatestDeal\chrome_profile\Default\Local Storage\leveldb/000036.log 
+2026/08/03-02:22:01.335 d004 Level-0 table #40: started
+2026/08/03-02:22:01.346 f1fc Current memtable full; waiting...
+2026/08/03-02:22:01.377 d004 Level-0 table #40: 488389 bytes OK
+2026/08/03-02:22:01.390 d004 Delete type=0 #36
+2026/08/03-02:22:01.391 d004 Compacting 4@0 + 1@1 files
+2026/08/03-02:22:01.400 d004 compacted to: files[ 4 1 0 0 0 0 0 ]

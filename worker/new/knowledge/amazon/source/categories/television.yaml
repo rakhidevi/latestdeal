@@ -1,0 +1,19 @@
+# categories/television.yaml
+categories:
+  - id: television
+    name: "Television"
+    aliases: ["TV", "Smart TV", "LED TV", "Televisions"]
+    hierarchy: ["electronics", "home_entertainment", "television"]
+    keywords: ["smart tv", "4k", "oled", "qled", "android tv", "google tv"]
+    brands: ["samsung", "lg", "sony", "tcl", "hisense", "oneplus"]
+    node_ids:
+      amazon_in: ["1389396031"]
+    
+  - id: smartphone
+    name: "Smartphone"
+    aliases: ["Mobile", "Cell Phone", "Mobiles", "Smartphones"]
+    hierarchy: ["electronics", "mobile_phones", "smartphone"]
+    keywords: ["5g", "android", "ios", "iphone"]
+    brands: ["apple", "samsung", "oneplus", "xiaomi", "vivo", "oppo"]
+    node_ids:
+      amazon_in: ["1389401031"]

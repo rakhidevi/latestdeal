@@ -1,0 +1,47 @@
+{
+    "version": "v2.5",
+    "count": 3,
+    "sellers": [
+        {
+            "id": "appario",
+            "name": "Appario Retail Private Ltd",
+            "aliases": [
+                "appario retail",
+                "appario"
+            ],
+            "trust_score": 95,
+            "official": true,
+            "fba": true,
+            "average_rating": 4.8,
+            "blacklist": false,
+            "risk_level": "low"
+        },
+        {
+            "id": "cocoblu",
+            "name": "Cocoblu Retail",
+            "aliases": [
+                "cocoblu",
+                "cocoblu retail limited"
+            ],
+            "trust_score": 92,
+            "official": true,
+            "fba": true,
+            "average_rating": 4.5,
+            "blacklist": false,
+            "risk_level": "low"
+        },
+        {
+            "id": "rk_world",
+            "name": "RK World Infocom Pvt Ltd",
+            "aliases": [
+                "rk world"
+            ],
+            "trust_score": 85,
+            "official": false,
+            "fba": true,
+            "average_rating": 4.1,
+            "blacklist": false,
+            "risk_level": "medium"
+        }
+    ]
+}

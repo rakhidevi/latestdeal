@@ -1,0 +1,19 @@
+name: "Premium Brand Drop"
+priority: 85
+description: "Monitors premium brands (e.g. Apple) for moderate unannounced discounts which are highly convertible."
+opportunity_type: "premium_brand"
+
+filters:
+  brands: ["apple", "dyson", "bose", "sony"]
+  departments: ["electronics", "appliances"]
+  discount_min: 15
+  discount_max: 50
+  promotions:
+    - allowed: ["prime", "coupon", "bank_offer"]
+    - required: []
+    - forbidden: ["warehouse", "refurbished"]
+    
+execution:
+  budget_pages: 3
+  frequency_minutes: 30
+  retry_on_captcha: false

@@ -31,8 +31,9 @@ class DealIngestionController
             'category_id' => 'nullable|integer',
             'category_name' => 'nullable|string',
             'merchant_id' => 'nullable|integer', // Made nullable so we can auto-resolve
-            'ai_caption' => 'required|string',
-            'image_base64' => 'required|string',
+            'ai_caption' => 'nullable|string',
+            'image_base64' => 'nullable|string',
+            'image_url' => 'nullable|url',
             'promo_code' => 'nullable|string',
             'brand' => 'nullable|string',
             'tags' => 'nullable|array',
@@ -41,8 +42,13 @@ class DealIngestionController
             'features.*' => 'string',
             'verdict' => 'nullable|string',
             'trust_metrics' => 'nullable|string',
+            'confidence_score' => 'nullable|integer',
+            'confidence_reasons' => 'nullable|string',
             'ai_score' => 'nullable|integer|min:1|max:100',
-            'short_url' => 'nullable|url'
+            'short_url' => 'nullable|url',
+            'observation_id' => 'required|string',
+            'editorial_status' => 'nullable|string', // Will be ignored and forced to AUTO
+            'price_intelligence' => 'nullable|array' // Accept factual data
         ]);
 
         // 1.1 Resolve Category from Name or Apply Keyword Rules
@@ -118,7 +124,7 @@ class DealIngestionController
 
         \Illuminate\Support\Facades\Log::info('Validated category_id before Deal::create: ' . json_encode($validated['category_id']));
 
-        // 1.6 Process Image Base64
+        // 1.6 Process Image
         $imagePath = 'deals/default.png';
         if (!empty($validated['image_base64'])) {
             $base64Str = $validated['image_base64'];
@@ -132,45 +138,50 @@ class DealIngestionController
             $imagePath = 'deals/' . $imageName;
         }
 
-        // 2. Check for Duplicates
-        $existingDeal = Deal::where(function($query) use ($validated) {
-                $query->where('title', Str::limit($validated['title'], 250, ''))
-                      ->where('merchant_id', $validated['merchant_id']);
-            })
-            ->orWhere('url', $validated['url'])
-            ->first();
+        // Add image_url to payload for the Listener if we don't have a base64
+        $validated['image_path'] = $imagePath;
+        if (!empty($validated['image_url'])) {
+            $validated['image_url'] = $validated['image_url'];
+        }
+
+        // 2. Check for Duplicates based on observation_id (Strict Idempotency)
+        $existingDeal = Deal::where('observation_id', $validated['observation_id'])->first();
 
         if ($existingDeal) {
-            // It's a duplicate! Update price if changed
-            if ($existingDeal->discounted_price != $validated['discounted_price']) {
+            // Idempotent return: don't create a duplicate observation
+            return response()->json([
+                'message' => 'Duplicate observation_id. No changes made.',
+                'deal_id' => $existingDeal->id,
+                'correlation_id' => null
+            ], 200);
+        }
+
+        // 2.1 Fallback Check: Ensure we don't spam the exact same deal URL if observation_id logic missed it
+        $existingUrlDeal = Deal::where('url', $validated['url'])->first();
+        if ($existingUrlDeal) {
+            if ($existingUrlDeal->discounted_price != $validated['discounted_price']) {
                 // Save to price history
                 \App\Models\PriceHistory::create([
-                    'deal_id' => $existingDeal->id,
-                    'price' => $existingDeal->discounted_price,
+                    'deal_id' => $existingUrlDeal->id,
+                    'price' => $existingUrlDeal->discounted_price,
                     'recorded_at' => now(),
                 ]);
                 
-                $existingDeal->update([
+                $existingUrlDeal->update([
                     'original_price' => $validated['original_price'],
                     'discounted_price' => $validated['discounted_price'],
                     'status' => 'active' // reactivate if it was expired
                 ]);
                 
                 return response()->json([
-                    'message' => 'Deal already exists. Price updated.',
-                    'deal_id' => $existingDeal->id,
+                    'message' => 'Deal URL already exists. Price updated.',
+                    'deal_id' => $existingUrlDeal->id,
                     'correlation_id' => null
                 ], 200);
             }
-            
-            // Just reactivate if it was expired
-            if ($existingDeal->status === 'expired') {
-                $existingDeal->update(['status' => 'active']);
-            }
-
             return response()->json([
-                'message' => 'Deal already exists. No changes made.',
-                'deal_id' => $existingDeal->id,
+                'message' => 'Deal URL already exists. No changes made.',
+                'deal_id' => $existingUrlDeal->id,
                 'correlation_id' => null
             ], 200);
         }
@@ -203,10 +214,15 @@ class DealIngestionController
             'brand' => isset($validated['brand']) ? Str::limit($validated['brand'], 250, '') : null,
             'features' => $validated['features'] ?? null,
             'verdict' => $validated['verdict'] ?? null,
-            'trust_metrics' => isset($validated['trust_metrics']) ? Str::limit($validated['trust_metrics'], 250, '') : null,
+            'trust_metrics' => isset($validated['trust_metrics']) ? $validated['trust_metrics'] : null,
+            'confidence_score' => $validated['confidence_score'] ?? null,
+            'confidence_reasons' => isset($validated['confidence_reasons']) ? $validated['confidence_reasons'] : null,
             'ai_caption' => $validated['ai_caption'] ?? null,
             'ai_score' => $validated['ai_score'] ?? null,
             'status' => 'raw', // Indicates it hasn't been processed
+            'editorial_status' => 'AUTO', // CRITICAL: NEVER ALLOW WORKER TO SET PUBLISHED
+            'observation_id' => $validated['observation_id'],
+            'price_intelligence' => isset($validated['price_intelligence']) ? json_encode($validated['price_intelligence']) : null,
             'short_url' => $validated['short_url'] ?? null,
         ]);
 

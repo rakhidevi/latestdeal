@@ -1,0 +1,134 @@
+{
+    "TargetDTO": {
+        "search_target_uuid": "60af98ac-987b-4aec-94b6-19752f7bd359",
+        "trace_context": {
+            "trace_id": "aa513795-3dcd-4ab2-9c0f-be8e90126193",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "provider": "amazon",
+        "profile": "MRP Error",
+        "strategy": null,
+        "priority": 100,
+        "budget_cost": 5,
+        "estimated_runtime_ms": 0,
+        "evidence_graph": [],
+        "url": "https://www.amazon.in/s?k=apple&rh=n%3A1389396031%2Cp_85%2F10440599031",
+        "parameters": {
+            "brand": "apple",
+            "category": "television",
+            "promotions": [
+                "prime",
+                "coupon"
+            ]
+        },
+        "constraints": null,
+        "ttl": 3600,
+        "created_at": "2026-08-01T12:52:35.242792Z",
+        "expires_at": null,
+        "state": "CREATED",
+        "metadata": null
+    },
+    "RawPayload": {
+        "asin": "B0GXFJBV85",
+        "title": "Unknown",
+        "price": 58000,
+        "mrp": 59000,
+        "availability": true,
+        "seller": "Amazon Live Crawler"
+    },
+    "OpportunityDTO": {
+        "opportunity_uuid": "73105dea-785f-4796-9e1b-c320d632ae48",
+        "universal_product_uuid": "cd559066-720f-44f8-8b48-8cbeaf480ec6",
+        "deal_version_uuid": "545ce020-fc44-445d-8899-2bb11e46015f",
+        "trace_context": {
+            "trace_id": "aa513795-3dcd-4ab2-9c0f-be8e90126193",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "opportunity_score": 85.0,
+        "confidence_score": 90.0,
+        "historical_metrics": {
+            "lowest_price_30d": 899.0,
+            "highest_price_30d": null,
+            "price_velocity_7d": 0.0,
+            "volatility_index": 0.0
+        },
+        "state": "Validated",
+        "rejection_reason": null,
+        "validated_at": "2026-08-01T12:52:48.152816Z"
+    },
+    "ShadowRecord": {
+        "id": "1c69b3a2-e2dd-4b8f-929c-db458814c80b",
+        "trace_context": {
+            "trace_id": "aa513795-3dcd-4ab2-9c0f-be8e90126193",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "60af98ac-987b-4aec-94b6-19752f7bd359",
+        "decision": {
+            "opportunity_uuid": "0b800e72-1b67-4259-8cdb-ee20dd440ae8",
+            "trace_context": {
+                "trace_id": "aa513795-3dcd-4ab2-9c0f-be8e90126193",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Evidence Collection Mode",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Evidence packaged successfully."
+        },
+        "runtime_ms": 4647,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T12:52:48.152906Z"
+    }
+}

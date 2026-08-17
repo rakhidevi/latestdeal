@@ -25,7 +25,7 @@ class DealSearchPipeline
         $normalizer = new FilterNormalizer();
         $normalizedFilters = $normalizer->normalize($filters);
 
-        $query = Deal::where('status', 'active');
+        $query = Deal::publishable()->where('status', 'active');
         
         $payload = new SearchPayload($query, $normalizedFilters);
 

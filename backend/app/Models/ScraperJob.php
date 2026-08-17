@@ -14,6 +14,13 @@ class ScraperJob extends Model
         'type',
         'status',
         'logs',
+        'payload',
+        'worker_id',
+        'claimed_at',
+        'heartbeat_at',
+        'attempts',
+        'max_attempts',
+        'priority',
         'duration_seconds',
         'started_at',
         'completed_at',
@@ -21,7 +28,10 @@ class ScraperJob extends Model
 
     protected $casts = [
         'logs' => 'array',
+        'payload' => 'array',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'claimed_at' => 'datetime',
+        'heartbeat_at' => 'datetime',
     ];
 }

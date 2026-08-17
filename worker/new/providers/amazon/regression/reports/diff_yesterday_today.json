@@ -1,0 +1,8 @@
+{
+    "drift_severity": "MODERATE",
+    "selectors_affected": 0,
+    "confidence": {
+        "price": 99.8,
+        "title": 97.5
+    }
+}

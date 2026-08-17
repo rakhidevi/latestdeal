@@ -379,3 +379,26 @@ HTML
 - Never sacrifice architecture for short-term convenience.
 - Temporary solutions must be clearly marked with TODOs and documented.
 - Long-term maintainability always takes priority over quick fixes.
+
+---
+
+## 44. Shopping Intelligence Platform (AdSense Remediation)
+- **Core Objective:** LatestDeal is a Shopping Intelligence Platform, not just an affiliate redirect site. We focus on transparency, trust, and deep price analytics to provide value and secure AdSense approval.
+- **No Hallucinations:** When generating AI content (Pros, Cons, Verdicts), never hallucinate product specifications, original prices, or discounts.
+- **Value-Added Features:** Deal pages MUST include Commerce Intelligence metrics: Final Verdict, Alternatives, Price Volatility, and algorithmic Buy/Wait Indicators.
+- **SEO & Architecture:** Implement SEO Search Hubs for Brands and Categories with unique editorial introductions and FAQs. Always include full Schema.org markup (Organization, WebSite, BreadcrumbList, Product, Offer, Review, FAQPage).
+- **Trust Signals:** Ensure Trust Pages (About, Contact, Privacy, Terms, Editorial Policy, Cookie Policy, Corrections Policy) and Affiliate Disclosures are strictly enforced and accessible from the global footer and deal pages.
+- **Content Ratio:** Maintain at least a ~40% editorial content ratio by building Evergreen Buying Guides, Educational Blog Posts, and Seasonal Events coverage to balance raw affiliate links.
+
+---
+
+## 45. Monetization & AdSense Compliance (Strict Enforcement)
+- **Thin Content & Webmaster Spam Policies:** The platform MUST provide unique, relevant value on every page. Never build features that scrape or aggregate raw affiliate links without augmenting them with proprietary data (e.g., AI Analysis, Price Volatility, Alternative Products). Do not use cloaking, hidden text (`display: none` for keyword stuffing), or doorway pages.
+- **Google Publisher Restrictions:** Do NOT aggregate, scrape, or promote restricted content. This includes: Adult/Sexual content, shocking content, explosives, firearms, tobacco, recreational drugs, alcohol sales, gambling, or unapproved prescription drugs. The system strictly aggregates consumer electronics, software, home appliances, and lifestyle goods.
+- **AdSense Program Policies:** Ensure clear, non-deceptive site navigation. Do not implement deceptive pop-ups, pop-unders, or mechanisms that encourage invalid clicks. Traffic must remain organic and verified; never use bot traffic generators.
+
+---
+
+## 46. Universal Discovery Framework Freeze Policy
+- **Strict Freeze:** No new scheduler abstractions, registries, lifecycle models, or orchestration layers may be introduced to the Universal Discovery Framework unless a new provider or strategy exposes a real limitation that cannot be addressed by the existing framework.
+- **Focus:** Future development must focus on implementing high-value concrete discovery strategies (Lightning Deals, Coupons, Warehouse, etc.) and expanding provider coverage, not building new framework infrastructure.

@@ -1,0 +1,18 @@
+brands:
+  - id: samsung
+    name: Samsung
+    aliases:
+      - Samsung India
+      - SAMSUNG
+    priority: 100
+  - id: apple
+    name: Apple
+    aliases:
+      - Apple India
+    priority: 100
+  - id: sony
+    name: Sony
+    priority: 95
+  - id: lg
+    name: LG
+    priority: 90

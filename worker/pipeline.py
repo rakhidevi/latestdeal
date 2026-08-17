@@ -8,7 +8,7 @@ import traceback
 class ScrapingPipeline:
     
     @classmethod
-    def process_url(cls, raw_url: str, source: str = "telegram") -> Deal:
+    def process_url(cls, raw_url: str, source: str = "telegram", discovery_job=None) -> Deal:
         tracker = MetricsTracker()
         merchant = "unknown"
         try:
@@ -32,7 +32,8 @@ class ScrapingPipeline:
             
             # 5. Generate Affiliate Link
             try:
-                affiliate_url = scraper.generate_affiliate(deal)
+                from affiliate_service import AffiliateService
+                affiliate_url = AffiliateService.get_affiliate_link(merchant, canonical_url)
                 deal.affiliate_url = affiliate_url
             except Exception as e:
                 print(f"Warning: Failed to generate affiliate link: {e}")
@@ -42,7 +43,7 @@ class ScrapingPipeline:
             # 6. AI Enrichment (Category, Score, Caption)
             tracker.mark_start("ai")
             try:
-                deal = enrich_deal(deal)
+                deal = enrich_deal(deal, preserved_score=discovery_job.opportunity_score if discovery_job else None)
             except Exception as e:
                 print(f"AI Enrichment failed: {e}")
             tracker.mark_end("ai")

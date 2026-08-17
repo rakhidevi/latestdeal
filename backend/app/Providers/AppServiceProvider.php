@@ -27,18 +27,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Auto-run pending migrations in web environment if new schema columns are missing
-        if (!\Illuminate\Support\Facades\App::runningInConsole()) {
-            try {
-                if (\Illuminate\Support\Facades\Schema::hasTable('categories') && !\Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count')) {
-                    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-                }
-            } catch (\Throwable $e) {
-                // Log exception silently without breaking request execution
-                \Illuminate\Support\Facades\Log::warning('Auto-migration failed: ' . $e->getMessage());
-            }
-        }
-
         // Domain Event Listener Registrations
         \Illuminate\Support\Facades\Event::listen(
             [\App\Events\DealCreated::class, \App\Events\DealUpdated::class],
@@ -56,28 +44,61 @@ class AppServiceProvider extends ServiceProvider
             [\App\Events\DealCreated::class, \App\Events\DealUpdated::class, \App\Events\DealDeleted::class],
             [\App\Listeners\NavigationCacheListener::class, 'handle']
         );
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\UserInteracted::class,
+            [\App\Listeners\RecordInteractionAnalytics::class, 'handle']
+        );
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\UserInteracted::class,
+            [\App\Listeners\UpdateRecommendationProfile::class, 'handle']
+        );
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\UserInteracted::class,
+            [\App\Listeners\TriggerRealTimeNotifications::class, 'handle']
+        );
 
         \Illuminate\Support\Facades\View::composer('layouts.app', function ($view) {
             $view->with('nav', app(\App\Services\NavigationService::class)->getNavigationTree());
         });
         
         \Illuminate\Support\Facades\View::composer('welcome', function ($view) {
-            $catQuery = \App\Models\Category::where('slug', '!=', 'general')->where('name', '!=', 'General');
-            if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count')) {
-                $catQuery->orderBy('deal_count', 'desc');
+            try {
+                // Cache the homepage data to reduce database load on every visit.
+                $welcomeData = \Illuminate\Support\Facades\Cache::remember('welcome_page_data', 300, function () {
+                    $categoriesTableExists = \Illuminate\Support\Facades\Schema::hasTable('categories');
+                    $dealsTableExists = \Illuminate\Support\Facades\Schema::hasTable('deals');
+
+                    $categories = collect();
+                    if ($categoriesTableExists) {
+                        $catQuery = \App\Models\Category::where('slug', '!=', 'general')->where('name', '!=', 'General');
+                        if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count')) {
+                            $catQuery->orderBy('deal_count', 'desc');
+                        }
+                        $categories = $catQuery->take(7)->get();
+                    }
+
+                    $heroDeals = collect();
+                    if ($dealsTableExists) {
+                        $heroDeals = \App\Models\Deal::where('status', 'active')
+                            ->where('discounted_price', '>', 0)
+                            ->with(['merchant', 'category'])
+                            ->orderBy('ai_score', 'desc')
+                            ->orderBy('clicks_count', 'desc')
+                            ->take(6)
+                            ->get();
+                    }
+
+                    return ['categories' => $categories, 'heroDeals' => $heroDeals];
+                });
+
+                $view->with('categories', $welcomeData['categories']);
+                $view->with('heroDeals', $welcomeData['heroDeals']);
+            } catch (\Throwable $e) {
+                // If queries fail, log the error and return empty collections to prevent site crash.
+                \Illuminate\Support\Facades\Log::error('Failed to load welcome page data: ' . $e->getMessage());
+                $view->with('categories', collect());
+                $view->with('heroDeals', collect());
             }
-            $categories = $catQuery->take(7)->get();
-
-            $heroDeals = \App\Models\Deal::where('status', 'active')
-                ->where('discounted_price', '>', 0)
-                ->with(['merchant', 'category'])
-                ->orderBy('ai_score', 'desc')
-                ->orderBy('clicks_count', 'desc')
-                ->take(6)
-                ->get();
-
-            $view->with('categories', $categories);
-            $view->with('heroDeals', $heroDeals);
         });
     }
 }

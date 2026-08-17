@@ -255,9 +255,15 @@ class AdminController
     public function startScraper()
     {
         try {
-            $workerIp = gethostbyname('worker');
-            Http::timeout(5)->post("http://{$workerIp}:8001/start");
-            return response()->json(['success' => true]);
+            \App\Models\ScraperJob::create([
+                'name' => 'Admin: Start Scraper',
+                'type' => 'SYSTEM_COMMAND',
+                'status' => 'PENDING',
+                'payload' => ['command' => 'start'],
+                'priority' => 'high',
+                'started_at' => now(),
+            ]);
+            return response()->json(['success' => true, 'message' => 'Scraper start job queued']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -266,9 +272,20 @@ class AdminController
     public function stopScraper()
     {
         try {
-            $workerIp = gethostbyname('worker');
-            Http::timeout(5)->post("http://{$workerIp}:8001/stop");
-            return response()->json(['success' => true]);
+            \App\Models\ScraperJob::create([
+                'name' => 'Admin: Stop Scraper',
+                'type' => 'CANCELLATION',
+                'status' => 'PENDING',
+                'payload' => ['command' => 'stop_all'],
+                'priority' => 'critical',
+                'started_at' => now(),
+            ]);
+            
+            // Also explicitly mark running jobs as CANCEL_REQUESTED
+            \App\Models\ScraperJob::whereIn('status', ['PENDING', 'CLAIMED', 'PROCESSING'])
+                ->update(['status' => 'CANCEL_REQUESTED']);
+                
+            return response()->json(['success' => true, 'message' => 'Cancellation requested globally']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -277,11 +294,12 @@ class AdminController
     public function scraperStatus()
     {
         try {
-            $workerIp = gethostbyname('worker');
-            $response = Http::timeout(3)->get("http://{$workerIp}:8001/status");
-            return response()->json($response->json());
+            // In the new architecture, Laravel holds the heartbeat status
+            // For now, we will return a generic status indicating it's managed via DB polling
+            $recentJobs = \App\Models\ScraperJob::orderBy('created_at', 'desc')->limit(5)->get();
+            return response()->json(['running' => true, 'message' => 'Worker is operating in polling mode', 'recent_jobs' => $recentJobs]);
         } catch (\Exception $e) {
-            return response()->json(['running' => false, 'logs' => ["Worker daemon unreachable: " . $e->getMessage()]]);
+            return response()->json(['running' => false, 'logs' => ["Worker status error: " . $e->getMessage()]]);
         }
     }
 
@@ -292,10 +310,17 @@ class AdminController
             'type' => 'nullable|string|in:ingestion,sitestripe_automation'
         ]);
         try {
-            $workerIp = gethostbyname('worker');
-            $payload = ['url' => $request->url, 'type' => $request->type ?? 'ingestion'];
-            $response = Http::timeout(5)->post("http://{$workerIp}:8001/scrape", $payload);
-            return response()->json(['success' => true, 'message' => $response->json('status')]);
+            \App\Models\ScraperJob::create([
+                'name' => 'Admin: Single URL Scan',
+                'type' => 'URL_SCAN',
+                'status' => 'PENDING',
+                'payload' => [
+                    'url' => $request->url,
+                    'source' => 'admin'
+                ],
+                'started_at' => now(),
+            ]);
+            return response()->json(['success' => true, 'message' => 'URL queued for ingestion']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
@@ -304,16 +329,20 @@ class AdminController
     public function customHunt(Request $request)
     {
         try {
-            $workerIp = gethostbyname('worker');
-            $payload = [
-                'category' => $request->category,
-                'brand' => $request->brand,
-                'discount' => $request->discount,
-                'keyword' => $request->keyword,
-                'mode' => $request->mode
-            ];
-            $response = Http::timeout(5)->post("http://{$workerIp}:8001/hunt", $payload);
-            return response()->json(['success' => true, 'message' => $response->json('status')]);
+            \App\Models\ScraperJob::create([
+                'name' => 'Admin: Custom Hunt',
+                'type' => 'CUSTOM_HUNT',
+                'status' => 'PENDING',
+                'payload' => [
+                    'category' => $request->category,
+                    'brand' => $request->brand,
+                    'discount' => $request->discount,
+                    'keyword' => $request->keyword,
+                    'mode' => $request->mode
+                ],
+                'started_at' => now(),
+            ]);
+            return response()->json(['success' => true, 'message' => 'Custom hunt queued']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }

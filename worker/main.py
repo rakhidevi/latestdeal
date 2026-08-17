@@ -58,7 +58,34 @@ async def process_queue():
             job_logs.append(msg)
             update_job(job_id, logs=[msg])
             
+        # Determine if it's a DiscoveryJob
+        data_str = deal_item.get('data')
+        discovery_job = None
+        publishing_context = None
+        
+        if data_str:
+            try:
+                parsed = json.loads(data_str)
+                if 'job_uuid' in parsed:
+                    from worker.new.sdk.foundation.dto.models import DiscoveryJob, PublishingContext
+                    discovery_job = DiscoveryJob(**parsed)
+                    publishing_context = PublishingContext(job=discovery_job)
+            except Exception:
+                pass
+                
+        def emit_event(event_name: str, duration_ms: int = 0):
+            if discovery_job:
+                evt = {
+                    "event": event_name,
+                    "trace_id": discovery_job.trace_id,
+                    "job_uuid": discovery_job.job_uuid,
+                    "provider": discovery_job.provider,
+                    "duration_ms": duration_ms
+                }
+                add_log(f"EVENT: {json.dumps(evt)}")
+
         try:
+            emit_event("PublisherStarted")
             # --- PHASE 1: EXTRACTION via PIPELINE ---
             if worker_mode == "desktop" and deal_item['status'] == 'needs_desktop_processing':
                 add_log("Desktop Worker executing physical browser extraction...")
@@ -75,7 +102,11 @@ async def process_queue():
                 add_log("Starting standard pipeline extraction...")
                 from pipeline import ScrapingPipeline
                 async with browser_lock:
-                    deal = await asyncio.to_thread(ScrapingPipeline.process_url, url, "dashboard")
+                    deal = await asyncio.to_thread(ScrapingPipeline.process_url, url, "dashboard", discovery_job)
+                
+            if publishing_context:
+                publishing_context.affiliate_url = deal.affiliate_url
+                emit_event("AffiliateResolved")
                 
             update_job(job_id, type=f"ingestion ({deal.merchant})")
             
@@ -112,7 +143,14 @@ async def process_queue():
             from image_composer import compose_image
             base64_image = compose_image(deal.image_url or '', deal.original_price or 0, deal.price or 0)
             
+            if publishing_context:
+                publishing_context.caption = caption_text
+                publishing_context.category_name = deal.category.name if deal.category else "Electronics"
+                emit_event("CaptionGenerated")
+            
             # 4. Construct Final Payload
+            import json
+            
             payload = {
                 "title": deal.title,
                 "original_price": deal.original_price or 0,
@@ -124,7 +162,13 @@ async def process_queue():
                 "features": [],
                 "brand": deal.brand or deal.merchant,
                 "image_base64": base64_image,
-                "ai_score": deal.ai_score or 85
+                "ai_score": deal.ai_score or 85,
+                "opportunity_score": deal.ai_score or 85,
+                "deal_type": job_type if job_type in ['deal', 'mega_loot'] else 'deal',
+                "trust_metrics": json.dumps(deal.trust_metrics) if deal.trust_metrics else None,
+                "verdict": deal.verdict,
+                "confidence_score": deal.confidence_score,
+                "confidence_reasons": json.dumps(deal.confidence_reasons) if deal.confidence_reasons else None
             }
             
             # 5. Push to Laravel
@@ -136,6 +180,7 @@ async def process_queue():
                 mark_status(item_id, 'completed')
                 add_log("Deal successfully pushed and saved!")
                 update_job(job_id, status="success")
+                emit_event("Published")
             else:
                 mark_status(item_id, 'failed')
                 add_log("Failed to push to Laravel API.")

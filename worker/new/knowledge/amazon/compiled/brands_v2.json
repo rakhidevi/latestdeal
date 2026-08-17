@@ -1,0 +1,120 @@
+{
+    "version": "v2.5",
+    "count": 4,
+    "brands": [
+        {
+            "name": "Bosch",
+            "priority": 95,
+            "aliases": [
+                "bosch appliances",
+                "bosch tools"
+            ],
+            "departments": [
+                "appliances",
+                "tools"
+            ],
+            "categories": [
+                "kitchen",
+                "washing_machine"
+            ],
+            "amazon_brand_name": "Bosch",
+            "official_seller": "Cloudtail India",
+            "keywords": [
+                "premium",
+                "durable"
+            ],
+            "country": "Germany",
+            "is_premium": true
+        },
+        {
+            "name": "Lenovo",
+            "priority": 90,
+            "aliases": [
+                "lenovo laptops",
+                "lenovo inc"
+            ],
+            "departments": [
+                "electronics"
+            ],
+            "categories": [
+                "laptop",
+                "tablet"
+            ],
+            "amazon_brand_name": "Lenovo",
+            "official_seller": "Appario Retail Private Ltd",
+            "keywords": [
+                "thinkpad",
+                "ideapad"
+            ],
+            "country": "China",
+            "is_premium": false
+        },
+        {
+            "id": "samsung",
+            "name": "Samsung",
+            "aliases": [
+                "samsung india",
+                "samsung"
+            ],
+            "priority": 100,
+            "departments": [
+                "electronics",
+                "appliances"
+            ],
+            "categories": [
+                "television",
+                "smartphone",
+                "refrigerator"
+            ],
+            "amazon_brand_name": "Samsung",
+            "official_seller": "Appario Retail Private Ltd",
+            "keywords": [
+                "galaxy",
+                "qled",
+                "neo qled"
+            ],
+            "competitors": [
+                "lg",
+                "sony",
+                "apple"
+            ],
+            "popularity": "high",
+            "premium": true,
+            "country": "KR",
+            "lifecycle": "active"
+        },
+        {
+            "id": "apple",
+            "name": "Apple",
+            "aliases": [
+                "apple inc",
+                "apple"
+            ],
+            "priority": 100,
+            "departments": [
+                "electronics"
+            ],
+            "categories": [
+                "smartphone",
+                "laptop",
+                "tablet"
+            ],
+            "amazon_brand_name": "Apple",
+            "official_seller": "Appario Retail Private Ltd",
+            "keywords": [
+                "iphone",
+                "macbook",
+                "ipad",
+                "airpods"
+            ],
+            "competitors": [
+                "samsung",
+                "oneplus"
+            ],
+            "popularity": "high",
+            "premium": true,
+            "country": "US",
+            "lifecycle": "active"
+        }
+    ]
+}

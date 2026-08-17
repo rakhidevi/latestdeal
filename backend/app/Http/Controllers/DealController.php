@@ -6,7 +6,7 @@ use App\Models\Deal;
 
 class DealController extends Controller
 {
-    public function show(Deal $deal)
+    public function show(Deal $deal, \App\Services\User\InteractionService $interactionService)
     {
         $priceHistory = $deal->priceHistories()->orderBy('recorded_at')->get();
         
@@ -15,15 +15,30 @@ class DealController extends Controller
             ->where('status', 'active')
             ->limit(4)
             ->get();
+            
+        // Track Interaction if logged in
+        if (auth()->check()) {
+            $interactionService->record('deal_view', 'deal_page', $deal->id, [
+                'title' => $deal->title,
+                'price' => $deal->discounted_price,
+                'discount' => $deal->discount_percentage ?? 0
+            ]);
+        }
 
         return view('deals.show', compact('deal', 'priceHistory', 'similarDeals'));
     }
 
-    public function saveDeal(Deal $deal, \Illuminate\Http\Request $request)
+    public function saveDeal(Deal $deal, \Illuminate\Http\Request $request, \App\Services\User\InteractionService $interactionService)
     {
         $user = $request->user();
         if ($user) {
             $user->savedDeals()->syncWithoutDetaching([$deal->id]);
+            
+            $interactionService->record('deal_save', $request->input('source', 'dashboard'), $deal->id, [
+                'title' => $deal->title,
+                'price' => $deal->discounted_price
+            ]);
+            
             return back()->with('success', 'Deal saved successfully!');
         }
         return back();

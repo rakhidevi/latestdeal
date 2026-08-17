@@ -60,44 +60,32 @@ class AutoHuntCommand extends Command
         $this->info("Hunting Category: {$targetCategory}");
 
         try {
-            $workerIp = gethostbyname('worker');
-            // If the worker is unreachable (e.g. running on desktop without tunnel port forward for /hunt)
-            // It might fail, but let's try.
-            // Wait, the python daemon runs on desktop. If Laravel is on a remote server, it CANNOT hit $workerIp:8001
-            // But since the python worker is running a daemon, and Laravel wants to trigger a custom hunt...
-            // Oh, we can just use the database `scraper_jobs` or directly send a websocket broadcast!
-            
-            // Wait, I will use HTTP if it's local, otherwise we need a fallback.
-            // Actually, the user's Laravel backend might be local or they are using Cloudflare tunnel.
-            // Let's just do the HTTP request as AdminController does.
-            $payload = [
-                'keyword' => $targetCategory,
-                'mode' => 'ingestion'
-            ];
-            
-            $response = Http::timeout(10)->post("http://{$workerIp}:8001/hunt", $payload);
-            
-            if ($response->successful()) {
-                $this->info("Hunt triggered successfully: " . $response->json('status'));
-                Log::info("AutoHunt triggered for category: {$targetCategory}");
-            } else {
-                $this->error("Worker responded with error: " . $response->status());
-            }
+            \App\Models\ScraperJob::create([
+                'name' => "AutoHunt: {$targetCategory}",
+                'type' => 'AUTO_HUNT',
+                'status' => 'PENDING',
+                'payload' => [
+                    'category' => $targetCategory,
+                    'mode' => 'ingestion',
+                    'source' => 'AutoHuntCommand'
+                ],
+                'started_at' => now(),
+            ]);
 
-        } catch (\Exception $e) {
-            $this->error("Failed to connect to Python worker daemon: " . $e->getMessage());
-            Log::error("AutoHunt failed: " . $e->getMessage());
+            $this->info("Hunt triggered successfully by creating a ScraperJob.");
+            Log::info("AutoHunt triggered for category: {$targetCategory}");
             
-            // Fallback: If HTTP fails because the worker is on desktop, we can broadcast a WebSocket event
-            // that the worker can pick up!
-            $this->info("Attempting WebSocket fallback...");
+            // Still dispatch WebSocket event as a notification to admins
             try {
-                // We broadcast a new event 'App\Events\HuntRequested'
                 event(new \App\Events\HuntRequested($targetCategory));
                 $this->info("WebSocket event dispatched.");
             } catch (\Exception $wsException) {
-                $this->error("WebSocket fallback failed: " . $wsException->getMessage());
+                // Ignore missing websocket dependencies
             }
+
+        } catch (\Exception $e) {
+            $this->error("Failed to insert ScraperJob: " . $e->getMessage());
+            Log::error("AutoHunt failed: " . $e->getMessage());
         }
     }
 }

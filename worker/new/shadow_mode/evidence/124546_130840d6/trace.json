@@ -1,0 +1,134 @@
+{
+    "TargetDTO": {
+        "search_target_uuid": "66c19f0f-2f49-48fa-abf4-5a465874e434",
+        "trace_context": {
+            "trace_id": "3c16b116-9439-480f-9910-2e54542848a8",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "provider": "amazon",
+        "profile": "MRP Error",
+        "strategy": null,
+        "priority": 100,
+        "budget_cost": 5,
+        "estimated_runtime_ms": 0,
+        "evidence_graph": [],
+        "url": "https://www.amazon.in/s?k=samsung&rh=n%3A1389401031%2Cp_85%2F10440599031",
+        "parameters": {
+            "brand": "samsung",
+            "category": "smartphone",
+            "promotions": [
+                "prime",
+                "coupon"
+            ]
+        },
+        "constraints": null,
+        "ttl": 3600,
+        "created_at": "2026-08-01T12:52:35.243028Z",
+        "expires_at": null,
+        "state": "CREATED",
+        "metadata": null
+    },
+    "RawPayload": {
+        "asin": "B0H6WHHLVK",
+        "title": "Unknown",
+        "price": 259999,
+        "mrp": 260999,
+        "availability": true,
+        "seller": "Amazon Live Crawler"
+    },
+    "OpportunityDTO": {
+        "opportunity_uuid": "d538ed76-c72f-43d1-904d-70d38e939c5d",
+        "universal_product_uuid": "bc282371-8bfc-4646-a905-35d0a00e587e",
+        "deal_version_uuid": "802701da-3854-49b2-9069-0c19fcefbda8",
+        "trace_context": {
+            "trace_id": "3c16b116-9439-480f-9910-2e54542848a8",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "opportunity_score": 85.0,
+        "confidence_score": 90.0,
+        "historical_metrics": {
+            "lowest_price_30d": 899.0,
+            "highest_price_30d": null,
+            "price_velocity_7d": 0.0,
+            "volatility_index": 0.0
+        },
+        "state": "Validated",
+        "rejection_reason": null,
+        "validated_at": "2026-08-01T12:53:08.278484Z"
+    },
+    "ShadowRecord": {
+        "id": "c9afe973-5bb9-4d8d-9db6-898b45bfd4b1",
+        "trace_context": {
+            "trace_id": "3c16b116-9439-480f-9910-2e54542848a8",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "66c19f0f-2f49-48fa-abf4-5a465874e434",
+        "decision": {
+            "opportunity_uuid": "04d45203-2df6-4d4f-8e53-01504db0798a",
+            "trace_context": {
+                "trace_id": "3c16b116-9439-480f-9910-2e54542848a8",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Evidence Collection Mode",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Evidence packaged successfully."
+        },
+        "runtime_ms": 9832,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T12:53:08.278568Z"
+    }
+}

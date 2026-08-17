@@ -73,7 +73,8 @@ class GenerateDealSummariesCommand extends Command
                       "{\n" .
                       "  \"pros\": [\"pro 1\", \"pro 2\", \"pro 3\"],\n" .
                       "  \"cons\": [\"con 1\", \"con 2\"],\n" .
-                      "  \"verdict\": \"A one sentence verdict on whether this is a good buy at this price.\"\n" .
+                      "  \"verdict\": \"A one sentence verdict on whether this is a good buy at this price.\",\n" .
+                      "  \"alternatives\": [\"Brand X Model Y\", \"Brand Z Model A\"]\n" .
                       "}\n" .
                       "Do NOT include markdown formatting like ```json, just the raw JSON brackets.";
 
@@ -93,7 +94,9 @@ class GenerateDealSummariesCommand extends Command
                         // Store pros & cons in the JSON 'features' column
                         $features = [
                             'pros' => $result['pros'],
-                            'cons' => $result['cons']
+                            'cons' => $result['cons'],
+                            'verdict' => $result['verdict'],
+                            'alternatives' => $result['alternatives'] ?? []
                         ];
                         
                         $deal->features = $features; // Laravel casts array to JSON automatically if configured

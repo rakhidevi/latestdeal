@@ -1,0 +1,59 @@
+[
+    {
+        "id": "d7f113a4-0e80-463b-8c66-d4d8605f158b",
+        "trace_context": {
+            "trace_id": "875c5a64-b65d-4757-a81b-a4955c2dc1b2",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "6dc10dcb-30ae-42b1-8fd8-cc86461b2cfb",
+        "decision": {
+            "opportunity_uuid": "6d5e9054-a63d-4524-b4be-30d7970ed87f",
+            "trace_context": {
+                "trace_id": "875c5a64-b65d-4757-a81b-a4955c2dc1b2",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Live Shadow Mode automated decision",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Live extraction success!"
+        },
+        "runtime_ms": 7598,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T12:23:17.387893Z"
+    }
+]

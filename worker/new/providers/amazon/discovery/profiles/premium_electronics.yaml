@@ -1,0 +1,13 @@
+name: "Premium Electronics (50%+ Discount)"
+id: "profile_premium_electronics"
+priority: 95
+provider: "amazon"
+filters:
+  discount:
+    min: 50
+    max: null
+  prime: true
+  brands: ["samsung", "apple", "bosch"]
+  nodes: ["1389401031", "1375424031"] # Smartphones, Laptops
+sort: "discount-desc-rank"
+description: "Hunts for major discounts on strictly premium electronic brands."

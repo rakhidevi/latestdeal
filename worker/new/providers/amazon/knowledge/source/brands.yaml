@@ -1,0 +1,23 @@
+samsung:
+  name: "Samsung"
+  aliases: ["Samsung India", "SAMSUNG"]
+  tier: "PREMIUM"
+  filter_value: "Samsung"
+
+apple:
+  name: "Apple"
+  aliases: ["APPLE", "Apple Inc"]
+  tier: "PREMIUM"
+  filter_value: "Apple"
+
+boat:
+  name: "boAt"
+  aliases: ["Boat", "BOAT"]
+  tier: "STANDARD"
+  filter_value: "boAt"
+
+bosch:
+  name: "Bosch"
+  aliases: ["BOSCH"]
+  tier: "PREMIUM"
+  filter_value: "Bosch"

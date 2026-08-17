@@ -55,9 +55,17 @@ class Deal(BaseModel):
     brand: Optional[str] = Field(default=None, description="Product brand")
     
     rating: Optional[float] = Field(default=None, description="Product rating (e.g. 4.5)")
+    review_count: Optional[int] = Field(default=None, description="Number of customer reviews")
+    is_prime: Optional[bool] = Field(default=False, description="Is it Amazon Prime eligible?")
+    is_fulfilled: Optional[bool] = Field(default=False, description="Is it fulfilled by the platform (e.g., FBA)?")
     availability: str = Field(default="In Stock")
     
     source: str = Field(default="telegram", description="Where this deal came from (telegram, hunter, etc)")
     
     ai_caption: Optional[str] = Field(default=None, description="Generated social media caption")
     ai_score: Optional[int] = Field(default=None, ge=1, le=100, description="1-100 deal score")
+    trust_metrics: Optional[dict] = Field(default=None, description="Checklist of trust factors")
+    verdict: Optional[str] = Field(default=None, description="AI recommendation: Buy Now vs Wait")
+    
+    confidence_score: Optional[int] = Field(default=None, ge=1, le=100, description="Confidence in deal quality")
+    confidence_reasons: Optional[list] = Field(default_factory=list, description="Reasons for confidence score")

@@ -34,6 +34,26 @@ class PublishDealsCommand extends Command
         $model = env('OLLAMA_MODEL', 'llama3');
 
         foreach ($pendingDeals as $deal) {
+            // Bypass legacy Ollama if Python Worker already provided a valid Trust Score
+            if ($deal->ai_score !== null && $deal->ai_score > 0) {
+                $deal->status = 'active';
+                $deal->save();
+                
+                // Dispatch to Telegram
+                $telegramAccounts = \App\Models\SocialAccount::where('platform', 'telegram')->where('is_active', true)->get();
+                if ($telegramAccounts->isNotEmpty()) {
+                    foreach ($telegramAccounts as $account) {
+                        \App\Jobs\PublishDealToTelegramJob::dispatch($deal, $account->id);
+                    }
+                } else {
+                    \App\Jobs\PublishDealToTelegramJob::dispatch($deal, null);
+                }
+                
+                $publishedCount++;
+                Log::info("Auto-published deal ID {$deal->id} using Python Trust Score: {$deal->ai_score}");
+                continue;
+            }
+
             $discountPct = 0;
             if ($deal->original_price > 0) {
                 $discountPct = (($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100;

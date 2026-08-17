@@ -1,0 +1,26 @@
+{
+    "metrics": {
+        "run_id": "67a92ff1-2d1f-440f-8908-2ccf3638993b",
+        "timestamp": "2026-08-02T18:55:47.711758+00:00",
+        "targets_generated": 5,
+        "targets_attempted": 5,
+        "targets_succeeded": 4,
+        "extraction_failures": 5,
+        "validation_failures": 0,
+        "captcha_hits": 0,
+        "duplicate_rate": 0.0,
+        "memory_peak_mb": 101.1640625,
+        "cpu_peak_percent": 19.5,
+        "extraction_success_pct": 80.0,
+        "selector_health": {
+            "title": 100.0,
+            "price": 100.0,
+            "mrp": 100.0,
+            "image": 100.0,
+            "rating": 100.0
+        }
+    },
+    "provider": "Amazon",
+    "environment": "Shadow Mode",
+    "signature": "7c6371921f6d5ceefe6ce18ac12905ab9f79639ac926ef255dacf884a99788ff"
+}

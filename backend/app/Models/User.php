@@ -32,4 +32,26 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(Deal::class, 'saved_deals');
     }
+
+    public function interactions()
+    {
+        return $this->hasMany(UserInteraction::class);
+    }
+
+    public function preferences()
+    {
+        return $this->hasOne(UserPreference::class);
+    }
+
+    public function recentViews()
+    {
+        return $this->hasMany(UserInteraction::class)
+                    ->where('interaction_type', 'deal_view')
+                    ->latest();
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(UserInteraction::class)->latest();
+    }
 }

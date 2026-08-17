@@ -71,10 +71,21 @@
 
                 <h2 class="flex items-center gap-3">
                     <i data-lucide="cookie" class="w-8 h-8 text-amber-500"></i>
-                    4. Cookies and Tracking
+                    4. Cookies, Tracking, and Advertising
                 </h2>
                 <p>
-                    We use cookies and similar technologies for purposes such as authenticating users, remembering user preferences, determining the popularity of content, and analyzing site traffic. As an affiliate platform, tracking cookies are utilized by our merchant partners (like Amazon) when you click "Buy Now" to attribute the sale to LatestDeal.
+                    We use cookies and similar technologies for purposes such as authenticating users, remembering user preferences, determining the popularity of content, and analyzing site traffic. 
+                </p>
+                <p>
+                    <strong>Third-Party Advertising & AdSense:</strong> We use third-party advertising companies, including Google AdSense, to serve ads when you visit our website. These companies may use information (not including your name, address, email address, or telephone number) about your visits to this and other websites in order to provide advertisements about goods and services of interest to you.
+                </p>
+                <ul class="list-disc pl-5 my-4">
+                    <li>Third party vendors, including Google, use cookies to serve ads based on your prior visits to our website or other websites.</li>
+                    <li>Google's use of advertising cookies enables it and its partners to serve ads to our users based on their visit to our sites and/or other sites on the Internet.</li>
+                    <li>You may opt out of personalized advertising by visiting <a href="https://myadcenter.google.com/" target="_blank" rel="noopener">Google Ads Settings</a>. Alternatively, you can opt out of a third-party vendor's use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener">www.aboutads.info</a>.</li>
+                </ul>
+                <p>
+                    <strong>Affiliate Tracking:</strong> As an affiliate platform, tracking cookies are utilized by our merchant partners (like Amazon) when you click "Buy Now" to attribute the sale to LatestDeal.
                 </p>
 
                 <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent my-8"></div>

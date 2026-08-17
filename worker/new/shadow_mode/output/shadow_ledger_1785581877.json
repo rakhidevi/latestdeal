@@ -1,0 +1,458 @@
+[
+    {
+        "id": "9c55d491-2d65-499a-a394-487070f2e416",
+        "trace_context": {
+            "trace_id": "f666be1b-e64e-4fa5-8d58-9e6efdcfc102",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "bab530e7-b00b-488f-a1fc-ece3ac5cea9f",
+        "decision": {
+            "opportunity_uuid": "7d997e3a-7a8b-4236-93d0-5cc2a8b6e6cb",
+            "trace_context": {
+                "trace_id": "f666be1b-e64e-4fa5-8d58-9e6efdcfc102",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Shadow Mode automated test decision",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Legacy crawler missed this entirely"
+        },
+        "runtime_ms": 0,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T10:57:57.701894Z"
+    },
+    {
+        "id": "6cda4fb5-7dd5-4870-a65d-aa12473bb0eb",
+        "trace_context": {
+            "trace_id": "2c61b83c-e493-49cc-921e-e2771234718e",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "6d85fe74-0f42-4760-ad6c-5af64efe2966",
+        "decision": {
+            "opportunity_uuid": "acd24b97-76bf-4ca3-9f88-6785126c5b47",
+            "trace_context": {
+                "trace_id": "2c61b83c-e493-49cc-921e-e2771234718e",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Shadow Mode automated test decision",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Legacy crawler missed this entirely"
+        },
+        "runtime_ms": 0,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T10:57:57.701989Z"
+    },
+    {
+        "id": "2733d1e9-e19b-48b0-952f-54fa03c18640",
+        "trace_context": {
+            "trace_id": "3325f102-29f2-450c-9c44-e6faf84c2806",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "ce5d5253-f94b-4c1b-b150-22614cc24489",
+        "decision": {
+            "opportunity_uuid": "a0bb4436-5d05-428e-8e03-cf701bed8bc6",
+            "trace_context": {
+                "trace_id": "3325f102-29f2-450c-9c44-e6faf84c2806",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Shadow Mode automated test decision",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Legacy crawler missed this entirely"
+        },
+        "runtime_ms": 0,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T10:57:57.702061Z"
+    },
+    {
+        "id": "0214fdd8-049d-4b85-9e29-5f721f8f4898",
+        "trace_context": {
+            "trace_id": "062aff5d-20be-4ae2-af3c-6a82f5cb39ed",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "d72f544d-a04a-4cbc-aca6-d3ab24a12cfb",
+        "decision": {
+            "opportunity_uuid": "78b48ddf-db2b-4db2-9b52-2085b213457e",
+            "trace_context": {
+                "trace_id": "062aff5d-20be-4ae2-af3c-6a82f5cb39ed",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Shadow Mode automated test decision",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Legacy crawler missed this entirely"
+        },
+        "runtime_ms": 0,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T10:57:57.702141Z"
+    },
+    {
+        "id": "426b5ccd-21e6-4bb0-a876-f3e5a4861d0a",
+        "trace_context": {
+            "trace_id": "420cf152-c9f7-4b68-9b7e-e571dfee7a27",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "0bce0a56-2476-4f6f-8312-dceafd1c5b0e",
+        "decision": {
+            "opportunity_uuid": "8c60c2be-152b-4d6b-9fdb-e414ffe6ca69",
+            "trace_context": {
+                "trace_id": "420cf152-c9f7-4b68-9b7e-e571dfee7a27",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Shadow Mode automated test decision",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Legacy crawler missed this entirely"
+        },
+        "runtime_ms": 0,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T10:57:57.702216Z"
+    },
+    {
+        "id": "cd7a5229-907e-4f26-bdc3-65c0dbeddea6",
+        "trace_context": {
+            "trace_id": "367f2821-3a99-4a69-b842-b82cd31127c8",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "08369205-f795-447b-abdc-0015ff17af8c",
+        "decision": {
+            "opportunity_uuid": "1e0861d0-376e-42a2-9421-d210caa707a5",
+            "trace_context": {
+                "trace_id": "367f2821-3a99-4a69-b842-b82cd31127c8",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Shadow Mode automated test decision",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Legacy crawler missed this entirely"
+        },
+        "runtime_ms": 0,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T10:57:57.702279Z"
+    },
+    {
+        "id": "1d06ad85-5c77-44fb-8604-d9fc614cdc29",
+        "trace_context": {
+            "trace_id": "b1889603-efef-4613-8385-ec68582b7d9f",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "33f1cf93-e80c-4286-8e7e-d5e99d1c5204",
+        "decision": {
+            "opportunity_uuid": "63a95eaf-a6c1-457f-8a3c-9a5bb1840f44",
+            "trace_context": {
+                "trace_id": "b1889603-efef-4613-8385-ec68582b7d9f",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Shadow Mode automated test decision",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Legacy crawler missed this entirely"
+        },
+        "runtime_ms": 0,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T10:57:57.702339Z"
+    },
+    {
+        "id": "5661fc1e-0f51-4568-95b9-d9eaaeaeb5fb",
+        "trace_context": {
+            "trace_id": "c2cd8d06-1f44-43d1-98c9-cd61eec2e7da",
+            "correlation_id": null,
+            "parent_id": null,
+            "run_id": null,
+            "worker_id": null,
+            "provider": "amazon",
+            "strategy": null,
+            "profile": "MRP Error",
+            "discovery_version": null,
+            "knowledge_version": null,
+            "policy_version": null
+        },
+        "search_target_uuid": "005a3c4c-6f49-4cc5-b5c7-bd6adda9945d",
+        "decision": {
+            "opportunity_uuid": "55cf2af0-67bb-422a-934d-fe625aa8f374",
+            "trace_context": {
+                "trace_id": "c2cd8d06-1f44-43d1-98c9-cd61eec2e7da",
+                "correlation_id": null,
+                "parent_id": null,
+                "run_id": null,
+                "worker_id": null,
+                "provider": "amazon",
+                "strategy": null,
+                "profile": "MRP Error",
+                "discovery_version": null,
+                "knowledge_version": null,
+                "policy_version": null
+            },
+            "score": {
+                "overall": 85,
+                "price": 0,
+                "trust": 0,
+                "popularity": 0,
+                "profitability": 0,
+                "urgency": 0,
+                "confidence": 0,
+                "publishability": 0
+            },
+            "decision": "PUBLISH",
+            "evidence_graph": [],
+            "explanation": "Shadow Mode automated test decision",
+            "policy_version": "1.0",
+            "engine_version": "2.5",
+            "metadata": {}
+        },
+        "legacy_published": false,
+        "legacy_url": null,
+        "comparison_difference": {
+            "note": "Legacy crawler missed this entirely"
+        },
+        "runtime_ms": 0,
+        "state": "EXECUTED",
+        "created_at": "2026-08-01T10:57:57.702404Z"
+    }
+]

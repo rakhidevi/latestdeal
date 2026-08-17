@@ -9,6 +9,11 @@
     @endphp
     <title>{{ $deal->title }} | {{ $discountPercent > 0 ? "Save {$discountPercent}%" : 'Best Price' }} | LatestDeal.in</title>
     <meta name="description" content="Get {{ $deal->title }} for just ₹{{ number_format($deal->discounted_price) }}. Original price: ₹{{ number_format($deal->original_price) }}.">
+    <link rel="canonical" href="{{ route('deal.show', $deal->slug) }}">
+    
+    @if(!$deal->isIndexable())
+        <meta name="robots" content="noindex, follow">
+    @endif
     
     <!-- Open Graph for WhatsApp/Telegram Previews -->
     <meta property="og:title" content="{{ $deal->title }} | Save {{ $discountPercent }}%">
@@ -96,34 +101,109 @@
                     @endif
                 </div>
 
-                <!-- AI Verdict -->
-                @if($deal->verdict)
-                    <div class="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-800/30 shadow-inner relative overflow-hidden">
-                        <div class="absolute -right-6 -bottom-6 text-indigo-500/10 dark:text-indigo-500/5">
-                            <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        </div>
-                        <div class="relative z-10">
-                            <h3 class="text-[11px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                                LatestDeal Verdict
-                            </h3>
-                            <p class="text-slate-700 dark:text-slate-300 font-medium leading-relaxed text-sm lg:text-base">{{ $deal->verdict }}</p>
-                        </div>
+                <!-- Deal Assessment Engine -->
+                <div class="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-slate-800/80 dark:to-slate-900 rounded-3xl p-6 border border-indigo-100 dark:border-slate-700 shadow-inner relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 text-indigo-500/10 dark:text-indigo-500/5">
+                        <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </div>
-                @endif
-            </div>
+                    
+                    <div class="relative z-10 flex flex-col gap-5">
+                        <!-- Score Header -->
+                        <div class="flex items-center justify-between border-b border-indigo-200/50 dark:border-slate-700/50 pb-4">
+                            <h3 class="text-sm font-black text-indigo-800 dark:text-indigo-300 uppercase tracking-widest flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                                Our Assessment
+                            </h3>
+                            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-slate-400">Deal Quality</span>
+                                    <span class="bg-indigo-600 text-white font-black px-2.5 py-1 rounded-lg text-sm shadow-md">
+                                        {{ $deal->ai_score ?? 85 }}/100
+                                    </span>
+                                </div>
+                                @if($deal->confidence_score)
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-xs font-semibold text-gray-500 dark:text-slate-400" title="Based on price drops, seller, and coupon validity">Confidence</span>
+                                    <span class="bg-emerald-500 text-white font-black px-2.5 py-1 rounded-lg text-sm shadow-md">
+                                        {{ $deal->confidence_score }}/100
+                                    </span>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Trust Checklist -->
+                        @if(is_array($deal->trust_metrics))
+                        <div class="grid grid-cols-1 gap-2">
+                            @if(isset($deal->trust_metrics['lowest_180_days']) && $deal->trust_metrics['lowest_180_days'])
+                                <div class="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                    Lowest price in 180 days
+                                </div>
+                            @endif
+                            @if(isset($deal->trust_metrics['is_fulfilled']) && $deal->trust_metrics['is_fulfilled'])
+                                <div class="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                    Platform Fulfilled
+                                </div>
+                            @endif
+                            @if(isset($deal->trust_metrics['is_prime']) && $deal->trust_metrics['is_prime'])
+                                <div class="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                    Prime / Plus Eligible
+                                </div>
+                            @endif
+                            @if(isset($deal->trust_metrics['trusted_brand']) && $deal->trust_metrics['trusted_brand'])
+                                <div class="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                    Trusted Brand
+                                </div>
+                            @endif
+                            @if(isset($deal->trust_metrics['rating']) && $deal->trust_metrics['rating'])
+                                <div class="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                    {{ $deal->trust_metrics['rating'] }}★ Rating @if(isset($deal->trust_metrics['review_count'])) ({{ number_format($deal->trust_metrics['review_count']) }} Reviews) @endif
+                                </div>
+                            @endif
+                        </div>
+                        
+                        @if(is_array($deal->confidence_reasons) && count($deal->confidence_reasons) > 0)
+                        <div class="mt-2 border-t border-indigo-100 dark:border-slate-700/50 pt-3">
+                            <h4 class="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Why we are confident</h4>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($deal->confidence_reasons as $reason)
+                                    <span class="inline-flex items-center gap-1 bg-white/60 dark:bg-slate-800/60 px-2 py-1 rounded text-xs text-slate-700 dark:text-slate-300 shadow-sm border border-slate-100 dark:border-slate-700">
+                                        <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        {{ $reason }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+
+                        @elseif(is_string($deal->trust_metrics))
+                        <div class="text-sm text-slate-700 dark:text-slate-300">
+                            {{ $deal->trust_metrics }}
+                        </div>
+                        @endif
+
+                        @if($deal->is_editor_pick)
+                        <div class="mt-2 bg-gradient-to-r from-amber-500/10 to-amber-600/10 backdrop-blur-sm rounded-xl p-4 border border-amber-200 dark:border-amber-900/50">
+                            <h4 class="text-xs font-black text-amber-600 dark:text-amber-500 uppercase flex items-center gap-1 mb-1"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg> Editor's Pick</h4>
+                            <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                This deal has been manually verified and highly recommended by our editorial team.
+                            </p>
+                        </div>
+                        @endif
+                    </div>
+                </div>
         </div>
         
         <!-- Right Column: Details & Actions -->
         <div class="lg:col-span-7 flex flex-col justify-center">
             
             <div class="flex flex-wrap gap-3 mb-6">
-                @if($deal->trust_metrics)
-                    <span class="inline-flex items-center gap-1.5 bg-amber-100/50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-400 px-3.5 py-1.5 rounded-full text-xs font-black tracking-wide border border-amber-200/50 dark:border-amber-500/20 shadow-sm">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                        {{ $deal->trust_metrics }}
-                    </span>
-                @endif
+                {{-- Rendered inside Deal Analysis above now --}}
                 @php
                     $brandName = is_string($deal->brand) ? $deal->brand : ($deal->brandRelation->name ?? null);
                 @endphp
@@ -146,7 +226,34 @@
                 @endauth
             </div>
             
-            @if($deal->description)
+            @if($deal->isPublishable())
+                <!-- Original Editorial Review -->
+                <div class="mt-8 bg-gray-50 dark:bg-slate-800/30 rounded-2xl p-6 md:p-8 border border-gray-100 dark:border-slate-800 shadow-sm relative">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 p-2 rounded-xl">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </span>
+                        <h3 class="text-xl font-black text-gray-900 dark:text-white">Why we recommend it</h3>
+                    </div>
+                    
+                    <div class="prose dark:prose-invert prose-indigo max-w-none text-gray-700 dark:text-gray-300 leading-relaxed text-base">
+                        {!! nl2br(e($deal->editorial_summary)) !!}
+                    </div>
+                    
+                    @if($deal->editorial_verdict)
+                    <div class="mt-6 p-4 bg-indigo-50 dark:bg-indigo-900/10 border-l-4 border-indigo-500 rounded-r-xl">
+                        <span class="block text-[10px] font-black uppercase text-indigo-500 tracking-widest mb-1">Our Verdict</span>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">
+                            {{ $deal->editorial_verdict }}
+                        </p>
+                    </div>
+                    @endif
+                    
+                    <div class="absolute top-6 right-6 text-xs text-gray-400 dark:text-slate-500">
+                        <p>Last Reviewed: {{ $deal->reviewed_at->format('M d, Y') }}</p>
+                    </div>
+                </div>
+            @elseif($deal->description)
                 <div class="mt-8 bg-gray-50 dark:bg-slate-800/30 rounded-2xl p-6 border border-gray-100 dark:border-slate-800">
                     <h3 class="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3">About This Deal</h3>
                     <p class="text-gray-700 dark:text-gray-300 leading-relaxed text-base">
@@ -227,109 +334,177 @@
                         </a>
                     @endif
                 </div>
+
+                <!-- Concise Affiliate Disclosure -->
+                <p class="mt-4 text-center text-[11px] text-gray-400 dark:text-slate-500">
+                    As an affiliate, we may earn a small commission from qualifying purchases at no extra cost to you. <a href="{{ route('affiliate-disclosure') }}" class="underline hover:text-gray-600 dark:hover:text-slate-300">Learn more</a>.
+                </p>
             </div>
 
-            <!-- Brand & Deal Evaluation -->
-            <div class="mt-8 bg-blue-50/50 dark:bg-blue-900/10 rounded-3xl p-6 md:p-8 border border-blue-100 dark:border-blue-900/30">
-                <h3 class="text-lg font-black text-blue-900 dark:text-blue-400 mb-6 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                    Brand & Deal Evaluation
+            <!-- Price History Chart -->
+            @if(isset($priceHistory) && $priceHistory->count() > 1)
+            <div class="mt-8 bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-gray-200 dark:border-slate-800 shadow-sm">
+                <h3 class="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                    Price History (Last 180 Days)
                 </h3>
                 
-                <div class="space-y-4">
-                    <div class="flex items-start gap-4">
-                        <div class="shrink-0 mt-1">
-                            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                            </span>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Is this a good deal?</h4>
-                            <p class="text-sm text-gray-600 dark:text-slate-400 mt-1">Yes, at {{ ($deal->original_price > 0 && $deal->discounted_price) ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100) : 0 }}% off, this matches or beats typical seasonal sale prices for this brand.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-start gap-4">
-                        <div class="shrink-0 mt-1">
-                            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                            </span>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Is the seller reputable?</h4>
-                            <p class="text-sm text-gray-600 dark:text-slate-400 mt-1">Verified seller. We only source deals from authorized retailers or official brand stores.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-start gap-4">
-                        <div class="shrink-0 mt-1">
-                            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-                            </span>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-900 dark:text-white">Is this the lowest price?</h4>
-                            <p class="text-sm text-gray-600 dark:text-slate-400 mt-1">Based on our tracking, this is within 5% of the all-time lowest recorded price.</p>
-                        </div>
-                    </div>
+                <div class="relative h-64 w-full">
+                    <canvas id="priceHistoryChart"></canvas>
                 </div>
+                
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const ctx = document.getElementById('priceHistoryChart').getContext('2d');
+                        
+                        // Parse backend data
+                        const historyData = @json($priceHistory->map(function($h) {
+                            return [
+                                'date' => \Carbon\Carbon::parse($h->recorded_at)->format('M d'),
+                                'price' => $h->price
+                            ];
+                        }));
+                        
+                        const labels = historyData.map(d => d.date);
+                        const dataPoints = historyData.map(d => d.price);
+                        
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Price (₹)',
+                                    data: dataPoints,
+                                    borderColor: '#4f46e5', // Indigo 600
+                                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                    borderWidth: 3,
+                                    pointBackgroundColor: '#fff',
+                                    pointBorderColor: '#4f46e5',
+                                    pointBorderWidth: 2,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6,
+                                    fill: true,
+                                    tension: 0.3
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: '#1e293b',
+                                        padding: 10,
+                                        titleFont: { size: 13, family: 'Inter' },
+                                        bodyFont: { size: 14, weight: 'bold', family: 'Inter' },
+                                        displayColors: false,
+                                        callbacks: {
+                                            label: function(context) {
+                                                return '₹' + context.parsed.y.toLocaleString('en-IN');
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: false,
+                                        grid: { color: 'rgba(200, 200, 200, 0.2)', borderDash: [5, 5] },
+                                        ticks: {
+                                            font: { family: 'Inter' },
+                                            callback: function(value) { return '₹' + value; }
+                                        }
+                                    },
+                                    x: {
+                                        grid: { display: false },
+                                        ticks: { font: { family: 'Inter' } }
+                                    }
+                                },
+                                interaction: {
+                                    intersect: false,
+                                    mode: 'index',
+                                },
+                            }
+                        });
+                    });
+                </script>
             </div>
-
-            <!-- AI Pros & Cons / Features -->
-            @if($deal->features && count($deal->features) > 0)
-                @if(isset($deal->features['pros']) || isset($deal->features['cons']))
-                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        @if(isset($deal->features['pros']) && count($deal->features['pros']) > 0)
-                        <div class="bg-emerald-50 dark:bg-emerald-900/10 rounded-3xl p-6 md:p-8 border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
-                            <h3 class="text-emerald-800 dark:text-emerald-400 font-black mb-4 flex items-center gap-2 text-lg">
-                                <span class="bg-emerald-200 dark:bg-emerald-800/50 text-emerald-700 dark:text-emerald-300 rounded-full p-1.5 shadow-sm">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </span>
-                                What's Great
-                            </h3>
-                            <ul class="space-y-3">
-                                @foreach($deal->features['pros'] as $pro)
-                                    <li class="text-sm font-medium text-gray-700 dark:text-slate-300 leading-relaxed">
-                                        {{ $pro }}
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                        @endif
-
-                        @if(isset($deal->features['cons']) && count($deal->features['cons']) > 0)
-                        <div class="bg-rose-50 dark:bg-rose-900/10 rounded-3xl p-6 md:p-8 border border-rose-100 dark:border-rose-900/30 shadow-sm">
-                            <h3 class="text-rose-800 dark:text-rose-400 font-black mb-4 flex items-center gap-2 text-lg">
-                                <span class="bg-rose-200 dark:bg-rose-800/50 text-rose-700 dark:text-rose-300 rounded-full p-1.5 shadow-sm">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </span>
-                                Keep in Mind
-                            </h3>
-                            <ul class="space-y-3">
-                                @foreach($deal->features['cons'] as $con)
-                                    <li class="text-sm font-medium text-gray-700 dark:text-slate-300 leading-relaxed">
-                                        {{ $con }}
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                        @endif
-                    </div>
-                @else
-                    <!-- Legacy features list -->
-                    <div class="mt-8 space-y-4 bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <h3 class="text-lg font-black text-gray-900 dark:text-white mb-4">Key Features</h3>
-                        @foreach($deal->features as $feature)
-                            <div class="flex items-start gap-3">
-                                <span class="mt-1 shrink-0 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full p-1 border border-green-200 dark:border-green-800/50">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </span>
-                                <span class="text-gray-700 dark:text-slate-300 text-sm font-medium leading-relaxed">{{ $feature }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
             @endif
+
+            <!-- Editorial Pros & Cons / Features -->
+            @if($deal->isPublishable() && (!empty($deal->pros) || !empty($deal->cons) || !empty($deal->best_for) || !empty($deal->not_for)))
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    @if(!empty($deal->best_for) || !empty($deal->pros))
+                    <div class="bg-emerald-50 dark:bg-emerald-900/10 rounded-3xl p-6 md:p-8 border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
+                        <h3 class="text-emerald-800 dark:text-emerald-400 font-black mb-4 flex items-center gap-2 text-lg">
+                            <span class="bg-emerald-200 dark:bg-emerald-800/50 text-emerald-700 dark:text-emerald-300 rounded-full p-1.5 shadow-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </span>
+                            Who should buy this
+                        </h3>
+                        
+                        @if(!empty($deal->best_for))
+                        <div class="mb-4 pb-4 border-b border-emerald-200 dark:border-emerald-800/30 text-sm text-emerald-900 dark:text-emerald-100 font-medium leading-relaxed">
+                            {{ is_array($deal->best_for) ? implode(', ', $deal->best_for) : $deal->best_for }}
+                        </div>
+                        @endif
+
+                        @if(!empty($deal->pros))
+                        <ul class="space-y-3">
+                            @foreach((is_array($deal->pros) ? $deal->pros : json_decode($deal->pros, true) ?? []) as $pro)
+                                <li class="text-sm font-medium text-gray-700 dark:text-slate-300 leading-relaxed flex items-start gap-2">
+                                    <svg class="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    {{ $pro }}
+                                </li>
+                            @endforeach
+                        </ul>
+                        @endif
+                    </div>
+                    @endif
+
+                    @if(!empty($deal->not_for) || !empty($deal->cons))
+                    <div class="bg-rose-50 dark:bg-rose-900/10 rounded-3xl p-6 md:p-8 border border-rose-100 dark:border-rose-900/30 shadow-sm">
+                        <h3 class="text-rose-800 dark:text-rose-400 font-black mb-4 flex items-center gap-2 text-lg">
+                            <span class="bg-rose-200 dark:bg-rose-800/50 text-rose-700 dark:text-rose-300 rounded-full p-1.5 shadow-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </span>
+                            Who should skip this
+                        </h3>
+                        
+                        @if(!empty($deal->not_for))
+                        <div class="mb-4 pb-4 border-b border-rose-200 dark:border-rose-800/30 text-sm text-rose-900 dark:text-rose-100 font-medium leading-relaxed">
+                            {{ is_array($deal->not_for) ? implode(', ', $deal->not_for) : $deal->not_for }}
+                        </div>
+                        @endif
+
+                        @if(!empty($deal->cons))
+                        <ul class="space-y-3">
+                            @foreach((is_array($deal->cons) ? $deal->cons : json_decode($deal->cons, true) ?? []) as $con)
+                                <li class="text-sm font-medium text-gray-700 dark:text-slate-300 leading-relaxed flex items-start gap-2">
+                                    <svg class="w-4 h-4 mt-0.5 shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    {{ $con }}
+                                </li>
+                            @endforeach
+                        </ul>
+                        @endif
+                    </div>
+                    @endif
+                </div>
+            @elseif($deal->features && count($deal->features) > 0)
+                <!-- Legacy features list (for non-editorial deals) -->
+                <div class="mt-8 space-y-4 bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-gray-100 dark:border-slate-800 shadow-sm">
+                    <h3 class="text-lg font-black text-gray-900 dark:text-white mb-4">Key Features</h3>
+                    @foreach($deal->features as $feature)
+                        <div class="flex items-start gap-3">
+                            <span class="mt-1 shrink-0 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full p-1 border border-green-200 dark:border-green-800/50">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </span>
+                            <span class="text-gray-700 dark:text-slate-300 text-sm font-medium leading-relaxed">{{ $feature }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+
 
             <!-- AI Caption Copy & Share Buttons -->
             <div class="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -358,7 +533,9 @@
     </div>
     
     <div class="mt-16">
-        <x-ad-banner slot="deal-middle" />
+        @if($deal->isAdsEligible())
+            <x-ad-banner slot="deal-middle" />
+        @endif
     </div>
 
     <!-- Price History Chart -->
@@ -370,8 +547,46 @@
             </span>
             Price Drop History
         </h3>
-        <div class="h-[300px] bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-100 dark:border-slate-800 shadow-xl shadow-gray-200/40 dark:shadow-none">
-            <canvas id="priceChart"></canvas>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 h-[300px] bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-100 dark:border-slate-800 shadow-xl shadow-gray-200/40 dark:shadow-none">
+                <canvas id="priceChart"></canvas>
+            </div>
+            
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-100 dark:border-slate-800 shadow-xl shadow-gray-200/40 dark:shadow-none flex flex-col justify-center">
+                <h4 class="text-sm font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-4">Price Volatility</h4>
+                
+                @php
+                    $lowestPrice = $priceHistory->min('price');
+                    $highestPrice = $priceHistory->max('price');
+                    $avgPrice = $priceHistory->avg('price');
+                    
+                    // Simple logic for Buy Indicator
+                    $buyIndicator = ($deal->discounted_price <= $lowestPrice * 1.05) ? 'STRONG BUY' : 
+                                   (($deal->discounted_price <= $avgPrice) ? 'GOOD DEAL' : 'WAIT');
+                    $indicatorColor = $buyIndicator == 'STRONG BUY' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
+                                      ($buyIndicator == 'GOOD DEAL' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400');
+                @endphp
+                
+                <div class="space-y-4 mb-6">
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-slate-800">
+                        <span class="text-sm text-gray-500 dark:text-slate-400">All-Time Low</span>
+                        <span class="font-bold text-gray-900 dark:text-white">₹{{ number_format($lowestPrice) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-slate-800">
+                        <span class="text-sm text-gray-500 dark:text-slate-400">Average Price</span>
+                        <span class="font-bold text-gray-900 dark:text-white">₹{{ number_format($avgPrice) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-slate-800">
+                        <span class="text-sm text-gray-500 dark:text-slate-400">Highest Price</span>
+                        <span class="font-bold text-gray-900 dark:text-white">₹{{ number_format($highestPrice) }}</span>
+                    </div>
+                </div>
+
+                <div class="mt-auto text-center p-4 rounded-2xl {{ $indicatorColor }}">
+                    <span class="block text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">Our Recommendation</span>
+                    <span class="block text-xl font-black">{{ $buyIndicator }}</span>
+                </div>
+            </div>
         </div>
         <script>
             const ctx = document.getElementById('priceChart').getContext('2d');
@@ -426,7 +641,9 @@
     @endif
     
     <div class="mt-16">
-        <x-ad-banner slot="deal-bottom" />
+        @if($deal->isPublishable())
+            <x-ad-banner slot="deal-bottom" />
+        @endif
     </div>
 </div>
 

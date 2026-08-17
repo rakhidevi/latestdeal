@@ -1,0 +1,120 @@
+{
+    "version": "v2.5",
+    "count": 6,
+    "categories": [
+        {
+            "name": "kitchen",
+            "aliases": [
+                "kitchen appliances",
+                "home kitchen"
+            ],
+            "department": "appliances",
+            "amazon_nodes": [
+                "1380065031"
+            ]
+        },
+        {
+            "name": "fashion",
+            "aliases": [
+                "clothing",
+                "apparel"
+            ],
+            "department": "fashion",
+            "amazon_nodes": [
+                "1571271031"
+            ]
+        },
+        {
+            "name": "beauty",
+            "aliases": [
+                "makeup",
+                "cosmetics"
+            ],
+            "department": "beauty",
+            "amazon_nodes": [
+                "1375924031"
+            ]
+        },
+        {
+            "name": "grocery",
+            "aliases": [
+                "pantry",
+                "food"
+            ],
+            "department": "grocery",
+            "amazon_nodes": [
+                "4859499031"
+            ]
+        },
+        {
+            "id": "television",
+            "name": "Television",
+            "aliases": [
+                "televisions",
+                "tv",
+                "smart tv",
+                "led tv"
+            ],
+            "hierarchy": [
+                "electronics",
+                "home_entertainment",
+                "television"
+            ],
+            "keywords": [
+                "smart tv",
+                "4k",
+                "oled",
+                "qled",
+                "android tv",
+                "google tv"
+            ],
+            "brands": [
+                "samsung",
+                "lg",
+                "sony",
+                "tcl",
+                "hisense",
+                "oneplus"
+            ],
+            "node_ids": {
+                "amazon_in": [
+                    "1389396031"
+                ]
+            }
+        },
+        {
+            "id": "smartphone",
+            "name": "Smartphone",
+            "aliases": [
+                "smartphones",
+                "mobiles",
+                "mobile",
+                "cell phone"
+            ],
+            "hierarchy": [
+                "electronics",
+                "mobile_phones",
+                "smartphone"
+            ],
+            "keywords": [
+                "5g",
+                "android",
+                "ios",
+                "iphone"
+            ],
+            "brands": [
+                "apple",
+                "samsung",
+                "oneplus",
+                "xiaomi",
+                "vivo",
+                "oppo"
+            ],
+            "node_ids": {
+                "amazon_in": [
+                    "1389401031"
+                ]
+            }
+        }
+    ]
+}

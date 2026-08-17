@@ -1,0 +1,22 @@
+brands:
+  - name: Bosch
+    priority: 95
+    aliases: ["bosch appliances", "bosch tools"]
+    departments: ["appliances", "tools"]
+    categories: ["kitchen", "washing_machine"]
+    amazon_brand_name: "Bosch"
+    official_seller: "Cloudtail India"
+    keywords: ["premium", "durable"]
+    country: "Germany"
+    is_premium: true
+
+  - name: Lenovo
+    priority: 90
+    aliases: ["lenovo inc", "lenovo laptops"]
+    departments: ["electronics"]
+    categories: ["laptop", "tablet"]
+    amazon_brand_name: "Lenovo"
+    official_seller: "Appario Retail Private Ltd"
+    keywords: ["thinkpad", "ideapad"]
+    country: "China"
+    is_premium: false

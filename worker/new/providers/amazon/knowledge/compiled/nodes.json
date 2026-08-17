@@ -1,0 +1,32 @@
+{
+  "smartphones": {
+    "node_id": "1389401031",
+    "department": "Electronics",
+    "priority": 100,
+    "has_subnodes": true,
+    "subnodes": {
+      "android": "1389401031",
+      "ios": "1389401031"
+    }
+  },
+  "laptops": {
+    "node_id": "1375424031",
+    "department": "Computers & Accessories",
+    "priority": 95,
+    "has_subnodes": true,
+    "subnodes": {
+      "gaming": "1375424031",
+      "thin_light": "1375424031"
+    }
+  },
+  "kitchen_appliances": {
+    "node_id": "976442031",
+    "department": "Home & Kitchen",
+    "priority": 85,
+    "has_subnodes": true,
+    "subnodes": {
+      "mixer_grinder": "976442031",
+      "microwave": "976442031"
+    }
+  }
+}

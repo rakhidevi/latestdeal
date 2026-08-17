@@ -1,0 +1,20 @@
+categories:
+  - name: kitchen
+    aliases: ["kitchen appliances", "home kitchen"]
+    department: "appliances"
+    amazon_nodes: ["1380065031"]
+    
+  - name: fashion
+    aliases: ["clothing", "apparel"]
+    department: "fashion"
+    amazon_nodes: ["1571271031"]
+    
+  - name: beauty
+    aliases: ["cosmetics", "makeup"]
+    department: "beauty"
+    amazon_nodes: ["1375924031"]
+    
+  - name: grocery
+    aliases: ["food", "pantry"]
+    department: "grocery"
+    amazon_nodes: ["4859499031"]

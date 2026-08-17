@@ -1,0 +1,33 @@
+{
+    "version": "v2.5",
+    "count": 2,
+    "nodes": [
+        {
+            "id": "1389396031",
+            "name": "Televisions",
+            "department": "electronics",
+            "parent": "976419031",
+            "children": [
+                "1389396031_smart",
+                "1389396031_oled"
+            ],
+            "popularity": 95,
+            "priority": 100,
+            "hidden": false,
+            "deprecated": false,
+            "marketplace": "amazon.in"
+        },
+        {
+            "id": "1389401031",
+            "name": "Smartphones",
+            "department": "electronics",
+            "parent": "976419031",
+            "children": [],
+            "popularity": 100,
+            "priority": 100,
+            "hidden": false,
+            "deprecated": false,
+            "marketplace": "amazon.in"
+        }
+    ]
+}

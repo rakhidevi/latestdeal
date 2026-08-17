@@ -18,7 +18,14 @@ use App\Http\Controllers\Api\MetricsController;
 */
 
 // Deal Ingestion Engine (Called by local Python Worker)
-Route::post('/deals/ingest', [\App\Http\Controllers\Api\DealIngestionController::class, 'store']);
+Route::middleware([\App\Http\Middleware\WorkerAuthMiddleware::class])->group(function () {
+    Route::post('/worker/ingest', [\App\Http\Controllers\Api\DealIngestionController::class, 'store']);
+    Route::post('/worker/heartbeat', [\App\Http\Controllers\Api\WorkerTelemetryController::class, 'heartbeat']);
+    Route::get('/worker/jobs/claim', [\App\Http\Controllers\Api\WorkerJobController::class, 'claim']);
+    Route::post('/worker/jobs/{id}/status', [\App\Http\Controllers\Api\WorkerJobController::class, 'updateStatus']);
+    Route::post('/worker/jobs/{id}/heartbeat', [\App\Http\Controllers\Api\WorkerJobController::class, 'heartbeat']);
+});
+
 Route::get('/deals/active', [\App\Http\Controllers\Api\DealIngestionController::class, 'activeDeals']);
 Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionController::class, 'expire']);
 
