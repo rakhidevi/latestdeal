@@ -9,10 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->text('bio')->nullable();
-            $table->string('avatar_url')->nullable();
-            $table->string('author_slug')->nullable()->unique();
-            $table->json('social_links')->nullable();
+            if (!Schema::hasColumn('users', 'bio')) {
+                $table->text('bio')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'avatar_url')) {
+                $table->string('avatar_url')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'author_slug')) {
+                $table->string('author_slug')->nullable()->unique();
+            }
+            if (!Schema::hasColumn('users', 'social_links')) {
+                $table->json('social_links')->nullable();
+            }
         });
     }
 

@@ -12,13 +12,27 @@ return new class extends Migration
         // For SQLite, modifying columns with enums can be problematic. 
         // We will add the new columns first.
         Schema::table('scraper_jobs', function (Blueprint $table) {
-            $table->json('payload')->nullable()->after('logs');
-            $table->string('worker_id')->nullable()->after('payload');
-            $table->timestamp('claimed_at')->nullable()->after('worker_id');
-            $table->timestamp('heartbeat_at')->nullable()->after('claimed_at');
-            $table->integer('attempts')->default(0)->after('heartbeat_at');
-            $table->integer('max_attempts')->default(3)->after('attempts');
-            $table->string('priority')->default('normal')->after('max_attempts');
+            if (!Schema::hasColumn('scraper_jobs', 'payload')) {
+                $table->json('payload')->nullable()->after('logs');
+            }
+            if (!Schema::hasColumn('scraper_jobs', 'worker_id')) {
+                $table->string('worker_id')->nullable()->after('payload');
+            }
+            if (!Schema::hasColumn('scraper_jobs', 'claimed_at')) {
+                $table->timestamp('claimed_at')->nullable()->after('worker_id');
+            }
+            if (!Schema::hasColumn('scraper_jobs', 'heartbeat_at')) {
+                $table->timestamp('heartbeat_at')->nullable()->after('claimed_at');
+            }
+            if (!Schema::hasColumn('scraper_jobs', 'attempts')) {
+                $table->integer('attempts')->default(0)->after('heartbeat_at');
+            }
+            if (!Schema::hasColumn('scraper_jobs', 'max_attempts')) {
+                $table->integer('max_attempts')->default(3)->after('attempts');
+            }
+            if (!Schema::hasColumn('scraper_jobs', 'priority')) {
+                $table->string('priority')->default('normal')->after('max_attempts');
+            }
         });
 
         // To safely change `type` and `status` from enum to string in SQLite without doctrine/dbal issues

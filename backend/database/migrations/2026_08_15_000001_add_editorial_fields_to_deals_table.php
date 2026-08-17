@@ -9,17 +9,39 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('deals', function (Blueprint $table) {
-            $table->string('editorial_status', 50)->default('DISCOVERED')->after('status');
-            $table->text('editorial_summary')->nullable();
-            $table->text('editorial_verdict')->nullable();
-            $table->json('pros')->nullable();
-            $table->json('cons')->nullable();
-            $table->json('best_for')->nullable();
-            $table->json('not_for')->nullable();
-            $table->unsignedBigInteger('editor_id')->nullable();
-            $table->timestamp('reviewed_at')->nullable();
-            $table->boolean('is_editor_pick')->default(false);
-            $table->decimal('typical_price', 10, 2)->nullable();
+            if (!Schema::hasColumn('deals', 'editorial_status')) {
+                $table->string('editorial_status', 50)->default('DISCOVERED')->after('status');
+            }
+            if (!Schema::hasColumn('deals', 'editorial_summary')) {
+                $table->text('editorial_summary')->nullable();
+            }
+            if (!Schema::hasColumn('deals', 'editorial_verdict')) {
+                $table->text('editorial_verdict')->nullable();
+            }
+            if (!Schema::hasColumn('deals', 'pros')) {
+                $table->json('pros')->nullable();
+            }
+            if (!Schema::hasColumn('deals', 'cons')) {
+                $table->json('cons')->nullable();
+            }
+            if (!Schema::hasColumn('deals', 'best_for')) {
+                $table->json('best_for')->nullable();
+            }
+            if (!Schema::hasColumn('deals', 'not_for')) {
+                $table->json('not_for')->nullable();
+            }
+            if (!Schema::hasColumn('deals', 'editor_id')) {
+                $table->unsignedBigInteger('editor_id')->nullable();
+            }
+            if (!Schema::hasColumn('deals', 'reviewed_at')) {
+                $table->timestamp('reviewed_at')->nullable();
+            }
+            if (!Schema::hasColumn('deals', 'is_editor_pick')) {
+                $table->boolean('is_editor_pick')->default(false);
+            }
+            if (!Schema::hasColumn('deals', 'typical_price')) {
+                $table->decimal('typical_price', 10, 2)->nullable();
+            }
         });
     }
 
