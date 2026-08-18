@@ -709,14 +709,13 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Editorial Link -->
-            <a href="{{ route('articles.index') }}" class="py-4 px-2 hover:text-red-600 dark:hover:text-red-400 font-bold transition select-none flex items-center gap-1.5">
-                <svg class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5L18.5 7"/></svg>
-                <span>Guides & Tips</span>
-            </a>
-            
         </div>
+
+        <!-- Editorial Link -->
+        <a href="{{ route('articles.index') }}" class="py-4 px-2 hover:text-red-600 dark:hover:text-red-400 font-bold transition select-none flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5L18.5 7"/></svg>
+            <span>Guides & Tips</span>
+        </a>
 
         <!-- Right Side: CTA / Auth -->
         <div class="hidden lg:flex items-center justify-end gap-6 relative z-50">
