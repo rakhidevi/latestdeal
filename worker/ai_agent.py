@@ -14,20 +14,19 @@ class DealCaptionSchema(BaseModel):
     tags: List[str] = Field(default_factory=list, description="3-5 relevant tags for the deal (e.g. Electronics, Fashion)")
     ai_score: int = Field(description="Score this deal out of 100 based on price drop, brand value, and features. Be realistic (e.g., 75-99).")
 
-# The Fallback Chain - utilizing local Ollama models (like qwen3-coder:latest or llama3)
-MODELS = ["qwen3-coder:latest", "llama3.1", "phi3"]
+import asyncio
+import sys
+import os
+
+# Ensure the worker package is in path to import services
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from new.services.ai.ai_router import router
 
 def generate_caption(raw_data: dict, ollama_url: str = "http://localhost:11434") -> dict:
     """
-    Passes raw scraped data to Ollama using the OpenAI API format.
+    Passes raw scraped data to AIRouter.
     Forces the model to return strict JSON matching our Pydantic schema.
     """
-    # Initialize the OpenAI client pointed at local Ollama
-    client = OpenAI(
-        base_url=f"{ollama_url}/v1",  # Ollama's OpenAI compatibility endpoint
-        api_key="ollama" # Dummy key required by SDK
-    )
-    
     prompt = f"""
     You are an expert affiliate marketer. Convert this raw data into a strictly structured JSON object.
     You MUST output valid JSON matching this schema:
@@ -38,28 +37,24 @@ def generate_caption(raw_data: dict, ollama_url: str = "http://localhost:11434")
     {json.dumps(raw_data)}
     """
     
-    for model in MODELS:
-        print(f"Attempting AI generation via OpenAI format with model: {model}")
-        try:
-            # We use the Chat Completions API with JSON mode
-            response = client.chat.completions.create(
-                model=model,
-                response_format={"type": "json_object"},
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant that outputs strictly in JSON format."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            
-            parsed_data = json.loads(response.choices[0].message.content)
-            
-            # Pydantic Validation (Anti-Hallucination)
-            validated_deal = DealCaptionSchema(**parsed_data)
-            print(f"Success with {model} via JSON Mode!")
-            return validated_deal.model_dump()
-            
-        except (Exception, ValidationError) as e:
-            print(f"Model {model} failed: {str(e)}")
-            continue # Try next model in chain
-            
-    raise Exception("All models in the fallback chain failed to generate structured data.")
+    print("Attempting AI generation via AIRouter...")
+    try:
+        # We use the Chat Completions API with JSON mode
+        response = asyncio.run(router.chat(
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that outputs strictly in JSON format."},
+                {"role": "user", "content": prompt}
+            ],
+            options={"capabilities": ["JSON", "TEXT"]}
+        ))
+        
+        parsed_data = json.loads(response['content'])
+        
+        # Pydantic Validation (Anti-Hallucination)
+        validated_deal = DealCaptionSchema(**parsed_data)
+        print(f"Success with {response['provider']} ({response['model']}) via JSON Mode!")
+        return validated_deal.model_dump()
+        
+    except (Exception, ValidationError) as e:
+        print(f"AIRouter failed: {str(e)}")
+        raise e

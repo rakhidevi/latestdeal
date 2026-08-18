@@ -30,9 +30,6 @@ class PricePredictionController extends Controller
             $historyText = implode("\n", $historyLines);
         }
 
-        $ollamaBaseUrl = Setting::where('key', 'ollama_base_url')->value('value') ?? env('OLLAMA_BASE_URL', 'https://ai.latestdeal.in');
-        $ollamaUrl = rtrim($ollamaBaseUrl, '/') . '/api/generate';
-        $model = Setting::where('key', 'ollama_model')->value('value') ?? env('OLLAMA_MODEL', 'llama3');
 
         $discountPct = 0;
         if ($deal->original_price > 0 && $deal->original_price > $deal->discounted_price) {
@@ -58,70 +55,16 @@ class PricePredictionController extends Controller
         $errors = [];
         $result = null;
 
-        // Try Ollama
-        if ($ollamaBaseUrl) {
-            try {
-                $response = Http::timeout(10)->post($ollamaUrl, [
-                    'model' => $model,
-                    'prompt' => $prompt,
-                    'stream' => false,
-                    'format' => 'json'
-                ]);
+        try {
+            $router = app(\App\Services\AI\AIRouter::class);
+            $response = $router->chat(
+                [['role' => 'user', 'content' => $prompt]],
+                ['capabilities' => ['TEXT', 'JSON']]
+            );
 
-                if ($response->successful()) {
-                    $jsonString = $response->json('response');
-                    $result = json_decode($jsonString, true);
-                } else {
-                    $errors[] = "Ollama HTTP " . $response->status();
-                }
-            } catch (\Exception $e) {
-                $errors[] = "Ollama Exception: " . $e->getMessage();
-            }
-        }
-
-        // Try Groq if Ollama failed
-        if (!$result && env('GROQ_API_KEY')) {
-            try {
-                $groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
-                $response = Http::withToken(env('GROQ_API_KEY'))->timeout(15)->post($groqUrl, [
-                    'model' => 'llama3-8b-8192',
-                    'messages' => [['role' => 'user', 'content' => $prompt]],
-                    'temperature' => 0.3,
-                    'response_format' => ['type' => 'json_object']
-                ]);
-
-                if ($response->successful()) {
-                    $reply = $response->json('choices.0.message.content');
-                    $result = json_decode($reply, true);
-                } else {
-                    $errors[] = "Groq HTTP " . $response->status();
-                }
-            } catch (\Exception $e) {
-                $errors[] = "Groq Exception: " . $e->getMessage();
-            }
-        }
-
-        // Try Gemini if Groq failed
-        if (!$result && env('GEMINI_API_KEY')) {
-            try {
-                $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=' . env('GEMINI_API_KEY');
-                $response = Http::timeout(30)->post($geminiUrl, [
-                    'contents' => [['parts' => [['text' => $prompt]]]],
-                    'generationConfig' => [
-                        'temperature' => 0.3,
-                        'responseMimeType' => 'application/json'
-                    ],
-                ]);
-
-                if ($response->successful()) {
-                    $reply = $response->json('candidates.0.content.parts.0.text');
-                    $result = json_decode($reply, true);
-                } else {
-                    $errors[] = "Gemini HTTP " . $response->status();
-                }
-            } catch (\Exception $e) {
-                $errors[] = "Gemini Exception: " . $e->getMessage();
-            }
+            $result = json_decode($response['content'], true);
+        } catch (\Exception $e) {
+            $errors[] = "AI Router Exception: " . $e->getMessage();
         }
 
         if ($result && isset($result['prediction'])) {

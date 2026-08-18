@@ -85,11 +85,11 @@ def expand_url(url: str) -> str:
         return url
 
 def parse_telegram_message(message_text: str, ollama_url: str = "http://localhost:11434", scraped_data: dict = None) -> dict:
-    """Uses Ollama to parse a raw Telegram deal message into structured JSON."""
-    llm_client = OpenAI(
-        base_url=f"{ollama_url}/v1",
-        api_key="ollama" 
-    )
+    """Uses AIRouter to parse a raw Telegram deal message into structured JSON."""
+    
+    import sys
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from new.services.ai.ai_router import router
     
     extra_context = ""
     if scraped_data:
@@ -117,15 +117,14 @@ def parse_telegram_message(message_text: str, ollama_url: str = "http://localhos
     """
     
     try:
-        response = llm_client.chat.completions.create(
-            model="qwen3-coder:latest", # fallback to llama3.1 if needed
-            response_format={"type": "json_object"},
+        response = asyncio.run(router.chat(
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that outputs strictly in JSON format."},
                 {"role": "user", "content": prompt}
-            ]
-        )
-        parsed_data = json.loads(response.choices[0].message.content)
+            ],
+            options={"capabilities": ["JSON", "TEXT"]}
+        ))
+        parsed_data = json.loads(response['content'])
         validated_deal = TelegramDealSchema(**parsed_data)
         return validated_deal.model_dump()
     except Exception as e:

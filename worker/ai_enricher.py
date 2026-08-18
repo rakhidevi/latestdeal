@@ -45,7 +45,10 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
             print(f"[Engine] Deterministic Publishability Score: {deal.ai_score} (Overall: {opportunity_score.overall}, Confidence: {opportunity_score.confidence}%)")
         
         # 2. LLM Content Generation Pipeline
-        client = OpenAI(base_url=f"{ollama_url}/v1", api_key="ollama")
+        import asyncio
+        import sys
+        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        from new.services.ai.ai_router import router
         
         prompt = f"""
         You are an Expert SEO Copywriter and Deal Analyst. Analyze this product deal:
@@ -64,17 +67,15 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
         3. 'verdict' MUST explicitly recommend whether the user should "Buy Now" or "Wait", giving a short contextual explanation based on the price.
         """
         
-        response = client.chat.completions.create(
-            model="qwen2.5-coder:7b",
-            response_format={"type": "json_object"},
+        response = asyncio.run(router.chat(
             messages=[
                 {"role": "system", "content": "You output strictly valid JSON."},
                 {"role": "user", "content": prompt}
             ],
-            timeout=120
-        )
+            options={"capabilities": ["JSON", "TEXT"], "timeout": 120}
+        ))
         
-        data = json.loads(response.choices[0].message.content)
+        data = json.loads(response['content'])
         parsed = AIEnrichmentSchema(**data)
         
         deal.category = DealCategory(name=parsed.category_name, confidence=parsed.category_confidence)

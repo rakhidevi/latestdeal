@@ -97,121 +97,30 @@ class ShopperAssistantController extends Controller
         }
 
         // ----------------------------------------------------------------
-        // Step 1: Try local Ollama if OLLAMA_BASE_URL is set in settings or .env
+        // Step 1: Query the AI Router for a response
         // ----------------------------------------------------------------
-        
-        $dbSettings = \App\Models\Setting::whereIn('key', ['ollama_base_url', 'ollama_model'])->pluck('value', 'key');
-        
-        $ollamaBaseUrl = $dbSettings['ollama_base_url'] ?? env('OLLAMA_BASE_URL', 'https://ai.latestdeal.in');
-        $ollamaError   = null;
+        try {
+            $router = app(\App\Services\AI\AIRouter::class);
+            $response = $router->chat(
+                [
+                    ['role' => 'system', 'content' => $systemPrompt],
+                    ['role' => 'user', 'content' => "User request: " . $userMessage]
+                ],
+                ['capabilities' => ['TEXT']]
+            );
 
-        if ($ollamaBaseUrl) {
-            $ollamaUrl = rtrim($ollamaBaseUrl, '/') . '/api/generate';
-            $model     = $dbSettings['ollama_model'] ?? env('OLLAMA_MODEL', 'llama3');
+            return response()->json([
+                'reply'  => $response['content'],
+                'source' => $response['provider'],
+            ]);
 
-            try {
-                $response = Http::timeout(60)->post($ollamaUrl, [
-                    'model'  => $model,
-                    'prompt' => $fullPrompt,
-                    'stream' => false,
-                ]);
-
-                if ($response->successful() && $response->json('response')) {
-                    return response()->json([
-                        'reply'  => $response->json('response'),
-                        'source' => 'ollama',
-                    ]);
-                }
-
-                $ollamaError = 'Ollama HTTP ' . $response->status();
-            } catch (\Exception $e) {
-                // Desktop offline or tunnel down — silently fall through to Gemini
-                $ollamaError = $e->getMessage();
-            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Shopper Assistant Failed: " . $e->getMessage());
+            
+            return response()->json([
+                'reply' => "I'm currently experiencing high traffic and couldn't process your request right now. Please try again in a few moments!"
+            ], 500);
         }
-
-        // ----------------------------------------------------------------
-        // Step 2: Groq fallback (Free tier, extremely fast Llama3)
-        // ----------------------------------------------------------------
-        $groqKey = env('GROQ_API_KEY');
-        $groqError = null;
-        
-        if ($groqKey) {
-            try {
-                $groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
-                $groqResponse = Http::withToken($groqKey)->timeout(15)->post($groqUrl, [
-                    'model' => 'llama3-8b-8192',
-                    'messages' => [
-                        ['role' => 'system', 'content' => 'You are a helpful shopping assistant.'],
-                        ['role' => 'user', 'content' => $fullPrompt]
-                    ],
-                    'temperature' => 0.7,
-                    'max_tokens' => 1024,
-                ]);
-
-                if ($groqResponse->successful()) {
-                    $reply = $groqResponse->json('choices.0.message.content');
-                    if ($reply) {
-                        return response()->json([
-                            'reply'  => $reply,
-                            'source' => 'groq',
-                        ]);
-                    }
-                }
-                $groqError = "Groq HTTP " . $groqResponse->status() . ": " . substr($groqResponse->body(), 0, 100);
-            } catch (\Exception $e) {
-                $groqError = $e->getMessage();
-            }
-        }
-
-        // ----------------------------------------------------------------
-        // Step 3: Gemini fallback
-        // ----------------------------------------------------------------
-        $geminiKey = env('GEMINI_API_KEY');
-
-        if (!$geminiKey && !$groqKey && !$ollamaBaseUrl) {
-            return response()->json(['reply' => "No AI provider is configured on the server."], 503);
-        }
-
-        if ($geminiKey) {
-            try {
-                $geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=' . $geminiKey;
-
-                $geminiResponse = Http::timeout(30)->post($geminiUrl, [
-                    'contents' => [[
-                        'parts' => [['text' => $fullPrompt]]
-                    ]],
-                    'generationConfig' => [
-                        'temperature'     => 0.7,
-                        'maxOutputTokens' => 1024,
-                    ],
-                ]);
-
-                if ($geminiResponse->successful()) {
-                    $reply = $geminiResponse->json('candidates.0.content.parts.0.text');
-                    if ($reply) {
-                        return response()->json([
-                            'reply'  => $reply,
-                            'source' => 'gemini',
-                        ]);
-                    }
-                }
-
-                // Gemini returned an error
-                $errorBody = $geminiResponse->json('error.message') ?? $geminiResponse->body();
-                $technicalError = "Gemini Error: " . substr($errorBody, 0, 300);
-            } catch (\Exception $e) {
-                $technicalError = "Gemini Exception: " . $e->getMessage();
-            }
-        } else {
-            $technicalError = "Gemini not configured.";
-        }
-        
-        // If we reach here, ALL configured AI providers failed
-        if ($ollamaError) $technicalError .= " | Ollama Error: " . $ollamaError;
-        if ($groqError) $technicalError .= " | Groq Error: " . $groqError;
-        
-        \Illuminate\Support\Facades\Log::error("Shopper Assistant Failed: " . $technicalError);
         
         return response()->json([
             'reply' => "I'm currently experiencing high traffic and couldn't process your request right now. Please try again in a few moments!"

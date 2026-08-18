@@ -321,14 +321,11 @@
                             </span>
                         </div>
 
-                        <!-- Genuine AI and price-tracking summary -->
+                        <!-- Genuine Editorial review tags -->
                         <div class="bg-slate-950/90 border border-slate-800/90 rounded-2xl p-3.5 space-y-2 shadow-inner">
                             <div class="flex items-center justify-between text-xs border-b border-slate-800/80 pb-1.5">
                                 <span class="font-black text-amber-400 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-                                    <span>🤖 Deal Analysis</span>
-                                </span>
-                                <span class="text-[11px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 rounded">
-                                    Score {{ $deal->ai_score ?: 88 }}/100
+                                    <span>📝 Editorial Review Highlights</span>
                                 </span>
                             </div>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1.5 text-xs text-slate-300 font-medium">
@@ -337,7 +334,6 @@
                                 <span class="flex items-center gap-1.5 text-emerald-400">✓ Discount compared against list price</span>
                                 <span class="flex items-center gap-1.5 text-emerald-400">✓ Product details reviewed</span>
                                 <span class="flex items-center gap-1.5 text-emerald-400">✓ Affiliate disclosure shown</span>
-                                <span class="flex items-center gap-1.5 text-amber-400">✓ Offer refreshed recently</span>
                             </div>
                         </div>
 
