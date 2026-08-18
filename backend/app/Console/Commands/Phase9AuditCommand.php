@@ -143,7 +143,6 @@ class Phase9AuditCommand extends Command
         $deal->url = 'https://amazon.com/dp/B08N5WRWNW';
         $deal->original_price = 100;
         $deal->discounted_price = 80;
-        $deal->is_ads_eligible = 0;
         $deal->currency = 'INR';
         $deal->category_id = $categoryId;
         $deal->merchant_id = $merchantId;
@@ -234,8 +233,7 @@ class Phase9AuditCommand extends Command
                     'editorial_status' => 'PUBLISHED',
                     'editorial_verdict' => 'Good buy.',
                     'editor_id' => $editorId,
-                    'reviewed_at' => Carbon::now(),
-                    'is_ads_eligible' => 1
+                    'reviewed_at' => Carbon::now()
                 ],
                 'expected' => 200,
                 'index' => true,
