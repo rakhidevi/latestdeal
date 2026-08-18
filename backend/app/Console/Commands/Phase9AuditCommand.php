@@ -133,24 +133,26 @@ class Phase9AuditCommand extends Command
 
     private function createDealFixture($name, $attributes)
     {
-        $categoryId = \App\Models\Category::first()->id ?? 1;
-        $merchantId = \App\Models\Merchant::first()->id ?? 1;
+        $categoryId = \App\Models\Category::first()?->id ?? 1;
+        $merchantId = \App\Models\Merchant::first()?->id ?? 1;
 
-        $base = [
-            'title' => "Phase 9 Fixture: {$name}",
-            'slug' => "phase9-fixture-" . Str::random(8),
-            'hash_id' => Str::random(10),
-            'url' => 'https://amazon.com/dp/B08N5WRWNW',
-            'original_price' => 100,
-            'discounted_price' => 80,
-            'is_ads_eligible' => 0,
-            'currency' => 'INR',
-            'category_id' => $categoryId,
-            'merchant_id' => $merchantId,
-            'image_path' => 'fixtures/test.jpg'
-        ];
+        $deal = new Deal();
+        $deal->title = "Phase 9 Fixture: {$name}";
+        $deal->slug = "phase9-fixture-" . Str::random(8);
+        $deal->hash_id = Str::random(10);
+        $deal->url = 'https://amazon.com/dp/B08N5WRWNW';
+        $deal->original_price = 100;
+        $deal->discounted_price = 80;
+        $deal->is_ads_eligible = 0;
+        $deal->currency = 'INR';
+        $deal->category_id = $categoryId;
+        $deal->merchant_id = $merchantId;
+        $deal->image_path = 'fixtures/test.jpg';
 
-        $deal = new Deal(array_merge($base, $attributes));
+        foreach ($attributes as $key => $val) {
+            $deal->{$key} = $val;
+        }
+
         $deal->save(); // Force save, bypass events if possible but save() triggers events. 
         // We will just delete it in finally block.
         
@@ -164,18 +166,20 @@ class Phase9AuditCommand extends Command
 
     private function createArticleFixture($name, $attributes)
     {
-        $authorId = \App\Models\User::first()->id ?? 1;
+        $authorId = \App\Models\User::first()?->id ?? 1;
 
-        $base = [
-            'title' => "Phase 9 Fixture Article: {$name}",
-            'slug' => "phase9-article-" . Str::random(8),
-            'content' => 'Test content for phase 9 audit firewall tests.',
-            'excerpt' => 'Test excerpt',
-            'status' => 'draft',
-            'author_id' => $authorId
-        ];
+        $article = new Article();
+        $article->title = "Phase 9 Fixture Article: {$name}";
+        $article->slug = "phase9-article-" . Str::random(8);
+        $article->content = 'Test content for phase 9 audit firewall tests.';
+        $article->excerpt = 'Test excerpt';
+        $article->status = 'draft';
+        $article->author_id = $authorId;
 
-        $article = new Article(array_merge($base, $attributes));
+        foreach ($attributes as $key => $val) {
+            $article->{$key} = $val;
+        }
+
         $article->save();
         
         $this->fixtures[] = [
