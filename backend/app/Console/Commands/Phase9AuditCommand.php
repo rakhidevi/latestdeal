@@ -133,6 +133,9 @@ class Phase9AuditCommand extends Command
 
     private function createDealFixture($name, $attributes)
     {
+        $categoryId = \App\Models\Category::first()->id ?? 1;
+        $merchantId = \App\Models\Merchant::first()->id ?? 1;
+
         $base = [
             'title' => "Phase 9 Fixture: {$name}",
             'slug' => "phase9-fixture-" . Str::random(8),
@@ -141,8 +144,10 @@ class Phase9AuditCommand extends Command
             'original_price' => 100,
             'discounted_price' => 80,
             'is_ads_eligible' => 0,
-            // Assuming default system attributes required by DB
             'currency' => 'INR',
+            'category_id' => $categoryId,
+            'merchant_id' => $merchantId,
+            'image_path' => 'fixtures/test.jpg'
         ];
 
         $deal = new Deal(array_merge($base, $attributes));
@@ -159,12 +164,15 @@ class Phase9AuditCommand extends Command
 
     private function createArticleFixture($name, $attributes)
     {
+        $authorId = \App\Models\User::first()->id ?? 1;
+
         $base = [
             'title' => "Phase 9 Fixture Article: {$name}",
             'slug' => "phase9-article-" . Str::random(8),
             'content' => 'Test content for phase 9 audit firewall tests.',
             'excerpt' => 'Test excerpt',
             'status' => 'draft',
+            'author_id' => $authorId
         ];
 
         $article = new Article(array_merge($base, $attributes));
