@@ -170,7 +170,6 @@ class Phase9AuditCommand extends Command
         $article->title = "Phase 9 Fixture Article: {$name}";
         $article->slug = "phase9-article-" . Str::random(8);
         $article->content = 'Test content for phase 9 audit firewall tests.';
-        $article->excerpt = 'Test excerpt';
         $article->status = 'draft';
         $article->author_id = $authorId;
 
