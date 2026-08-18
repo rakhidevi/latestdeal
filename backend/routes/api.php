@@ -42,6 +42,9 @@ Route::get('/migrate', function() {
             opcache_reset();
         }
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
         return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
     } catch (\Exception $e) {
         return response()->json(['error' => $e->getMessage()], 500);

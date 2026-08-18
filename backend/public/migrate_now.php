@@ -57,6 +57,8 @@ try {
     // Force clear config & cache to reload fresh .env settings
     \Illuminate\Support\Facades\Artisan::call('config:clear');
     \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
 
     echo "Current Mail Configuration Evaluated:\n";
     echo "MAILER: " . config('mail.default') . "\n";
