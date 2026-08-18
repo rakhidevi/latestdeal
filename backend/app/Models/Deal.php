@@ -61,7 +61,7 @@ class Deal extends Model
             
             // Critical Scraper Safeguard
             if (!auth()->check() && $deal->editorial_status === self::STATUS_PUBLISHED) {
-                $deal->editorial_status = self::STATUS_AUTO; // Default to AUTO if unauthenticated system tries to publish
+                $deal->editorial_status = self::STATUS_DISCOVERED; // Default to DISCOVERED if unauthenticated system tries to publish
             }
         });
 
