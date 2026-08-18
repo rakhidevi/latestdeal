@@ -143,7 +143,6 @@ class Phase9AuditCommand extends Command
         $deal->url = 'https://amazon.com/dp/B08N5WRWNW';
         $deal->original_price = 100;
         $deal->discounted_price = 80;
-        $deal->currency = 'INR';
         $deal->category_id = $categoryId;
         $deal->merchant_id = $merchantId;
         $deal->image_path = 'fixtures/test.jpg';
