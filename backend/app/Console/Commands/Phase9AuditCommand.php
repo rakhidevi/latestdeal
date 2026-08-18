@@ -187,31 +187,31 @@ class Phase9AuditCommand extends Command
 
         $matrix = [
             'Discovered/Auto' => [
-                'attributes' => ['status' => 'active', 'editorial_status' => Deal::STATUS_AUTO ?? 'AUTO'],
+                'attributes' => ['status' => 'active', 'editorial_status' => 'AUTO'],
                 'expected' => 404,
                 'index' => false,
                 'ads' => false
             ],
             'Qualified/Auto' => [
-                'attributes' => ['status' => 'active', 'editorial_status' => Deal::STATUS_AUTO ?? 'AUTO'],
+                'attributes' => ['status' => 'active', 'editorial_status' => 'AUTO'],
                 'expected' => 404,
                 'index' => false,
                 'ads' => false
             ],
             'Draft' => [
-                'attributes' => ['status' => 'active', 'editorial_status' => Deal::STATUS_DRAFT ?? 'DRAFT'],
+                'attributes' => ['status' => 'active', 'editorial_status' => 'DRAFT'],
                 'expected' => 404,
                 'index' => false,
                 'ads' => false
             ],
             'In Review' => [
-                'attributes' => ['status' => 'active', 'editorial_status' => Deal::STATUS_IN_REVIEW ?? 'IN_REVIEW'],
+                'attributes' => ['status' => 'active', 'editorial_status' => 'IN_REVIEW'],
                 'expected' => 404,
                 'index' => false,
                 'ads' => false
             ],
             'Rejected' => [
-                'attributes' => ['status' => 'active', 'editorial_status' => Deal::STATUS_REJECTED ?? 'REJECTED'],
+                'attributes' => ['status' => 'active', 'editorial_status' => 'REJECTED'],
                 'expected' => 404,
                 'index' => false,
                 'ads' => false
@@ -219,7 +219,7 @@ class Phase9AuditCommand extends Command
             'Published + valid editorial data' => [
                 'attributes' => [
                     'status' => 'active', 
-                    'editorial_status' => Deal::STATUS_PUBLISHED ?? 'PUBLISHED',
+                    'editorial_status' => 'PUBLISHED',
                     'editorial_verdict' => 'Good buy.',
                     'editor_id' => $editorId,
                     'reviewed_at' => Carbon::now(),
@@ -232,7 +232,7 @@ class Phase9AuditCommand extends Command
             'Published + missing editor' => [
                 'attributes' => [
                     'status' => 'active', 
-                    'editorial_status' => Deal::STATUS_PUBLISHED ?? 'PUBLISHED',
+                    'editorial_status' => 'PUBLISHED',
                     'editorial_verdict' => 'Good buy.',
                     'editor_id' => null,
                     'reviewed_at' => Carbon::now()
@@ -244,7 +244,7 @@ class Phase9AuditCommand extends Command
             'Published + missing review date' => [
                 'attributes' => [
                     'status' => 'active', 
-                    'editorial_status' => Deal::STATUS_PUBLISHED ?? 'PUBLISHED',
+                    'editorial_status' => 'PUBLISHED',
                     'editorial_verdict' => 'Good buy.',
                     'editor_id' => $editorId,
                     'reviewed_at' => null
@@ -256,7 +256,7 @@ class Phase9AuditCommand extends Command
             'Published + missing verdict' => [
                 'attributes' => [
                     'status' => 'active', 
-                    'editorial_status' => Deal::STATUS_PUBLISHED ?? 'PUBLISHED',
+                    'editorial_status' => 'PUBLISHED',
                     'editorial_verdict' => null,
                     'editor_id' => $editorId,
                     'reviewed_at' => Carbon::now()
@@ -268,7 +268,7 @@ class Phase9AuditCommand extends Command
             'Expired + thin' => [
                 'attributes' => [
                     'status' => 'expired', 
-                    'editorial_status' => Deal::STATUS_PUBLISHED ?? 'PUBLISHED',
+                    'editorial_status' => 'PUBLISHED',
                     'editorial_verdict' => null,
                 ],
                 'expected' => 410, // Assuming thin expired is 410
