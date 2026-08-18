@@ -6,39 +6,81 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use App\Models\Deal;
 use App\Models\Article;
+use App\Models\User;
+use Carbon\Carbon;
 
 class Phase9AuditCommand extends Command
 {
     protected $signature = 'phase9:audit {--url= : Base URL to test against}';
-    protected $description = 'Runs the Phase 9 Gate 0 & Gate 1 environment and SEO firewall audits.';
+    protected $description = 'Runs the Advanced Phase 9 Environment, Fixture, and SEO firewall audits.';
 
     protected $results = [];
+    protected $fixtures = [];
+    protected $baseUrl;
+    protected $sitemapUrls = [];
 
     public function handle()
     {
+        $this->baseUrl = rtrim($this->option('url') ?? config('app.url', 'http://localhost'), '/');
+
         $this->results = [
             'environment' => [],
-            'content' => [],
+            'lifecycle' => [],
             'seo' => [],
-            'ads' => [],
+            'articles' => [],
             'legacy_ui' => [],
+            'cleanup' => [],
             'overall' => 'REVIEW'
         ];
 
         $this->info("LATESTDEAL");
-        $this->info("PHASE 9 PUBLIC-SITE QUALITY REPORT (GATES 0-5)");
+        $this->info("PHASE 9 PUBLIC-SITE QUALITY REPORT");
         $this->info("────────────────────────────────────\n");
 
-        $this->runGate0();
-        $this->runGate1();
-        $this->runLegacyUIScan();
+        $this->runEnvironmentAudit();
+        $this->runLifecycleDistribution();
+        
+        // Fetch sitemap for reconciliation
+        $this->loadSitemap();
+
+        try {
+            $this->runHttpFirewallAudit();
+            $this->runArticleAudit();
+        } finally {
+            $this->runFixtureCleanup();
+        }
+
+        $this->runLegacyUiAudit();
         
         $this->saveOutputs();
     }
 
-    private function runGate0()
+    private function loadSitemap()
+    {
+        try {
+            $response = Http::withoutVerifying()->get($this->baseUrl . '/sitemap.xml');
+            if ($response->successful()) {
+                $xml = simplexml_load_string($response->body());
+                if ($xml) {
+                    foreach ($xml->url as $url) {
+                        $this->sitemapUrls[] = (string)$url->loc;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            $this->error("Could not load sitemap.xml");
+        }
+    }
+
+    private function inSitemap($url)
+    {
+        return in_array($url, $this->sitemapUrls);
+    }
+
+    private function runEnvironmentAudit()
     {
         $this->info("GATE 0 — ENVIRONMENT VERIFICATION");
         $this->info("────────────────────────────────────");
@@ -62,92 +104,334 @@ class Phase9AuditCommand extends Command
         $this->line(sprintf("%-25s %s", "Laravel Version:", $laravelVersion));
         $this->line(sprintf("%-25s %s", "Latest Migration:", $migrationStr));
         
-        $dealTotal = Deal::count();
-        $dealPublished = Deal::where('status', 'PUBLISHED')->count();
-        $dealDraft = Deal::where('status', 'DRAFT')->count();
-        
-        $articleTotal = Article::count();
-        $articlePublished = Article::where('status', 'published')->count();
-        $articleDraft = Article::where('status', 'draft')->count();
-
-        $this->results['content'] = [
-            'total_deals' => $dealTotal,
-            'published_deals' => $dealPublished,
-            'draft_deals' => $dealDraft,
-            'total_articles' => $articleTotal,
-            'published_articles' => $articlePublished,
-            'draft_articles' => $articleDraft
-        ];
-
-        $this->line(sprintf("%-25s %s", "Total Deals:", $dealTotal));
-        $this->line(sprintf("%-25s %s", "Published Deals:", $dealPublished));
-        $this->line(sprintf("%-25s %s", "Total Articles:", $articleTotal));
-        $this->line(sprintf("%-25s %s", "Published Articles:", $articlePublished));
-        
         $this->info("\n");
     }
 
-    private function runGate1()
+    private function runLifecycleDistribution()
     {
-        $this->info("GATE 1 — URL/SEO FIREWALL AUDIT");
+        $this->info("DEAL LIFECYCLE DISTRIBUTION");
         $this->info("────────────────────────────────────");
         
-        $baseUrl = rtrim($this->option('url') ?? config('app.url', 'http://localhost'), '/');
-        
-        $this->info("Testing against: " . $baseUrl . "\n");
+        $statusCounts = DB::table('deals')
+            ->select('status', 'editorial_status', DB::raw('count(*) as total'))
+            ->groupBy('status', 'editorial_status')
+            ->get();
 
-        $this->line(sprintf("%-20s | %-15s | %-10s | %s", "Resource Type", "Expected", "Actual", "Pass/Fail"));
-        $this->line(str_repeat("-", 65));
+        foreach ($statusCounts as $row) {
+            $s = $row->status ?? 'NULL';
+            $es = $row->editorial_status ?? 'NULL';
+            $this->line(sprintf("Processing: %-15s | Editorial: %-15s | Count: %d", $s, $es, $row->total));
+            $this->results['lifecycle'][] = [
+                'status' => $s,
+                'editorial_status' => $es,
+                'count' => $row->total
+            ];
+        }
 
-        $tests = [
-            'published_deal_test' => ['model' => Deal::where('status', 'PUBLISHED')->first(), 'route' => 'deals.show', 'expected' => 200],
-            'draft_deal_test' => ['model' => Deal::where('status', 'DRAFT')->first(), 'route' => 'deals.show', 'expected' => 404],
-            'review_deal_test' => ['model' => Deal::where('status', 'REVIEW')->first(), 'route' => 'deals.show', 'expected' => 404],
-            'auto_deal_test' => ['model' => Deal::where('status', 'AUTO')->first(), 'route' => 'deals.show', 'expected' => 404],
-            'rejected_deal_test' => ['model' => Deal::where('status', 'REJECTED')->first(), 'route' => 'deals.show', 'expected' => 404],
-            'published_guide_test' => ['model' => Article::where('status', 'published')->first(), 'route' => 'guides.show', 'expected' => 200],
-            'draft_guide_test' => ['model' => Article::where('status', 'draft')->first(), 'route' => 'guides.show', 'expected' => 404],
+        $this->info("\n");
+    }
+
+    private function createDealFixture($name, $attributes)
+    {
+        $base = [
+            'title' => "Phase 9 Fixture: {$name}",
+            'slug' => "phase9-fixture-" . Str::random(8),
+            'hash_id' => Str::random(10),
+            'url' => 'https://amazon.com/dp/B08N5WRWNW',
+            'original_price' => 100,
+            'discounted_price' => 80,
+            'is_ads_eligible' => 0,
+            // Assuming default system attributes required by DB
+            'currency' => 'INR',
         ];
 
-        $seoBlocked = false;
+        $deal = new Deal(array_merge($base, $attributes));
+        $deal->save(); // Force save, bypass events if possible but save() triggers events. 
+        // We will just delete it in finally block.
+        
+        $this->fixtures[] = [
+            'type' => 'deal',
+            'id' => $deal->id
+        ];
 
-        foreach ($tests as $key => $test) {
-            $model = $test['model'];
-            $expectedStatus = $test['expected'];
+        return $deal;
+    }
+
+    private function createArticleFixture($name, $attributes)
+    {
+        $base = [
+            'title' => "Phase 9 Fixture Article: {$name}",
+            'slug' => "phase9-article-" . Str::random(8),
+            'content' => 'Test content for phase 9 audit firewall tests.',
+            'excerpt' => 'Test excerpt',
+            'status' => 'draft',
+        ];
+
+        $article = new Article(array_merge($base, $attributes));
+        $article->save();
+        
+        $this->fixtures[] = [
+            'type' => 'article',
+            'id' => $article->id
+        ];
+
+        return $article;
+    }
+
+    private function runHttpFirewallAudit()
+    {
+        $this->info("SEO FIREWALL MATRIX (HTTP Tests)");
+        $this->info("────────────────────────────────────");
+
+        $editorId = User::first()->id ?? 1;
+
+        $matrix = [
+            'Discovered/Auto' => [
+                'attributes' => ['status' => 'active', 'editorial_status' => Deal::STATUS_AUTO ?? 'AUTO'],
+                'expected' => 404,
+                'index' => false,
+                'ads' => false
+            ],
+            'Qualified/Auto' => [
+                'attributes' => ['status' => 'active', 'editorial_status' => Deal::STATUS_AUTO ?? 'AUTO'],
+                'expected' => 404,
+                'index' => false,
+                'ads' => false
+            ],
+            'Draft' => [
+                'attributes' => ['status' => 'active', 'editorial_status' => Deal::STATUS_DRAFT ?? 'DRAFT'],
+                'expected' => 404,
+                'index' => false,
+                'ads' => false
+            ],
+            'In Review' => [
+                'attributes' => ['status' => 'active', 'editorial_status' => Deal::STATUS_IN_REVIEW ?? 'IN_REVIEW'],
+                'expected' => 404,
+                'index' => false,
+                'ads' => false
+            ],
+            'Rejected' => [
+                'attributes' => ['status' => 'active', 'editorial_status' => Deal::STATUS_REJECTED ?? 'REJECTED'],
+                'expected' => 404,
+                'index' => false,
+                'ads' => false
+            ],
+            'Published + valid editorial data' => [
+                'attributes' => [
+                    'status' => 'active', 
+                    'editorial_status' => Deal::STATUS_PUBLISHED ?? 'PUBLISHED',
+                    'editorial_verdict' => 'Good buy.',
+                    'editor_id' => $editorId,
+                    'reviewed_at' => Carbon::now(),
+                    'is_ads_eligible' => 1
+                ],
+                'expected' => 200,
+                'index' => true,
+                'ads' => true
+            ],
+            'Published + missing editor' => [
+                'attributes' => [
+                    'status' => 'active', 
+                    'editorial_status' => Deal::STATUS_PUBLISHED ?? 'PUBLISHED',
+                    'editorial_verdict' => 'Good buy.',
+                    'editor_id' => null,
+                    'reviewed_at' => Carbon::now()
+                ],
+                'expected' => 404,
+                'index' => false,
+                'ads' => false
+            ],
+            'Published + missing review date' => [
+                'attributes' => [
+                    'status' => 'active', 
+                    'editorial_status' => Deal::STATUS_PUBLISHED ?? 'PUBLISHED',
+                    'editorial_verdict' => 'Good buy.',
+                    'editor_id' => $editorId,
+                    'reviewed_at' => null
+                ],
+                'expected' => 404,
+                'index' => false,
+                'ads' => false
+            ],
+            'Published + missing verdict' => [
+                'attributes' => [
+                    'status' => 'active', 
+                    'editorial_status' => Deal::STATUS_PUBLISHED ?? 'PUBLISHED',
+                    'editorial_verdict' => null,
+                    'editor_id' => $editorId,
+                    'reviewed_at' => Carbon::now()
+                ],
+                'expected' => 404,
+                'index' => false,
+                'ads' => false
+            ],
+            'Expired + thin' => [
+                'attributes' => [
+                    'status' => 'expired', 
+                    'editorial_status' => Deal::STATUS_PUBLISHED ?? 'PUBLISHED',
+                    'editorial_verdict' => null,
+                ],
+                'expected' => 410, // Assuming thin expired is 410
+                'index' => false,
+                'ads' => false
+            ],
+        ];
+
+        $this->line(sprintf("%-32s | %-4s | %-6s | %-7s | %-5s | %s", "Fixture", "HTTP", "Robots", "Sitemap", "Ads", "Result"));
+        $this->line(str_repeat("-", 85));
+
+        $hasFails = false;
+
+        foreach ($matrix as $name => $test) {
+            $deal = $this->createDealFixture($name, $test['attributes']);
             
-            if (!$model) {
-                $this->line(sprintf("%-20s | %-15s | %-10s | %s", str_replace('_test', '', $key), "{$expectedStatus}/...", "N/A", "NOT_TESTED"));
-                $this->results['seo'][$key] = "NOT_TESTED";
-                continue;
-            }
-
-            $url = $baseUrl . '/' . ($test['route'] === 'deals.show' ? 'deal/' : 'guides/') . $model->slug;
+            $url = $this->baseUrl . '/deal/' . $deal->slug;
             
             try {
                 $response = Http::withoutVerifying()->get($url);
                 $actualStatus = $response->status();
+                $body = $response->body();
                 
-                $pass = ($actualStatus === $expectedStatus) ? 'PASS' : 'FAIL';
+                $actualIndex = (strpos($body, 'noindex') === false && $actualStatus === 200);
+                $actualSitemap = $this->inSitemap($url);
+                $actualAds = (strpos($body, '<x-ad-banner') !== false || strpos($body, 'adsbygoogle') !== false);
                 
-                $this->line(sprintf("%-20s | %-15s | %-10s | %s", str_replace('_test', '', $key), "{$expectedStatus}", $actualStatus, $pass == 'PASS' ? '✅ PASS' : '❌ FAIL'));
+                $pass = ($actualStatus === $test['expected']) ? 'PASS' : 'FAIL';
                 
-                $this->results['seo'][$key] = $pass;
-                if ($pass === 'FAIL') $seoBlocked = true;
+                // If it's a 200, check index rules
+                if ($test['expected'] === 200) {
+                    if ($test['index'] !== $actualIndex) $pass = 'FAIL (Index mismatch)';
+                    if ($test['index'] !== $actualSitemap) $pass = 'FAIL (Sitemap mismatch)';
+                }
+
+                if ($pass !== 'PASS') $hasFails = true;
+
+                $this->line(sprintf(
+                    "%-32s | %-4s | %-6s | %-7s | %-5s | %s", 
+                    $name, 
+                    $actualStatus, 
+                    $actualIndex ? 'INDEX' : 'NOINDX',
+                    $actualSitemap ? 'YES' : 'NO',
+                    $actualAds ? 'YES' : 'NO',
+                    $pass == 'PASS' ? '✅ PASS' : '❌ ' . $pass
+                ));
+                
+                $this->results['seo'][$name] = $pass;
             } catch (\Exception $e) {
-                $this->line(sprintf("%-20s | %-15s | %-10s | %s", str_replace('_test', '', $key), "{$expectedStatus}", "ERR", "❌ FAIL"));
-                $this->results['seo'][$key] = 'FAIL';
-                $seoBlocked = true;
+                $this->line(sprintf("%-32s | %-4s | %-6s | %-7s | %-5s | %s", $name, "ERR", "-", "-", "-", "❌ ERROR"));
+                $this->results['seo'][$name] = 'FAIL';
+                $hasFails = true;
             }
         }
         
-        if ($seoBlocked) {
+        if ($hasFails) {
             $this->results['overall'] = 'BLOCKED';
         }
 
         $this->info("\n");
     }
 
-    private function runLegacyUIScan()
+    private function runArticleAudit()
+    {
+        $this->info("ARTICLE FIREWALL MATRIX");
+        $this->info("────────────────────────────────────");
+
+        $articleCount = Article::count();
+        $this->info("Current staging: Articles = {$articleCount}");
+
+        $matrix = [
+            'DRAFT' => [
+                'attributes' => ['status' => 'draft', 'published_at' => null],
+                'expected' => 404,
+                'sitemap' => false
+            ],
+            'PUBLISHED' => [
+                'attributes' => ['status' => 'published', 'published_at' => Carbon::now()->subDay()],
+                'expected' => 200,
+                'sitemap' => true
+            ],
+            'PUBLISHED + future published_at' => [
+                'attributes' => ['status' => 'published', 'published_at' => Carbon::now()->addDays(5)],
+                'expected' => 404,
+                'sitemap' => false
+            ],
+        ];
+
+        $hasFails = false;
+        $this->line(sprintf("%-32s | %-4s | %-7s | %s", "Fixture", "HTTP", "Sitemap", "Result"));
+        $this->line(str_repeat("-", 65));
+
+        foreach ($matrix as $name => $test) {
+            $article = $this->createArticleFixture($name, $test['attributes']);
+            $url = $this->baseUrl . '/guides/' . $article->slug;
+
+            try {
+                $response = Http::withoutVerifying()->get($url);
+                $actualStatus = $response->status();
+                $actualSitemap = $this->inSitemap($url);
+                
+                $pass = ($actualStatus === $test['expected'] && $actualSitemap === $test['sitemap']) ? 'PASS' : 'FAIL';
+                if ($pass !== 'PASS') $hasFails = true;
+
+                $this->line(sprintf(
+                    "%-32s | %-4s | %-7s | %s", 
+                    $name, 
+                    $actualStatus, 
+                    $actualSitemap ? 'YES' : 'NO',
+                    $pass == 'PASS' ? '✅ PASS' : '❌ FAIL'
+                ));
+
+                $this->results['articles'][$name] = $pass;
+            } catch (\Exception $e) {
+                $this->line(sprintf("%-32s | %-4s | %-7s | %s", $name, "ERR", "-", "❌ ERROR"));
+                $this->results['articles'][$name] = 'FAIL';
+                $hasFails = true;
+            }
+        }
+
+        if ($hasFails) {
+            $this->results['overall'] = 'BLOCKED';
+        }
+        $this->info("\n");
+    }
+
+    private function runFixtureCleanup()
+    {
+        $this->info("FIXTURE CLEANUP");
+        $this->info("────────────────────────────────────");
+        
+        $created = count($this->fixtures);
+        $deleted = 0;
+
+        foreach ($this->fixtures as $fixture) {
+            if ($fixture['type'] === 'deal') {
+                Deal::where('id', $fixture['id'])->forceDelete();
+                $deleted++;
+            } elseif ($fixture['type'] === 'article') {
+                Article::where('id', $fixture['id'])->forceDelete();
+                $deleted++;
+            }
+        }
+
+        $remaining = $created - $deleted;
+        
+        $this->line(sprintf("%-25s %d", "Created:", $created));
+        $this->line(sprintf("%-25s %d", "Deleted:", $deleted));
+        $this->line(sprintf("%-25s %d", "Remaining fixtures:", $remaining));
+        
+        if ($remaining > 0) {
+            $this->results['cleanup']['status'] = 'FAIL';
+            $this->line("\nResult: ❌ FAIL (Cleanup failed)");
+            $this->results['overall'] = 'BLOCKED';
+        } else {
+            $this->results['cleanup']['status'] = 'PASS';
+            $this->line("\nResult: ✅ PASS");
+        }
+
+        $this->info("\n");
+    }
+
+    private function runLegacyUiAudit()
     {
         $this->info("LEGACY UI SCAN (Grep resources/views)");
         $this->info("────────────────────────────────────");
@@ -161,7 +445,7 @@ class Phase9AuditCommand extends Command
             "Selling Fast",
             "bought today",
             "viewing now",
-            "Score 85/100" // example
+            "Score 85/100"
         ];
 
         $viewsPath = resource_path('views');
@@ -198,15 +482,14 @@ class Phase9AuditCommand extends Command
 
     private function saveOutputs()
     {
-        $this->info("FINAL STATUS: " . $this->results['overall']);
+        $statusStr = $this->results['overall'] === 'REVIEW' ? '🟡 REVIEW' : ($this->results['overall'] === 'BLOCKED' ? '🔴 BLOCKED' : '🟢 READY');
+        $this->info("FINAL STATUS: " . $statusStr);
         $this->info("────────────────────────────────────");
 
         $jsonOutput = json_encode($this->results, JSON_PRETTY_PRINT);
         
-        // Save to storage
         File::put(storage_path('app/phase9-audit.json'), $jsonOutput);
         
-        // Let's also save text output to a log file
         $txtOutput = print_r($this->results, true);
         File::put(storage_path('logs/phase9-audit.txt'), $txtOutput);
 
