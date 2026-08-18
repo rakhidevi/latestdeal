@@ -77,7 +77,7 @@
                     {{ $article->author->bio }}
                 </p>
                 <div class="mt-4">
-                    <a href="{{ route('editorial-policy') }}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline">Read our Editorial Policy &rarr;</a>
+                    <a href="{{ route('editorial.policy') }}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline">Read our Editorial Policy &rarr;</a>
                 </div>
             </div>
         </div>
