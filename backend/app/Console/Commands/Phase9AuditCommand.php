@@ -61,7 +61,7 @@ class Phase9AuditCommand extends Command
             $this->runHttpFirewallAudit();
             $this->runArticleAudit();
         } finally {
-            $this->runFixtureCleanup();
+            // $this->runFixtureCleanup();
             auth()->logout();
         }
 
