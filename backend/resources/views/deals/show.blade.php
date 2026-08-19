@@ -337,7 +337,7 @@
 
                 <!-- Concise Affiliate Disclosure -->
                 <p class="mt-4 text-center text-[11px] text-gray-400 dark:text-slate-500">
-                    As an affiliate, we may earn a small commission from qualifying purchases at no extra cost to you. <a href="{{ route('affiliate-disclosure') }}" class="underline hover:text-gray-600 dark:hover:text-slate-300">Learn more</a>.
+                    As an affiliate, we may earn a small commission from qualifying purchases at no extra cost to you. <a href="{{ route('affiliate.disclosure') }}" class="underline hover:text-gray-600 dark:hover:text-slate-300">Learn more</a>.
                 </p>
             </div>
 
