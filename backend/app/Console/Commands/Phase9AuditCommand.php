@@ -25,7 +25,7 @@ class Phase9AuditCommand extends Command
     public function handle()
     {
         $this->baseUrl = $this->option('url') ?? config('app.url');
-        if (str_contains($this->baseUrl, 'localhost') || $this->baseUrl === 'http://latestdeal.test') {
+        if (str_contains(base_path(), 'staging')) {
             $this->baseUrl = 'https://staging.latestdeal.in';
         }
         $this->baseUrl = rtrim($this->baseUrl, '/');
