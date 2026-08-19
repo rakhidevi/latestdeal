@@ -307,6 +307,23 @@ class Deal extends Model
     }
 
     /**
+     * Database scope mirroring the isIndexable() logic.
+     */
+    public function scopeIndexable($query)
+    {
+        return $query->publishable()->where(function ($q) {
+            $q->where('status', '!=', self::STATUS_EXPIRED)
+              ->orWhere(function ($sub) {
+                  $sub->where('status', self::STATUS_EXPIRED)
+                      ->where(function ($hist) {
+                          $hist->where('is_editor_pick', true)
+                               ->orWhereRaw('LENGTH(editorial_summary) > 200');
+                      });
+              });
+        });
+    }
+
+    /**
      * Publication Quality Firewall logic gate.
      * Determines if a deal has sufficient original value to exist publicly.
      */

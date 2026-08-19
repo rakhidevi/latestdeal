@@ -30,7 +30,7 @@
                     <img src="{{ $article->author->avatar_url }}" alt="{{ $article->author->name }}" class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-800 shadow-sm">
                 @endif
                 <div class="text-left">
-                    <span class="block font-bold text-gray-900 dark:text-gray-200">{{ $article->author->name ?? 'LatestDeal Editorial' }}</span>
+                    <span class="block font-bold text-gray-900 dark:text-gray-200">{{ $article->author?->name ?? 'LatestDeal Editorial' }}</span>
                     <span class="block text-xs">Published on {{ $article->published_at->format('M d, Y') }}</span>
                 </div>
             </div>

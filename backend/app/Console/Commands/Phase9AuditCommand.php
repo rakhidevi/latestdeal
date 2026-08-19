@@ -229,6 +229,9 @@ class Phase9AuditCommand extends Command
                 'attributes' => [
                     'status' => 'active', 
                     'editorial_status' => 'PUBLISHED',
+                    'editorial_summary' => 'This is a solid choice.',
+                    'pros' => ['Good', 'Cheap'],
+                    'cons' => ['None'],
                     'editorial_verdict' => 'Good buy.',
                     'editor_id' => $editorId,
                     'reviewed_at' => Carbon::now()

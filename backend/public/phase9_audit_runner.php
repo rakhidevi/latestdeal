@@ -8,4 +8,4 @@ $status = $kernel->call('phase9:audit');
 echo "Command run! Status: " . $status . "\n";
 echo "Output from storage/app/phase9-audit.json:\n\n";
 
-echo file_get_contents(__DIR__.'/../storage/app/phase9-audit.json');
+echo file_get_contents(__DIR__.'/../storage/logs/phase9-audit.txt');

@@ -8,6 +8,13 @@ class DealController extends Controller
 {
     public function show(Deal $deal, \App\Services\User\InteractionService $interactionService)
     {
+        if (! $deal->isIndexable()) {
+            if ($deal->status === \App\Models\Deal::STATUS_EXPIRED) {
+                abort(410);
+            }
+            abort(404);
+        }
+
         $priceHistory = $deal->priceHistories()->orderBy('recorded_at')->get();
         
         $similarDeals = Deal::where('category_id', $deal->category_id)

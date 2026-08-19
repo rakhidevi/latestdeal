@@ -11,8 +11,7 @@ class SitemapController
 {
     public function index()
     {
-        $deals = Deal::publishable()
-            ->where('status', 'active')
+        $deals = Deal::indexable()
             ->orderBy('created_at', 'desc')
             ->limit(1000)
             ->get();
