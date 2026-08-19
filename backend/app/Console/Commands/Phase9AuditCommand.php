@@ -325,6 +325,11 @@ class Phase9AuditCommand extends Command
                 
                 $pass = ($actualStatus === $test['expected']) ? 'PASS' : 'FAIL';
                 
+                if ($pass === 'FAIL') {
+                    $this->error("Failed test for $url. Expected {$test['expected']}, got {$actualStatus}");
+                    $this->error("Response body: " . Str::limit($body, 500));
+                }
+                
                 // If it passed the HTTP status and we expect a 200, check index rules
                 if ($pass === 'PASS' && $test['expected'] === 200) {
                     if ($test['index'] !== $actualIndex) $pass = 'FAIL (Index mismatch)';
