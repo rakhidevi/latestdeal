@@ -77,7 +77,7 @@ class Phase9AuditCommand extends Command
     private function loadSitemap()
     {
         try {
-            $response = Http::withUserAgent('Mozilla/5.0')->withoutVerifying()->get($this->baseUrl . '/sitemap.xml');
+            $response = Http::withoutVerifying()->get($this->baseUrl . '/sitemap.xml');
             if ($response->successful()) {
                 $xml = simplexml_load_string($response->body());
                 if ($xml) {
@@ -317,7 +317,7 @@ class Phase9AuditCommand extends Command
             $url = $this->baseUrl . '/deal/' . $deal->slug;
             
             try {
-                $response = Http::withUserAgent('Mozilla/5.0')->withoutVerifying()->get($url);
+                $response = Http::withoutVerifying()->get($url);
                 $actualStatus = $response->status();
                 $body = $response->body();
                 
@@ -400,7 +400,7 @@ class Phase9AuditCommand extends Command
             $url = $this->baseUrl . '/guides/' . $article->slug;
 
             try {
-                $response = Http::withUserAgent('Mozilla/5.0')->withoutVerifying()->get($url);
+                $response = Http::withoutVerifying()->get($url);
                 $actualStatus = $response->status();
                 $actualSitemap = $this->inSitemap($url);
                 
