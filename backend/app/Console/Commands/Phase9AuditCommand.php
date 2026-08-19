@@ -48,9 +48,14 @@ class Phase9AuditCommand extends Command
 
         // Bypass scraper safeguard by logging in a user
         $editor = User::first();
-        if ($editor) {
-            auth()->login($editor);
+        if (!$editor) {
+            $editor = new User();
+            $editor->name = 'Audit Editor';
+            $editor->email = 'audit' . time() . '@example.com';
+            $editor->password = bcrypt('password');
+            $editor->save();
         }
+        auth()->login($editor);
 
         try {
             $this->runHttpFirewallAudit();
