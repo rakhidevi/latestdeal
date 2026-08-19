@@ -24,7 +24,11 @@ class Phase9AuditCommand extends Command
 
     public function handle()
     {
-        $this->baseUrl = rtrim($this->option('url') ?? config('app.url', 'http://localhost'), '/');
+        $this->baseUrl = $this->option('url') ?? config('app.url');
+        if (str_contains($this->baseUrl, 'localhost') || $this->baseUrl === 'http://latestdeal.test') {
+            $this->baseUrl = 'https://staging.latestdeal.in';
+        }
+        $this->baseUrl = rtrim($this->baseUrl, '/');
 
         $this->results = [
             'environment' => [],
@@ -61,7 +65,7 @@ class Phase9AuditCommand extends Command
             $this->runHttpFirewallAudit();
             $this->runArticleAudit();
         } finally {
-            // $this->runFixtureCleanup();
+            $this->runFixtureCleanup();
             auth()->logout();
         }
 
