@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
@@ -19,20 +21,17 @@ $deal->cons = ['None'];
 $deal->editorial_verdict = "Good buy.";
 $deal->editor_id = $editorId;
 $deal->reviewed_at = \Carbon\Carbon::now();
+$deal->original_price = 100;
+$deal->discounted_price = 80;
+$deal->category_id = 1;
+$deal->merchant_id = 1;
+$deal->hash_id = \Illuminate\Support\Str::random(10);
+$deal->url = 'https://amazon.com/dp/B08N5WRWNW';
 $deal->save();
 
 echo "Deal ID: " . $deal->id . "\n";
 echo "Slug: " . $deal->slug . "\n";
 echo "Is Publishable: " . ($deal->isPublishable() ? "YES" : "NO") . "\n";
 echo "Is Indexable: " . ($deal->isIndexable() ? "YES" : "NO") . "\n";
-if (!$deal->isPublishable()) {
-    echo "Reason:\n";
-    echo "editorial_status = " . $deal->editorial_status . "\n";
-    echo "summary = " . $deal->editorial_summary . "\n";
-    echo "pros = " . json_encode($deal->pros) . "\n";
-    echo "cons = " . json_encode($deal->cons) . "\n";
-    echo "editor_id = " . $deal->editor_id . "\n";
-    echo "reviewed_at = " . $deal->reviewed_at . "\n";
-}
 
 $deal->forceDelete();
