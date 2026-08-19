@@ -93,6 +93,8 @@ class Phase9AuditCommand extends Command
 
     private function inSitemap($url)
     {
+        $this->sitemapUrls = [];
+        $this->loadSitemap();
         return in_array($url, $this->sitemapUrls);
     }
 
