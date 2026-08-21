@@ -199,6 +199,7 @@ class DealIngestionController
         // 3. Persist Raw Payload (Status: raw)
         // Since we already checked for existence, this will always create.
         $deal = Deal::create([
+            'asin' => $validated['asin'] ?? null,
             'url' => $validated['url'],
             'image_path' => $imagePath,
             'category_id' => $validated['category_id'],
@@ -251,5 +252,145 @@ class DealIngestionController
     {
         $deal->update(['status' => 'expired']);
         return response()->json(['message' => 'Deal expired successfully']);
+    }
+
+    /**
+     * API endpoint to remotely trigger AI and QA pipeline for specific deals.
+     */
+    public function processPipeline(\Illuminate\Http\Request $request)
+    {
+        $validated = $request->validate([
+            'deal_ids' => 'required|array',
+            'deal_ids.*' => 'integer|exists:deals,id'
+        ]);
+
+        $dealIds = $validated['deal_ids'];
+        $results = [
+            'processed' => 0,
+            'in_review' => 0,
+            'qa_failed' => 0,
+            'failed' => 0
+        ];
+
+        if (count($dealIds) === 0) {
+            return response()->json($results);
+        }
+
+        // Trigger AI Summarization on the specific deals
+        try {
+            \Illuminate\Support\Facades\Artisan::call('deals:summarize', [
+                '--pilot' => true,
+                '--deal-ids' => implode(',', $dealIds)
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Pipeline process error: " . $e->getMessage());
+        }
+
+        // Tally results
+        foreach ($dealIds as $dealId) {
+            $deal = \App\Models\Deal::find($dealId);
+            if (!$deal) continue;
+
+            $results['processed']++;
+            
+            if ($deal->editorial_status === \App\Models\Deal::STATUS_IN_REVIEW) {
+                $results['in_review']++;
+            } elseif ($deal->editorial_status === \App\Models\Deal::STATUS_QUALITY_CHECK || $deal->editorial_status === \App\Models\Deal::STATUS_REJECTED) {
+                $results['qa_failed']++;
+            } else {
+                $results['failed']++;
+            }
+        }
+
+        return response()->json($results);
+    }
+
+    /**
+     * API endpoint to get current deal counts in the pipeline.
+     */
+    public function pipelineStatus()
+    {
+        $statusCounts = \Illuminate\Support\Facades\DB::table('deals')
+            ->select('editorial_status', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+            ->groupBy('editorial_status')
+            ->get();
+            
+        return response()->json($statusCounts);
+    }
+
+    /**
+     * Production endpoint to securely receive fully assembled AI payloads from the local worker.
+     */
+    public function productionSync(\Illuminate\Http\Request $request)
+    {
+        $validated = $request->validate([
+            'asin' => 'required|string',
+            'title' => 'required|string',
+            'brand' => 'required|string',
+            'category_id' => 'required|integer',
+            'original_price' => 'required|numeric',
+            'discounted_price' => 'required|numeric',
+            'calculated_discount_percent' => 'required|numeric',
+            'url' => 'required|url',
+            'short_url' => 'nullable|url',
+            'image_url' => 'nullable|string',
+            'editorial_summary' => 'required|string',
+            'editorial_verdict' => 'required|string',
+            'pros' => 'required|array',
+            'cons' => 'present|array',
+            'qa_status' => 'required|string|in:PASSED',
+            'trace_id' => 'required|string',
+            'pipeline_run_id' => 'required|string'
+        ]);
+
+        // Business logic validation
+        if ($validated['discounted_price'] >= $validated['original_price']) {
+            return response()->json(['error' => 'Discounted price must be less than original price.'], 422);
+        }
+
+        // Prevent duplicate ASINs but handle idempotency
+        $existingDeal = Deal::where('asin', $validated['asin'])->first();
+        if ($existingDeal) {
+            if ($existingDeal->trace_id === $validated['trace_id']) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Already synchronized by us',
+                    'deal_id' => $existingDeal->id
+                ], 200);
+            }
+            return response()->json(['error' => 'Deal with this ASIN already exists but belongs to another record.'], 409);
+        }
+
+        $deal = Deal::create([
+            'asin' => $validated['asin'],
+            'title' => $validated['title'],
+            'brand' => $validated['brand'],
+            'category_id' => $validated['category_id'],
+            'original_price' => $validated['original_price'],
+            'discounted_price' => $validated['discounted_price'],
+            'calculated_discount_percent' => $validated['calculated_discount_percent'],
+            'url' => $validated['url'],
+            'short_url' => $validated['short_url'],
+            'image_path' => $validated['image_url'] ?? 'deals/default.png',
+            'editorial_summary' => $validated['editorial_summary'],
+            'editorial_verdict' => $validated['editorial_verdict'],
+            'pros' => $validated['pros'],
+            'cons' => $validated['cons'],
+            'trace_id' => $validated['trace_id'],
+            'pipeline_run_id' => $validated['pipeline_run_id'],
+            
+            // Set editorial status to IN_REVIEW immediately (bypassing DRAFT and QA)
+            'editorial_status' => Deal::STATUS_IN_REVIEW,
+            'status' => 'active',
+            
+            // Optional/Empty fields
+            'brand_id' => null,
+            'merchant_id' => 1, // Assume Amazon for now
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'deal_id' => $deal->id
+        ], 201);
     }
 }
