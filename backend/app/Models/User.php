@@ -54,4 +54,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(UserInteraction::class)->latest();
     }
+
+    public function authorProfile()
+    {
+        return $this->hasOne(AuthorProfile::class);
+    }
+
+    public function editedDeals()
+    {
+        return $this->hasMany(Deal::class, 'editor_id');
+    }
 }

@@ -24,9 +24,13 @@ class DealIngestionController
         // 1. Validate the Request
         // Note: In production, you would also use middleware to check the Bearer token.
         $validated = $request->validate([
+            'asin' => 'required|string',
+            'trace_id' => 'required|string',
+            'pipeline_run_id' => 'required|string',
             'title' => 'required|string',
             'original_price' => 'required|numeric',
             'discounted_price' => 'required|numeric',
+            'calculated_discount' => 'nullable|numeric',
             'url' => 'required|url',
             'category_id' => 'nullable|integer',
             'category_name' => 'nullable|string',
@@ -48,7 +52,9 @@ class DealIngestionController
             'short_url' => 'nullable|url',
             'observation_id' => 'required|string',
             'editorial_status' => 'nullable|string', // Will be ignored and forced to AUTO
-            'price_intelligence' => 'nullable|array' // Accept factual data
+            'price_intelligence' => 'nullable|array', // Accept factual data
+            'secondary_category_ids' => 'nullable|array',
+            'secondary_category_ids.*' => 'integer'
         ]);
 
         // 1.1 Resolve Category from Name or Apply Keyword Rules
@@ -144,23 +150,14 @@ class DealIngestionController
             $validated['image_url'] = $validated['image_url'];
         }
 
-        // 2. Check for Duplicates based on observation_id (Strict Idempotency)
-        $existingDeal = Deal::where('observation_id', $validated['observation_id'])->first();
-
-        if ($existingDeal) {
-            // Idempotent return: don't create a duplicate observation
-            return response()->json([
-                'message' => 'Duplicate observation_id. No changes made.',
-                'deal_id' => $existingDeal->id,
-                'correlation_id' => null
-            ], 200);
-        }
-
-        // 2.1 Fallback Check: Ensure we don't spam the exact same deal URL if observation_id logic missed it
+        // 2. Check for Duplicates based on URL (Strict Idempotency)
         $existingUrlDeal = Deal::where('url', $validated['url'])->first();
         if ($existingUrlDeal) {
+            $status = 'existing';
+            $message = 'Deal already exists. No changes made.';
+            
+            // If price changed, update price only (do not touch editorial content)
             if ($existingUrlDeal->discounted_price != $validated['discounted_price']) {
-                // Save to price history
                 \App\Models\PriceHistory::create([
                     'deal_id' => $existingUrlDeal->id,
                     'price' => $existingUrlDeal->discounted_price,
@@ -173,14 +170,13 @@ class DealIngestionController
                     'status' => 'active' // reactivate if it was expired
                 ]);
                 
-                return response()->json([
-                    'message' => 'Deal URL already exists. Price updated.',
-                    'deal_id' => $existingUrlDeal->id,
-                    'correlation_id' => null
-                ], 200);
+                $status = 'updated';
+                $message = 'Deal already exists. Price updated.';
             }
+            
             return response()->json([
-                'message' => 'Deal URL already exists. No changes made.',
+                'status' => $status,
+                'message' => $message,
                 'deal_id' => $existingUrlDeal->id,
                 'correlation_id' => null
             ], 200);
@@ -201,6 +197,7 @@ class DealIngestionController
         }
 
         // 3. Persist Raw Payload (Status: raw)
+        // Since we already checked for existence, this will always create.
         $deal = Deal::create([
             'url' => $validated['url'],
             'image_path' => $imagePath,
@@ -210,6 +207,8 @@ class DealIngestionController
             'title' => Str::limit($validated['title'], 250, ''),
             'original_price' => $validated['original_price'],
             'discounted_price' => $validated['discounted_price'],
+            'calculated_discount_percent' => $validated['calculated_discount'] ?? null,
+            'price_intelligence' => isset($validated['price_intelligence']) ? json_encode($validated['price_intelligence']) : null,
             'coupon_code' => $validated['promo_code'] ?? null,
             'brand' => isset($validated['brand']) ? Str::limit($validated['brand'], 250, '') : null,
             'features' => $validated['features'] ?? null,
@@ -219,19 +218,26 @@ class DealIngestionController
             'confidence_reasons' => isset($validated['confidence_reasons']) ? $validated['confidence_reasons'] : null,
             'ai_caption' => $validated['ai_caption'] ?? null,
             'ai_score' => $validated['ai_score'] ?? null,
-            'status' => 'raw', // Indicates it hasn't been processed
-            'editorial_status' => 'AUTO', // CRITICAL: NEVER ALLOW WORKER TO SET PUBLISHED
+            'status' => 'active', // Enum supports active/expired
+            'editorial_status' => 'DRAFT', // DRAFT status for controlled validation
             'observation_id' => $validated['observation_id'],
-            'price_intelligence' => isset($validated['price_intelligence']) ? json_encode($validated['price_intelligence']) : null,
+            'trace_id' => $validated['trace_id'] ?? null,
+            'pipeline_run_id' => $validated['pipeline_run_id'] ?? null,
             'short_url' => $validated['short_url'] ?? null,
         ]);
 
         // 4. Queue Processing (Dispatch Event)
         $correlationId = Str::uuid()->toString();
         event(new \App\Events\DealDiscovered($deal, $correlationId, 'unknown', '1.0', ['raw_payload' => $validated]));
+        
+        // 4.5 Save secondary categories
+        if (!empty($validated['secondary_category_ids'])) {
+            $deal->categories()->syncWithoutDetaching($validated['secondary_category_ids']);
+        }
 
         // 5. Return HTTP 200 immediately
         return response()->json([
+            'status' => 'created',
             'message' => 'Deal ingested and queued successfully',
             'deal_id' => $deal->id,
             'correlation_id' => $correlationId

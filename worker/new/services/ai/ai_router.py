@@ -76,7 +76,7 @@ class AIRouter:
                         await self.circuit_breaker.record_failure(provider_id)
                         break # Failover to next provider
 
-                    logger.warning(f"AI Router: {provider_id} failed: {str(e)}")
+                    logger.warning(f"AI Router: {provider_id} failed: {error_info.get('message', str(e))}")
 
                     if error_info['type'] == 'RETRY' and retries < self.max_retries:
                         retries += 1

@@ -1,8 +1,11 @@
 <?php
 
 use App\Providers\AppServiceProvider;
+use App\Providers\MarketingServiceProvider;
+use App\Providers\PulseServiceProvider;
 
 return [
     AppServiceProvider::class,
-    App\Providers\MarketingServiceProvider::class,
+    MarketingServiceProvider::class,
+    PulseServiceProvider::class,
 ];

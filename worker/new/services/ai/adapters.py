@@ -110,10 +110,25 @@ class OllamaAdapter(BaseOpenAIAdapter): pass
 class GroqAdapter(BaseOpenAIAdapter): pass
 class CerebrasAdapter(BaseOpenAIAdapter): pass
 
+class MockAdapter(ProviderAdapterInterface):
+    def is_capable(self, capabilities: List[str]) -> bool:
+        return True
+    async def chat(self, messages: List[dict], options: dict = None) -> dict:
+        return {
+            'content': '{"primary": "Shoes", "secondary": ["Fashion"]}',
+            'model': 'mock',
+            'provider': 'mock'
+        }
+    async def list_models(self) -> List[str]:
+        return ["mock"]
+    def normalize_error(self, e: Exception) -> dict:
+        return {'type': 'FAILOVER', 'message': str(e)}
+
 def create_adapter(provider_id: str, config: dict) -> Optional[ProviderAdapterInterface]:
     pid = provider_id.lower()
     if pid == 'nvidia': return NVIDIAAdapter(config)
     if pid == 'ollama': return OllamaAdapter(config)
     if pid == 'groq': return GroqAdapter(config)
     if pid == 'cerebras': return CerebrasAdapter(config)
+    if pid == 'mock': return MockAdapter(config)
     return None

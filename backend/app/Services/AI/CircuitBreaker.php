@@ -17,7 +17,7 @@ class CircuitBreaker
 
     public function __construct()
     {
-        $this->store = env('AI_HEALTH_STORE', 'redis');
+        $this->store = env('AI_HEALTH_STORE', config('ai.health_store', 'cache'));
         $this->threshold = (int) env('AI_PROVIDER_FAILURE_THRESHOLD', 3);
         $this->cooldown = (int) env('AI_PROVIDER_COOLDOWN_SECONDS', 300);
     }

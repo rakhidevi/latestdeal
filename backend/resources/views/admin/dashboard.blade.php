@@ -19,6 +19,43 @@
             <span class="ml-2 text-sm font-medium text-slate-500">jobs pending</span>
         </div>
     </div>
+
+    <!-- Review Queue Aging Card -->
+    <div class="glass-panel rounded-3xl p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 shadow-lg">
+        <div class="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 rounded-full bg-orange-500/10 blur-xl group-hover:bg-orange-500/20 transition-colors"></div>
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-slate-500 tracking-wide uppercase">Review Queue Aging</h3>
+            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+        </div>
+        <div class="flex flex-col gap-1 text-sm text-slate-600">
+            <div class="flex justify-between"><span>&lt; 1 hour:</span> <span class="font-bold">{{ $reviewQueueAging['<1h'] }}</span></div>
+            <div class="flex justify-between"><span>1 - 6 hours:</span> <span class="font-bold">{{ $reviewQueueAging['1-6h'] }}</span></div>
+            <div class="flex justify-between"><span>6 - 24 hours:</span> <span class="font-bold text-orange-600">{{ $reviewQueueAging['6-24h'] }}</span></div>
+            <div class="flex justify-between"><span>&gt; 24 hours:</span> <span class="font-bold text-red-600">{{ $reviewQueueAging['>24h'] }}</span></div>
+            <div class="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-500 text-right">
+                Oldest deal: <strong>{{ $reviewQueueAging['oldest_days'] }} days</strong>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pipeline Conversion Card -->
+    <div class="glass-panel rounded-3xl p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 shadow-lg">
+        <div class="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 rounded-full bg-blue-500/10 blur-xl group-hover:bg-blue-500/20 transition-colors"></div>
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-slate-500 tracking-wide uppercase">Pipeline Conversion (7d)</h3>
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                <i data-lucide="git-merge" class="w-5 h-5"></i>
+            </div>
+        </div>
+        <div class="flex flex-col gap-1 text-sm text-slate-600">
+            <div class="flex justify-between"><span>Ingested:</span> <span class="font-bold">{{ number_format($pipelineMetrics['ingested']) }}</span></div>
+            <div class="flex justify-between"><span>Intelligence → AI:</span> <span class="font-bold text-blue-600">{{ $pipelineMetrics['ai_to_qa'] }}%</span></div>
+            <div class="flex justify-between"><span>AI → QA Passed:</span> <span class="font-bold text-emerald-600">{{ $pipelineMetrics['qa_pass_rate'] }}%</span></div>
+            <div class="flex justify-between"><span>Review → Published:</span> <span class="font-bold text-indigo-600">{{ $pipelineMetrics['review_to_published'] }}%</span></div>
+        </div>
+    </div>
     
     <!-- Failed Jobs Card -->
     <div class="glass-panel rounded-3xl p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 shadow-lg">

@@ -24,6 +24,19 @@ Route::middleware([\App\Http\Middleware\WorkerAuthMiddleware::class])->group(fun
     Route::get('/worker/jobs/claim', [\App\Http\Controllers\Api\WorkerJobController::class, 'claim']);
     Route::post('/worker/jobs/{id}/status', [\App\Http\Controllers\Api\WorkerJobController::class, 'updateStatus']);
     Route::post('/worker/jobs/{id}/heartbeat', [\App\Http\Controllers\Api\WorkerJobController::class, 'heartbeat']);
+    
+    // Content Quality Firewall Pipeline
+    Route::get('/worker/generations/claim', [\App\Http\Controllers\Api\DealGenerationApiController::class, 'claim']);
+    Route::post('/worker/generations/{id}', [\App\Http\Controllers\Api\DealGenerationApiController::class, 'submit']);
+    
+    // Discovery Engine
+    Route::get('/worker/discovery/profiles', [\App\Http\Controllers\Api\DiscoveryProfileApiController::class, 'getActiveProfiles']);
+    Route::post('/worker/discovery/profiles/{profile}', [\App\Http\Controllers\Api\DiscoveryProfileApiController::class, 'updateProfileStatus']);
+    
+    // Intelligence Layer Data APIs
+    Route::get('/worker/intelligence/check-exists', [\App\Http\Controllers\Api\IntelligenceApiController::class, 'checkExists']);
+    Route::get('/worker/intelligence/categories', [\App\Http\Controllers\Api\IntelligenceApiController::class, 'getCategories']);
+    Route::get('/worker/intelligence/brands', [\App\Http\Controllers\Api\IntelligenceApiController::class, 'getBrands']);
 });
 
 Route::get('/deals/active', [\App\Http\Controllers\Api\DealIngestionController::class, 'activeDeals']);
@@ -33,6 +46,7 @@ Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionCont
 Route::prefix('v1')->group(function () {
     Route::get('/brands/search', [\App\Http\Controllers\Api\BrandApiController::class, 'search']);
     Route::get('/search/suggestions', [\App\Http\Controllers\Api\SearchSuggestionController::class, 'suggestions']);
+    Route::get('/search', [\App\Http\Controllers\Api\SearchApiController::class, 'search']);
 });
 
 // Temporary manual migration route

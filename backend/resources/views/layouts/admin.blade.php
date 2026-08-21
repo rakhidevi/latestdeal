@@ -79,6 +79,14 @@
                 </a>
 
                 <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-8">Management</p>
+                <a href="/pulse" target="_blank" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group text-slate-300 hover:bg-white/5 hover:text-white">
+                    <i data-lucide="activity" class="w-5 h-5 mr-3"></i>
+                    <span class="font-medium">Pulse Telemetry</span>
+                </a>
+                <a href="{{ route('admin.discovery-profiles') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.discovery-profiles') ? 'bg-red-600/20 text-red-400 border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="search" class="w-5 h-5 mr-3"></i>
+                    <span class="font-medium">Discovery Profiles</span>
+                </a>
                 <a href="{{ route('admin.deals') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.deals') ? 'bg-red-600/20 text-red-400 border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                     <i data-lucide="shopping-bag" class="w-5 h-5 mr-3"></i>
                     <span class="font-medium">Deals Catalog</span>

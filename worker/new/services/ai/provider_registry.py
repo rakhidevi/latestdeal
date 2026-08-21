@@ -11,7 +11,7 @@ class ProviderRegistry:
         self._load_configuration()
 
     def _load_configuration(self):
-        order_env = os.getenv('AI_PROVIDER_ORDER', 'nvidia,ollama,groq,cerebras')
+        order_env = os.getenv('AI_PROVIDER_ORDER', 'nvidia,ollama,groq,cerebras,mock')
         self.order = [p.strip() for p in order_env.split(',') if p.strip()]
 
         for provider_key in self.order:

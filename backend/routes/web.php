@@ -89,6 +89,7 @@ Route::get('/categories/{slug}', [BrowseController::class, 'byCategory'])->name(
 Route::get('/brands/{slug}', [BrowseController::class, 'byBrand'])->name('deals.brand');
 Route::get('/merchants/{slug}', [BrowseController::class, 'byMerchant'])->name('deals.merchant');
 Route::get('/deals/{range}', [BrowseController::class, 'byDiscount'])->name('deals.discount');
+Route::get('/author/{slug}', [\App\Http\Controllers\Frontend\AuthorController::class, 'show'])->name('author.show');
 
 // --- SEO & Static Pages ---
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index']);
@@ -398,9 +399,9 @@ Route::middleware('auth')->group(function () {
 
 // Admin Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/', [\App\Http\Controllers\AdminController::class, 'dashboard']);
-    Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::get('/insights', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.insights');
+    Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
+    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/insights', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.insights');
 
     // User Intelligence Center (UIC) Platform Routes
     Route::prefix('uic')->name('admin.uic.')->group(function () {
@@ -413,37 +414,54 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/conversion-funnel', [\App\Http\Controllers\Admin\UicController::class, 'conversionFunnel'])->name('conversion-funnel');
         Route::get('/geographic-insights', [\App\Http\Controllers\Admin\UicController::class, 'geographicInsights'])->name('geographic-insights');
     });
-    Route::get('/actions', [\App\Http\Controllers\AdminController::class, 'actions'])->name('admin.actions');
-    Route::post('/actions/run', [\App\Http\Controllers\AdminController::class, 'runAction'])->name('admin.actions.run');
-    Route::get('/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->name('admin.settings');
-    Route::post('/settings/save', [\App\Http\Controllers\AdminController::class, 'saveSettings'])->name('admin.settings.save');
-    Route::post('/settings/toggle', [\App\Http\Controllers\AdminController::class, 'toggleSetting'])->name('admin.settings.toggle');
-    Route::get('/deals', [\App\Http\Controllers\AdminController::class, 'deals'])->name('admin.deals');
-    Route::put('/deals/{deal}/status', [\App\Http\Controllers\AdminController::class, 'updateDealStatus'])->name('admin.deals.status');
-    Route::delete('/deals/{deal}', [\App\Http\Controllers\AdminController::class, 'destroyDeal'])->name('admin.deals.destroy');
-    Route::delete('/deals-purge-illegal', [\App\Http\Controllers\AdminController::class, 'purgeIllegalDeals'])->name('admin.deals.purge-illegal');
-    Route::get('/merchants', [\App\Http\Controllers\AdminController::class, 'merchants'])->name('admin.merchants');
-    Route::post('/merchants', [\App\Http\Controllers\AdminController::class, 'storeMerchant'])->name('admin.merchants.store');
-    Route::put('/merchants/{merchant}', [\App\Http\Controllers\AdminController::class, 'updateMerchant'])->name('admin.merchants.update');
-    Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('admin.users');
-    Route::get('/links', [\App\Http\Controllers\AdminController::class, 'links'])->name('admin.links');
-    Route::post('/links/generate', [\App\Http\Controllers\AdminController::class, 'generateLink'])->name('admin.links.generate');
     
-    Route::post('/queue/work', [\App\Http\Controllers\AdminController::class, 'workQueue'])->name('admin.queue.work');
-    Route::post('/queue/clear', [\App\Http\Controllers\AdminController::class, 'clearFailedJobs'])->name('admin.queue.clear');
+    Route::get('/actions', [\App\Http\Controllers\Admin\ScraperController::class, 'actions'])->name('admin.actions');
+    Route::post('/actions/run', [\App\Http\Controllers\Admin\ScraperController::class, 'runAction'])->name('admin.actions.run');
     
-    Route::post('/settings/toggle', [\App\Http\Controllers\AdminController::class, 'toggleSetting'])->name('admin.settings.toggle');
+    Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('admin.settings');
+    Route::post('/settings/save', [\App\Http\Controllers\Admin\SettingController::class, 'save'])->name('admin.settings.save');
+    Route::post('/settings/toggle', [\App\Http\Controllers\Admin\SettingController::class, 'toggle'])->name('admin.settings.toggle');
+    
+    Route::get('/deals', [\App\Http\Controllers\Admin\DealController::class, 'index'])->name('admin.deals');
+    Route::put('/deals/{deal}/status', [\App\Http\Controllers\Admin\DealController::class, 'updateStatus'])->name('admin.deals.status');
+    Route::delete('/deals/{deal}', [\App\Http\Controllers\Admin\DealController::class, 'destroy'])->name('admin.deals.destroy');
+    Route::delete('/deals-purge-illegal', [\App\Http\Controllers\Admin\DealController::class, 'purgeIllegal'])->name('admin.deals.purge-illegal');
+    
+    // Phase 11.4 - Admin Review Queue
+    Route::get('/deals/review-queue', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'index'])->name('admin.deals.review-queue');
+    Route::post('/deals/review-queue/{id}/approve', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'approve'])->name('admin.deals.approve');
+    Route::post('/deals/review-queue/{id}/reject', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'reject'])->name('admin.deals.reject');
+    Route::post('/deals/review-queue/{id}/regenerate', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'regenerate'])->name('admin.deals.regenerate');
 
-    Route::post('/scraper/start', [\App\Http\Controllers\AdminController::class, 'startScraper'])->name('admin.scraper.start');
-    Route::post('/scraper/stop', [\App\Http\Controllers\AdminController::class, 'stopScraper'])->name('admin.scraper.stop');
-    Route::get('/scraper/status', [\App\Http\Controllers\AdminController::class, 'scraperStatus'])->name('admin.scraper.status');
-    Route::post('/scraper/scrape', [\App\Http\Controllers\AdminController::class, 'scrapeUrl'])->name('admin.scraper.scrape');
-    Route::post('/scraper/hunt', [\App\Http\Controllers\AdminController::class, 'customHunt'])->name('admin.scraper.hunt');
+    Route::get('/merchants', [\App\Http\Controllers\Admin\MerchantController::class, 'index'])->name('admin.merchants');
+    Route::post('/merchants', [\App\Http\Controllers\Admin\MerchantController::class, 'store'])->name('admin.merchants.store');
+    Route::put('/merchants/{merchant}', [\App\Http\Controllers\Admin\MerchantController::class, 'update'])->name('admin.merchants.update');
+    
+    // Phase 13 - Discovery Profiles
+    Route::get('/discovery-profiles', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'index'])->name('admin.discovery-profiles');
+    Route::post('/discovery-profiles', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'store'])->name('admin.discovery-profiles.store');
+    Route::put('/discovery-profiles/{profile}', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'update'])->name('admin.discovery-profiles.update');
+    Route::delete('/discovery-profiles/{profile}', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'destroy'])->name('admin.discovery-profiles.destroy');
+    Route::put('/discovery-profiles/{profile}/toggle', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'toggle'])->name('admin.discovery-profiles.toggle');
 
-    Route::get('/social-accounts', [\App\Http\Controllers\AdminController::class, 'socialAccounts'])->name('admin.social-accounts');
-    Route::post('/social-accounts', [\App\Http\Controllers\AdminController::class, 'storeSocialAccount'])->name('admin.social-accounts.store');
-    Route::delete('/social-accounts/{socialAccount}', [\App\Http\Controllers\AdminController::class, 'deleteSocialAccount'])->name('admin.social-accounts.delete');
-    Route::put('/social-accounts/{socialAccount}/toggle', [\App\Http\Controllers\AdminController::class, 'toggleSocialAccount'])->name('admin.social-accounts.toggle');
+    Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users');
+    
+    Route::get('/links', [\App\Http\Controllers\Admin\LinkController::class, 'index'])->name('admin.links');
+    Route::post('/links/generate', [\App\Http\Controllers\Admin\LinkController::class, 'generate'])->name('admin.links.generate');
+    
+    Route::post('/queue/work', [\App\Http\Controllers\Admin\QueueController::class, 'work'])->name('admin.queue.work');
+    Route::post('/queue/clear', [\App\Http\Controllers\Admin\QueueController::class, 'clear'])->name('admin.queue.clear');
+    
+    Route::post('/scraper/start', [\App\Http\Controllers\Admin\ScraperController::class, 'startScraper'])->name('admin.scraper.start');
+    Route::post('/scraper/stop', [\App\Http\Controllers\Admin\ScraperController::class, 'stopScraper'])->name('admin.scraper.stop');
+    Route::get('/scraper/status', [\App\Http\Controllers\Admin\ScraperController::class, 'scraperStatus'])->name('admin.scraper.status');
+    Route::post('/scraper/scrape', [\App\Http\Controllers\Admin\ScraperController::class, 'scrapeUrl'])->name('admin.scraper.scrape');
+    Route::post('/scraper/hunt', [\App\Http\Controllers\Admin\ScraperController::class, 'customHunt'])->name('admin.scraper.hunt');
+
+    Route::get('/social-accounts', [\App\Http\Controllers\Admin\SocialAccountController::class, 'index'])->name('admin.social-accounts');
+    Route::post('/social-accounts', [\App\Http\Controllers\Admin\SocialAccountController::class, 'store'])->name('admin.social-accounts.store');
+    Route::delete('/social-accounts/{socialAccount}', [\App\Http\Controllers\Admin\SocialAccountController::class, 'destroy'])->name('admin.social-accounts.delete');
+    Route::put('/social-accounts/{socialAccount}/toggle', [\App\Http\Controllers\Admin\SocialAccountController::class, 'toggle'])->name('admin.social-accounts.toggle');
 
     // Marketing Center
     Route::prefix('marketing')->name('admin.marketing.')->group(function () {

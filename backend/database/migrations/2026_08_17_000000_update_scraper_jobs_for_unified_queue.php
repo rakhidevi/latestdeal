@@ -42,9 +42,9 @@ return new class extends Migration
         // and just leave the column as is (SQLite doesn't strictly enforce ENUM constraints anyway unless check constraints are added).
         
         // Let's just manually update existing records to match the new status
-        DB::table('scraper_jobs')->where('status', 'running')->update(['status' => 'PENDING']);
-        DB::table('scraper_jobs')->where('status', 'success')->update(['status' => 'COMPLETED']);
-        DB::table('scraper_jobs')->where('status', 'failure')->update(['status' => 'FAILED']);
+        // DB::table('scraper_jobs')->where('status', 'running')->update(['status' => 'PENDING']);
+        // DB::table('scraper_jobs')->where('status', 'success')->update(['status' => 'COMPLETED']);
+        // DB::table('scraper_jobs')->where('status', 'failure')->update(['status' => 'FAILED']);
     }
 
     public function down(): void

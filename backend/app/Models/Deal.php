@@ -10,7 +10,10 @@ class Deal extends Model
     // Editorial Status Constants
     public const STATUS_DISCOVERED = 'DISCOVERED';
     public const STATUS_QUALIFIED = 'QUALIFIED';
+    public const STATUS_INTELLIGENCE = 'INTELLIGENCE_PROCESSING';
     public const STATUS_DRAFT = 'DRAFT';
+    public const STATUS_AI_GENERATING = 'AI_GENERATING';
+    public const STATUS_QUALITY_CHECK = 'QUALITY_CHECK';
     public const STATUS_IN_REVIEW = 'IN_REVIEW';
     public const STATUS_PUBLISHED = 'PUBLISHED';
     public const STATUS_EXPIRED = 'EXPIRED';
@@ -23,7 +26,8 @@ class Deal extends Model
         'needs_brand_review', 'coupon_code', 'promo_code', 'url', 'short_url', 'image_path', 'status', 'brand',
         'features', 'verdict', 'trust_metrics', 'ai_caption', 'ai_score', 'slug', 'hash_id',
         'editorial_status', 'editorial_summary', 'editorial_verdict', 'pros', 'cons', 
-        'best_for', 'not_for', 'editor_id', 'reviewed_at', 'is_editor_pick', 'typical_price'
+        'best_for', 'not_for', 'editor_id', 'reviewed_at', 'is_editor_pick', 'typical_price',
+        'asin', 'trace_id', 'pipeline_run_id', 'observation_id', 'price_intelligence', 'calculated_discount_percent'
     ];
 
     protected $dispatchesEvents = [
@@ -70,6 +74,31 @@ class Deal extends Model
             if (!auth()->check() && $deal->isDirty('editorial_status') && $deal->editorial_status === self::STATUS_PUBLISHED) {
                 $deal->editorial_status = $deal->getOriginal('editorial_status'); // Revert
             }
+            
+            // State transition validation
+            if ($deal->isDirty('editorial_status')) {
+                $oldStatus = $deal->getOriginal('editorial_status');
+                $newStatus = $deal->editorial_status;
+                
+                if ($oldStatus !== null && $oldStatus !== $newStatus) {
+                    $allowed = [
+                        self::STATUS_DISCOVERED => [self::STATUS_QUALIFIED, self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_QUALIFIED => [self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_DRAFT => [self::STATUS_AI_GENERATING, self::STATUS_QUALITY_CHECK, self::STATUS_REJECTED],
+                        self::STATUS_AI_GENERATING => [self::STATUS_QUALITY_CHECK, self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_QUALITY_CHECK => [self::STATUS_IN_REVIEW, self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_IN_REVIEW => [self::STATUS_PUBLISHED, self::STATUS_AI_GENERATING, self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_PUBLISHED => [self::STATUS_EXPIRED, self::STATUS_ARCHIVED, self::STATUS_DRAFT],
+                        self::STATUS_EXPIRED => [self::STATUS_ARCHIVED, self::STATUS_DRAFT],
+                        self::STATUS_ARCHIVED => [self::STATUS_DRAFT],
+                        self::STATUS_REJECTED => [self::STATUS_DRAFT],
+                    ];
+                    
+                    if (isset($allowed[$oldStatus]) && !in_array($newStatus, $allowed[$oldStatus])) {
+                        throw new \Exception("Invalid editorial status transition from {$oldStatus} to {$newStatus}");
+                    }
+                }
+            }
         });
     }
 
@@ -109,6 +138,27 @@ class Deal extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'editor_id');
+    }
+
+    /**
+     * Get the social shares for this deal.
+     */
+    public function socialShares()
+    {
+        return $this->hasMany(SocialShare::class);
+    }
+    
+    /**
+     * Get the AI generations for this deal.
+     */
+    public function aiGenerations()
+    {
+        return $this->hasMany(DealAiGeneration::class);
+    }
+
     public function priceHistories()
     {
         return $this->hasMany(PriceHistory::class);
@@ -122,6 +172,16 @@ class Deal extends Model
     public function collections()
     {
         return $this->belongsToMany(Collection::class);
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
+
+    public function productTypes()
+    {
+        return $this->belongsToMany(ProductType::class);
     }
 
     /**
@@ -332,7 +392,27 @@ class Deal extends Model
         if ($this->editorial_status !== self::STATUS_PUBLISHED) return false;
         if (empty($this->editorial_summary) || empty($this->editorial_verdict)) return false;
         if (empty($this->pros) || empty($this->cons)) return false;
+        if (empty($this->best_for) || empty($this->not_for)) return false;
         if (empty($this->editor_id) || empty($this->reviewed_at)) return false;
+
+        return true;
+    }
+
+    /**
+     * Determines if the deal CAN be published from IN_REVIEW.
+     */
+    public function canPublish(): bool
+    {
+        if ($this->editorial_status !== self::STATUS_IN_REVIEW && $this->editorial_status !== self::STATUS_PUBLISHED) return false;
+        if (empty($this->editorial_summary) || empty($this->editorial_verdict)) return false;
+        if (empty($this->pros) || empty($this->cons)) return false;
+        if (empty($this->best_for) || empty($this->not_for)) return false;
+        
+        // Ensure there is at least one passed QA generation (or manually bypass if you want, but strictly it requires QA passed)
+        // A simple check is to verify that quality_feedback isn't blocking, or we just trust IN_REVIEW means it passed QA.
+        // The spec asks for "quality_check passed"
+        $hasPassedQa = $this->aiGenerations()->where('qa_result', 'PASS')->exists();
+        if (!$hasPassedQa) return false;
 
         return true;
     }

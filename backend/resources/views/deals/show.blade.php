@@ -226,6 +226,10 @@
                 @endauth
             </div>
             
+            <div class="mt-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-lg p-3 text-xs text-amber-800 dark:text-amber-400">
+                <strong>Transparency:</strong> LatestDeal is reader-supported. If you buy through our links, we may earn a commission from partners like Amazon. <a href="{{ route('affiliate.disclosure') }}" class="underline hover:text-amber-900 dark:hover:text-amber-300">Read our disclosure</a>.
+            </div>
+            
             @if($deal->isPublishable())
                 <!-- Original Editorial Review -->
                 <div class="mt-8 bg-gray-50 dark:bg-slate-800/30 rounded-2xl p-6 md:p-8 border border-gray-100 dark:border-slate-800 shadow-sm relative">
@@ -249,8 +253,20 @@
                     </div>
                     @endif
                     
-                    <div class="absolute top-6 right-6 text-xs text-gray-400 dark:text-slate-500">
-                        <p>Last Reviewed: {{ $deal->reviewed_at->format('M d, Y') }}</p>
+                    <div class="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700/50 flex items-center gap-4">
+                        @if($deal->editor && $deal->editor->authorProfile)
+                            <img src="{{ $deal->editor->authorProfile->photo_url }}" alt="{{ $deal->editor->name }}" class="w-12 h-12 rounded-full object-cover shadow-sm">
+                            <div>
+                                <p class="text-sm font-bold text-gray-900 dark:text-white">
+                                    Reviewed by <a href="{{ route('author.show', $deal->editor->authorProfile->slug) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">{{ $deal->editor->name }}</a>
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-slate-400">on {{ $deal->reviewed_at->format('M d, Y') }}</p>
+                            </div>
+                        @else
+                            <div class="text-xs text-gray-400 dark:text-slate-500">
+                                <p>Last Reviewed: {{ $deal->reviewed_at->format('M d, Y') }}</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @elseif($deal->description)
