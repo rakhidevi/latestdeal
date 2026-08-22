@@ -24,8 +24,10 @@ Route::middleware([\App\Http\Middleware\WorkerAuthMiddleware::class])->group(fun
     Route::get('/worker/jobs/claim', [\App\Http\Controllers\Api\WorkerJobController::class, 'claim']);
     Route::post('/worker/jobs/{id}/status', [\App\Http\Controllers\Api\WorkerJobController::class, 'updateStatus']);
     Route::post('/worker/jobs/{id}/heartbeat', [\App\Http\Controllers\Api\WorkerJobController::class, 'heartbeat']);
-    
     // Content Quality Firewall Pipeline
+    Route::post('/worker/production-sync', [\App\Http\Controllers\Api\DealIngestionController::class, 'productionSync']);
+    Route::post('/worker/pipeline/process', [\App\Http\Controllers\Api\DealIngestionController::class, 'processPipeline']);
+    Route::get('/worker/pipeline/status', [\App\Http\Controllers\Api\DealIngestionController::class, 'pipelineStatus']);
     Route::get('/worker/generations/claim', [\App\Http\Controllers\Api\DealGenerationApiController::class, 'claim']);
     Route::post('/worker/generations/{id}', [\App\Http\Controllers\Api\DealGenerationApiController::class, 'submit']);
     

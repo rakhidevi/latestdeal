@@ -20,6 +20,11 @@ class Deal extends Model
     public const STATUS_ARCHIVED = 'ARCHIVED';
     public const STATUS_REJECTED = 'REJECTED';
 
+    // Production Sync Constants
+    public const SYNC_PENDING = 'PENDING';
+    public const SYNC_PUSHED = 'PUSHED';
+    public const SYNC_ERROR = 'ERROR';
+
     protected $fillable = [
         'category_id', 'merchant_id', 'brand_id', 'title', 'original_price', 
         'discounted_price', 'discount_percentage', 'amount_saved', 'price_drop', 'effective_price',
@@ -27,7 +32,8 @@ class Deal extends Model
         'features', 'verdict', 'trust_metrics', 'ai_caption', 'ai_score', 'slug', 'hash_id',
         'editorial_status', 'editorial_summary', 'editorial_verdict', 'pros', 'cons', 
         'best_for', 'not_for', 'editor_id', 'reviewed_at', 'is_editor_pick', 'typical_price',
-        'asin', 'trace_id', 'pipeline_run_id', 'observation_id', 'price_intelligence', 'calculated_discount_percent'
+        'asin', 'trace_id', 'pipeline_run_id', 'observation_id', 'price_intelligence', 'calculated_discount_percent',
+        'production_sync_status', 'production_deal_id', 'production_pushed_at', 'production_push_error'
     ];
 
     protected $dispatchesEvents = [
@@ -85,7 +91,7 @@ class Deal extends Model
                         self::STATUS_DISCOVERED => [self::STATUS_QUALIFIED, self::STATUS_DRAFT, self::STATUS_REJECTED],
                         self::STATUS_QUALIFIED => [self::STATUS_DRAFT, self::STATUS_REJECTED],
                         self::STATUS_DRAFT => [self::STATUS_AI_GENERATING, self::STATUS_QUALITY_CHECK, self::STATUS_REJECTED],
-                        self::STATUS_AI_GENERATING => [self::STATUS_QUALITY_CHECK, self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_AI_GENERATING => [self::STATUS_QUALITY_CHECK, self::STATUS_IN_REVIEW, self::STATUS_DRAFT, self::STATUS_REJECTED],
                         self::STATUS_QUALITY_CHECK => [self::STATUS_IN_REVIEW, self::STATUS_DRAFT, self::STATUS_REJECTED],
                         self::STATUS_IN_REVIEW => [self::STATUS_PUBLISHED, self::STATUS_AI_GENERATING, self::STATUS_DRAFT, self::STATUS_REJECTED],
                         self::STATUS_PUBLISHED => [self::STATUS_EXPIRED, self::STATUS_ARCHIVED, self::STATUS_DRAFT],
@@ -406,12 +412,14 @@ class Deal extends Model
         if ($this->editorial_status !== self::STATUS_IN_REVIEW && $this->editorial_status !== self::STATUS_PUBLISHED) return false;
         if (empty($this->editorial_summary) || empty($this->editorial_verdict)) return false;
         if (empty($this->pros) || empty($this->cons)) return false;
-        if (empty($this->best_for) || empty($this->not_for)) return false;
+        if (is_null($this->best_for) || is_null($this->not_for)) return false;
         
-        // Ensure there is at least one passed QA generation (or manually bypass if you want, but strictly it requires QA passed)
-        // A simple check is to verify that quality_feedback isn't blocking, or we just trust IN_REVIEW means it passed QA.
-        // The spec asks for "quality_check passed"
-        $hasPassedQa = $this->aiGenerations()->where('qa_result', 'PASS')->exists();
+        $hasPassedQa = $this->aiGenerations()->where(function ($q) {
+            $q->where('qa_result', true)
+              ->orWhere('qa_result', 1)
+              ->orWhere('qa_result', 'PASS');
+        })->exists();
+
         if (!$hasPassedQa) return false;
 
         return true;
