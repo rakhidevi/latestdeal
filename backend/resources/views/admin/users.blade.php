@@ -33,7 +33,11 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     @if($user->role !== 'admin')
-                    <a href="#" class="text-red-600 hover:text-red-900">Ban User</a>
+                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to ban and delete this user?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-red-600 hover:text-red-900">Ban User</button>
+                    </form>
                     @endif
                 </td>
             </tr>

@@ -445,6 +445,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::put('/discovery-profiles/{profile}/toggle', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'toggle'])->name('admin.discovery-profiles.toggle');
 
     Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users');
+    Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
     
     Route::get('/links', [\App\Http\Controllers\Admin\LinkController::class, 'index'])->name('admin.links');
     Route::post('/links/generate', [\App\Http\Controllers\Admin\LinkController::class, 'generate'])->name('admin.links.generate');
@@ -622,3 +623,4 @@ Route::get('/storage/{path}', function ($path) {
         'Cache-Control' => 'public, max-age=31536000',
     ]);
 })->where('path', '.*');
+Route::get('/admin/studio/knowledge-center', function () { return 'dummy'; })->name('admin.studio.knowledge-center');
