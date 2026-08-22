@@ -243,7 +243,7 @@ class DashboardService
             'stats', 'topSearches', 'recentClicks', 'metrics', 'topProducts', 'scraperStats', 'categoryStats',
             'workerStatuses', 'workersOnline', 'totalWorkers', 'queueCount', 'failedJobs', 'storageUsedPct', 'alerts',
             'dealsToday', 'publishedToday', 'pendingReview', 'totalClicks', 'estimatedEarnings', 'ctr', 'clickStats',
-            'rejectedDeals', 'missingImages', 'merchantStats', 'activityFeed', 'pipelineEnabled'
+            'rejectedDeals', 'missingImages', 'merchantStats', 'activityFeed', 'pipelineEnabled', 'reviewQueueAging', 'pipelineMetrics'
         );
     }
 }
