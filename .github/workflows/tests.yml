@@ -29,7 +29,7 @@ jobs:
         run: |
           cd backend
           composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-          copy .env.example .env
+          cp .env.example .env
           php artisan key:generate
 
       - name: Create SQLite Database
@@ -59,7 +59,7 @@ jobs:
         run: |
           cd worker
           python -m pip install --upgrade pip
-          pip install -r new/requirements.txt
+          pip install -r requirements.txt
           pip install pytest
 
       - name: Run PyTest
