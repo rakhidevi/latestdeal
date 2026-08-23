@@ -231,8 +231,7 @@ Route::get('/setup-ai-keys', function (\Illuminate\Http\Request $request) {
 
 Route::get('/run-fix-deals', function () {
     try {
-        \App\Models\Deal::whereNull('editorial_status')->update(['editorial_status' => 'PUBLISHED']);
-        \App\Models\Deal::where('editorial_status', 'IN_REVIEW')->update(['editorial_status' => 'PUBLISHED']);
+        \App\Models\Deal::whereIn('editorial_status', ['IN_REVIEW', 'DISCOVERED'])->orWhereNull('editorial_status')->update(['editorial_status' => 'PUBLISHED']);
         
         $count = \App\Models\Deal::where('editorial_status', 'PUBLISHED')
             ->where(function($q) {
