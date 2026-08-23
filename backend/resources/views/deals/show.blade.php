@@ -260,11 +260,11 @@
                                 <p class="text-sm font-bold text-gray-900 dark:text-white">
                                     Reviewed by <a href="{{ route('author.show', $deal->editor->authorProfile->slug) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">{{ $deal->editor->name }}</a>
                                 </p>
-                                <p class="text-xs text-gray-500 dark:text-slate-400">on {{ $deal->reviewed_at->format('M d, Y') }}</p>
+                                <p class="text-xs text-gray-500 dark:text-slate-400">on {{ $deal->reviewed_at ? $deal->reviewed_at->format('M d, Y') : $deal->created_at->format('M d, Y') }}</p>
                             </div>
                         @else
                             <div class="text-xs text-gray-400 dark:text-slate-500">
-                                <p>Last Reviewed: {{ $deal->reviewed_at->format('M d, Y') }}</p>
+                                <p>Last Reviewed: {{ $deal->reviewed_at ? $deal->reviewed_at->format('M d, Y') : $deal->created_at->format('M d, Y') }}</p>
                             </div>
                         @endif
                     </div>
