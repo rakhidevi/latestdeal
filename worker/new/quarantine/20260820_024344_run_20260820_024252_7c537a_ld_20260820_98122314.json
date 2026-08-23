@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024252_7c537a",
+    "trace_id": "ld_20260820_98122314",
+    "profile_name": "LG  >= 0%",
+    "timestamp": "2026-08-20T02:43:44.057258",
+    "asin": "B0DPHTSTYJ",
+    "title": "8 Kg 5 Star Smart Inverter Technology Fully Automatic Top Load Washing Machine (T80VBMB4Z, Turbodrum, Auto Prewash, Stainless Steel drum, LED Display, Smart Diagnosis, Middle Black)",
+    "brand": "LG",
+    "product_url": "https://www.amazon.in/LG-Technology-Automatic-T80VBMB4Z-Turbodrum/dp/B0DPHTSTYJ/ref=sr_1_5?dib=eyJ2IjoiMSJ9.Q4EuJAbCrM76Z3lhKrnSiROUjybFBeBX9d8MX5oAjProkWRSbaEez6isfOyhPQn0OQsYEQTRf6lGqHh78atBSo2vSkT114eOuVYbJUQ3VXQjXDRKrvP9qRlHNCyqPLd6TeI07XM2HDcTyZI2ceGsdu07s1uhypqgQsophhlem_YsCPL2JvxE89oF880BJTAECZ68dIst0sVF_c8Fm7si4OTxkMqjCvxMe8OraOnXpHY.vpiY48JXPgYrO6nyerm1vcD8CWXjKU8iir10TLiAZXk&dib_tag=se&keywords=LG+LG&qid=1787173978&sr=8-5",
+    "mrp": 28990.0,
+    "selling_price": 21990.0,
+    "coupon": 0,
+    "effective_price": 21990.0,
+    "displayed_discount": null,
+    "calculated_discount": 24.15,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": "LG",
+            "passed": true
+        },
+        "discount": {
+            "required": 0,
+            "actual": 24.15,
+            "passed": true
+        }
+    }
+}

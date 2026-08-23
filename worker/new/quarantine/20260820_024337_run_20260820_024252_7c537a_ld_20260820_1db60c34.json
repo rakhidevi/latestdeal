@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024252_7c537a",
+    "trace_id": "ld_20260820_1db60c34",
+    "profile_name": "LG  >= 0%",
+    "timestamp": "2026-08-20T02:43:37.277283",
+    "asin": "B0GTZ9TSDJ",
+    "title": "108 cms (43 inches) NU87 AI Series Nano 4K Ultra HD (3840 x 2160) Smart webOS LED TV 43NU870BPLA 2026",
+    "brand": "LG",
+    "product_url": "https://www.amazon.in/LG-inches-Ultra-Smart-43NU870BPLA/dp/B0GTZ9TSDJ/ref=sr_1_4?dib=eyJ2IjoiMSJ9.Q4EuJAbCrM76Z3lhKrnSiROUjybFBeBX9d8MX5oAjProkWRSbaEez6isfOyhPQn0OQsYEQTRf6lGqHh78atBSo2vSkT114eOuVYbJUQ3VXQjXDRKrvP9qRlHNCyqPLd6TeI07XM2HDcTyZI2ceGsdu07s1uhypqgQsophhlem_YsCPL2JvxE89oF880BJTAECZ68dIst0sVF_c8Fm7si4OTxkMqjCvxMe8OraOnXpHY.vpiY48JXPgYrO6nyerm1vcD8CWXjKU8iir10TLiAZXk&dib_tag=se&keywords=LG+LG&qid=1787173978&sr=8-4",
+    "mrp": 45990.0,
+    "selling_price": 33990.0,
+    "coupon": 0,
+    "effective_price": 33990.0,
+    "displayed_discount": null,
+    "calculated_discount": 26.09,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": "LG",
+            "passed": true
+        },
+        "discount": {
+            "required": 0,
+            "actual": 26.09,
+            "passed": true
+        }
+    }
+}

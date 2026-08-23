@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024403_937614",
+    "trace_id": "ld_20260820_543e4984",
+    "profile_name": "Samsung  >= 0%",
+    "timestamp": "2026-08-20T02:44:11.496749",
+    "asin": "B0G822MS12",
+    "title": "Galaxy M06 5G Mobile (Sage Green, 4GB RAM, 128GB Storage) | MediaTek Dimensity 6300 | AnTuTu 623K+ | 12 5G Bands | 25W Fast Charging | 4 Gen OS Upgrades | 50MP Camera | Without Charger",
+    "brand": "Samsung",
+    "product_url": "https://www.amazon.in/Samsung-MediaTek-Dimensity-Charging-Upgrades/dp/B0G822MS12/ref=sr_1_4?dib=eyJ2IjoiMSJ9.U1CJl4Z7HX-oiX2qJIfcpigM5oUN37UIdYjrSlYDfMDjyXOEeKJK0Lda0ZEFUAZrh1x2IQpgMBEyi9rTMEcl_oLASoUZNKJQ570zKIT7VULnsueiItTK_G6hBDKTpnlu8i7g8JW1MuElDC04uscCYS6anm50ZJCK4IWPgPL9So96UmcqDjosKikUuUn6R3waynIq-GPr8_Kz5h_fC3o5kmgVADRZzasvEqPMv-E28Cg.L7AoyZLH21pNPWgDtbBubdAMI7-KrGHmgrg0zM7g2Yw&dib_tag=se&keywords=Samsung+Samsung&qid=1787174048&sr=8-4",
+    "mrp": 16999.0,
+    "selling_price": 13999.0,
+    "coupon": 0,
+    "effective_price": 13999.0,
+    "displayed_discount": null,
+    "calculated_discount": 17.65,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "Samsung",
+            "actual": "Samsung",
+            "passed": true
+        },
+        "discount": {
+            "required": 0,
+            "actual": 17.65,
+            "passed": true
+        }
+    }
+}

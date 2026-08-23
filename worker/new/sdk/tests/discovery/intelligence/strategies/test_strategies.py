@@ -1,7 +1,7 @@
 import unittest
 from worker.new.sdk.discovery.intelligence.context import DiscoveryContext
 from worker.new.sdk.discovery.engine.capability_matrix import CapabilityMatrix
-from worker.new.sdk.foundation.dto.models import ProviderManifestDTO
+from worker.new.sdk.foundation.dto.models import PluginManifestV2
 from worker.new.sdk.discovery.intelligence.strategies.mrp_error import MRPErrorStrategy
 from worker.new.sdk.discovery.intelligence.strategies.mega_discount import MegaDiscountStrategy
 from worker.new.sdk.discovery.intelligence.strategies.premium_brand import PremiumBrandStrategy
@@ -15,7 +15,7 @@ class TestBuiltInStrategies(unittest.TestCase):
     def setUp(self):
         # 1. Setup Capabilities
         self.matrix = CapabilityMatrix()
-        self.matrix.register_manifest(ProviderManifestDTO(
+        self.matrix.register_manifest(PluginManifestV2(
             name="amazon",
             version="1.0",
             supports_brand=True,

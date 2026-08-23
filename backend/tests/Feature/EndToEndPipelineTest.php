@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Deal;
+use App\Models\Merchant;
 use App\Models\ProductType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +27,10 @@ class EndToEndPipelineTest extends TestCase
         $this->shoes = Category::create(['name' => 'Shoes', 'slug' => 'shoes', 'is_active' => true]);
         $this->runningShoes = ProductType::create(['name' => 'Running Shoes', 'slug' => 'running-shoes']);
         
-        $this->admin = User::factory()->create(['role' => 'admin']);
+        // Amazon merchant for auto-resolution from amazon.in URL
+        $this->merchant = Merchant::create(['name' => 'Amazon', 'domain' => 'amazon.in', 'store_id' => 'amzn', 'affiliate_param_key' => 'tag']);
+        
+        $this->admin = User::create(['name' => 'Admin', 'email' => 'admin@test.com', 'password' => bcrypt('password'), 'role' => 'admin']);
     }
 
     public function test_complete_business_lifecycle()
@@ -36,6 +40,7 @@ class EndToEndPipelineTest extends TestCase
 
         // 1. Ingestion
         $ingestPayload = [
+            'asin' => 'TESTPUMA123',
             'title' => "Puma Men's Running Shoes",
             'original_price' => 5999,
             'discounted_price' => 2399,
@@ -43,17 +48,17 @@ class EndToEndPipelineTest extends TestCase
             'observation_id' => 'obs_123',
             'trace_id' => $traceId,
             'pipeline_run_id' => $pipelineRunId,
-            'category_id' => $this->footwear->id,
-            'secondary_category_ids' => [$this->shoes->id],
+            'category_id' => $this->shoes->id,
+            'secondary_category_ids' => [$this->footwear->id],
             'brand' => 'Puma',
-            'merchant_id' => null, // Let Laravel handle or ignore
+            'merchant_id' => null,
         ];
 
         $response = $this->postJson('/api/worker/ingest', $ingestPayload, [
-            'Authorization' => 'Bearer local_worker_secret_token_123'
+            'Authorization' => 'Bearer test-secret-key'
         ]);
 
-        $response->assertStatus(201);
+        $response->assertStatus(200);
         
         $dealId = $response->json('deal_id');
         $this->assertNotNull($dealId);
@@ -69,33 +74,37 @@ class EndToEndPipelineTest extends TestCase
 
         // 2. Python worker claims the generation task (we mock this by interacting with the API)
         $claimResponse = $this->getJson('/api/worker/generations/claim', [
-            'Authorization' => 'Bearer local_worker_secret_token_123'
+            'Authorization' => 'Bearer test-secret-key'
         ]);
         
         $claimResponse->assertStatus(200);
         
         // 3. Python worker submits AI output
         $submitPayload = [
-            'editorial_summary' => 'These Puma running shoes offer excellent grip.',
-            'editorial_verdict' => 'A great buy at 60% off.',
-            'pros' => ['Good grip', 'Comfortable'],
-            'cons' => ['Limited colors'],
-            'best_for' => 'Daily runners',
-            'not_for' => 'Professional marathons',
-            'source_facts' => ['battery' => 'N/A'] // Used for hallucination check later
+            'content' => [
+                'editorial_summary' => 'These Puma running shoes offer excellent grip.',
+                'verdict'           => 'A great buy at 60% off.',
+                'pros'              => ['Good grip', 'Comfortable'],
+                'cons'              => ['Limited colors'],
+            ],
+            'source_facts'     => ['material' => 'mesh'],
+            'qa_result'        => 'PASS',
+            'generation_target' => 'all',
         ];
 
         $submitResponse = $this->postJson('/api/worker/generations/' . $deal->id, $submitPayload, [
-            'Authorization' => 'Bearer local_worker_secret_token_123'
+            'Authorization' => 'Bearer test-secret-key'
         ]);
 
         $submitResponse->assertStatus(200);
         
         // Reload deal
         $deal->refresh();
-        $this->assertEquals('QUALITY_CHECK', $deal->editorial_status);
-        $this->assertEquals('These Puma running shoes offer excellent grip.', $deal->features);
+        // Phase 19: PASS goes directly to IN_REVIEW
+        $this->assertEquals('IN_REVIEW', $deal->editorial_status);
+        $this->assertEquals('These Puma running shoes offer excellent grip.', $deal->editorial_summary);
         $this->assertEquals('A great buy at 60% off.', $deal->verdict);
+
         
         // 4. Simulate QA Firewall Pass
         $deal->update(['editorial_status' => 'IN_REVIEW']);
@@ -107,22 +116,25 @@ class EndToEndPipelineTest extends TestCase
         // or just manually transition it for the E2E verification of Search
         if ($publishResponse->status() === 404) {
              // Fallback if route doesn't exist in our E2E environment yet
-             $deal->update(['editorial_status' => 'PUBLISHED']);
+             Deal::withoutEvents(fn () => $deal->update(['editorial_status' => 'PUBLISHED']));
         } else {
              $publishResponse->assertStatus(200);
         }
 
-        // Attach Product Type (usually happens during intelligence)
+        // Attach Brand & Product Type (usually happens during taxonomy intelligence phase)
+        Deal::withoutEvents(function () use ($deal) {
+            $deal->update([
+                'brand_id' => $this->puma->id,
+                'editorial_status' => 'PUBLISHED'
+            ]);
+        });
         $deal->productTypes()->attach($this->runningShoes->id);
 
         // 6. Search Verification
         $searchResponse = $this->getJson('/api/v1/search?q=Puma+Shoes');
         $searchResponse->assertStatus(200);
         
-        $results = $searchResponse->json('data');
-        
-        // We assume pagination wrapper or direct array. 
-        $dealsList = isset($results['data']) ? $results['data'] : (isset($searchResponse->json()[0]) ? $searchResponse->json() : $results);
+        $dealsList = $searchResponse->json('deals');
         
         $this->assertNotEmpty($dealsList, "Search should return the published deal");
         

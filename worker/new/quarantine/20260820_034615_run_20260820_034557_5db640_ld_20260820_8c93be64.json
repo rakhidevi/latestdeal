@@ -1,0 +1,45 @@
+{
+    "pipeline_run_id": "run_20260820_034557_5db640",
+    "trace_id": "ld_20260820_8c93be64",
+    "profile_name": "Samsung TV >= 40%",
+    "timestamp": "2026-08-20T03:46:15.183595",
+    "asin": "B08M45FJFL",
+    "title": "Sikai Silicone Case Compatible with Samsung BN59-01312A QLED 8K 4K Smart TV Remote Shockproof Protective Remote Cover Skin-Friendly Anti-Slip Anti-Lost with Remote Loop (B-Glow in Dark Green)",
+    "brand": "OBOE",
+    "product_url": "https://www.amazon.in/Compatible-BN59-01312A-Shockproof-Protective-Skin-Friendly/dp/B08M45FJFL/ref=sr_1_7?dib=eyJ2IjoiMSJ9.OAApulAoWsNhdUptAHaST_bCJlCXlTHxqwkpgLZblrwLTqVeo6QFzUjpIt4qF0-_F7NOGm8kfyN9ttJqOyetHhpzbj1m4z1P6-DzPl2U_QB4cXUrIzJE_dC1xnEW6Gk5TnkEr0u08f0nQoRUwBkNPxNKE-l7BYrU6HiCYCTeaR36xa-9BKa29pgYJgpEROJmJ0p2tYpes9lzi3LnxxrnOzTAgxpTuf-RweZGoFHclHE.N2c8PNr6JI-ZOed0UbvrOXZV9ZXPXbvaZiTWKzgKx4Q&dib_tag=se&keywords=Samsung+TV+Samsung+TV&qid=1787177763&refinements=p_8%3A40-&sr=8-7",
+    "mrp": 1999.0,
+    "selling_price": 299.0,
+    "coupon": 0,
+    "effective_price": 299.0,
+    "displayed_discount": null,
+    "calculated_discount": 85.04,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "Samsung",
+            "actual": "OBOE",
+            "passed": false
+        },
+        "product_intent": {
+            "expected": "Main Product",
+            "actual": "Accessory",
+            "passed": false
+        },
+        "category": {
+            "expected": "TV",
+            "actual": [
+                "Accessories",
+                "Accessory"
+            ],
+            "passed": false
+        },
+        "discount": {
+            "required": 40,
+            "actual": 85.04,
+            "passed": true
+        }
+    }
+}

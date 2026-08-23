@@ -23,7 +23,7 @@ class StudioAPI
     protected AdminControlService $adminControlService;
     protected RunbookService $runbookService;
 
-    public function __init(
+    public function __construct(
         WidgetRegistry $widgetRegistry,
         WorkspaceManager $workspaceManager,
         TraceService $traceService,

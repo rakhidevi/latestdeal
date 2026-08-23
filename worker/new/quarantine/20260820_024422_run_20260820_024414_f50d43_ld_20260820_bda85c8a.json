@@ -1,0 +1,37 @@
+{
+    "pipeline_run_id": "run_20260820_024414_f50d43",
+    "trace_id": "ld_20260820_bda85c8a",
+    "profile_name": "LG Appliances >= 0%",
+    "timestamp": "2026-08-20T02:44:22.559093",
+    "asin": "B01LWE0QJK",
+    "title": "32 L Convection Microwave Oven (MC3286BRUM, 360° Motorised Rotisserie for Bar-be-queing, 301 Auto Cook Menu, Stainless steel cavity, Indian Cuisine, Tandoor Se, Steam Clean & Diet Fry)",
+    "brand": "LG",
+    "product_url": "https://www.amazon.in/LG-Convection-Microwave-MC3286BRUM-Black/dp/B01LWE0QJK/ref=sr_1_10?dib=eyJ2IjoiMSJ9.MbN2gfsmu7zZi8xdlNTuIvxjT5qVD6iUy5kKGDtGjXp4nyoJxy96NYsAKXox6wys-cNdce94CvBoc_XxWy1kdcaOco2i6xj3qOIx7XD8vWCNhmV6sDOJo27muAE7xbVjOK7CnGsoMjq_jdsBiWu4JjKSxQPqqhrOVIW5C0AC6bYyrlkJRXJzxNaQu4dAqaFNUAGJlVi8pbC7wX05yPPHhQPH_DhqGHtwhwXtPI2yXWY.FXpWAKYSKobYI62-2beEeVMF9Mb44nq3Qh9JmR3yon0&dib_tag=se&keywords=LG+Appliances+LG+Appliances&qid=1787174059&sr=8-10",
+    "mrp": 23999.0,
+    "selling_price": 18689.0,
+    "coupon": 0,
+    "effective_price": 18689.0,
+    "displayed_discount": null,
+    "calculated_discount": 22.13,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": "LG",
+            "passed": true
+        },
+        "category": {
+            "expected": "Appliances",
+            "actual": [],
+            "passed": false
+        },
+        "discount": {
+            "required": 0,
+            "actual": 22.13,
+            "passed": true
+        }
+    }
+}

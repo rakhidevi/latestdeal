@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024403_937614",
+    "trace_id": "ld_20260820_1b6131b2",
+    "profile_name": "Samsung  >= 0%",
+    "timestamp": "2026-08-20T02:44:13.307664",
+    "asin": "B0GRBPCPK8",
+    "title": "Galaxy A07 LTE (Light Violet, 4GB RAM, 64GB Storage) | 50MP Dual Camera | 6.7 Inch HD+ Display | 90Hz Refresh Rate | MediaTek Helio G99 (6nm) | IP54 | 6 Gen OS Upgrade and Security Update | 50MP Dual Camera, 6.7 Inch HD+ Display, 90Hz Refresh Rate, MediaTek Helio G99 (6nm), IP54",
+    "brand": "Samsung",
+    "product_url": "https://www.amazon.in/Samsung-Storage-Display-MediaTek-Security/dp/B0GRBPCPK8/ref=sr_1_12?dib=eyJ2IjoiMSJ9.U1CJl4Z7HX-oiX2qJIfcpigM5oUN37UIdYjrSlYDfMDjyXOEeKJK0Lda0ZEFUAZrh1x2IQpgMBEyi9rTMEcl_oLASoUZNKJQ570zKIT7VULnsueiItTK_G6hBDKTpnlu8i7g8JW1MuElDC04uscCYS6anm50ZJCK4IWPgPL9So96UmcqDjosKikUuUn6R3waynIq-GPr8_Kz5h_fC3o5kmgVADRZzasvEqPMv-E28Cg.L7AoyZLH21pNPWgDtbBubdAMI7-KrGHmgrg0zM7g2Yw&dib_tag=se&keywords=Samsung+Samsung&qid=1787174048&sr=8-12",
+    "mrp": 12991.56,
+    "selling_price": 12991.56,
+    "coupon": 0,
+    "effective_price": 12991.56,
+    "displayed_discount": null,
+    "calculated_discount": 0.0,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "Samsung",
+            "actual": "Samsung",
+            "passed": true
+        },
+        "discount": {
+            "required": 0,
+            "actual": 0.0,
+            "passed": true
+        }
+    }
+}

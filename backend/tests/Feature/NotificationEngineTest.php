@@ -8,12 +8,23 @@ use App\Models\Subscriber;
 use App\Models\Device;
 use App\Models\PushSubscription;
 use App\Models\Deal;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Merchant;
 use App\Notifications\PriceDropNotification;
 use App\Services\Notification\NotificationManager;
 
 class NotificationEngineTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Brand::create(['id' => 1, 'name' => 'Test Brand', 'slug' => 'test-brand', 'is_active' => true]);
+        Category::create(['id' => 1, 'name' => 'Test Category', 'slug' => 'test-category', 'is_active' => true]);
+        Merchant::create(['id' => 1, 'name' => 'Test Merchant', 'domain' => 'test.com', 'store_id' => 'test', 'affiliate_param_key' => 'tag']);
+    }
 
     public function test_api_subscribe_registers_device_and_push_subscription()
     {
@@ -50,8 +61,9 @@ class NotificationEngineTest extends TestCase
             'discounted_price' => 25000,
             'discount_percentage' => 50,
             'url' => 'https://example.com/laptop',
-            'affiliate_url' => 'https://example.com/laptop?tag=aff',
-            'source' => 'Amazon',
+            'image_path' => 'dummy.jpg',
+            'category_id' => 1,
+            'merchant_id' => 1,
             'is_active' => true,
         ]);
 

@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024403_937614",
+    "trace_id": "ld_20260820_e95c1882",
+    "profile_name": "Samsung  >= 0%",
+    "timestamp": "2026-08-20T02:44:11.800337",
+    "asin": "B0G81TPT89",
+    "title": "Galaxy M17 5G Mobile (Moonlight Silver, 6GB RAM, 128GB Storage) | 50MP OIS Triple Camera | Gorilla Glass Victus| IP54 | 6 Gen OS Upgrades | AI | Gemini Live | Lag-free Gaming | Without Charger",
+    "brand": "Samsung",
+    "product_url": "https://www.amazon.in/Samsung-Moonlight-Storage-Upgrades-Lag-free/dp/B0G81TPT89/ref=sr_1_7?dib=eyJ2IjoiMSJ9.U1CJl4Z7HX-oiX2qJIfcpigM5oUN37UIdYjrSlYDfMDjyXOEeKJK0Lda0ZEFUAZrh1x2IQpgMBEyi9rTMEcl_oLASoUZNKJQ570zKIT7VULnsueiItTK_G6hBDKTpnlu8i7g8JW1MuElDC04uscCYS6anm50ZJCK4IWPgPL9So96UmcqDjosKikUuUn6R3waynIq-GPr8_Kz5h_fC3o5kmgVADRZzasvEqPMv-E28Cg.L7AoyZLH21pNPWgDtbBubdAMI7-KrGHmgrg0zM7g2Yw&dib_tag=se&keywords=Samsung+Samsung&qid=1787174048&sr=8-7",
+    "mrp": 23999.0,
+    "selling_price": 19999.0,
+    "coupon": 0,
+    "effective_price": 19999.0,
+    "displayed_discount": null,
+    "calculated_discount": 16.67,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "Samsung",
+            "actual": "Samsung",
+            "passed": true
+        },
+        "discount": {
+            "required": 0,
+            "actual": 16.67,
+            "passed": true
+        }
+    }
+}

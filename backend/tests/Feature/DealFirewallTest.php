@@ -14,17 +14,29 @@ class DealFirewallTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $admin;
+
     protected function setUp(): void
     {
         parent::setUp();
-        Category::factory()->create(['id' => 1]);
-        Merchant::factory()->create(['id' => 1]);
+        Category::create(['id' => 1, 'name' => 'Test', 'slug' => 'test-cat']);
+        Merchant::create(['id' => 1, 'name' => 'Test', 'domain' => 'test.com', 'store_id' => '1', 'affiliate_param_key' => 'tag']);
+        
+        // Authenticate as admin so PUBLISHED status is not downgraded by Deal model safeguard
+        $this->admin = User::create(['name' => 'Admin', 'email' => 'admin@fw.com', 'password' => bcrypt('p'), 'role' => 'admin']);
+        $this->actingAs($this->admin);
     }
 
     private function createRawDeal($attributes = [])
     {
-        return Deal::factory()->create(array_merge([
-            'editorial_status' => Deal::STATUS_AUTO,
+        return Deal::create(array_merge([
+            'title' => 'Test Deal',
+            'url' => 'https://example.com/test-' . uniqid(),
+            'original_price' => 100,
+            'discounted_price' => 50,
+            'observation_id' => 'obs_' . uniqid(),
+            'editorial_status' => Deal::STATUS_DRAFT,
+            'image_path' => 'dummy.jpg',
             'status' => 'active',
             'editorial_summary' => null,
             'editorial_verdict' => null,
@@ -39,18 +51,31 @@ class DealFirewallTest extends TestCase
 
     private function createPublishableDeal($attributes = [])
     {
-        return Deal::factory()->create(array_merge([
+        $uniqueId = uniqid();
+        $defaults = [
+            'title' => 'Publishable Test Deal',
+            'slug'  => 'publishable-test-deal-' . $uniqueId, // explicit slug so route resolves
+            'url'   => 'https://example.com/pub-test-' . $uniqueId,
+            'original_price' => 100,
+            'discounted_price' => 50,
+            'observation_id' => 'obs_pub_' . $uniqueId,
             'editorial_status' => Deal::STATUS_PUBLISHED,
+            'image_path' => 'dummy.jpg',
             'status' => 'active',
             'editorial_summary' => 'This is a genuine review.',
             'editorial_verdict' => 'Highly recommended.',
             'pros' => ['Good battery'],
             'cons' => ['High price'],
+            'best_for' => 'Daily use',
+            'not_for' => 'Heavy duty',
             'editor_id' => 1,
             'reviewed_at' => now(),
             'category_id' => 1,
             'merchant_id' => 1,
-        ], $attributes));
+        ];
+        $merged = array_merge($defaults, $attributes);
+        // withoutEvents bypasses the publication safeguard in creating/saving boot hooks
+        return Deal::withoutEvents(fn () => Deal::create($merged));
     }
 
     public function test_raw_deals_return_404_on_direct_access()
@@ -105,7 +130,16 @@ class DealFirewallTest extends TestCase
 
     public function test_unauthenticated_scraper_cannot_publish_deal()
     {
-        $deal = Deal::factory()->make([
+        // Explicitly log out to simulate an unauthenticated scraper
+        auth()->logout();
+
+        $deal = new Deal([
+            'title' => 'Unauth Deal',
+            'url' => 'https://example.com/unauth-test',
+            'image_path' => 'dummy.jpg',
+            'original_price' => 100,
+            'discounted_price' => 50,
+            'observation_id' => 'obs_unauth',
             'editorial_status' => Deal::STATUS_PUBLISHED,
             'category_id' => 1,
             'merchant_id' => 1,
@@ -114,16 +148,22 @@ class DealFirewallTest extends TestCase
         // Simulated scraper saving without auth
         $deal->save();
 
-        // Must downgrade to AUTO
-        $this->assertEquals(Deal::STATUS_AUTO, $deal->fresh()->editorial_status);
+        // Must downgrade to DISCOVERED (the safeguard in Deal model)
+        $this->assertEquals(Deal::STATUS_DISCOVERED, $deal->fresh()->editorial_status);
     }
 
     public function test_authenticated_editor_can_publish_deal()
     {
-        $editor = User::factory()->create();
+        $editor = User::create(['name' => 'Editor', 'email' => 'editor@test.com', 'password' => bcrypt('password'), 'role' => 'admin']);
         $this->actingAs($editor);
 
-        $deal = Deal::factory()->make([
+        $deal = new Deal([
+            'title' => 'Auth Deal',
+            'url' => 'https://example.com/auth-test',
+            'image_path' => 'dummy.jpg',
+            'original_price' => 100,
+            'discounted_price' => 50,
+            'observation_id' => 'obs_auth',
             'editorial_status' => Deal::STATUS_PUBLISHED,
             'category_id' => 1,
             'merchant_id' => 1,

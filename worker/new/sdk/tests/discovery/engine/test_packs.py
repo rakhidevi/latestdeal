@@ -1,5 +1,5 @@
 import unittest
-from worker.new.sdk.foundation.dto.models import ProviderManifestDTO
+from worker.new.sdk.foundation.dto.models import PluginManifestV2
 from worker.new.sdk.discovery.engine.capability_matrix import CapabilityMatrix
 from worker.new.sdk.discovery.engine.constraint_engine import ConstraintEngine
 
@@ -8,7 +8,7 @@ class TestProviderCapabilities(unittest.TestCase):
         self.capability_matrix = CapabilityMatrix()
         
         # Mock Amazon Provider Manifest
-        self.amazon_manifest = ProviderManifestDTO(
+        self.amazon_manifest = PluginManifestV2(
             name="amazon",
             version="1.0.0",
             supports_discount=True,
@@ -19,7 +19,7 @@ class TestProviderCapabilities(unittest.TestCase):
         )
         
         # Mock Flipkart Provider Manifest
-        self.flipkart_manifest = ProviderManifestDTO(
+        self.flipkart_manifest = PluginManifestV2(
             name="flipkart",
             version="1.0.0",
             supports_discount=True,

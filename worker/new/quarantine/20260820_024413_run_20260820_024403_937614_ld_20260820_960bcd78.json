@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024403_937614",
+    "trace_id": "ld_20260820_960bcd78",
+    "profile_name": "Samsung  >= 0%",
+    "timestamp": "2026-08-20T02:44:13.431605",
+    "asin": "B0DKFT7RCN",
+    "title": "Galaxy Watch 7 (44mm, BT+LTE) with 3nm Processor | Dual GPS | Sapphire Glass & Armour Aluminum | 5ATM & IP68 | HR, SpO2, BP & ECG Monitor",
+    "brand": "Samsung",
+    "product_url": "https://www.amazon.in/Samsung-44mm-Green-BT-LTE/dp/B0DKFT7RCN/ref=sr_1_14?dib=eyJ2IjoiMSJ9.U1CJl4Z7HX-oiX2qJIfcpigM5oUN37UIdYjrSlYDfMDjyXOEeKJK0Lda0ZEFUAZrh1x2IQpgMBEyi9rTMEcl_oLASoUZNKJQ570zKIT7VULnsueiItTK_G6hBDKTpnlu8i7g8JW1MuElDC04uscCYS6anm50ZJCK4IWPgPL9So96UmcqDjosKikUuUn6R3waynIq-GPr8_Kz5h_fC3o5kmgVADRZzasvEqPMv-E28Cg.L7AoyZLH21pNPWgDtbBubdAMI7-KrGHmgrg0zM7g2Yw&dib_tag=se&keywords=Samsung+Samsung&qid=1787174048&sr=8-14",
+    "mrp": 39999.0,
+    "selling_price": 15899.0,
+    "coupon": 0,
+    "effective_price": 15899.0,
+    "displayed_discount": null,
+    "calculated_discount": 60.25,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "Samsung",
+            "actual": "Samsung",
+            "passed": true
+        },
+        "discount": {
+            "required": 0,
+            "actual": 60.25,
+            "passed": true
+        }
+    }
+}

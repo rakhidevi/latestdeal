@@ -99,6 +99,8 @@ class DealGenerationApiController extends Controller
             
             if (isset($content['editorial_summary'])) $deal->editorial_summary = $content['editorial_summary'];
             if (isset($content['editorial_verdict'])) $deal->editorial_verdict = $content['editorial_verdict'];
+            if (isset($content['verdict'])) $deal->verdict = $content['verdict'];
+            if (isset($content['features'])) $deal->features = $content['features'];
             if (isset($content['pros'])) $deal->pros = $content['pros'];
             if (isset($content['cons'])) $deal->cons = $content['cons'];
             if (isset($content['best_for'])) $deal->best_for = $content['best_for'];
@@ -108,7 +110,7 @@ class DealGenerationApiController extends Controller
         } else {
             // Failed QA, revert to DRAFT
             $deal->editorial_status = Deal::STATUS_DRAFT;
-            $deal->quality_feedback = $request->input('qa_feedback');
+            // qa_feedback is stored on the generation record, not the deal
         }
         
         $deal->save();

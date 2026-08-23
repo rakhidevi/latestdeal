@@ -1,0 +1,37 @@
+{
+    "pipeline_run_id": "run_20260820_024423_1a174e",
+    "trace_id": "ld_20260820_912ec38d",
+    "profile_name": "Samsung TV >= 0%",
+    "timestamp": "2026-08-20T02:44:31.848850",
+    "asin": "B0GZKCC5TZ",
+    "title": "65 inches Crystal UHD 4K Samsung Vision AI Smart TV UA65UE85AHULXL",
+    "brand": "Samsung",
+    "product_url": "https://www.amazon.in/Samsung-inches-Crystal-Vision-UA65UE85AHULXL/dp/B0GZKCC5TZ/ref=sr_1_6?dib=eyJ2IjoiMSJ9.GqAw3MY4d1JKIEE0dFcgp3mqJ4yvZ3qV5SCFQd2pbUcpAKUUD6J7wX1MG0HwhRMNTPUwB46yhU09q3SGaSegYS8lw5z-wXQe83eEnvLZd8pUPhDnvthNe6yfnVFnqrmH9UDjf3ZuGPj2xApEY4osrdv8S8i5LCaW1YeydJi8MwkKJf6SLQi3MF0KWdti3O6YSsZay-3oXiu7FXIlXLRKOTnJTLNrkLplt5sCUiA-u18.e_j3q5KZrxiOxb6G9SUiKW7XS7E6lCaIHIDOGcRq3vE&dib_tag=se&keywords=Samsung+TV+Samsung+TV&qid=1787174069&sr=8-6",
+    "mrp": 81900.0,
+    "selling_price": 65990.0,
+    "coupon": 0,
+    "effective_price": 65990.0,
+    "displayed_discount": null,
+    "calculated_discount": 19.43,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "Samsung",
+            "actual": "Samsung",
+            "passed": true
+        },
+        "category": {
+            "expected": "TV",
+            "actual": [],
+            "passed": false
+        },
+        "discount": {
+            "required": 0,
+            "actual": 19.43,
+            "passed": true
+        }
+    }
+}

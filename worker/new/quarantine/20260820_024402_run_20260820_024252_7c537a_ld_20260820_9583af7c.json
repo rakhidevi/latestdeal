@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024252_7c537a",
+    "trace_id": "ld_20260820_9583af7c",
+    "profile_name": "LG  >= 0%",
+    "timestamp": "2026-08-20T02:44:02.159728",
+    "asin": "B0GW8PT5TC",
+    "title": "276 L, 2 Star, Smart Inverter, Smart & Dairy Mode, Frost-Free Double Door Convertible Refrigerator (GLT2826XWOB, Onyx Black, Multi Air Flow & Convertible Space for More Storage",
+    "brand": "LG",
+    "product_url": "https://www.amazon.in/LG-Frost-Free-Convertible-Refrigerator-GLT2826XWOB/dp/B0GW8PT5TC/ref=sr_1_16?dib=eyJ2IjoiMSJ9.Q4EuJAbCrM76Z3lhKrnSiROUjybFBeBX9d8MX5oAjProkWRSbaEez6isfOyhPQn0OQsYEQTRf6lGqHh78atBSo2vSkT114eOuVYbJUQ3VXQjXDRKrvP9qRlHNCyqPLd6TeI07XM2HDcTyZI2ceGsdu07s1uhypqgQsophhlem_YsCPL2JvxE89oF880BJTAECZ68dIst0sVF_c8Fm7si4OTxkMqjCvxMe8OraOnXpHY.vpiY48JXPgYrO6nyerm1vcD8CWXjKU8iir10TLiAZXk&dib_tag=se&keywords=LG+LG&qid=1787173978&sr=8-16",
+    "mrp": 46990.0,
+    "selling_price": 32990.0,
+    "coupon": 0,
+    "effective_price": 32990.0,
+    "displayed_discount": null,
+    "calculated_discount": 29.79,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": "LG",
+            "passed": true
+        },
+        "discount": {
+            "required": 0,
+            "actual": 29.79,
+            "passed": true
+        }
+    }
+}

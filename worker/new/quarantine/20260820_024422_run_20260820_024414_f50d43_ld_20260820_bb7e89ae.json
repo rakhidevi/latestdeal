@@ -1,0 +1,37 @@
+{
+    "pipeline_run_id": "run_20260820_024414_f50d43",
+    "trace_id": "ld_20260820_bb7e89ae",
+    "profile_name": "LG Appliances >= 0%",
+    "timestamp": "2026-08-20T02:44:22.499462",
+    "asin": "B0DZD3HPPG",
+    "title": "Original Lint Filter for LG. Top Load Fully Automatic Washing Machine Magic Filter (Blue) Part Code ADQ36973301",
+    "brand": "LG",
+    "product_url": "https://www.amazon.in/LG-Original-Loading-Automatic-ADQ36973301/dp/B0DZD3HPPG/ref=sr_1_8_mod_primary_new?dib=eyJ2IjoiMSJ9.MbN2gfsmu7zZi8xdlNTuIvxjT5qVD6iUy5kKGDtGjXp4nyoJxy96NYsAKXox6wys-cNdce94CvBoc_XxWy1kdcaOco2i6xj3qOIx7XD8vWCNhmV6sDOJo27muAE7xbVjOK7CnGsoMjq_jdsBiWu4JjKSxQPqqhrOVIW5C0AC6bYyrlkJRXJzxNaQu4dAqaFNUAGJlVi8pbC7wX05yPPHhQPH_DhqGHtwhwXtPI2yXWY.FXpWAKYSKobYI62-2beEeVMF9Mb44nq3Qh9JmR3yon0&dib_tag=se&keywords=LG+Appliances+LG+Appliances&qid=1787174059&sbo=RZvfv%2F%2FHxDF%2BO5021pAnSA%3D%3D&sr=8-8",
+    "mrp": 399.0,
+    "selling_price": 299.0,
+    "coupon": 0,
+    "effective_price": 299.0,
+    "displayed_discount": null,
+    "calculated_discount": 25.06,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": "LG",
+            "passed": true
+        },
+        "category": {
+            "expected": "Appliances",
+            "actual": [],
+            "passed": false
+        },
+        "discount": {
+            "required": 0,
+            "actual": 25.06,
+            "passed": true
+        }
+    }
+}

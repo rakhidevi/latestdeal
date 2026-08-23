@@ -10,9 +10,33 @@ class DealStateTransitionTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $user = \App\Models\User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            ['name' => 'Admin', 'password' => bcrypt('password')]
+        );
+        $this->actingAs($user);
+        \App\Models\Category::create(['id' => 1, 'name' => 'Test Category', 'slug' => 'test-category']);
+        \App\Models\Merchant::create(['id' => 1, 'name' => 'Test Merchant', 'domain' => 'test-merchant.com', 'store_id' => '1', 'affiliate_param_key' => 'tag']);
+        \App\Models\Brand::create(['id' => 1, 'name' => 'Test Brand', 'slug' => 'test-brand']);
+    }
+
     public function test_valid_state_transitions()
     {
-        $deal = Deal::factory()->create(['editorial_status' => Deal::STATUS_DRAFT]);
+        $deal = Deal::create([
+            'title' => 'Test Deal',
+            'url' => 'https://example.com',
+            'editorial_status' => Deal::STATUS_DRAFT,
+            'category_id' => 1,
+            'merchant_id' => 1,
+            'brand_id' => 1,
+            'original_price' => 100,
+            'discounted_price' => 50,
+            'image_path' => 'dummy.jpg',
+            'hash_id' => \Illuminate\Support\Str::random(6)
+        ]);
         
         // Draft -> Quality Check
         $deal->editorial_status = Deal::STATUS_QUALITY_CHECK;
@@ -35,7 +59,18 @@ class DealStateTransitionTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage("Invalid editorial status transition from DRAFT to PUBLISHED");
 
-        $deal = Deal::factory()->create(['editorial_status' => Deal::STATUS_DRAFT]);
+        $deal = Deal::create([
+            'title' => 'Test Deal',
+            'url' => 'https://example.com',
+            'editorial_status' => Deal::STATUS_DRAFT,
+            'category_id' => 1,
+            'merchant_id' => 1,
+            'brand_id' => 1,
+            'original_price' => 100,
+            'discounted_price' => 50,
+            'image_path' => 'dummy.jpg',
+            'hash_id' => \Illuminate\Support\Str::random(6)
+        ]);
         
         // Direct jump from Draft -> Published is illegal
         $deal->editorial_status = Deal::STATUS_PUBLISHED;

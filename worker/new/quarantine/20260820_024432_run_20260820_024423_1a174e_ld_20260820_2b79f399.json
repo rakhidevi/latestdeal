@@ -1,0 +1,37 @@
+{
+    "pipeline_run_id": "run_20260820_024423_1a174e",
+    "trace_id": "ld_20260820_2b79f399",
+    "profile_name": "Samsung TV >= 0%",
+    "timestamp": "2026-08-20T02:44:32.307133",
+    "asin": "B0H67PR4LY",
+    "title": "Remote Control Compatible for Samsung Smart 4K Tv Remote Original Led UHD QLED Television and Monitor Suitable for Frame Ultra 6 7 8 Series with Hot Keys BN59 Model Without Voice Command.",
+    "brand": null,
+    "product_url": "https://www.amazon.in/Compatible-Original-Television-Suitable-Command/dp/B0H67PR4LY/ref=sr_1_12_mod_primary_new?dib=eyJ2IjoiMSJ9.GqAw3MY4d1JKIEE0dFcgp3mqJ4yvZ3qV5SCFQd2pbUcpAKUUD6J7wX1MG0HwhRMNTPUwB46yhU09q3SGaSegYS8lw5z-wXQe83eEnvLZd8pUPhDnvthNe6yfnVFnqrmH9UDjf3ZuGPj2xApEY4osrdv8S8i5LCaW1YeydJi8MwkKJf6SLQi3MF0KWdti3O6YSsZay-3oXiu7FXIlXLRKOTnJTLNrkLplt5sCUiA-u18.e_j3q5KZrxiOxb6G9SUiKW7XS7E6lCaIHIDOGcRq3vE&dib_tag=se&keywords=Samsung+TV+Samsung+TV&qid=1787174069&sbo=RZvfv%2F%2FHxDF%2BO5021pAnSA%3D%3D&sr=8-12",
+    "mrp": 1999.0,
+    "selling_price": 299.0,
+    "coupon": 0,
+    "effective_price": 299.0,
+    "displayed_discount": null,
+    "calculated_discount": 85.04,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "Samsung",
+            "actual": null,
+            "passed": false
+        },
+        "category": {
+            "expected": "TV",
+            "actual": [],
+            "passed": false
+        },
+        "discount": {
+            "required": 0,
+            "actual": 85.04,
+            "passed": true
+        }
+    }
+}

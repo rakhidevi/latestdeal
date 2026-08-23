@@ -1,0 +1,45 @@
+{
+    "pipeline_run_id": "run_20260820_034557_5db640",
+    "trace_id": "ld_20260820_dd97bd0c",
+    "profile_name": "Samsung TV >= 40%",
+    "timestamp": "2026-08-20T03:46:14.891109",
+    "asin": "B09Q8PXMWP",
+    "title": "Silicone TV Remote Cover for Samsung Smart TV Remote, QLED TV BN59-01311 TM2180E, Anti-Lost Case, with Remote Loop, Remote Not Included",
+    "brand": "OBOE",
+    "product_url": "https://www.amazon.in/Silicone-Protective-Samsung-BN59-01311-Remote/dp/B09Q8PXMWP/ref=sr_1_2?dib=eyJ2IjoiMSJ9.OAApulAoWsNhdUptAHaST_bCJlCXlTHxqwkpgLZblrwLTqVeo6QFzUjpIt4qF0-_F7NOGm8kfyN9ttJqOyetHhpzbj1m4z1P6-DzPl2U_QB4cXUrIzJE_dC1xnEW6Gk5TnkEr0u08f0nQoRUwBkNPxNKE-l7BYrU6HiCYCTeaR36xa-9BKa29pgYJgpEROJmJ0p2tYpes9lzi3LnxxrnOzTAgxpTuf-RweZGoFHclHE.N2c8PNr6JI-ZOed0UbvrOXZV9ZXPXbvaZiTWKzgKx4Q&dib_tag=se&keywords=Samsung+TV+Samsung+TV&qid=1787177763&refinements=p_8%3A40-&sr=8-2",
+    "mrp": 1999.0,
+    "selling_price": 414.0,
+    "coupon": 0,
+    "effective_price": 414.0,
+    "displayed_discount": null,
+    "calculated_discount": 79.29,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "Samsung",
+            "actual": "OBOE",
+            "passed": false
+        },
+        "product_intent": {
+            "expected": "Main Product",
+            "actual": "Accessory",
+            "passed": false
+        },
+        "category": {
+            "expected": "TV",
+            "actual": [
+                "Accessories",
+                "Accessory"
+            ],
+            "passed": false
+        },
+        "discount": {
+            "required": 40,
+            "actual": 79.29,
+            "passed": true
+        }
+    }
+}

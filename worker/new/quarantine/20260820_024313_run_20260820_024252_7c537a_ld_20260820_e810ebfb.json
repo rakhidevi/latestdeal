@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024252_7c537a",
+    "trace_id": "ld_20260820_e810ebfb",
+    "profile_name": "LG  >= 0%",
+    "timestamp": "2026-08-20T02:43:13.703508",
+    "asin": "B0DKK6PZHZ",
+    "title": "Washing Machine Cover Compatible for LG 11.5 KG Semi-Automatic Top Loading P115ASKAZ, Floral Pattern Darkgrey",
+    "brand": null,
+    "product_url": "https://www.amazon.in#",
+    "mrp": 1299.0,
+    "selling_price": 449.0,
+    "coupon": 0,
+    "effective_price": 449.0,
+    "displayed_discount": null,
+    "calculated_discount": 65.43,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": null,
+            "passed": false
+        },
+        "discount": {
+            "required": 0,
+            "actual": 65.43,
+            "passed": true
+        }
+    }
+}

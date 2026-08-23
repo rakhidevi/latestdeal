@@ -1,0 +1,37 @@
+{
+    "pipeline_run_id": "run_20260820_024414_f50d43",
+    "trace_id": "ld_20260820_8870c965",
+    "profile_name": "LG Appliances >= 0%",
+    "timestamp": "2026-08-20T02:44:22.364729",
+    "asin": "B0F4XSFZSL",
+    "title": "LG AC Remote Compatible with LG AKB75415316 Air Conditioners Model Replacement Remote Control for 1 Ton, 1.5 Ton & 2 Ton Split and Window, RE 36R",
+    "brand": null,
+    "product_url": "https://www.amazon.in#",
+    "mrp": 599.0,
+    "selling_price": 419.0,
+    "coupon": 0,
+    "effective_price": 419.0,
+    "displayed_discount": null,
+    "calculated_discount": 30.05,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": null,
+            "passed": false
+        },
+        "category": {
+            "expected": "Appliances",
+            "actual": [],
+            "passed": false
+        },
+        "discount": {
+            "required": 0,
+            "actual": 30.05,
+            "passed": true
+        }
+    }
+}

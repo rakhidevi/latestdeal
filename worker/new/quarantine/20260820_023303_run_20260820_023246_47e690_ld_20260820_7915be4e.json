@@ -1,0 +1,39 @@
+{
+    "pipeline_run_id": "run_20260820_023246_47e690",
+    "trace_id": "ld_20260820_7915be4e",
+    "profile_name": "Puma Shoes >= 60%",
+    "timestamp": "2026-08-20T02:33:03.186937",
+    "asin": "B0FD42R913",
+    "title": "Unisex-Adult Skyvolt Sneaker",
+    "brand": "PUMA",
+    "product_url": "https://www.amazon.in/Unisex-Adult-SkyVolt-White-Poised-Sneaker-30927606/dp/B0FD42R913/ref=sr_1_1?dib=eyJ2IjoiMSJ9.U9mLerSBhv76JhsoAMuZ4YuknYMPMDc--uEN77VDK1WqT5haE2541fSm6aHOF_ZDcEelWm7pFpGOqoq6YugBAisMGOdX_r9g3_l82Oc6VvAahIHS_Ux4IZLZgXoJ5ShIoKM2Ga3UZ2V5009SSCr0vrzi1VTcNlEHN_zVgzKQP-nX_QUNeDYBmCTqW7ZW40CkeKhwnmlW7ApEQ1x86hgAdT-gEwmDgWz4B2TuNznMvNw.Aijd4-GmZnCRBqDB_Gt8GcgdZMXnbwZRPq55h6Se1hU&dib_tag=se&keywords=Puma+Shoes+Puma+Shoes&qid=1787173371&refinements=p_8%3A60-&sr=8-1",
+    "mrp": 5499.0,
+    "selling_price": 2099.0,
+    "coupon": 0,
+    "effective_price": 2099.0,
+    "displayed_discount": null,
+    "calculated_discount": 61.83,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "Puma",
+            "actual": "PUMA",
+            "passed": true
+        },
+        "category": {
+            "expected": "Shoes",
+            "actual": [
+                "Shoes"
+            ],
+            "passed": true
+        },
+        "discount": {
+            "required": 60,
+            "actual": 61.83,
+            "passed": true
+        }
+    }
+}

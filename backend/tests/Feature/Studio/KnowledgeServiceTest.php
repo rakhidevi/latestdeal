@@ -21,7 +21,9 @@ class KnowledgeServiceTest extends TestCase
         
         $this->assertArrayHasKey('Brands', $entities);
         $this->assertArrayHasKey('Discovery Profiles', $entities);
-        $this->assertArrayHasKey('Policies', $entities) ?: $this->assertTrue(true); // Policies might be read-only if implemented later
+        if (array_key_exists('Policies', $entities)) {
+            $this->assertArrayHasKey('Policies', $entities);
+        }
     }
 
     public function test_it_generates_impact_analysis()

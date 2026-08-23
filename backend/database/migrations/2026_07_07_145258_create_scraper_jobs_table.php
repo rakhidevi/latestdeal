@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('scraper_jobs', function (Blueprint $table) {
             $table->id();
             $table->string('name'); // e.g., "Scrape Deal: Amazon"
-            $table->enum('type', ['ingestion', 'expiry_check', 'metrics_sync'])->default('ingestion');
-            $table->enum('status', ['running', 'success', 'failure'])->default('running');
+            $table->string('type')->default('ingestion');
+            $table->string('status')->default('running');
             $table->json('logs')->nullable(); // JSON array of logs
             $table->integer('duration_seconds')->nullable();
             $table->timestamp('started_at')->useCurrent();

@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024403_937614",
+    "trace_id": "ld_20260820_a6f3ce1d",
+    "profile_name": "Samsung  >= 0%",
+    "timestamp": "2026-08-20T02:44:11.405300",
+    "asin": "B0GRB3FBBB",
+    "title": "Nord 6 | 8GB+256GB | Pitch Black | Snapdragon 8s Gen 4 | Segment's First Stable 165FPS Gaming | Segment's Largest 9000mAh Battery | Most Complete IP Rating | Personalized AI",
+    "brand": null,
+    "product_url": "https://www.amazon.in#",
+    "mrp": 52999.0,
+    "selling_price": 46999.0,
+    "coupon": 0,
+    "effective_price": 46999.0,
+    "displayed_discount": null,
+    "calculated_discount": 11.32,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "Samsung",
+            "actual": null,
+            "passed": false
+        },
+        "discount": {
+            "required": 0,
+            "actual": 11.32,
+            "passed": true
+        }
+    }
+}

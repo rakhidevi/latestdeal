@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024252_7c537a",
+    "trace_id": "ld_20260820_0c633fec",
+    "profile_name": "LG  >= 0%",
+    "timestamp": "2026-08-20T02:44:01.029761",
+    "asin": "B0BVRHX8R6",
+    "title": "10 Kg, 5 Star, Roller Jet Pulsator, Semi-Automatic Top Loading Washing Machine (P1040RGAZ, Dark Gray, Better wash with effective scrubbing, Rat Away Feature, 5 Year Motor Warranty)",
+    "brand": "LG",
+    "product_url": "https://www.amazon.in/LG-Semi-Automatic-Washing-P1040RGAZ-Pulsator/dp/B0BVRHX8R6/ref=sr_1_15?dib=eyJ2IjoiMSJ9.Q4EuJAbCrM76Z3lhKrnSiROUjybFBeBX9d8MX5oAjProkWRSbaEez6isfOyhPQn0OQsYEQTRf6lGqHh78atBSo2vSkT114eOuVYbJUQ3VXQjXDRKrvP9qRlHNCyqPLd6TeI07XM2HDcTyZI2ceGsdu07s1uhypqgQsophhlem_YsCPL2JvxE89oF880BJTAECZ68dIst0sVF_c8Fm7si4OTxkMqjCvxMe8OraOnXpHY.vpiY48JXPgYrO6nyerm1vcD8CWXjKU8iir10TLiAZXk&dib_tag=se&keywords=LG+LG&qid=1787173978&sr=8-15",
+    "mrp": 26990.0,
+    "selling_price": 18990.0,
+    "coupon": 0,
+    "effective_price": 18990.0,
+    "displayed_discount": null,
+    "calculated_discount": 29.64,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": "LG",
+            "passed": true
+        },
+        "discount": {
+            "required": 0,
+            "actual": 29.64,
+            "passed": true
+        }
+    }
+}

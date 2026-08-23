@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024252_7c537a",
+    "trace_id": "ld_20260820_c5ffaf74",
+    "profile_name": "LG  >= 0%",
+    "timestamp": "2026-08-20T02:43:58.042977",
+    "asin": "B0C3LHV43S",
+    "title": "Smart Choice, 9 Kg, 5 Star, AI Direct Drive Technology, Steam",
+    "brand": "LG",
+    "product_url": "https://www.amazon.in/LG-Inverter-Fully-Automatic-Washing-FHP1209Z5M/dp/B0C3LHV43S/ref=sr_1_10?dib=eyJ2IjoiMSJ9.Q4EuJAbCrM76Z3lhKrnSiROUjybFBeBX9d8MX5oAjProkWRSbaEez6isfOyhPQn0OQsYEQTRf6lGqHh78atBSo2vSkT114eOuVYbJUQ3VXQjXDRKrvP9qRlHNCyqPLd6TeI07XM2HDcTyZI2ceGsdu07s1uhypqgQsophhlem_YsCPL2JvxE89oF880BJTAECZ68dIst0sVF_c8Fm7si4OTxkMqjCvxMe8OraOnXpHY.vpiY48JXPgYrO6nyerm1vcD8CWXjKU8iir10TLiAZXk&dib_tag=se&keywords=LG+LG&qid=1787173978&sr=8-10",
+    "mrp": 53990.0,
+    "selling_price": 41990.0,
+    "coupon": 0,
+    "effective_price": 41990.0,
+    "displayed_discount": null,
+    "calculated_discount": 22.23,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": "LG",
+            "passed": true
+        },
+        "discount": {
+            "required": 0,
+            "actual": 22.23,
+            "passed": true
+        }
+    }
+}

@@ -74,6 +74,11 @@ class BrandResolver
         if (!empty($deal->ai_metadata) && is_array($deal->ai_metadata) && !empty($deal->ai_metadata['brand'])) {
             $detectedName = trim($deal->ai_metadata['brand']);
         }
+        
+        // 1.5. Existing Brand String from Ingestion
+        if (!$detectedName && !empty($deal->brand)) {
+            $detectedName = trim($deal->brand);
+        }
 
         // 2. Title Pattern Matching (Highest Precision NLP Regex Rules)
         if (!$detectedName && !empty($deal->title)) {

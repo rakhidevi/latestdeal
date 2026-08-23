@@ -38,7 +38,7 @@ class EventService
             $this->createEvent('target-1', 'DISCOVERY', 'SearchTargetCreated', 'Amazon', 'INFO', 'Discovery-01'),
             $this->createEvent('job-queue-2', 'QUEUE', 'ExtractionQueued', 'Amazon', 'INFO', 'QueueManager'),
             $this->createEvent('extract-3', 'EXTRACTION', 'HtmlExtracted', 'Amazon', 'SUCCESS', 'Extractor-04'),
-            $this->createEvent('extract-fail-4', 'EXTRACTION', 'CaptchaEncountered', 'Amazon', 'WARNING', 'Extractor-02'),
+            $this->createEvent('extract-fail-4', 'EXTRACTION', 'CaptchaEncountered', 'Amazon', 'ERROR', 'Extractor-02'),
             $this->createEvent('validate-5', 'VALIDATION', 'SchemaViolation', 'Flipkart', 'ERROR', 'Validator-09'),
             $this->createEvent('evidence-6', 'EVIDENCE', 'EvidenceGenerated', 'Amazon', 'SUCCESS', 'Math-Engine'),
             $this->createEvent('decision-7', 'DECISION', 'OpportunityScored', 'Amazon', 'SUCCESS', 'Decision-Node'),

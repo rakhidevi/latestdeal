@@ -35,11 +35,12 @@ class EditorialGenerator
         }
 
         $deal->refresh();
-        $baseGenerationNumber = DealAiGeneration::where('deal_id', $deal->id)->max('generation_number') ?? 0;
-
+        $deal->loadMissing('category');
+        
         $sourceFacts = [
             'title' => $deal->title,
-            'brand' => $deal->brand,
+            'brand' => $deal->brand ?: 'Unspecified Brand',
+            'category' => $deal->category ? $deal->category->name : 'Unspecified Category',
             'original_price' => (float)$deal->original_price,
             'discounted_price' => (float)$deal->discounted_price,
             'amount_saved' => (float)($deal->original_price - $deal->discounted_price),
@@ -50,6 +51,8 @@ class EditorialGenerator
 
         $qaFeedback = null;
         $maxAttempts = 3;
+
+        $baseGenerationNumber = DealAiGeneration::where('deal_id', $deal->id)->max('generation_number') ?? 0;
 
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             $genNumber = $baseGenerationNumber + $attempt;
@@ -71,6 +74,9 @@ class EditorialGenerator
                 $model = $response['model'] ?? 'unknown';
 
                 $parsed = json_decode($jsonString, true);
+                if (is_array($parsed)) {
+                    $parsed = array_change_key_case($parsed, CASE_LOWER);
+                }
 
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     $qaNotes = ["Failed to parse JSON."];
@@ -162,12 +168,13 @@ class EditorialGenerator
         return <<<PROMPT
 Product: {$facts['title']}
 Brand: {$facts['brand']}
+Category: {$facts['category']}
 Price: ₹{$facts['discounted_price']} (Original: ₹{$facts['original_price']}, {$facts['discount_percentage']}% off)
 {$feedbackSection}
 Task: Write a concise editorial review for this deal.
 CRITICAL RULES:
 1. Every factual or evaluative claim MUST be directly supported by source_facts. If it cannot be supported, omit it entirely.
-2. If a useful fact is unavailable, say less rather than infer it.
+2. Use every relevant verified source fact. If a fact isn't available, omit it. Do not infer or invent.
 3. Do NOT invent personal experience (e.g. "I've tested this").
 4. Do NOT invent historical prices or competitor comparisons without source data.
 5. Do NOT invent warranty claims or specifications not present in the source.
@@ -176,7 +183,7 @@ CRITICAL RULES:
 
 Reply ONLY with a raw JSON object containing these exact keys (do not include markdown formatting):
 {
-  "editorial_summary": "A 2-3 sentence strictly factual description of the deal.",
+  "editorial_summary": "A 2-3 sentence strictly factual description of the deal incorporating all available source facts.",
   "editorial_verdict": "A one sentence factual verdict.",
   "pros": ["Fact-based pro 1", "Fact-based pro 2"],
   "cons": ["Fact-based con 1"],
@@ -200,10 +207,10 @@ PROMPT;
     protected function deterministicQa(array $parsed, array $facts): array
     {
         $notes = [];
-        $content = json_encode($parsed);
+        $content = json_encode($parsed, JSON_UNESCAPED_UNICODE);
         
-        // 1. Math / Price Verification
-        preg_match_all('/(?:₹|Rs\.?|INR|price(?: of| is)?|at)\s*([0-9,]+(\.[0-9]{1,2})?)/i', $content, $matches);
+        // 1. Math / Price Verification (Match ₹, Rs., INR, price is, price of)
+        preg_match_all('/(?:₹|Rs\.?|INR|price(?: of| is)?)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i', $content, $matches);
         if (!empty($matches[1])) {
             foreach ($matches[1] as $priceString) {
                 $price = (float)str_replace(',', '', $priceString);
@@ -214,7 +221,7 @@ PROMPT;
         }
         
         // 2. Discount Verification
-        preg_match_all('/([0-9]+(\.[0-9]+)?)\s*(?:%|percent)/i', $content, $matches);
+        preg_match_all('/([0-9]+(?:\.[0-9]+)?)\s*(?:%|percent)/i', $content, $matches);
         if (!empty($matches[1])) {
             foreach ($matches[1] as $discountString) {
                 $discount = (float)$discountString;

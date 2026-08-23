@@ -13,11 +13,13 @@ class WorkerQueueTest extends TestCase
 
     public function test_worker_can_claim_pending_job()
     {
-        $job = ScraperJob::create([
+        $job = \Illuminate\Support\Facades\DB::table('scraper_jobs')->insertGetId([
             'name' => 'Test Job',
-            'type' => 'URL_SCAN',
+            'type' => 'ingestion',
             'status' => 'PENDING',
-            'payload' => ['url' => 'https://example.com']
+            'payload' => json_encode(['url' => 'https://example.com']),
+            'updated_at' => now(),
+            'created_at' => now(),
         ]);
 
         $response = $this->getJson('/api/worker/jobs/claim?worker_id=worker-test', [
@@ -28,7 +30,7 @@ class WorkerQueueTest extends TestCase
         $response->assertJsonStructure(['jobs' => [['job_id', 'type', 'payload']]]);
         
         $this->assertDatabaseHas('scraper_jobs', [
-            'id' => $job->id,
+            'id' => $job,
             'status' => 'CLAIMED',
             'worker_id' => 'worker-test'
         ]);
@@ -36,19 +38,21 @@ class WorkerQueueTest extends TestCase
 
     public function test_self_healing_command_requeues_stale_jobs()
     {
-        // Job stuck in CLAIMED for 10 minutes
-        $claimedJob = ScraperJob::create([
+        // Insert a job that was claimed 15 minutes ago
+        $jobId = \Illuminate\Support\Facades\DB::table('scraper_jobs')->insertGetId([
             'name' => 'Stale Claimed',
-            'type' => 'URL_SCAN',
+            'type' => 'ingestion',
             'status' => 'CLAIMED',
-            'claimed_at' => now()->subMinutes(10),
-            'worker_id' => 'worker-test'
+            'claimed_at' => now()->subMinutes(15),
+            'worker_id' => 'worker-test',
+            'updated_at' => now(),
+            'created_at' => now(),
         ]);
 
         // Job stuck in PROCESSING for 10 minutes since last heartbeat
         $processingJob = ScraperJob::create([
             'name' => 'Stale Processing',
-            'type' => 'URL_SCAN',
+            'type' => 'ingestion',
             'status' => 'PROCESSING',
             'heartbeat_at' => now()->subMinutes(10),
             'worker_id' => 'worker-test'
@@ -57,7 +61,7 @@ class WorkerQueueTest extends TestCase
         // Healthy job, should not be touched
         $healthyJob = ScraperJob::create([
             'name' => 'Healthy Processing',
-            'type' => 'URL_SCAN',
+            'type' => 'ingestion',
             'status' => 'PROCESSING',
             'heartbeat_at' => now()->subMinutes(1),
             'worker_id' => 'worker-test'
@@ -66,7 +70,7 @@ class WorkerQueueTest extends TestCase
         $this->artisan('scraper:heal-queue')->assertSuccessful();
 
         $this->assertDatabaseHas('scraper_jobs', [
-            'id' => $claimedJob->id,
+            'id' => $jobId,
             'status' => 'PENDING',
             'worker_id' => null
         ]);
@@ -86,18 +90,26 @@ class WorkerQueueTest extends TestCase
 
     public function test_cancellation_updates_running_jobs()
     {
-        $runningJob = ScraperJob::create([
+        $jobId = \Illuminate\Support\Facades\DB::table('scraper_jobs')->insertGetId([
             'name' => 'Running Job',
-            'type' => 'URL_SCAN',
+            'type' => 'ingestion',
             'status' => 'PROCESSING',
-            'worker_id' => 'worker-test'
+            'worker_id' => 'worker-test',
+            'updated_at' => now(),
+            'created_at' => now(),
         ]);
 
         // Admin stops scraper
-        $this->postJson('/admin/scraper/stop'); // Assuming route exists and uses stopScraper()
+        $adminUser = \App\Models\User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+        $this->actingAs($adminUser)->postJson('/admin/scraper/stop'); // Assuming route exists and uses stopScraper()
 
         $this->assertDatabaseHas('scraper_jobs', [
-            'id' => $runningJob->id,
+            'id' => $jobId,
             'status' => 'CANCEL_REQUESTED'
         ]);
     }

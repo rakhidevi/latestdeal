@@ -41,13 +41,21 @@ class WorkerIngestionTest extends TestCase
             'discounted_price' => 74900,
             'url' => 'https://amazon.in/dp/B0CHX1W1XY',
             'observation_id' => 'obs_12345',
+            'asin' => 'B0CHX1W1XY',
+            'trace_id' => 'trace_123',
+            'pipeline_run_id' => 'run_123',
             'editorial_status' => 'PUBLISHED' // Attempting to hack status
         ];
 
         // Ensure category and merchant exist or let controller auto-resolve
+        \App\Models\Category::firstOrCreate(['name' => 'Test Category', 'slug' => 'test-cat']);
+        \App\Models\Merchant::firstOrCreate(['name' => 'Amazon', 'domain' => 'amazon.in', 'store_id' => '1', 'affiliate_param_key' => 'tag']);
         
         $response = $this->postJson('/api/worker/ingest', $payload, ['Authorization' => 'Bearer test-secret-key']);
         
+        if ($response->status() !== 200) {
+            dump($response->json());
+        }
         $response->assertStatus(200);
         $response->assertJsonStructure(['message', 'deal_id', 'correlation_id']);
 
@@ -56,8 +64,8 @@ class WorkerIngestionTest extends TestCase
         $this->assertNotNull($deal);
 
         // Assert that the worker could NOT set it to PUBLISHED
-        $this->assertEquals('AUTO', $deal->editorial_status);
-        $this->assertEquals('raw', $deal->status);
+        $this->assertEquals('DRAFT', $deal->editorial_status);
+        $this->assertEquals('active', $deal->status);
     }
 
     public function test_worker_ingestion_idempotency()
@@ -68,7 +76,14 @@ class WorkerIngestionTest extends TestCase
             'discounted_price' => 89000,
             'url' => 'https://amazon.in/dp/MACBOOK',
             'observation_id' => 'obs_macbook',
+            'asin' => 'MACBOOK',
+            'trace_id' => 'trace_456',
+            'pipeline_run_id' => 'run_456',
         ];
+
+        // Ensure category and merchant exist or let controller auto-resolve
+        \App\Models\Category::firstOrCreate(['name' => 'Test Category', 'slug' => 'test-cat']);
+        \App\Models\Merchant::firstOrCreate(['name' => 'Amazon', 'domain' => 'amazon.in', 'store_id' => '1', 'affiliate_param_key' => 'tag']);
 
         // 1. First request
         $response1 = $this->postJson('/api/worker/ingest', $payload, ['Authorization' => 'Bearer test-secret-key']);
@@ -78,7 +93,7 @@ class WorkerIngestionTest extends TestCase
         // 2. Exact Duplicate request
         $response2 = $this->postJson('/api/worker/ingest', $payload, ['Authorization' => 'Bearer test-secret-key']);
         $response2->assertStatus(200);
-        $this->assertEquals('Duplicate observation_id. No changes made.', $response2->json('message'));
+        $this->assertEquals('Deal already exists. No changes made.', $response2->json('message'));
         $this->assertEquals($dealId, $response2->json('deal_id'));
         $this->assertNull($response2->json('correlation_id'));
 

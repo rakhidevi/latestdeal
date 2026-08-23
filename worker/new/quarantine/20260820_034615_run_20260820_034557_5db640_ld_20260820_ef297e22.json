@@ -1,0 +1,45 @@
+{
+    "pipeline_run_id": "run_20260820_034557_5db640",
+    "trace_id": "ld_20260820_ef297e22",
+    "profile_name": "Samsung TV >= 40%",
+    "timestamp": "2026-08-20T03:46:15.168894",
+    "asin": "B0CZRDMYCK",
+    "title": "Compatible with Samsung Smart Tv Remote Control Original Model RM-G2500 with Bluetooth and Voice Command Feature with hotkeys Suitable for 6/7/8 Series TV HD UHD 4K LED QLED - Pairing Must",
+    "brand": "marman",
+    "product_url": "https://www.amazon.in/Compatible-Original-Bluetooth-RM-G2500-Television/dp/B0CZRDMYCK/ref=sr_1_6?dib=eyJ2IjoiMSJ9.OAApulAoWsNhdUptAHaST_bCJlCXlTHxqwkpgLZblrwLTqVeo6QFzUjpIt4qF0-_F7NOGm8kfyN9ttJqOyetHhpzbj1m4z1P6-DzPl2U_QB4cXUrIzJE_dC1xnEW6Gk5TnkEr0u08f0nQoRUwBkNPxNKE-l7BYrU6HiCYCTeaR36xa-9BKa29pgYJgpEROJmJ0p2tYpes9lzi3LnxxrnOzTAgxpTuf-RweZGoFHclHE.N2c8PNr6JI-ZOed0UbvrOXZV9ZXPXbvaZiTWKzgKx4Q&dib_tag=se&keywords=Samsung+TV+Samsung+TV&qid=1787177763&refinements=p_8%3A40-&sr=8-6",
+    "mrp": 2999.0,
+    "selling_price": 999.0,
+    "coupon": 0,
+    "effective_price": 999.0,
+    "displayed_discount": null,
+    "calculated_discount": 66.69,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "Samsung",
+            "actual": "marman",
+            "passed": false
+        },
+        "product_intent": {
+            "expected": "Main Product",
+            "actual": "Accessory",
+            "passed": false
+        },
+        "category": {
+            "expected": "TV",
+            "actual": [
+                "Accessories",
+                "Accessory"
+            ],
+            "passed": false
+        },
+        "discount": {
+            "required": 40,
+            "actual": 66.69,
+            "passed": true
+        }
+    }
+}

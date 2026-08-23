@@ -110,6 +110,7 @@ def submit_to_ingestion(deal: dict, trace_id: str, pipeline_run_id: str):
         "discounted_price": deal.get("discounted_price"),
         "calculated_discount": deal.get("price_intelligence", {}).get("calculated_discount"),
         "url": deal.get("url"),
+        "short_url": deal.get("short_url"),
         "observation_id": f"disc_{int(time.time())}_{deal.get('source_id', 'xx')}",
         "trace_id": trace_id,
         "editorial_status": "DRAFT",
@@ -126,14 +127,15 @@ def submit_to_ingestion(deal: dict, trace_id: str, pipeline_run_id: str):
         response.raise_for_status()
         resp_data = response.json()
         status = resp_data.get('status', 'created')
+        deal_id = resp_data.get('deal_id', None)
         pipeline_logger.info(f"Ingestion result: {status}", trace_id=trace_id, title=payload['title'])
-        return status
+        return status, deal_id
     except requests.exceptions.HTTPError as e:
         pipeline_logger.error("Failed to ingest deal", trace_id=trace_id, error=str(e), response=e.response.text)
-        return "failed"
+        return "failed", None
     except Exception as e:
         pipeline_logger.error("Failed to ingest deal", trace_id=trace_id, error=str(e))
-        return "failed"
+        return "failed", None
 
 def check_source_confidence(raw_deal: dict) -> tuple[bool, str]:
     if not raw_deal.get('source_id'):
@@ -217,7 +219,8 @@ def main():
         "ingested_failed": 0,
         "duplicates": 0,
         "search_page_failures": getattr(discovery, 'search_page_failures', 0),
-        "source_extraction_failures": 0
+        "source_extraction_failures": 0,
+        "ingested_deal_ids": []
     }
 
     for raw_deal in all_raw_deals:
@@ -279,8 +282,27 @@ def main():
         if val_result.get('validation_status') == 'PASS':
             metrics['accepted'] += 1
             if not SCRAPER_VALIDATION_MODE:
-                ingest_status = submit_to_ingestion(deal, trace_id, pipeline_run_id)
+                # Automate SiteStripe extraction
+                pipeline_logger.info("Fetching SiteStripe shortlink automatically...", trace_id=trace_id)
+                try:
+                    import sys
+                    if ".." not in sys.path:
+                        sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+                    from sitestripe_scraper import get_sitestripe_link_and_data
+                    
+                    stripe_data = get_sitestripe_link_and_data(deal.get('url'))
+                    if stripe_data and stripe_data.get('sitestripe_url'):
+                        deal['short_url'] = stripe_data.get('sitestripe_url')
+                        pipeline_logger.info(f"Generated Short URL: {deal['short_url']}", trace_id=trace_id)
+                    else:
+                        pipeline_logger.warning("Failed to generate short URL. Ingesting without it.", trace_id=trace_id)
+                except Exception as e:
+                    pipeline_logger.error(f"SiteStripe automation error: {e}", trace_id=trace_id)
+                
+                ingest_status, deal_id = submit_to_ingestion(deal, trace_id, pipeline_run_id)
                 metrics[f'ingested_{ingest_status}'] += 1
+                if deal_id:
+                    metrics['ingested_deal_ids'].append(deal_id)
         else:
             # Determine reason for rejection
             checks = val_result.get('validation_checks', {})
@@ -320,6 +342,8 @@ def main():
         print(f" Ingested (Updated):          {metrics['ingested_updated']}")
         print(f" Ingested (Existing):         {metrics['ingested_existing']}")
         print(f" Ingested (Failed):           {metrics['ingested_failed']}")
+        if metrics.get('ingested_deal_ids'):
+            print(f" INGESTED_DEAL_IDS:           {','.join(map(str, metrics['ingested_deal_ids']))}")
     print("="*50 + "\n")
 
 if __name__ == "__main__":

@@ -8,13 +8,13 @@ from worker.new.sdk.discovery.planning.deduplicator import Deduplicator
 from worker.new.sdk.discovery.planning.search_space_builder import SearchSpaceBuilder
 from worker.new.sdk.discovery.planning.permutation_engine import PermutationEngine
 from worker.new.sdk.discovery.planning.planner import DiscoveryPlanner
-from worker.new.sdk.foundation.dto.models import ProviderManifestDTO
+from worker.new.sdk.foundation.dto.models import PluginManifestV2
 
 class TestDiscoveryPlanningEngine(unittest.TestCase):
     def setUp(self):
         # 1. Capabilities & Constraints
         self.matrix = CapabilityMatrix()
-        self.matrix.register_manifest(ProviderManifestDTO(
+        self.matrix.register_manifest(PluginManifestV2(
             name="amazon", version="1.0", supports_brand=True, supports_discount=True, supports_prime=True
         ))
         self.constraint_engine = ConstraintEngine(self.matrix)

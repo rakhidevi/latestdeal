@@ -1,0 +1,37 @@
+{
+    "pipeline_run_id": "run_20260820_024414_f50d43",
+    "trace_id": "ld_20260820_d2b08ab1",
+    "profile_name": "LG Appliances >= 0%",
+    "timestamp": "2026-08-20T02:44:22.422667",
+    "asin": "B09WRV4MR2",
+    "title": "LG AC Remote Control Compatible for 36m LG Split Air Conditioner Plasma Dry Mode (Please Check All Photos & Match All Button)",
+    "brand": null,
+    "product_url": "https://www.amazon.in#",
+    "mrp": 1400.0,
+    "selling_price": 259.0,
+    "coupon": 0,
+    "effective_price": 259.0,
+    "displayed_discount": null,
+    "calculated_discount": 81.5,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": null,
+            "passed": false
+        },
+        "category": {
+            "expected": "Appliances",
+            "actual": [],
+            "passed": false
+        },
+        "discount": {
+            "required": 0,
+            "actual": 81.5,
+            "passed": true
+        }
+    }
+}

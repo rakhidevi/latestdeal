@@ -1,0 +1,32 @@
+{
+    "pipeline_run_id": "run_20260820_024252_7c537a",
+    "trace_id": "ld_20260820_2482bb36",
+    "profile_name": "LG  >= 0%",
+    "timestamp": "2026-08-20T02:43:19.871272",
+    "asin": "B0D8TCQ8GT",
+    "title": "Top Load Fully Automatic Washing Machine Cover for LG, Samsung, IFB, Whirlpool, Suitable for 6 KG & 6.5 KG - Waterproof, Dustproof Cover (Print-4)",
+    "brand": null,
+    "product_url": "https://www.amazon.in#",
+    "mrp": 1199.0,
+    "selling_price": 398.0,
+    "coupon": 0,
+    "effective_price": 398.0,
+    "displayed_discount": null,
+    "calculated_discount": 66.81,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "FAIL",
+    "validation_checks": {
+        "brand": {
+            "expected": "LG",
+            "actual": null,
+            "passed": false
+        },
+        "discount": {
+            "required": 0,
+            "actual": 66.81,
+            "passed": true
+        }
+    }
+}

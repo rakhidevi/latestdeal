@@ -6,7 +6,7 @@ use Livewire\Component;
 use Livewire\Attributes\Middleware;
 use App\Services\Studio\StudioAPI;
 
-#[Middleware('studio.admin')]
+#[Middleware('admin')]
 class AdminCenter extends Component
 {
     protected StudioAPI $studio;

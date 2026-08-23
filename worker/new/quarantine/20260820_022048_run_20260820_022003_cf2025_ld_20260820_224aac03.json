@@ -1,0 +1,39 @@
+{
+    "pipeline_run_id": "run_20260820_022003_cf2025",
+    "trace_id": "ld_20260820_224aac03",
+    "profile_name": "Puma Shoes >= 60%",
+    "timestamp": "2026-08-20T02:20:48.878517",
+    "asin": "B0D6VR12S9",
+    "title": "Women Ultimate Ease Walking Shoe",
+    "brand": "PUMA",
+    "product_url": "https://www.amazon.in/Puma-Womens-Ultimate-Mist-Club-Walking/dp/B0D6VR12S9/ref=sr_1_5?dib=eyJ2IjoiMSJ9.XFrtckISJvFUqZ892KoIRCCCFHLS3R4kTepzGLNzk2waFT-5ODJJMnieqRa5RCtaEYXN7GPvmG_qfkX_i5LYJ9-Tnp2N9-a-4MMBNr-y8UXFNQ13kHjAVN6OeleJaZrtE6oAD5E28BAf1CQXglIH81RBz6f3JlhnOKOhFUx8-quyCwQokG65QJIgKqSeDFXHeKhwnmlW7ApEQ1x86hgAdT-gEwmDgWz4B2TuNznMvNw._refOZKE9Fc1NBtaFOJfyy6tJmGXf8eKmQTXFKlN5hc&dib_tag=se&keywords=Puma+Shoes&qid=1787172608&refinements=p_8%3A60-&sr=8-5",
+    "mrp": 3999.0,
+    "selling_price": 1599.0,
+    "coupon": 0,
+    "effective_price": 1599.0,
+    "displayed_discount": null,
+    "calculated_discount": 60.02,
+    "primary_category": null,
+    "secondary_categories": [],
+    "is_duplicate": false,
+    "validation_status": "PASS",
+    "validation_checks": {
+        "brand": {
+            "expected": "Puma",
+            "actual": "PUMA",
+            "passed": true
+        },
+        "category": {
+            "expected": "Shoes",
+            "actual": [
+                "Shoes"
+            ],
+            "passed": true
+        },
+        "discount": {
+            "required": 60,
+            "actual": 60.02,
+            "passed": true
+        }
+    }
+}

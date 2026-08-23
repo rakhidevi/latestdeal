@@ -456,3 +456,15 @@ class PublishingContext(BaseDTO):
     caption: Optional[str] = None
     category_name: Optional[str] = None
     publisher_metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class PublishRequestDTO(BaseDTO):
+    trace_id: str
+    target_id: str
+    deal_payload: dict
+
+class PublishResultDTO(BaseDTO):
+    publish_request_id: str
+    trace_id: str
+    success: bool
+    published_url: Optional[str] = None
+
