@@ -47,9 +47,6 @@ Route::get('/go/{deal:hash_id}', [\App\Http\Controllers\RedirectController::clas
 // Deal Detail Page
 Route::get('/deal/{deal:slug}', [\App\Http\Controllers\DealController::class, 'show'])->name('deal.show');
 
-// Dedicated Search Engine
-Route::get('/search', [\App\Http\Controllers\Frontend\SearchController::class, 'index'])->name('search');
-
 // AI Shopping Assistant
 Route::get('/assistant', function () {
     $deals = \Illuminate\Support\Facades\Cache::remember('deals.assistant', 300, function () {

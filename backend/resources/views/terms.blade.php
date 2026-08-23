@@ -1,51 +1,62 @@
 @extends('layouts.app')
 
 @section('meta')
-    <title>Terms of Service | LatestDeal</title>
-    <meta name="description" content="Read the Terms of Service for using LatestDeal, a consumer shopping intelligence platform.">
+    <title>Terms of Service | LatestDeal.in</title>
+    <meta name="description" content="Read the Terms of Service for using LatestDeal.in, a consumer shopping intelligence platform.">
     <link rel="canonical" href="{{ url('/terms') }}">
 @endsection
 
 @section('content')
-<x-info.page-container>
-    <x-info.page-header title="Terms of Service" label="Legal Info">
-        Please read these terms carefully before using our platform.
-    </x-info.page-header>
-    
-    <x-info.last-updated date="{{ date('F d, Y') }}" />
+<div class="relative min-h-screen pt-24 pb-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        <div class="text-center mb-16">
+            <span class="inline-block py-1 px-3 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-sm font-bold tracking-widest uppercase mb-4 shadow-sm">
+                Legal Info
+            </span>
+            <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight mb-4">
+                Terms of <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Service</span>
+            </h1>
+            <p class="text-lg text-slate-500 font-medium max-w-2xl mx-auto">
+                Please read these terms carefully before using our platform. Last updated on <span class="text-slate-700 font-bold">{{ date('F d, Y') }}</span>
+            </p>
+        </div>
 
-    <x-info.toc>
-        <x-info.toc-item href="#acceptance-of-terms" number="01">Acceptance of Terms</x-info.toc-item>
-        <x-info.toc-item href="#service-description" number="02">Service Description</x-info.toc-item>
-        <x-info.toc-item href="#affiliate-disclosure" number="03">Affiliate Disclosure & Transparency</x-info.toc-item>
-        <x-info.toc-item href="#accuracy-of-information" number="04">Accuracy of Information</x-info.toc-item>
-        <x-info.toc-item href="#user-accounts" number="05">User Accounts & Data</x-info.toc-item>
-        <x-info.toc-item href="#limitation-of-liability" number="06">Limitation of Liability</x-info.toc-item>
-    </x-info.toc>
+        <div class="bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-8 md:p-12 shadow-2xl shadow-slate-200/50">
+            <div class="prose prose-lg prose-slate max-w-none prose-headings:font-black prose-headings:text-slate-800">
+                
+                <h2>1. Acceptance of Terms</h2>
+                <p>
+                    By accessing and using LatestDeal.in, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our platform.
+                </p>
 
-    <x-info.section id="acceptance-of-terms" number="01" title="Acceptance of Terms">
-        <p>By accessing and using LatestDeal.in, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our platform.</p>
-    </x-info.section>
+                <h2>2. Service Description</h2>
+                <p>
+                    LatestDeal is a consumer shopping intelligence platform that provides product information, historical pricing data, AI-assisted summaries, and curated deal lists from third-party retailers (such as Amazon and Flipkart). We do not sell products directly.
+                </p>
 
-    <x-info.section id="service-description" number="02" title="Service Description">
-        <p>LatestDeal is a consumer shopping intelligence platform that provides product information, historical pricing data, AI-assisted summaries, and curated deal lists from third-party retailers (such as Amazon and Flipkart). We do not sell products directly.</p>
-    </x-info.section>
+                <h2>3. Affiliate Disclosure & Transparency</h2>
+                <p>
+                    We participate in affiliate marketing programs. When you click on links to various merchants on this site and make a purchase, this can result in this site earning a commission. This comes at no additional cost to you and does not compromise the integrity of our editorial recommendations.
+                </p>
+                
+                <h2>4. Accuracy of Information (Prices & Availability)</h2>
+                <p>
+                    While we strive for 100% accuracy, prices, stock availability, and promotional coupons on third-party sites are subject to change without notice. The final price you pay will be the price displayed at the merchant's checkout. We are not liable for any discrepancies between the price listed on LatestDeal and the final merchant price.
+                </p>
 
-    <x-info.section id="affiliate-disclosure" number="03" title="Affiliate Disclosure & Transparency">
-        <p>We participate in affiliate marketing programs. When you click on links to various merchants on this site and make a purchase, this can result in this site earning a commission. This comes at no additional cost to you and does not compromise the integrity of our editorial recommendations.</p>
-    </x-info.section>
+                <h2>5. User Accounts & Data</h2>
+                <p>
+                    If you choose to create an account to save deals or set price alerts, you are responsible for maintaining the confidentiality of your account credentials. For information on how we handle your personal data, please read our <a href="/privacy">Privacy Policy</a>.
+                </p>
 
-    <x-info.section id="accuracy-of-information" number="04" title="Accuracy of Information (Prices & Availability)">
-        <p>While we strive for 100% accuracy, prices, stock availability, and promotional coupons on third-party sites are subject to change without notice. The final price you pay will be the price displayed at the merchant's checkout. We are not liable for any discrepancies between the price listed on LatestDeal and the final merchant price.</p>
-    </x-info.section>
+                <h2>6. Limitation of Liability</h2>
+                <p>
+                    LatestDeal and its operators shall not be liable for any direct, indirect, incidental, or consequential damages resulting from your use of the site or your inability to use the site. You agree to use the site at your own risk.
+                </p>
+            </div>
+        </div>
 
-    <x-info.section id="user-accounts" number="05" title="User Accounts & Data">
-        <p>If you choose to create an account to save deals or set price alerts, you are responsible for maintaining the confidentiality of your account credentials. For information on how we handle your personal data, please read our <a href="/privacy" class="text-red-600 hover:underline">Privacy Policy</a>.</p>
-    </x-info.section>
-
-    <x-info.section id="limitation-of-liability" number="06" title="Limitation of Liability">
-        <p>LatestDeal and its operators shall not be liable for any direct, indirect, incidental, or consequential damages resulting from your use of the site or your inability to use the site. You agree to use the site at your own risk.</p>
-    </x-info.section>
-
-</x-info.page-container>
+    </div>
+</div>
 @endsection

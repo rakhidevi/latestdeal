@@ -42,19 +42,6 @@ class Deal extends Model
         'deleted' => \App\Events\DealDeleted::class,
     ];
 
-    public function getImageUrlAttribute()
-    {
-        if (empty($this->image_path)) {
-            return null;
-        }
-
-        if (Str::startsWith($this->image_path, ['http://', 'https://'])) {
-            return $this->image_path;
-        }
-
-        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path);
-    }
-
     protected static function booted()
     {
         static::saved(function ($deal) {
