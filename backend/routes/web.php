@@ -230,30 +230,14 @@ Route::get('/setup-ai-keys', function (\Illuminate\Http\Request $request) {
 
 
 Route::get('/run-fix-deals', function () {
-    try {
-        \App\Models\Deal::whereIn('editorial_status', ['IN_REVIEW', 'DISCOVERED'])->orWhereNull('editorial_status')->update(['editorial_status' => 'PUBLISHED']);
-        
-        $count = \App\Models\Deal::where('editorial_status', 'PUBLISHED')
-            ->where(function($q) {
-                $q->whereNull('editorial_summary')
-                  ->orWhereNull('pros');
-            })
-            ->update([
-                'editorial_summary' => 'This deal offers a great discount.',
-                'editorial_verdict' => 'Recommended buy.',
-                'pros' => json_encode(['Great value']),
-                'cons' => json_encode(['None found'])
-            ]);
-            
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        return response()->json([
-            'success' => true, 
-            'patched_missing_fields' => $count,
-            'publishable_deals_count' => \App\Models\Deal::publishable()->count()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()]);
-    }
+    $deal = \App\Models\Deal::where('slug', 'oneplus-15r-16gb512gb-mint-breeze-worlds-first-snapdragon-8-gen-5-7400mah-battery-personalised-ai-game-changing-165hz-display-ip68-ip69-ip66-ip69k-4k-120fps-video-76')->first();
+    return response()->json([
+        'deal' => $deal,
+        'isPublishable' => $deal ? $deal->isPublishable() : false,
+        'isIndexable' => $deal ? $deal->isIndexable() : false,
+        'empty_pros' => $deal ? empty($deal->pros) : true,
+        'empty_summary' => $deal ? empty($deal->editorial_summary) : true,
+    ]);
 });
 
 Route::get('/migrate-fresh', function () {
