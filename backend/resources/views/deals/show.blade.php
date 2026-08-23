@@ -216,7 +216,7 @@
             </div>
 
             <div class="flex justify-between items-start gap-4">
-                <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white leading-[1.3] tracking-tight">{{ $deal->title }}</h1>
+                <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white leading-[1.3] tracking-tight break-all min-w-0">{{ $deal->title }}</h1>
                 @auth
                     <form action="{{ route('deal.save', $deal->id) }}" method="POST" class="shrink-0 mt-1">
                         @csrf
