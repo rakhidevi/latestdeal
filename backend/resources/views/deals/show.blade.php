@@ -197,6 +197,7 @@
                         @endif
                     </div>
                 </div>
+            </div>
         </div>
         
         <!-- Right Column: Details & Actions -->

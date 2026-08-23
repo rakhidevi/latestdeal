@@ -230,9 +230,13 @@ Route::get('/setup-ai-keys', function (\Illuminate\Http\Request $request) {
 
 
 Route::get('/run-fix-deals', function () {
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    return response()->json(['success' => true, 'message' => 'Views and cache cleared']);
+    $cat = \App\Models\Category::where('slug', 'fashion-accessories')->first();
+    return response()->json([
+        'cat_id' => $cat->id ?? null,
+        'deal_count' => $cat ? $cat->deals()->count() : 0,
+        'publishable_deal_count' => $cat ? $cat->deals()->publishable()->count() : 0,
+        'active_deals' => $cat ? $cat->deals()->where('status', 'active')->count() : 0,
+    ]);
 });
 
 Route::get('/migrate-fresh', function () {
