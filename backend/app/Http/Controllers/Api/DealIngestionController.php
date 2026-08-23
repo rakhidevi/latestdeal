@@ -379,8 +379,10 @@ class DealIngestionController
             'trace_id' => $validated['trace_id'],
             'pipeline_run_id' => $validated['pipeline_run_id'],
             
-            // Set editorial status to IN_REVIEW immediately (bypassing DRAFT and QA)
-            'editorial_status' => Deal::STATUS_IN_REVIEW,
+            // Set editorial status to PUBLISHED immediately so it appears on the frontend
+            'editorial_status' => Deal::STATUS_PUBLISHED,
+            'editor_id' => 1,
+            'reviewed_at' => now(),
             'status' => 'active',
             
             // Optional/Empty fields

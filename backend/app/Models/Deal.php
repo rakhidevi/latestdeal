@@ -367,9 +367,7 @@ class Deal extends Model
                      ->whereNotNull('editorial_summary')
                      ->whereNotNull('editorial_verdict')
                      ->whereNotNull('pros')
-                     ->whereNotNull('cons')
-                     ->whereNotNull('editor_id')
-                     ->whereNotNull('reviewed_at');
+                     ->whereNotNull('cons');
     }
 
     /**
@@ -398,8 +396,6 @@ class Deal extends Model
         if ($this->editorial_status !== self::STATUS_PUBLISHED) return false;
         if (empty($this->editorial_summary) || empty($this->editorial_verdict)) return false;
         if (empty($this->pros) || empty($this->cons)) return false;
-        if (empty($this->best_for) || empty($this->not_for)) return false;
-        if (empty($this->editor_id) || empty($this->reviewed_at)) return false;
 
         return true;
     }
@@ -412,7 +408,6 @@ class Deal extends Model
         if ($this->editorial_status !== self::STATUS_IN_REVIEW && $this->editorial_status !== self::STATUS_PUBLISHED) return false;
         if (empty($this->editorial_summary) || empty($this->editorial_verdict)) return false;
         if (empty($this->pros) || empty($this->cons)) return false;
-        if (empty($this->best_for) || empty($this->not_for)) return false;
         
         $hasPassedQa = $this->aiGenerations()->where(function ($q) {
             $q->where('qa_result', true)
