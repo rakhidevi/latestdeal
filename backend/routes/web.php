@@ -230,26 +230,21 @@ Route::get('/setup-ai-keys', function (\Illuminate\Http\Request $request) {
 
 
 Route::get('/run-fix-deals', function () {
-    try {
-        $count = \App\Models\Deal::where('editorial_status', 'IN_REVIEW')
-            ->update([
-                'editorial_status' => 'PUBLISHED',
-                'editor_id' => 1,
-                'reviewed_at' => now()
-            ]);
-        $count2 = \App\Models\Deal::where('editorial_status', 'PUBLISHED')
-            ->whereNull('pros')
-            ->update([
-                'pros' => json_encode(['Great deal']),
-                'cons' => json_encode(['None']),
-                'editorial_summary' => 'This is a great deal.',
-                'editorial_verdict' => 'Highly recommended.'
-            ]);
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        return response()->json(['success' => true, 'updated_in_review' => $count, 'fixed_metadata' => $count2]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()]);
-    }
+    return response()->json([
+        'all_active_deals' => \App\Models\Deal::where('status', 'active')->count(),
+        'publishable_deals' => \App\Models\Deal::publishable()->count(),
+        'sample_active' => \App\Models\Deal::where('status', 'active')->first(),
+        'missing_fields' => \App\Models\Deal::where('status', 'active')->get()->map(function($deal) {
+            return [
+                'id' => $deal->id,
+                'editorial_status' => $deal->editorial_status,
+                'editorial_summary' => $deal->editorial_summary ? 'set' : 'null',
+                'editorial_verdict' => $deal->editorial_verdict ? 'set' : 'null',
+                'pros' => $deal->pros ? 'set' : 'null',
+                'cons' => $deal->cons ? 'set' : 'null'
+            ];
+        })
+    ]);
 });
 
 Route::get('/migrate-fresh', function () {
