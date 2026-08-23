@@ -7,6 +7,7 @@ class SearchQuery
     public array $brandIds = [];
     public array $categoryIds = [];
     public array $productTypeIds = [];
+    public array $merchantIds = [];
     
     public ?float $minDiscount = null;
     public ?float $maxPrice = null;

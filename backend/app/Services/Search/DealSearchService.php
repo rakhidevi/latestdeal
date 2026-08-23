@@ -27,6 +27,11 @@ class DealSearchService
             $hasStructuredFilters = true;
         }
 
+        if (!empty($query->merchantIds)) {
+            $q->whereIn('merchant_id', $query->merchantIds);
+            $hasStructuredFilters = true;
+        }
+
         if (!empty($query->minDiscount)) {
             // We assume Deal table will have effective_discount_percent or we fallback to discount_percentage
             // In the DB it might be saved as calculated_discount_percent or just discount_percentage
