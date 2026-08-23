@@ -230,21 +230,20 @@ Route::get('/setup-ai-keys', function (\Illuminate\Http\Request $request) {
 
 
 Route::get('/run-fix-deals', function () {
-    return response()->json([
-        'all_active_deals' => \App\Models\Deal::where('status', 'active')->count(),
-        'publishable_deals' => \App\Models\Deal::publishable()->count(),
-        'sample_active' => \App\Models\Deal::where('status', 'active')->first(),
-        'missing_fields' => \App\Models\Deal::where('status', 'active')->get()->map(function($deal) {
-            return [
-                'id' => $deal->id,
-                'editorial_status' => $deal->editorial_status,
-                'editorial_summary' => $deal->editorial_summary ? 'set' : 'null',
-                'editorial_verdict' => $deal->editorial_verdict ? 'set' : 'null',
-                'pros' => $deal->pros ? 'set' : 'null',
-                'cons' => $deal->cons ? 'set' : 'null'
-            ];
-        })
-    ]);
+    try {
+        $count = \App\Models\Deal::whereNull('editorial_status')->update(['editorial_status' => 'PUBLISHED']);
+        $count2 = \App\Models\Deal::where('editorial_status', 'IN_REVIEW')->update(['editorial_status' => 'PUBLISHED']);
+        
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        return response()->json([
+            'success' => true, 
+            'patched_null' => $count,
+            'patched_in_review' => $count2,
+            'publishable_deals_count' => \App\Models\Deal::publishable()->count()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
 });
 
 Route::get('/migrate-fresh', function () {
