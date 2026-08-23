@@ -230,11 +230,9 @@ Route::get('/setup-ai-keys', function (\Illuminate\Http\Request $request) {
 
 
 Route::get('/run-fix-deals', function () {
-    $logFile = storage_path('logs/laravel.log');
-    if (!file_exists($logFile)) return "No log file";
-    $lines = file($logFile);
-    $lastLines = array_slice($lines, -100);
-    return response()->json($lastLines);
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    return response()->json(['success' => true, 'message' => 'Views and cache cleared']);
 });
 
 Route::get('/migrate-fresh', function () {
