@@ -230,14 +230,11 @@ Route::get('/setup-ai-keys', function (\Illuminate\Http\Request $request) {
 
 
 Route::get('/run-fix-deals', function () {
-    $deal = \App\Models\Deal::where('slug', 'oneplus-15r-16gb512gb-mint-breeze-worlds-first-snapdragon-8-gen-5-7400mah-battery-personalised-ai-game-changing-165hz-display-ip68-ip69-ip66-ip69k-4k-120fps-video-76')->first();
-    return response()->json([
-        'deal' => $deal,
-        'isPublishable' => $deal ? $deal->isPublishable() : false,
-        'isIndexable' => $deal ? $deal->isIndexable() : false,
-        'empty_pros' => $deal ? empty($deal->pros) : true,
-        'empty_summary' => $deal ? empty($deal->editorial_summary) : true,
-    ]);
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) return "No log file";
+    $lines = file($logFile);
+    $lastLines = array_slice($lines, -100);
+    return response()->json($lastLines);
 });
 
 Route::get('/migrate-fresh', function () {
