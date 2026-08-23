@@ -574,48 +574,7 @@
     @endif
 
 
-    <!-- SEO Search Hub Editorial Content -->
-    @if(isset($hubData) && $hubData)
-        <div class="mb-8 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm">
-            <h1 class="text-3xl font-black text-gray-900 dark:text-white mb-4">{{ $hubData['title'] }}</h1>
-            <p class="text-gray-600 dark:text-slate-300 text-lg leading-relaxed mb-8">
-                {{ $hubData['intro'] }}
-            </p>
-            
-            @if(isset($hubData['faqs']) && count($hubData['faqs']) > 0)
-            <div class="mt-8 border-t border-gray-100 dark:border-slate-800 pt-8">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
-                <div class="space-y-4">
-                    @foreach($hubData['faqs'] as $faq)
-                    <div class="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-4">
-                        <h3 class="font-bold text-gray-900 dark:text-white mb-2">{{ $faq['question'] }}</h3>
-                        <p class="text-gray-600 dark:text-slate-300 text-sm">{{ $faq['answer'] }}</p>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-            
-            <script type="application/ld+json">
-            {
-              "@@context": "https://schema.org",
-              "@@type": "FAQPage",
-              "mainEntity": [
-                @foreach($hubData['faqs'] as $faq)
-                {
-                  "@@type": "Question",
-                  "name": "{{ addslashes($faq['question']) }}",
-                  "acceptedAnswer": {
-                    "@@type": "Answer",
-                    "text": "{{ addslashes($faq['answer']) }}"
-                  }
-                }{{ !$loop->last ? ',' : '' }}
-                @endforeach
-              ]
-            }
-            </script>
-            @endif
-        </div>
-    @endif
+
 
     @if(request()->is('/'))
     <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
@@ -684,6 +643,49 @@
         @endif
       </div>
       
+      <!-- SEO Search Hub Editorial Content -->
+      @if(isset($hubData) && $hubData)
+          <div class="mt-12 mb-8 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm">
+              <h1 class="text-3xl font-black text-gray-900 dark:text-white mb-4">{{ $hubData['title'] }}</h1>
+              <p class="text-gray-600 dark:text-slate-300 text-lg leading-relaxed mb-8">
+                  {{ $hubData['intro'] }}
+              </p>
+              
+              @if(isset($hubData['faqs']) && count($hubData['faqs']) > 0)
+              <div class="mt-8 border-t border-gray-100 dark:border-slate-800 pt-8">
+                  <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
+                  <div class="space-y-4">
+                      @foreach($hubData['faqs'] as $faq)
+                      <div class="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-4">
+                          <h3 class="font-bold text-gray-900 dark:text-white mb-2">{{ $faq['question'] }}</h3>
+                          <p class="text-gray-600 dark:text-slate-300 text-sm">{{ $faq['answer'] }}</p>
+                      </div>
+                      @endforeach
+                  </div>
+              </div>
+              
+              <script type="application/ld+json">
+              {
+                "@@context": "https://schema.org",
+                "@@type": "FAQPage",
+                "mainEntity": [
+                  @foreach($hubData['faqs'] as $faq)
+                  {
+                    "@@type": "Question",
+                    "name": "{{ addslashes($faq['question']) }}",
+                    "acceptedAnswer": {
+                      "@@type": "Answer",
+                      "text": "{{ addslashes($faq['answer']) }}"
+                    }
+                  }{{ !$loop->last ? ',' : '' }}
+                  @endforeach
+                ]
+              }
+              </script>
+              @endif
+          </div>
+      @endif
+
       <x-ad-banner slot="home-bottom" />
       
       <!-- Newsletter Banner -->
