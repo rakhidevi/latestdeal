@@ -230,20 +230,11 @@ Route::get('/setup-ai-keys', function (\Illuminate\Http\Request $request) {
 
 
 Route::get('/run-fix-deals', function () {
-    try {
-        $count = \App\Models\Deal::whereNull('editorial_status')->update(['editorial_status' => 'PUBLISHED']);
-        $count2 = \App\Models\Deal::where('editorial_status', 'IN_REVIEW')->update(['editorial_status' => 'PUBLISHED']);
-        
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        return response()->json([
-            'success' => true, 
-            'patched_null' => $count,
-            'patched_in_review' => $count2,
-            'publishable_deals_count' => \App\Models\Deal::publishable()->count()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()]);
-    }
+    return response()->json([
+        'statuses' => \App\Models\Deal::select('editorial_status', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+            ->groupBy('editorial_status')
+            ->get()
+    ]);
 });
 
 Route::get('/migrate-fresh', function () {
