@@ -23,9 +23,14 @@ try {
 
     // Extract again to get the fixed ArticleSeeder
     if (file_exists($zipFile)) {
-        $output = []; $return_var = 0;
-        exec("unzip -o " . escapeshellarg($zipFile) . " -d " . escapeshellarg($extractPath) . " 2>&1", $output, $return_var);
-        $results['extract_status'] = $return_var === 0 ? 'Success' : 'Failed';
+        $zip = new ZipArchive;
+        if ($zip->open($zipFile) === TRUE) {
+            $zip->extractTo($extractPath);
+            $zip->close();
+            $results['extract_status'] = 'Success';
+        } else {
+            $results['extract_status'] = 'Failed to open zip';
+        }
     }
 
     require __DIR__.'/../vendor/autoload.php';
