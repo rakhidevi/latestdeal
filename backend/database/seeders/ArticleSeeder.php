@@ -78,7 +78,7 @@ class ArticleSeeder extends Seeder
             Article::create([
                 'title' => $template['title'],
                 'slug' => Str::slug($template['title']),
-                'excerpt' => $template['excerpt'],
+                'summary' => $template['excerpt'],
                 'content' => $template['content'],
                 'status' => 'draft', // Explicitly Draft
                 'author_id' => $author->id,
