@@ -11,9 +11,7 @@ class ArticleSeeder extends Seeder
 {
     public function run()
     {
-        $author = User::whereHas('roles', function($q) {
-            $q->where('name', 'editor');
-        })->first() ?? User::factory()->create(['name' => 'Editorial Team']);
+        $author = User::where('role', 'editor')->first() ?? User::factory()->create(['name' => 'Editorial Team', 'role' => 'editor']);
 
         $templates = [
             [

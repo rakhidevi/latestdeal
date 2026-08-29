@@ -9,11 +9,28 @@ if (!isset($_GET['token']) || $_GET['token'] !== $expectedToken) {
 header('Content-Type: application/json');
 
 try {
+    $zipFile = __DIR__ . '/../deploy.zip';
+    if (!file_exists($zipFile)) {
+        if (file_exists(__DIR__ . '/deploy.zip')) {
+            $zipFile = __DIR__ . '/deploy.zip';
+        } elseif (file_exists(dirname(__DIR__, 2) . '/deploy.zip')) {
+            $zipFile = dirname(__DIR__, 2) . '/deploy.zip';
+        }
+    }
+
+    $extractPath = __DIR__ . '/../';
+    $results = [];
+
+    // Extract again to get the fixed ArticleSeeder
+    if (file_exists($zipFile)) {
+        $output = []; $return_var = 0;
+        exec("unzip -o " . escapeshellarg($zipFile) . " -d " . escapeshellarg($extractPath) . " 2>&1", $output, $return_var);
+        $results['extract_status'] = $return_var === 0 ? 'Success' : 'Failed';
+    }
+
     require __DIR__.'/../vendor/autoload.php';
     $app = require_once __DIR__.'/../bootstrap/app.php';
     $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-
-    $results = [];
 
     // Seed Guides
     $kernel->call('db:seed', ['--class' => 'ArticleSeeder', '--force' => true]);
