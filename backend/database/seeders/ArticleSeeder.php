@@ -11,7 +11,15 @@ class ArticleSeeder extends Seeder
 {
     public function run()
     {
-        $author = User::where('role', 'editor')->first() ?? User::factory()->create(['name' => 'Editorial Team', 'role' => 'editor']);
+        $author = User::where('role', 'editor')->first();
+        if (!$author) {
+            $author = new User();
+            $author->name = 'Editorial Team';
+            $author->email = 'editor' . time() . '@latestdeal.in';
+            $author->password = bcrypt('editor123');
+            $author->role = 'editor';
+            $author->save();
+        }
 
         $templates = [
             [
