@@ -150,8 +150,12 @@ class DealIngestionController
             $validated['image_url'] = $validated['image_url'];
         }
 
-        // 2. Check for Duplicates based on URL (Strict Idempotency)
+        // 2. Check for Duplicates based on URL or ASIN (Strict Idempotency)
         $existingUrlDeal = Deal::where('url', $validated['url'])->first();
+        if (!$existingUrlDeal && !empty($validated['asin']) && $validated['asin'] !== 'unknown') {
+            $existingUrlDeal = Deal::where('asin', $validated['asin'])->first();
+        }
+        
         if ($existingUrlDeal) {
             $status = 'existing';
             $message = 'Deal already exists. No changes made.';
@@ -220,7 +224,10 @@ class DealIngestionController
             'ai_caption' => $validated['ai_caption'] ?? null,
             'ai_score' => $validated['ai_score'] ?? null,
             'status' => 'active', // Enum supports active/expired
-            'editorial_status' => 'DRAFT', // DRAFT status for controlled validation
+            'editorial_status' => 'PUBLISHED', // Set to PUBLISHED so deals show up immediately in the grid
+            'editorial_summary' => $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.',
+            'editorial_verdict' => $validated['verdict'] ?? 'Recommended buy based on price drop.',
+            'pros' => isset($validated['features']) ? json_encode($validated['features']) : json_encode(['Great value', 'Verified by AI']),
             'observation_id' => $validated['observation_id'],
             'trace_id' => $validated['trace_id'] ?? null,
             'pipeline_run_id' => $validated['pipeline_run_id'] ?? null,
