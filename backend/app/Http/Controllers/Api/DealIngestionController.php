@@ -228,6 +228,7 @@ class DealIngestionController
             'editorial_summary' => $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.',
             'editorial_verdict' => $validated['verdict'] ?? 'Recommended buy based on price drop.',
             'pros' => isset($validated['features']) ? json_encode($validated['features']) : json_encode(['Great value', 'Verified by AI']),
+            'cons' => json_encode(['Price subject to change based on merchant availability']),
             'observation_id' => $validated['observation_id'],
             'trace_id' => $validated['trace_id'] ?? null,
             'pipeline_run_id' => $validated['pipeline_run_id'] ?? null,
