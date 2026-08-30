@@ -37,17 +37,20 @@ jobs:
           
       - name: Upload to FTP
         run: |
-          # Upload deploy.zip to the correct live folder
-          curl -T deploy.zip ftp://${{ secrets.FTP_SERVER }}/public_html/deploy.zip --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+          # Upload deploy.zip to the root folder
+          curl -T deploy.zip ftp://${{ secrets.FTP_SERVER }}/ --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
           
-          # Upload recovery_30days.php to the correct public folder
-          curl -T backend/public/recovery_30days.php ftp://${{ secrets.FTP_SERVER }}/public_html/public/recovery_30days.php --user ${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}
+          # Upload unzip.php to the public folder so it can be hit via web
+          curl -T backend/public/recovery_30days.php ftp://${{ secrets.FTP_SERVER }}/public/recovery_30days.php --user ${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}
           
-          # Upload fix_images.php to the correct public folder
-          curl -T backend/public/fix_images.php ftp://${{ secrets.FTP_SERVER }}/public_html/public/fix_images.php --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+          # Upload fix_images.php — patches APP_URL in .env and creates storage symlink
+          curl -T backend/public/fix_images.php ftp://${{ secrets.FTP_SERVER }}/public/fix_images.php --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
 
       - name: Trigger Extraction
         run: |
+          echo "Triggering extraction on the server..."
+          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" https://latestdeal.in/unzip.php
+          
           echo "Triggering explicit migration..."
           curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://latestdeal.in/unzip.php?migrate=1"
           
