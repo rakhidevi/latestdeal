@@ -301,3 +301,4 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/module/{module}', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->name('placeholder');
 
         
+Route::get('/debug-deal-25', function() { return \App\Models\Deal::find(25); });
