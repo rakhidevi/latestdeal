@@ -70,14 +70,16 @@ class Deal extends Model
             }
             
             // Critical Scraper Safeguard
-            if (!auth()->check() && $deal->editorial_status === self::STATUS_PUBLISHED) {
+            $isWorkerApi = request()->is('api/worker/*');
+            if (!auth()->check() && !$isWorkerApi && $deal->editorial_status === self::STATUS_PUBLISHED) {
                 $deal->editorial_status = self::STATUS_DISCOVERED; // Default to DISCOVERED if unauthenticated system tries to publish
             }
         });
 
         static::updating(function ($deal) {
             // Critical Scraper Safeguard
-            if (!auth()->check() && $deal->isDirty('editorial_status') && $deal->editorial_status === self::STATUS_PUBLISHED) {
+            $isWorkerApi = request()->is('api/worker/*');
+            if (!auth()->check() && !$isWorkerApi && $deal->isDirty('editorial_status') && $deal->editorial_status === self::STATUS_PUBLISHED) {
                 $deal->editorial_status = $deal->getOriginal('editorial_status'); // Revert
             }
             
