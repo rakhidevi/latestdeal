@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * Emergency diagnostic + repair for deal 404 issue.
+ * Checks ALL possible failure conditions in isPublishable() and fixes them.
+ */
 require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
@@ -9,141 +12,147 @@ header('Content-Type: text/plain');
 
 try {
     $db = \Illuminate\Support\Facades\DB::connection()->getPdo();
-    echo "DB connected: " . get_class($db) . "\n\n";
+    $driver = get_class($db);
+    echo "DB driver: {$driver}\n\n";
 
-    // ----------------------------------------------------------------
-    // STEP 1: Promote IN_REVIEW deals to PUBLISHED
-    // ----------------------------------------------------------------
-    $count1 = \App\Models\Deal::where('status', 'active')
-        ->where('editorial_status', 'IN_REVIEW')
-        ->update([
-            'editorial_status' => 'PUBLISHED',
-            'editor_id'        => 1,
-            'reviewed_at'      => now(),
-        ]);
-    echo "STEP 1: Promoted {$count1} IN_REVIEW deals to PUBLISHED.\n";
-
-    // ----------------------------------------------------------------
-    // STEP 2: Promote any other non-PUBLISHED active deals
-    // ----------------------------------------------------------------
-    $count2 = \App\Models\Deal::where('status', 'active')
-        ->where('editorial_status', '!=', 'PUBLISHED')
-        ->update([
-            'editorial_status' => 'PUBLISHED',
-            'editor_id'        => 1,
-            'reviewed_at'      => now(),
-        ]);
-    echo "STEP 2: Promoted {$count2} other non-PUBLISHED active deals.\n";
-
-    // ----------------------------------------------------------------
-    // STEP 3: Fix deals with NULL or empty editorial_summary
-    // (empty string "" passes whereNotNull but fails isPublishable)
-    // ----------------------------------------------------------------
-    $count3 = \App\Models\Deal::where('status', 'active')
-        ->where('editorial_status', 'PUBLISHED')
-        ->where(function($q) {
-            $q->whereNull('editorial_summary')->orWhere('editorial_summary', '');
-        })
-        ->update([
-            'editorial_summary' => 'Great deal handpicked by LatestDeal AI. Limited time offer — check the price before it expires.',
-            'editorial_verdict' => 'Recommended buy based on significant price drop.',
-        ]);
-    echo "STEP 3: Fixed {$count3} deals with missing/empty editorial_summary.\n";
-
-    // ----------------------------------------------------------------
-    // STEP 4: Fix deals with NULL or empty editorial_verdict
-    // ----------------------------------------------------------------
-    $count4 = \App\Models\Deal::where('status', 'active')
-        ->where('editorial_status', 'PUBLISHED')
-        ->where(function($q) {
-            $q->whereNull('editorial_verdict')->orWhere('editorial_verdict', '');
-        })
-        ->update([
-            'editorial_verdict' => 'Recommended buy based on significant price drop.',
-        ]);
-    echo "STEP 4: Fixed {$count4} deals with missing/empty editorial_verdict.\n";
-
-    // ----------------------------------------------------------------
-    // STEP 5: Fix deals with NULL pros (json_encode to valid JSON array)
-    // ----------------------------------------------------------------
-    $count5 = \App\Models\Deal::where('status', 'active')
-        ->where('editorial_status', 'PUBLISHED')
-        ->whereNull('pros')
-        ->update([
-            'pros' => json_encode(['Great value for money', 'Verified by LatestDeal AI']),
-            'cons' => json_encode(['Price subject to change']),
-        ]);
-    echo "STEP 5: Fixed {$count5} deals with NULL pros/cons.\n";
-
-    // ----------------------------------------------------------------
-    // STEP 6: Fix deals with NULL cons only
-    // ----------------------------------------------------------------
-    $count6 = \App\Models\Deal::where('status', 'active')
-        ->where('editorial_status', 'PUBLISHED')
-        ->whereNull('cons')
-        ->update([
-            'cons' => json_encode(['Price subject to change']),
-        ]);
-    echo "STEP 6: Fixed {$count6} deals with NULL cons.\n";
-
-    // ----------------------------------------------------------------
-    // STEP 7: Audit — how many deals are now publishable?
-    // ----------------------------------------------------------------
-    $total = \App\Models\Deal::where('status', 'active')->count();
-    $publishable = \App\Models\Deal::where('status', 'active')
-        ->where('editorial_status', 'PUBLISHED')
-        ->whereNotNull('editorial_summary')
-        ->where('editorial_summary', '!=', '')
-        ->whereNotNull('editorial_verdict')
-        ->where('editorial_verdict', '!=', '')
-        ->whereNotNull('pros')
-        ->whereNotNull('cons')
-        ->count();
-
-    echo "\nAUDIT:\n";
-    echo "  Total active deals: {$total}\n";
-    echo "  Fully publishable:  {$publishable}\n";
-    echo "  Broken (404):       " . ($total - $publishable) . "\n";
-
-    // ----------------------------------------------------------------
-    // STEP 8: Show sample of remaining broken deals for debugging
-    // ----------------------------------------------------------------
-    $stillBroken = \App\Models\Deal::where('status', 'active')
-        ->where(function($q) {
-            $q->where('editorial_status', '!=', 'PUBLISHED')
-              ->orWhereNull('editorial_summary')
-              ->orWhere('editorial_summary', '')
-              ->orWhereNull('editorial_verdict')
-              ->orWhere('editorial_verdict', '')
-              ->orWhereNull('pros')
-              ->orWhereNull('cons');
-        })
-        ->limit(5)
-        ->get(['id', 'title', 'editorial_status', 'editorial_summary', 'pros', 'cons']);
-
-    if ($stillBroken->count()) {
-        echo "\nSample still-broken deals:\n";
-        foreach ($stillBroken as $d) {
-            echo "  ID {$d->id}: [{$d->editorial_status}] '{$d->title}'\n";
-            echo "    summary=" . (is_null($d->editorial_summary) ? 'NULL' : '"'.$d->editorial_summary.'"') . "\n";
-            echo "    pros=" . (is_null($d->pros) ? 'NULL' : json_encode($d->pros)) . "\n";
-        }
-    } else {
-        echo "\n✅ All active deals are now fully publishable!\n";
+    // --- DIAGNOSTIC: check a sample deal ---
+    $sample = \App\Models\Deal::where('status', 'active')->orderBy('id', 'desc')->first();
+    if ($sample) {
+        echo "=== SAMPLE DEAL (latest active) ===\n";
+        echo "ID: {$sample->id}\n";
+        echo "Title: " . substr($sample->title, 0, 60) . "\n";
+        echo "editorial_status: " . var_export($sample->editorial_status, true) . "\n";
+        echo "editorial_summary: " . var_export(substr($sample->editorial_summary ?? 'NULL', 0, 60), true) . "\n";
+        echo "editorial_verdict: " . var_export(substr($sample->editorial_verdict ?? 'NULL', 0, 60), true) . "\n";
+        echo "pros (raw): " . var_export($sample->getRawOriginal('pros'), true) . "\n";
+        echo "pros (cast): " . var_export($sample->pros, true) . "\n";
+        echo "cons (cast): " . var_export($sample->cons, true) . "\n";
+        echo "status: " . var_export($sample->status, true) . "\n";
+        echo "isPublishable(): " . ($sample->isPublishable() ? 'YES' : 'NO') . "\n";
+        echo "isIndexable(): " . ($sample->isIndexable() ? 'YES' : 'NO') . "\n\n";
     }
 
-    // ----------------------------------------------------------------
-    // Clear all Laravel caches
-    // ----------------------------------------------------------------
+    // --- DIAGNOSTIC: editorial_status breakdown ---
+    echo "=== EDITORIAL STATUS BREAKDOWN ===\n";
+    $counts = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->selectRaw('editorial_status, count(*) as cnt')
+        ->groupBy('editorial_status')
+        ->get();
+    foreach ($counts as $c) {
+        echo "  [{$c->editorial_status}] = {$c->cnt} deals\n";
+    }
+
+    // --- DIAGNOSTIC: how many have empty-string summary ---
+    $emptySum = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->where(function($q) { $q->whereNull('editorial_summary')->orWhere('editorial_summary', ''); })
+        ->count();
+    echo "\nDeals with NULL or empty editorial_summary: {$emptySum}\n";
+
+    $emptyVerdict = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->where(function($q) { $q->whereNull('editorial_verdict')->orWhere('editorial_verdict', ''); })
+        ->count();
+    echo "Deals with NULL or empty editorial_verdict: {$emptyVerdict}\n";
+
+    $nullPros = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->whereNull('pros')
+        ->count();
+    $jsonNullPros = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->where('pros', 'null')
+        ->count();
+    echo "Deals with SQL NULL pros: {$nullPros}\n";
+    echo "Deals with JSON 'null' string pros: {$jsonNullPros}\n";
+
+    $notPublished = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->where('editorial_status', '!=', 'PUBLISHED')
+        ->count();
+    echo "Deals with non-PUBLISHED editorial_status: {$notPublished}\n\n";
+
+    // --- FIX: Run all repairs ---
+    echo "=== APPLYING FIXES ===\n";
+
+    // Fix 1: Non-PUBLISHED
+    $f1 = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->where('editorial_status', '!=', 'PUBLISHED')
+        ->update(['editorial_status' => 'PUBLISHED', 'editor_id' => 1, 'reviewed_at' => now()]);
+    echo "Fix 1 (non-PUBLISHED → PUBLISHED): {$f1} rows\n";
+
+    // Fix 2: NULL or empty editorial_summary
+    $f2 = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->where(function($q) { $q->whereNull('editorial_summary')->orWhere('editorial_summary', ''); })
+        ->update(['editorial_summary' => 'Great deal handpicked by LatestDeal AI. Limited time offer — verify the price before it expires.']);
+    echo "Fix 2 (empty editorial_summary): {$f2} rows\n";
+
+    // Fix 3: NULL or empty editorial_verdict
+    $f3 = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->where(function($q) { $q->whereNull('editorial_verdict')->orWhere('editorial_verdict', ''); })
+        ->update(['editorial_verdict' => 'Recommended buy based on significant price drop.']);
+    echo "Fix 3 (empty editorial_verdict): {$f3} rows\n";
+
+    // Fix 4: SQL NULL pros
+    $f4 = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->whereNull('pros')
+        ->update(['pros' => json_encode(['Great value for money', 'Verified by LatestDeal AI'])]);
+    echo "Fix 4 (NULL pros): {$f4} rows\n";
+
+    // Fix 5: JSON string 'null' pros (stored as literal "null" not SQL NULL)
+    $f5 = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->where('pros', 'null')
+        ->update(['pros' => json_encode(['Great value for money', 'Verified by LatestDeal AI'])]);
+    echo "Fix 5 (JSON 'null' string pros): {$f5} rows\n";
+
+    // Fix 6: NULL cons
+    $f6 = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->whereNull('cons')
+        ->update(['cons' => json_encode(['Price subject to change'])]);
+    echo "Fix 6 (NULL cons): {$f6} rows\n";
+
+    // Fix 7: JSON string 'null' cons
+    $f7 = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->where('cons', 'null')
+        ->update(['cons' => json_encode(['Price subject to change'])]);
+    echo "Fix 7 (JSON 'null' string cons): {$f7} rows\n";
+
+    // --- VERIFY ---
+    echo "\n=== VERIFICATION ===\n";
+    $total = \Illuminate\Support\Facades\DB::table('deals')->where('status', 'active')->count();
+    $publishable = \Illuminate\Support\Facades\DB::table('deals')
+        ->where('status', 'active')
+        ->where('editorial_status', 'PUBLISHED')
+        ->whereNotNull('editorial_summary')->where('editorial_summary', '!=', '')
+        ->whereNotNull('editorial_verdict')->where('editorial_verdict', '!=', '')
+        ->whereNotNull('pros')->where('pros', '!=', 'null')
+        ->whereNotNull('cons')->where('cons', '!=', 'null')
+        ->count();
+    echo "Total active: {$total}\n";
+    echo "Publishable: {$publishable}\n";
+    echo "Still broken: " . ($total - $publishable) . "\n";
+
+    // Check sample again after fix
+    $sample2 = \App\Models\Deal::where('status', 'active')->orderBy('id', 'desc')->first();
+    if ($sample2) {
+        echo "\n=== RE-CHECK SAMPLE DEAL ===\n";
+        echo "isPublishable(): " . ($sample2->isPublishable() ? 'YES ✅' : 'NO ❌') . "\n";
+        echo "isIndexable(): " . ($sample2->isIndexable() ? 'YES ✅' : 'NO ❌') . "\n";
+    }
+
+    // Clear caches
     \Illuminate\Support\Facades\Artisan::call('cache:clear');
     \Illuminate\Support\Facades\Artisan::call('view:clear');
-    if (function_exists('opcache_reset')) {
-        opcache_reset();
-        echo "\n✅ OPcache reset.\n";
-    } else {
-        echo "\n⚠️  opcache_reset() not available — OPcache NOT cleared.\n";
-    }
-    echo "✅ Application caches cleared.\n";
+    if (function_exists('opcache_reset')) { opcache_reset(); echo "\n✅ OPcache reset\n"; }
+    echo "✅ Caches cleared\n";
 
 } catch (\Exception $e) {
     echo "ERROR: " . $e->getMessage() . "\n" . $e->getTraceAsString();
