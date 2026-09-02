@@ -337,3 +337,4 @@ Route::get('/storage/{path}', function ($path) {
     ]);
 })->where('path', '.*');
 Route::get('/admin/studio/knowledge-center', function () { return 'dummy'; })->name('admin.studio.knowledge-center');
+Route::get('/debug-latest-deals', function() { return \App\Models\Deal::orderBy('id', 'desc')->limit(10)->get(['id', 'title', 'editorial_status', 'status']); });
