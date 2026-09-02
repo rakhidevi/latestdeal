@@ -150,10 +150,16 @@ class DealIngestionController
             $validated['image_url'] = $validated['image_url'];
         }
 
-        // 2. Check for Duplicates based on URL or ASIN (Strict Idempotency)
+        // 2. Check for Duplicates based on URL or ASIN or Exact Title (Strict Idempotency & Variation handling)
         $existingUrlDeal = Deal::where('url', $validated['url'])->first();
         if (!$existingUrlDeal && !empty($validated['asin']) && $validated['asin'] !== 'unknown') {
             $existingUrlDeal = Deal::where('asin', $validated['asin'])->first();
+        }
+        if (!$existingUrlDeal && !empty($validated['title'])) {
+            // Prevent multiple variations of the same product (different ASIN/URL but exact same title)
+            $existingUrlDeal = Deal::where('title', $validated['title'])
+                                   ->where('merchant_id', $validated['merchant_id'])
+                                   ->first();
         }
         
         if ($existingUrlDeal) {
