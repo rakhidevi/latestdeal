@@ -396,8 +396,8 @@ class Deal extends Model
     public function isPublishable(): bool
     {
         if ($this->editorial_status !== self::STATUS_PUBLISHED) return false;
-        if (empty($this->editorial_summary) || empty($this->editorial_verdict)) return false;
-        if (empty($this->pros) || empty($this->cons)) return false;
+        if (is_null($this->editorial_summary) || is_null($this->editorial_verdict)) return false;
+        if (is_null($this->pros) || is_null($this->cons)) return false;
 
         return true;
     }
@@ -408,8 +408,8 @@ class Deal extends Model
     public function canPublish(): bool
     {
         if ($this->editorial_status !== self::STATUS_IN_REVIEW && $this->editorial_status !== self::STATUS_PUBLISHED) return false;
-        if (empty($this->editorial_summary) || empty($this->editorial_verdict)) return false;
-        if (empty($this->pros) || empty($this->cons)) return false;
+        if (is_null($this->editorial_summary) || is_null($this->editorial_verdict)) return false;
+        if (is_null($this->pros) || is_null($this->cons)) return false;
         
         $hasPassedQa = $this->aiGenerations()->where(function ($q) {
             $q->where('qa_result', true)
