@@ -338,3 +338,4 @@ Route::get('/storage/{path}', function ($path) {
 })->where('path', '.*');
 Route::get('/admin/studio/knowledge-center', function () { return 'dummy'; })->name('admin.studio.knowledge-center');
 Route::get('/debug-latest-deals', function() { return \App\Models\Deal::orderBy('id', 'desc')->limit(10)->get(['id', 'title', 'editorial_status', 'status']); });
+Route::get('/debug-is-indexable/{id}', function($id) { $deal = \App\Models\Deal::find($id); return ['isPublishable' => $deal->isPublishable(), 'isIndexable' => $deal->isIndexable(), 'editorial_status' => $deal->editorial_status, 'summary' => $deal->editorial_summary, 'verdict' => $deal->editorial_verdict, 'pros' => $deal->pros, 'cons' => $deal->cons, 'status' => $deal->status]; });
