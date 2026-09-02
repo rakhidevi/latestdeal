@@ -26,11 +26,7 @@ class WorkerAuthMiddleware
         $token = $request->bearerToken() ?: $request->header('X-Worker-Key') ?: $request->input('worker_api_key');
 
         if ($token !== $expectedKey) {
-            return response()->json([
-                'error' => 'Unauthorized - Debug V4', 
-                'received_token' => $token,
-                'expected_token' => $expectedKey
-            ], 401);
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         return $next($request);
