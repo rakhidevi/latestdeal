@@ -176,15 +176,25 @@ class AmazonPublisher(BasePublisher):
             
             with sync_playwright() as p:
                 context = None
+                for attempt in range(2):
+                    try:
+                        context = p.chromium.launch_persistent_context(
+                            user_data_dir=user_data_dir,
+                            headless=False,
+                            executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                            permissions=["clipboard-read", "clipboard-write"],
+                            args=["--disable-blink-features=AutomationControlled"]
+                        )
+                        break
+                    except Exception as e:
+                        if attempt == 0:
+                            import subprocess, sys
+                            subprocess.run([sys.executable, os.path.join(project_root, "worker", "kill_zombie_chrome.py")])
+                            time.sleep(2)
+                        else:
+                            raise e
+                
                 try:
-                    context = p.chromium.launch_persistent_context(
-                        user_data_dir=user_data_dir,
-                        headless=False,
-                        executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-                        permissions=["clipboard-read", "clipboard-write"],
-                        args=["--disable-blink-features=AutomationControlled"]
-                    )
-                    
                     page = context.pages[0] if context.pages else context.new_page()
                     Stealth().use_sync(page)
                     
@@ -199,6 +209,9 @@ class AmazonPublisher(BasePublisher):
                         # Step 1: Wait for the SiteStripe bar to load
                         page.wait_for_selector("#amzn-ss-wrap", timeout=15000)
                         time.sleep(1.5)
+                        
+                        import pyperclip
+                        pyperclip.copy("") # Clear clipboard first
                         
                         # Step 2: Click the "Get Link." button to open the popover
                         # Try multiple possible selectors for the Get Link button
@@ -252,7 +265,14 @@ class AmazonPublisher(BasePublisher):
                             pass
                         
                         time.sleep(1.0)
-                        short_url = page.evaluate("navigator.clipboard.readText()")
+                        
+                        try:
+                            short_url = page.evaluate("navigator.clipboard.readText()")
+                        except:
+                            short_url = ""
+                            
+                        if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
+                            short_url = pyperclip.paste()
                         
                     except Exception as e:
                         print(f"SiteStripe automation failed: {e}")

@@ -187,8 +187,20 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             review_count = ""
             review_el = page.locator("#acrCustomerReviewText").first
             if review_el.count() > 0:
-                review_count = review_el.text_content().strip()
+                raw_text = review_el.text_content().strip()
+                import re
+                cleaned = re.sub(r'[^\d]', '', raw_text)
+                if cleaned:
+                    review_count = int(cleaned)
                 
+            # 1.5 Extract Prime / FBA status
+            is_prime = False
+            is_fulfilled = False
+            if page.locator("i.a-icon-prime").count() > 0 or "prime" in (page.locator("#primeSavingsBadge").text_content() or "").lower():
+                is_prime = True
+            if page.locator("span.a-declarative:has-text('Fulfilled by Amazon')").count() > 0 or "fulfilled by amazon" in (page.locator("#merchant-info").text_content() or "").lower():
+                is_fulfilled = True
+
             # 2. SiteStripe Automation
             print("Looking for SiteStripe bar...")
             short_url = ""
@@ -198,6 +210,9 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                     
                 print("Clicking SiteStripe 'Get Link' button...")
                 sitestripe_text_btn.click(force=True)
+                
+                import pyperclip
+                pyperclip.copy("") # Clear clipboard first
                 
                 # Wait for popover to appear
                 print("Waiting for popover...")
@@ -214,7 +229,15 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                     
                 time.sleep(1) # Extra buffer for clipboard to write
                 
-                short_url = page.evaluate("navigator.clipboard.readText()")
+                try:
+                    short_url = page.evaluate("navigator.clipboard.readText()")
+                except:
+                    short_url = ""
+                
+                if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
+                    print("Browser clipboard API failed. Falling back to OS clipboard (pyperclip)...")
+                    short_url = pyperclip.paste()
+
                 if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
                     print(f"Failed to extract valid short URL from clipboard. Found: {short_url}")
                     short_url = ""
@@ -239,6 +262,8 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                 "image_url": image_url,
                 "star_rating": star_rating,
                 "review_count": review_count,
+                "is_prime": is_prime,
+                "is_fulfilled": is_fulfilled,
                 "scraper_type": "SiteStripe Automation"
             }
             

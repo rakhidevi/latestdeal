@@ -48,7 +48,7 @@ class DealIngestionController
             'trust_metrics' => 'nullable|string',
             'confidence_score' => 'nullable|integer',
             'confidence_reasons' => 'nullable|string',
-            'ai_score' => 'nullable|integer|min:1|max:100',
+            'ai_score' => 'nullable|integer|min:-100|max:100',
             'short_url' => 'nullable|url',
             'observation_id' => 'required|string',
             'editorial_status' => 'nullable|string', // Will be ignored and forced to AUTO
@@ -171,22 +171,39 @@ class DealIngestionController
             $status = 'existing';
             $message = 'Deal already exists. No changes made.';
             
-            // If price changed, update price only (do not touch editorial content)
-            if ($existingUrlDeal->discounted_price != $validated['discounted_price']) {
-                \App\Models\PriceHistory::create([
-                    'deal_id' => $existingUrlDeal->id,
-                    'price' => $existingUrlDeal->discounted_price,
-                    'recorded_at' => now(),
-                ]);
+            // Re-publish the deal if it was previously not publishable or missing editorial content
+            $needsEditorialUpdate = $existingUrlDeal->editorial_status !== 'PUBLISHED' 
+                || is_null($existingUrlDeal->editorial_summary) 
+                || is_null($existingUrlDeal->pros);
                 
-                $existingUrlDeal->update([
+            // If price changed or needs editorial update
+            if ($existingUrlDeal->discounted_price != $validated['discounted_price'] || $needsEditorialUpdate) {
+                if ($existingUrlDeal->discounted_price != $validated['discounted_price']) {
+                    \App\Models\PriceHistory::create([
+                        'deal_id' => $existingUrlDeal->id,
+                        'price' => $existingUrlDeal->discounted_price,
+                        'recorded_at' => now(),
+                    ]);
+                }
+                
+                $updateData = [
                     'original_price' => $validated['original_price'],
                     'discounted_price' => $validated['discounted_price'],
                     'status' => 'active' // reactivate if it was expired
-                ]);
+                ];
+                
+                if ($needsEditorialUpdate) {
+                    $updateData['editorial_status'] = 'PUBLISHED';
+                    $updateData['editorial_summary'] = preg_replace('/(?m)^.*?(?:Buy Now|Grab it here):\s*https?:\/\/[^\s]+.*$/iu', '', $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.');
+                    $updateData['editorial_verdict'] = $validated['verdict'] ?? 'Recommended buy based on price drop.';
+                    $updateData['pros'] = isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : ['Great value', 'Verified by AI'];
+                    $updateData['cons'] = ['Price subject to change based on merchant availability'];
+                }
+                
+                $existingUrlDeal->update($updateData);
                 
                 $status = 'updated';
-                $message = 'Deal already exists. Price updated.';
+                $message = 'Deal already exists. Updated and republished.';
             }
             
             return response()->json([

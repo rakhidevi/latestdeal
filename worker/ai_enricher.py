@@ -71,6 +71,7 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
         1. 'caption' must be an SEO-optimized, highly engaging title/hook (under 100 chars). Use powerful action words.
         2. 'summary' must be a unique, SEO-friendly meta description (120-150 chars). Include the brand name, product type, and the core benefit/savings. Do NOT just repeat the title.
         3. 'verdict' MUST explicitly recommend whether the user should "Buy Now" or "Wait", giving a short contextual explanation based on the price.
+        4. Do NOT include ANY URLs, links, or "Buy Now: https://..." anywhere in your output. We handle linking separately.
         """
         
         response = asyncio.run(router.chat(
