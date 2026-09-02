@@ -150,8 +150,18 @@ async def process_queue():
             
             # 4. Construct Final Payload
             import json
+            import uuid
+            import re
+            
+            def extract_asin(url):
+                match = re.search(r'/dp/([A-Z0-9]{10})', url)
+                return match.group(1) if match else "unknown"
             
             payload = {
+                "asin": extract_asin(deal.canonical_url),
+                "trace_id": str(uuid.uuid4()),
+                "pipeline_run_id": str(uuid.uuid4()),
+                "observation_id": str(uuid.uuid4()),
                 "title": deal.title,
                 "original_price": deal.original_price or 0,
                 "discounted_price": deal.price or 0,

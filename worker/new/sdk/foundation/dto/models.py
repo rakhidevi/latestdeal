@@ -193,6 +193,7 @@ class OpportunityScore(BaseDTO):
     urgency: int = 0
     confidence: int = 0
     publishability: int = 0
+    metadata: dict = Field(default_factory=dict)
 
 class OpportunityScoreAudit(BaseDTO):
     """Stores every intermediate score for deep auditability."""

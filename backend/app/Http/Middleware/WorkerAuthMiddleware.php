@@ -27,8 +27,9 @@ class WorkerAuthMiddleware
 
         if ($token !== $expectedKey) {
             return response()->json([
-                'error' => 'Unauthorized - Debug V3', 
-                'token_received' => empty($token) ? 'No' : 'Yes'
+                'error' => 'Unauthorized - Debug V4', 
+                'received_token' => $token,
+                'expected_token' => $expectedKey
             ], 401);
         }
 

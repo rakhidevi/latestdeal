@@ -58,8 +58,14 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
         Merchant: {deal.merchant}
         
         If this product information does not look like an actual product deal or looks like an error page, set the category_name strictly to 'nodeal'.
-        Otherwise, provide the missing information in strict JSON matching this schema:
-        {AIEnrichmentSchema.model_json_schema()}
+        Otherwise, provide the missing information in strict JSON. Do NOT output the schema itself. Output a JSON object with these exact keys:
+        - "category_name" (string)
+        - "category_confidence" (float)
+        - "caption" (string)
+        - "summary" (string)
+        - "verdict" (string)
+        - "pros" (list of strings)
+        - "cons" (list of strings)
         
         CRITICAL INSTRUCTIONS:
         1. 'caption' must be an SEO-optimized, highly engaging title/hook (under 100 chars). Use powerful action words.
