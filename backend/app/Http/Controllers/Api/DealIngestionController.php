@@ -236,7 +236,7 @@ class DealIngestionController
             'ai_score' => $validated['ai_score'] ?? null,
             'status' => 'active', // Enum supports active/expired
             'editorial_status' => 'PUBLISHED', // Set to PUBLISHED so deals show up immediately in the grid
-            'editorial_summary' => preg_replace('/\s*(?:👉|🔥)?\s*(?:Buy Now|Grab it here):\s*https?:\/\/[^\s]+/iu', '', $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.'),
+            'editorial_summary' => preg_replace('/(?m)^.*?(?:Buy Now|Grab it here):\s*https?:\/\/[^\s]+.*$/iu', '', $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.'),
             'editorial_verdict' => $validated['verdict'] ?? 'Recommended buy based on price drop.',
             'pros' => isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : ['Great value', 'Verified by AI'],
             'cons' => ['Price subject to change based on merchant availability'],
