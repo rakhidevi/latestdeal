@@ -46,6 +46,9 @@ jobs:
           # Upload fix_images.php — patches APP_URL in .env and creates storage symlink
           curl -T backend/public/fix_images.php ftp://${{ secrets.FTP_SERVER }}/public/fix_images.php --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
 
+          # Upload fix_deals.php — bulk-repairs broken deals in the DB
+          curl -T backend/public/fix_deals.php ftp://${{ secrets.FTP_SERVER }}/public/fix_deals.php --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+
       - name: Trigger Extraction
         run: |
           echo "Triggering extraction on the server..."
@@ -56,7 +59,11 @@ jobs:
           
           echo "Patching APP_URL and storage symlink..."
           curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" https://latestdeal.in/fix_images.php
+
+          echo "Fixing broken deal editorial fields in DB..."
+          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" https://latestdeal.in/fix_deals.php
           
-          echo "Clearing application cache..."
-          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" https://latestdeal.in/clear-cache
+          echo "Clearing application cache + OPcache reset..."
+          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://latestdeal.in/unzip.php?fix_url=1"
+
 
