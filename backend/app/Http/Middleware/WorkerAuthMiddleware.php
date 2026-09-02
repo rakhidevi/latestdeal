@@ -22,11 +22,14 @@ class WorkerAuthMiddleware
             return response()->json(['error' => 'Server misconfigured'], 500);
         }
 
-        // Try Bearer token first, fallback to custom header if web server strips Authorization
-        $token = $request->bearerToken() ?: $request->header('X-Worker-Key');
+        // Try Bearer token first, fallback to custom header, then fallback to JSON payload
+        $token = $request->bearerToken() ?: $request->header('X-Worker-Key') ?: $request->input('worker_api_key');
 
         if ($token !== $expectedKey) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json([
+                'error' => 'Unauthorized - Debug V3', 
+                'token_received' => empty($token) ? 'No' : 'Yes'
+            ], 401);
         }
 
         return $next($request);

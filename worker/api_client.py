@@ -29,6 +29,7 @@ def push_to_production(payload: dict) -> bool:
     
     endpoint = f"{api_url}/worker/ingest"
     
+    payload["worker_api_key"] = api_key
     try:
         response = requests.post(endpoint, json=payload, headers=headers)
         response.raise_for_status()
@@ -52,7 +53,7 @@ def create_job(name: str, job_type: str = 'ingestion') -> int:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
     try:
-        res = requests.post(f"{api_url}/scraper/jobs", json={"name": name, "type": job_type}, headers=headers, timeout=15)
+        res = requests.post(f"{api_url}/scraper/jobs", json={"name": name, "type": job_type, "worker_api_key": api_key}, headers=headers, timeout=15)
         if res.status_code == 200:
             return res.json().get('id')
     except Exception as e:
@@ -70,6 +71,7 @@ def update_job(job_id: int, status: str = None, logs: list = None, **kwargs):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
     payload = kwargs
+    payload["worker_api_key"] = api_key
     if status: payload['status'] = status
     if logs: payload['logs'] = logs
     try:
