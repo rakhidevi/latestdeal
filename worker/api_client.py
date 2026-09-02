@@ -21,12 +21,13 @@ def push_to_production(payload: dict) -> bool:
         
     headers = {
         "Authorization": f"Bearer {api_key}",
+        "X-Worker-Key": api_key,
         "Content-Type": "application/json",
         "Accept": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
     
-    endpoint = f"{api_url}/deals/ingest"
+    endpoint = f"{api_url}/worker/ingest"
     
     try:
         response = requests.post(endpoint, json=payload, headers=headers)
@@ -45,6 +46,7 @@ def create_job(name: str, job_type: str = 'ingestion') -> int:
     api_url, api_key = get_api_config()
     headers = {
         "Authorization": f"Bearer {api_key}",
+        "X-Worker-Key": api_key,
         "Content-Type": "application/json",
         "Accept": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -62,6 +64,7 @@ def update_job(job_id: int, status: str = None, logs: list = None, **kwargs):
     api_url, api_key = get_api_config()
     headers = {
         "Authorization": f"Bearer {api_key}",
+        "X-Worker-Key": api_key,
         "Content-Type": "application/json",
         "Accept": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"

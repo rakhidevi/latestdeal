@@ -22,7 +22,8 @@ class WorkerAuthMiddleware
             return response()->json(['error' => 'Server misconfigured'], 500);
         }
 
-        $token = $request->bearerToken();
+        // Try Bearer token first, fallback to custom header if web server strips Authorization
+        $token = $request->bearerToken() ?: $request->header('X-Worker-Key');
 
         if ($token !== $expectedKey) {
             return response()->json(['error' => 'Unauthorized'], 401);
