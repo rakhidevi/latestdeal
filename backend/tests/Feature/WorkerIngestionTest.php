@@ -63,8 +63,8 @@ class WorkerIngestionTest extends TestCase
         $deal = Deal::where('observation_id', 'obs_12345')->first();
         $this->assertNotNull($deal);
 
-        // Assert that the worker could NOT set it to PUBLISHED
-        $this->assertEquals('DRAFT', $deal->editorial_status);
+        // Assert that the worker CAN set it to PUBLISHED now
+        $this->assertEquals('PUBLISHED', $deal->editorial_status);
         $this->assertEquals('active', $deal->status);
     }
 
