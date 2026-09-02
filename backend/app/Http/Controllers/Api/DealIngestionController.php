@@ -128,6 +128,11 @@ class DealIngestionController
             return response()->json(['error' => 'Deal rejected: Discounted price cannot be 0 (likely out of stock)'], 422);
         }
 
+        // 1.5.2 Block 0% Discount Deals
+        if ($validated['discounted_price'] >= $validated['original_price']) {
+            return response()->json(['error' => 'Deal rejected: Discounted price must be less than original price (No discount).'], 422);
+        }
+
         \Illuminate\Support\Facades\Log::info('Validated category_id before Deal::create: ' . json_encode($validated['category_id']));
 
         // 1.6 Process Image
@@ -219,22 +224,22 @@ class DealIngestionController
             'original_price' => $validated['original_price'],
             'discounted_price' => $validated['discounted_price'],
             'calculated_discount_percent' => $validated['calculated_discount'] ?? null,
-            'price_intelligence' => isset($validated['price_intelligence']) ? json_encode($validated['price_intelligence']) : null,
+            'price_intelligence' => isset($validated['price_intelligence']) ? (is_string($validated['price_intelligence']) ? json_decode($validated['price_intelligence'], true) : $validated['price_intelligence']) : null,
             'coupon_code' => $validated['promo_code'] ?? null,
             'brand' => isset($validated['brand']) ? Str::limit($validated['brand'], 250, '') : null,
-            'features' => $validated['features'] ?? null,
+            'features' => isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : null,
             'verdict' => $validated['verdict'] ?? null,
-            'trust_metrics' => isset($validated['trust_metrics']) ? $validated['trust_metrics'] : null,
+            'trust_metrics' => isset($validated['trust_metrics']) ? (is_string($validated['trust_metrics']) ? json_decode($validated['trust_metrics'], true) : $validated['trust_metrics']) : null,
             'confidence_score' => $validated['confidence_score'] ?? null,
-            'confidence_reasons' => isset($validated['confidence_reasons']) ? $validated['confidence_reasons'] : null,
+            'confidence_reasons' => isset($validated['confidence_reasons']) ? (is_string($validated['confidence_reasons']) ? json_decode($validated['confidence_reasons'], true) : $validated['confidence_reasons']) : null,
             'ai_caption' => $validated['ai_caption'] ?? null,
             'ai_score' => $validated['ai_score'] ?? null,
             'status' => 'active', // Enum supports active/expired
             'editorial_status' => 'PUBLISHED', // Set to PUBLISHED so deals show up immediately in the grid
-            'editorial_summary' => $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.',
+            'editorial_summary' => preg_replace('/\s*(?:👉|🔥)?\s*(?:Buy Now|Grab it here):\s*https?:\/\/[^\s]+/iu', '', $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.'),
             'editorial_verdict' => $validated['verdict'] ?? 'Recommended buy based on price drop.',
-            'pros' => isset($validated['features']) ? json_encode($validated['features']) : json_encode(['Great value', 'Verified by AI']),
-            'cons' => json_encode(['Price subject to change based on merchant availability']),
+            'pros' => isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : ['Great value', 'Verified by AI'],
+            'cons' => ['Price subject to change based on merchant availability'],
             'observation_id' => $validated['observation_id'],
             'trace_id' => $validated['trace_id'] ?? null,
             'pipeline_run_id' => $validated['pipeline_run_id'] ?? null,
