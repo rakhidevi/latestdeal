@@ -33,6 +33,11 @@ jobs:
 
       - name: Upload deploy.zip + utility scripts via FTP
         run: |
+          echo "Uploading unzip.php first (contains fix_perms endpoint)..."
+          curl -s --retry 3 -T backend/public/unzip.php \
+            ftp://${{ secrets.FTP_SERVER }}/public/unzip.php \
+            --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+
           echo "Uploading deploy.zip..."
           curl -s --retry 3 -T deploy.zip \
             ftp://${{ secrets.FTP_SERVER }}/ \
@@ -60,10 +65,13 @@ jobs:
           echo "--- Extracting deploy.zip ---"
           curl -s -A "$UA" https://latestdeal.in/unzip.php
 
+          echo "--- Fixing artisan permissions + clearing bootstrap cache + OPcache reset ---"
+          curl -s -A "$UA" "https://latestdeal.in/unzip.php?fix_perms=1"
+
           echo "--- Running migrations ---"
           curl -s -A "$UA" "https://latestdeal.in/unzip.php?migrate=1"
 
-          echo "--- Patching APP_URL + storage symlink + cache clear + OPcache reset ---"
+          echo "--- Patching APP_URL + storage symlink ---"
           curl -s -A "$UA" "https://latestdeal.in/unzip.php?fix_url=1"
 
           echo "--- Fixing broken deal editorial fields in DB ---"

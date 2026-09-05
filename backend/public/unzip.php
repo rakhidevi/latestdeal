@@ -1,5 +1,56 @@
 <?php
 
+if (isset($_GET['fix_perms'])) {
+    $artisan = __DIR__ . '/../artisan';
+    $bootstrapCache = __DIR__ . '/../bootstrap/cache';
+    $results = [];
+    
+    // Fix artisan permissions
+    if (file_exists($artisan)) {
+        chmod($artisan, 0755);
+        $results[] = 'artisan chmod 0755: ' . (is_executable($artisan) ? 'OK' : 'FAILED');
+    } else {
+        $results[] = 'artisan NOT FOUND at ' . $artisan;
+    }
+    
+    // Fix bootstrap/cache directory permissions
+    if (is_dir($bootstrapCache)) {
+        chmod($bootstrapCache, 0775);
+        // Delete stale cache files
+        foreach (glob($bootstrapCache . '/*.php') as $f) {
+            @unlink($f);
+        }
+        $results[] = 'bootstrap/cache cleared OK';
+    }
+    
+    // Reset OPcache
+    if (function_exists('opcache_reset')) {
+        opcache_reset();
+        $results[] = 'OPcache reset: OK';
+    }
+    
+    // Now run artisan commands
+    $phpBin = PHP_BINARY;
+    exec($phpBin . ' ' . escapeshellarg($artisan) . ' config:clear 2>&1', $o1);
+    exec($phpBin . ' ' . escapeshellarg($artisan) . ' cache:clear 2>&1', $o2);
+    exec($phpBin . ' ' . escapeshellarg($artisan) . ' view:clear 2>&1', $o3);
+    exec($phpBin . ' ' . escapeshellarg($artisan) . ' route:clear 2>&1', $o4);
+    exec($phpBin . ' ' . escapeshellarg($artisan) . ' storage:link 2>&1', $o5);
+    
+    $results[] = 'config:clear: ' . implode(' ', $o1);
+    $results[] = 'cache:clear: ' . implode(' ', $o2);
+    $results[] = 'view:clear: ' . implode(' ', $o3);
+    $results[] = 'route:clear: ' . implode(' ', $o4);
+    $results[] = 'storage:link: ' . implode(' ', $o5);
+    
+    // Reset OPcache again after artisan
+    if (function_exists('opcache_reset')) opcache_reset();
+    
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'done', 'results' => $results]);
+    exit;
+}
+
 if (isset($_GET['migrate'])) {
     try {
         require __DIR__.'/../vendor/autoload.php';
