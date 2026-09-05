@@ -299,5 +299,5 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/analytics', \App\Livewire\Admin\Marketing\AnalyticsModule::class)->name('analytics');
         Route::get('/preview-center', \App\Livewire\Admin\Marketing\PreviewCenter::class)->name('preview-center');
         Route::get('/module/{module}', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->name('placeholder');
-
-        
+    });
+});
