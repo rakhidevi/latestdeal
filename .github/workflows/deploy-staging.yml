@@ -17,34 +17,54 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, zip
-          coverage: none
-
-      - name: Install Composer Dependencies
+      - name: Zip Application (no vendor, no sqlite, no .env)
         run: |
           cd backend
-          composer update --no-dev --prefer-dist --no-interaction --optimize-autoloader
-
-      - name: Zip Application
-        run: |
-          cd backend
-          zip -rq ../deploy.zip . -x "**/.git*" "**/node_modules/**" "**/tests/**" "*.log"
+          zip -rq ../deploy.zip . \
+            -x "**/.git*" \
+            -x "**/node_modules/**" \
+            -x "**/tests/**" \
+            -x "*.log" \
+            -x "**/*.sqlite" \
+            -x "**/.env*" \
+            -x "**/vendor/**"
           cd ..
-          
-      - name: Upload to FTP
-        run: |
-          # Upload deploy.zip to the root folder with retries
-          curl --retry 3 --retry-delay 5 -T deploy.zip ftp://${{ secrets.FTP_SERVER }}/ --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}"
-          
-          # Upload unzip.php to the public folder so it can be hit via web
-          curl --retry 3 --retry-delay 5 -T backend/public/unzip.php ftp://${{ secrets.FTP_SERVER }}/public/unzip.php --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}"
+          echo "deploy.zip size: $(du -sh deploy.zip | cut -f1)"
 
-      - name: Trigger Extraction
+      - name: Upload deploy.zip + utility scripts via FTP
         run: |
-          echo "Triggering extraction on the server..."
-          curl -s -f --retry 3 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" https://staging.latestdeal.in/unzip.php || echo "unzip.php returned an error or timeout, but extraction might still be running."
-          curl -s -f --retry 3 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" "https://staging.latestdeal.in/migrate_now.php" || true
+          echo "Uploading unzip.php first..."
+          curl -s --retry 3 --retry-delay 5 -T backend/public/unzip.php \
+            ftp://${{ secrets.FTP_SERVER }}/public/unzip.php \
+            --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}"
+
+          echo "Uploading deploy.zip..."
+          curl -s --retry 3 --retry-delay 5 -T deploy.zip \
+            ftp://${{ secrets.FTP_SERVER }}/ \
+            --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}"
+
+          echo "Uploading fix_deals.php..."
+          curl -s --retry 3 -T backend/public/fix_deals.php \
+            ftp://${{ secrets.FTP_SERVER }}/public/fix_deals.php \
+            --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}"
+
+      - name: Trigger Extraction + Repair on Staging
+        run: |
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+          echo "--- Extracting deploy.zip ---"
+          curl -s --retry 3 -A "$UA" https://staging.latestdeal.in/unzip.php || echo "unzip returned error (may still work)"
+
+          echo "--- Fixing artisan permissions + OPcache reset ---"
+          curl -s -A "$UA" "https://staging.latestdeal.in/unzip.php?fix_perms=1"
+
+          echo "--- Running migrations ---"
+          curl -s -A "$UA" "https://staging.latestdeal.in/unzip.php?migrate=1"
+
+          echo "--- Patching APP_URL ---"
+          curl -s -A "$UA" "https://staging.latestdeal.in/unzip.php?fix_url=1"
+
+          echo "--- Fixing broken deal editorial fields ---"
+          curl -s -A "$UA" https://staging.latestdeal.in/fix_deals.php || true
+
+          echo "--- Done ---"
