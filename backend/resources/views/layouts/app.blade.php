@@ -711,14 +711,15 @@
             </div>
         </div>
 
-        <!-- Editorial Link -->
-        <a href="{{ route('articles.index') }}" class="py-4 px-2 hover:text-red-600 dark:hover:text-red-400 font-bold transition select-none flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5L18.5 7"/></svg>
-            <span>Guides & Tips</span>
-        </a>
-
         <!-- Right Side: CTA / Auth -->
         <div class="hidden lg:flex items-center justify-end gap-6 relative z-50">
+          
+          <!-- Editorial Link -->
+          <a href="{{ route('articles.index') }}" class="text-[14px] font-semibold text-gray-700 dark:text-slate-200 hover:text-red-600 dark:hover:text-red-400 transition select-none flex items-center gap-1.5">
+              <svg class="w-[13.5px] h-[13.5px] text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5L18.5 7"/></svg>
+              <span>Guides & Tips</span>
+          </a>
+
           <a href="/assistant" class="text-[14px] font-semibold text-orange-500 hover:text-orange-600 dark:text-orange-400 flex items-center gap-1.5 transition whitespace-nowrap">
              <svg class="w-[13.5px] h-[13.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 17v4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 19h4"/></svg>
              AI Assistant
