@@ -17,56 +17,56 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, pdo_sqlite, sqlite3, zip, pcntl
-          coverage: none
-          ini-values: memory_limit=512M
-
-      - name: Install Composer Dependencies
-        env:
-          COMPOSER_MEMORY_LIMIT: -1
+      - name: Zip Application (no vendor, no sqlite, no .env)
         run: |
           cd backend
-          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --ignore-platform-reqs
-
-      - name: Zip Application
-        run: |
-          cd backend
-          zip -rq ../deploy.zip . -x "**/.git*" "**/node_modules/**" "**/tests/**" "*.log" "**/*.sqlite" "**/.env*"
+          zip -rq ../deploy.zip . \
+            -x "**/.git*" \
+            -x "**/node_modules/**" \
+            -x "**/tests/**" \
+            -x "*.log" \
+            -x "**/*.sqlite" \
+            -x "**/.env*" \
+            -x "**/vendor/**"
           cd ..
-          
-      - name: Upload to FTP
+          echo "deploy.zip size: $(du -sh deploy.zip | cut -f1)"
+
+      - name: Upload deploy.zip + utility scripts via FTP
         run: |
-          # Upload deploy.zip to the root folder
-          curl -T deploy.zip ftp://${{ secrets.FTP_SERVER }}/ --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
-          
-          # Upload unzip.php to the public folder so it can be hit via web
-          curl -T backend/public/recovery_30days.php ftp://${{ secrets.FTP_SERVER }}/public/recovery_30days.php --user ${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}
-          
-          # Upload fix_images.php — patches APP_URL in .env and creates storage symlink
-          curl -T backend/public/fix_images.php ftp://${{ secrets.FTP_SERVER }}/public/fix_images.php --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+          echo "Uploading deploy.zip..."
+          curl -s --retry 3 -T deploy.zip \
+            ftp://${{ secrets.FTP_SERVER }}/ \
+            --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
 
-          # Upload fix_deals.php — bulk-repairs broken deals in the DB
-          curl -T backend/public/fix_deals.php ftp://${{ secrets.FTP_SERVER }}/public/fix_deals.php --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+          echo "Uploading fix_deals.php..."
+          curl -s --retry 3 -T backend/public/fix_deals.php \
+            ftp://${{ secrets.FTP_SERVER }}/public/fix_deals.php \
+            --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
 
-      - name: Trigger Extraction
+          echo "Uploading fix_images.php..."
+          curl -s --retry 3 -T backend/public/fix_images.php \
+            ftp://${{ secrets.FTP_SERVER }}/public/fix_images.php \
+            --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+
+          echo "Uploading recovery_30days.php..."
+          curl -s --retry 3 -T backend/public/recovery_30days.php \
+            ftp://${{ secrets.FTP_SERVER }}/public/recovery_30days.php \
+            --user "${{ secrets.FTP_PRODUCTION_USERNAME }}:${{ secrets.FTP_PRODUCTION_PASSWORD }}"
+
+      - name: Trigger Extraction + DB Repair on Production
         run: |
-          echo "Triggering extraction on the server..."
-          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" https://latestdeal.in/unzip.php
-          
-          echo "Triggering explicit migration..."
-          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://latestdeal.in/unzip.php?migrate=1"
-          
-          echo "Patching APP_URL and storage symlink..."
-          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" https://latestdeal.in/fix_images.php
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-          echo "Fixing broken deal editorial fields in DB..."
-          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" https://latestdeal.in/fix_deals.php
-          
-          echo "Clearing application cache + OPcache reset..."
-          curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://latestdeal.in/unzip.php?fix_url=1"
+          echo "--- Extracting deploy.zip ---"
+          curl -s -A "$UA" https://latestdeal.in/unzip.php
 
+          echo "--- Running migrations ---"
+          curl -s -A "$UA" "https://latestdeal.in/unzip.php?migrate=1"
 
+          echo "--- Patching APP_URL + storage symlink + cache clear + OPcache reset ---"
+          curl -s -A "$UA" "https://latestdeal.in/unzip.php?fix_url=1"
+
+          echo "--- Fixing broken deal editorial fields in DB ---"
+          curl -s -A "$UA" https://latestdeal.in/fix_deals.php
+
+          echo "--- Done ---"
