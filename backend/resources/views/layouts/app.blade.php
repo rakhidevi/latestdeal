@@ -395,7 +395,7 @@
     </div>
     
     <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-40 border-b border-red-100 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
-      <div class="mx-auto flex max-w-7xl px-4 sm:px-6 lg:px-8 py-3 items-center justify-between relative">
+      <div class="mx-auto flex max-w-7xl px-4 sm:px-6 lg:px-8 py-3 items-center gap-6 relative">
         
         <!-- Left Side: Logo -->
         <a href="/" class="flex items-center justify-start flex-shrink-0 z-50 relative">
@@ -404,7 +404,7 @@
         </a>
 
         <!-- Center: Desktop Navigation -->
-        <div class="hidden lg:flex absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 items-center text-[14px] font-medium text-gray-700 dark:text-slate-200 z-30 gap-6">
+        <div class="hidden lg:flex ml-auto items-center text-[14px] font-medium text-gray-700 dark:text-slate-200 z-30 gap-6">
             
             <!-- Desktop Mega Menu (Marketplace Discovery Hub) -->
             <div x-data="{ 
