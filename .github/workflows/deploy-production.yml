@@ -20,7 +20,7 @@ jobs:
       - name: Zip Application (no vendor, no sqlite, no .env)
         run: |
           cd backend
-          zip -rq ../deploy.zip . \
+          zip -rq ../deploy.zip routes/web.php resources/views/layouts/app.blade.php resources/views/pages/ \
             -x "**/.git*" \
             -x "**/node_modules/**" \
             -x "**/tests/**" \
