@@ -1073,13 +1073,9 @@
                 <div>
                     <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Platform</h3>
                     <ul class="space-y-3">
-                        <li><a href="/?sort=discount" class="hover:text-red-500 transition-colors">Today's Deals</a></li>
-                        <li><a href="/?category=electronics" class="hover:text-red-500 transition-colors">Categories</a></li>
-                        <li><a href="/?merchant=amazon" class="hover:text-red-500 transition-colors">Stores</a></li>
-                        <li><a href="{{ route('articles.index') }}" class="hover:text-red-500 transition-colors">Guides & Blog</a></li>
-                        <li><a href="{{ route('editorial.team') }}" class="hover:text-red-500 transition-colors">Editorial Team</a></li>
+                        <li><a href="/?sort=discount" class="hover:text-red-500 transition-colors">Deals</a></li>
+                        <li><a href="{{ route('articles.index') }}" class="hover:text-red-500 transition-colors">Guides & Tips</a></li>
                         <li><a href="{{ route('about') }}" class="hover:text-red-500 transition-colors">About Us</a></li>
-                        <li><a href="{{ route('how.it.works') }}" class="hover:text-red-500 transition-colors">How It Works</a></li>
                     </ul>
                 </div>
 
@@ -1087,12 +1083,10 @@
                 <div>
                     <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Legal & Trust</h3>
                     <ul class="space-y-3">
+                        <li><a href="{{ route('contact') }}" class="hover:text-red-500 transition-colors">Contact Us</a></li>
                         <li><a href="{{ route('privacy') }}" class="hover:text-red-500 transition-colors">Privacy Policy</a></li>
                         <li><a href="{{ route('terms') }}" class="hover:text-red-500 transition-colors">Terms of Service</a></li>
-                        <li><a href="{{ route('cookie') }}" class="hover:text-red-500 transition-colors">Cookie Policy</a></li>
-                        <li><a href="{{ route('editorial.policy') }}" class="hover:text-red-500 transition-colors">Editorial Policy</a></li>
                         <li><a href="{{ route('affiliate.disclosure') }}" class="hover:text-red-500 transition-colors">Affiliate Disclosure</a></li>
-                        <li><a href="{{ route('contact') }}" class="hover:text-red-500 transition-colors">Contact Us</a></li>
                     </ul>
                 </div>
             </div>

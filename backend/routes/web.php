@@ -47,6 +47,13 @@ Route::get('/go/{deal:hash_id}', [\App\Http\Controllers\RedirectController::clas
 // Deal Detail Page
 Route::get('/deal/{deal:slug}', [\App\Http\Controllers\DealController::class, 'show'])->name('deal.show');
 
+// Compliance & Information Pages
+Route::view('/about', 'pages.about')->name('about');
+Route::view('/contact', 'pages.contact')->name('contact');
+Route::view('/privacy-policy', 'pages.privacy')->name('privacy');
+Route::view('/terms', 'pages.terms')->name('terms');
+Route::view('/affiliate-disclosure', 'pages.disclosure')->name('affiliate.disclosure');
+
 // AI Shopping Assistant
 Route::get('/assistant', function () {
     $deals = \Illuminate\Support\Facades\Cache::remember('deals.assistant', 300, function () {
