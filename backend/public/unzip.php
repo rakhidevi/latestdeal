@@ -1,6 +1,77 @@
 <?php
 
+// ============================================================
+// COMPOSER INSTALL — restores missing vendor/ directory
+// Usage: /unzip.php?composer=1
+// ============================================================
+if (isset($_GET['composer'])) {
+    set_time_limit(300);
+    ini_set('memory_limit', '512M');
+    header('Content-Type: text/plain; charset=utf-8');
+
+    $base     = dirname(__DIR__);
+    $phpBin   = PHP_BINARY;
+    $composer = $base . '/composer.phar';
+    $results  = [];
+
+    // 1. Download composer.phar if not present
+    if (!file_exists($composer)) {
+        $results[] = 'Downloading composer.phar...';
+        $data = @file_get_contents('https://getcomposer.org/composer-stable.phar');
+        if ($data === false) {
+            // fallback mirror
+            $data = @file_get_contents('https://getcomposer.org/download/latest-stable/composer.phar');
+        }
+        if ($data !== false) {
+            file_put_contents($composer, $data);
+            chmod($composer, 0755);
+            $results[] = 'Downloaded: ' . round(strlen($data)/1024/1024, 2) . ' MB';
+        } else {
+            echo implode("\n", $results) . "\nERROR: Could not download composer.phar\n";
+            exit;
+        }
+    } else {
+        $results[] = 'composer.phar already present';
+    }
+
+    // 2. Run composer install --no-dev --optimize-autoloader
+    $results[] = 'Running composer install...';
+    $cmd = $phpBin . ' ' . escapeshellarg($composer)
+         . ' install --no-dev --optimize-autoloader --no-interaction'
+         . ' --working-dir=' . escapeshellarg($base) . ' 2>&1';
+    $output = [];
+    exec($cmd, $output, $exitCode);
+    $results[] = 'Exit code: ' . $exitCode;
+    $results = array_merge($results, $output);
+
+    // 3. Clear OPcache
+    if (function_exists('opcache_reset')) {
+        opcache_reset();
+        $results[] = 'OPcache reset OK';
+    }
+
+    // 4. Clear Laravel caches if artisan now works
+    $artisan = $base . '/artisan';
+    if ($exitCode === 0 && file_exists($artisan)) {
+        exec($phpBin . ' ' . escapeshellarg($artisan) . ' config:clear 2>&1', $o1);
+        exec($phpBin . ' ' . escapeshellarg($artisan) . ' cache:clear  2>&1', $o2);
+        exec($phpBin . ' ' . escapeshellarg($artisan) . ' view:clear   2>&1', $o3);
+        exec($phpBin . ' ' . escapeshellarg($artisan) . ' route:clear  2>&1', $o4);
+        exec($phpBin . ' ' . escapeshellarg($artisan) . ' migrate --force 2>&1', $o5);
+        $results[] = 'config:clear: '  . implode(' ', $o1);
+        $results[] = 'cache:clear: '   . implode(' ', $o2);
+        $results[] = 'view:clear: '    . implode(' ', $o3);
+        $results[] = 'route:clear: '   . implode(' ', $o4);
+        $results[] = 'migrate: '       . implode(' ', $o5);
+    }
+
+    echo implode("\n", $results) . "\n";
+    echo ($exitCode === 0) ? "\n=== VENDOR RESTORED SUCCESSFULLY ===\n" : "\n=== COMPOSER INSTALL FAILED ===\n";
+    exit;
+}
+
 if (isset($_GET['fix_perms'])) {
+
     $artisan = __DIR__ . '/../artisan';
     $bootstrapCache = __DIR__ . '/../bootstrap/cache';
     $results = [];
