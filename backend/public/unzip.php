@@ -1,10 +1,84 @@
 <?php
 
 // ============================================================
+// FRESH COMPOSER INSTALL — wipes corrupt vendor state first
+// Usage: /unzip.php?composer=fresh
+// ============================================================
+if (isset($_GET['composer']) && $_GET['composer'] === 'fresh') {
+    set_time_limit(600);
+    ini_set('memory_limit', '512M');
+    header('Content-Type: text/plain; charset=utf-8');
+
+    $base     = dirname(__DIR__);
+    $vendor   = $base . '/vendor';
+    $composer = $base . '/composer.phar';
+    $results  = [];
+
+    // Find PHP binary
+    $phpBin = PHP_BINARY;
+    $results[] = 'PHP_BINARY: ' . $phpBin;
+    foreach ([PHP_BINARY,'/opt/ecp-php82/bin/php','/opt/ecp-php81/bin/php','/usr/local/bin/php82','/usr/local/bin/php','/usr/bin/php'] as $c) {
+        if ($c && is_executable($c)) { $phpBin = $c; $results[] = 'Using PHP: ' . $phpBin; break; }
+    }
+
+    // 1. Wipe corrupt vendor directory
+    $results[] = 'Removing corrupt vendor/ directory...';
+    $rmOut = []; exec('rm -rf ' . escapeshellarg($vendor) . ' 2>&1', $rmOut, $rmCode);
+    $results[] = 'rm -rf vendor: exit=' . $rmCode . ' ' . implode(' ', $rmOut);
+    $results[] = 'vendor/ exists after rm: ' . (is_dir($vendor) ? 'YES (problem!)' : 'NO (good)');
+
+    // 2. Download composer if missing
+    if (!file_exists($composer)) {
+        $results[] = 'Downloading composer.phar...';
+        $data = @file_get_contents('https://getcomposer.org/composer-stable.phar');
+        if ($data) { file_put_contents($composer, $data); $results[] = 'Downloaded: ' . round(strlen($data)/1024/1024,2) . ' MB'; }
+        else { echo implode("\n",$results)."\nFAIL: cannot download composer\n"; exit; }
+    } else {
+        $results[] = 'composer.phar present';
+    }
+    chmod($composer, 0755);
+    $results[] = 'composer.phar executable: ' . (is_executable($composer) ? 'YES' : 'NO');
+
+    // 3. Fresh composer install
+    $results[] = 'Running fresh composer install...';
+    $cmd = escapeshellarg($phpBin) . ' ' . escapeshellarg($composer)
+         . ' install --no-dev --optimize-autoloader --no-interaction'
+         . ' --working-dir=' . escapeshellarg($base) . ' 2>&1';
+    $output = []; exec($cmd, $output, $exitCode);
+    $results[] = 'Exit code: ' . $exitCode;
+    $results = array_merge($results, $output);
+
+    // 4. OPcache + artisan
+    if (function_exists('opcache_reset')) { opcache_reset(); $results[] = 'OPcache reset OK'; }
+    $artisan = $base . '/artisan';
+    if (file_exists($artisan)) {
+        chmod($artisan, 0755);
+        // Clear bootstrap cache first
+        foreach (glob($base.'/bootstrap/cache/*.php') as $f) @unlink($f);
+        $results[] = 'bootstrap/cache cleared';
+        exec(escapeshellarg($phpBin).' '.escapeshellarg($artisan).' config:clear 2>&1', $o1);
+        exec(escapeshellarg($phpBin).' '.escapeshellarg($artisan).' cache:clear  2>&1', $o2);
+        exec(escapeshellarg($phpBin).' '.escapeshellarg($artisan).' view:clear   2>&1', $o3);
+        exec(escapeshellarg($phpBin).' '.escapeshellarg($artisan).' route:clear  2>&1', $o4);
+        exec(escapeshellarg($phpBin).' '.escapeshellarg($artisan).' migrate --force 2>&1', $o5);
+        $results[] = 'config:clear: '.implode(' ',$o1);
+        $results[] = 'cache:clear:  '.implode(' ',$o2);
+        $results[] = 'view:clear:   '.implode(' ',$o3);
+        $results[] = 'route:clear:  '.implode(' ',$o4);
+        $results[] = 'migrate:      '.implode(' ',$o5);
+    }
+
+    echo implode("\n", $results)."\n";
+    echo ($exitCode === 0) ? "\n=== VENDOR RESTORED SUCCESSFULLY ===\n" : "\n=== COMPOSER INSTALL FAILED (exit=$exitCode) ===\n";
+    exit;
+}
+
+// ============================================================
 // COMPOSER INSTALL — restores missing vendor/ directory
 // Usage: /unzip.php?composer=1
 // ============================================================
 if (isset($_GET['composer'])) {
+
     set_time_limit(300);
     ini_set('memory_limit', '512M');
     header('Content-Type: text/plain; charset=utf-8');
