@@ -10,35 +10,60 @@ if (isset($_GET['composer'])) {
     header('Content-Type: text/plain; charset=utf-8');
 
     $base     = dirname(__DIR__);
-    $phpBin   = PHP_BINARY;
     $composer = $base . '/composer.phar';
     $results  = [];
 
-    // 1. Download composer.phar if not present
+    // Find the correct PHP binary (shared hosts often have it in a non-standard path)
+    $phpBin = PHP_BINARY;
+    $results[] = 'PHP_BINARY: ' . $phpBin;
+
+    // Try common shared host PHP paths if PHP_BINARY looks wrong or missing
+    $phpCandidates = [
+        PHP_BINARY,
+        '/opt/ecp-php82/bin/php',
+        '/opt/ecp-php81/bin/php',
+        '/usr/local/bin/php82',
+        '/usr/local/bin/php81',
+        '/usr/local/bin/php',
+        '/usr/bin/php82',
+        '/usr/bin/php',
+    ];
+    foreach ($phpCandidates as $candidate) {
+        if ($candidate && is_executable($candidate)) {
+            $phpBin = $candidate;
+            $results[] = 'Using PHP binary: ' . $phpBin;
+            break;
+        }
+    }
+
+    // 1. Download or fix composer.phar
     if (!file_exists($composer)) {
         $results[] = 'Downloading composer.phar...';
         $data = @file_get_contents('https://getcomposer.org/composer-stable.phar');
         if ($data === false) {
-            // fallback mirror
             $data = @file_get_contents('https://getcomposer.org/download/latest-stable/composer.phar');
         }
         if ($data !== false) {
             file_put_contents($composer, $data);
-            chmod($composer, 0755);
             $results[] = 'Downloaded: ' . round(strlen($data)/1024/1024, 2) . ' MB';
         } else {
             echo implode("\n", $results) . "\nERROR: Could not download composer.phar\n";
             exit;
         }
     } else {
-        $results[] = 'composer.phar already present';
+        $results[] = 'composer.phar already present, fixing permissions...';
     }
+    // Always fix permissions
+    chmod($composer, 0755);
+    $results[] = 'composer.phar chmod 0755: ' . (is_executable($composer) ? 'OK' : 'FAILED');
 
-    // 2. Run composer install --no-dev --optimize-autoloader
-    $results[] = 'Running composer install...';
-    $cmd = $phpBin . ' ' . escapeshellarg($composer)
+    // 2. Run: php /path/to/composer.phar install
+    $results[] = 'Running: ' . $phpBin . ' composer.phar install --no-dev ...';
+    $cmd = escapeshellarg($phpBin)
+         . ' ' . escapeshellarg($composer)
          . ' install --no-dev --optimize-autoloader --no-interaction'
          . ' --working-dir=' . escapeshellarg($base) . ' 2>&1';
+    $results[] = 'CMD: ' . $cmd;
     $output = [];
     exec($cmd, $output, $exitCode);
     $results[] = 'Exit code: ' . $exitCode;
@@ -50,14 +75,15 @@ if (isset($_GET['composer'])) {
         $results[] = 'OPcache reset OK';
     }
 
-    // 4. Clear Laravel caches if artisan now works
+    // 4. Clear Laravel caches and migrate if artisan now works
     $artisan = $base . '/artisan';
     if ($exitCode === 0 && file_exists($artisan)) {
-        exec($phpBin . ' ' . escapeshellarg($artisan) . ' config:clear 2>&1', $o1);
-        exec($phpBin . ' ' . escapeshellarg($artisan) . ' cache:clear  2>&1', $o2);
-        exec($phpBin . ' ' . escapeshellarg($artisan) . ' view:clear   2>&1', $o3);
-        exec($phpBin . ' ' . escapeshellarg($artisan) . ' route:clear  2>&1', $o4);
-        exec($phpBin . ' ' . escapeshellarg($artisan) . ' migrate --force 2>&1', $o5);
+        chmod($artisan, 0755);
+        exec(escapeshellarg($phpBin) . ' ' . escapeshellarg($artisan) . ' config:clear 2>&1', $o1);
+        exec(escapeshellarg($phpBin) . ' ' . escapeshellarg($artisan) . ' cache:clear  2>&1', $o2);
+        exec(escapeshellarg($phpBin) . ' ' . escapeshellarg($artisan) . ' view:clear   2>&1', $o3);
+        exec(escapeshellarg($phpBin) . ' ' . escapeshellarg($artisan) . ' route:clear  2>&1', $o4);
+        exec(escapeshellarg($phpBin) . ' ' . escapeshellarg($artisan) . ' migrate --force 2>&1', $o5);
         $results[] = 'config:clear: '  . implode(' ', $o1);
         $results[] = 'cache:clear: '   . implode(' ', $o2);
         $results[] = 'view:clear: '    . implode(' ', $o3);
