@@ -2,17 +2,25 @@
 
 if (isset($_GET['check_deal_96'])) {
     header('Content-Type: text/plain');
-    require dirname(__DIR__) . '/vendor/autoload.php';
-    $app = require_once dirname(__DIR__) . '/bootstrap/app.php';
-    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-    $kernel->bootstrap();
-    $deal = \App\Models\Deal::find(96);
-    echo "Image URL: " . ($deal ? $deal->image_url : 'not found') . "\n";
+    $env = file_get_contents(dirname(__DIR__) . '/.env');
+    preg_match('/DB_HOST=(.*)/', $env, $m1);
+    preg_match('/DB_DATABASE=(.*)/', $env, $m2);
+    preg_match('/DB_USERNAME=(.*)/', $env, $m3);
+    preg_match('/DB_PASSWORD=(.*)/', $env, $m4);
+    
+    try {
+        $pdo = new PDO("mysql:host=" . trim($m1[1]) . ";dbname=" . trim($m2[1]), trim($m3[1]), trim($m4[1]));
+        $stmt = $pdo->query("SELECT id, image_path, title FROM deals WHERE id = 96");
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        echo "Image path: " . ($row ? $row['image_path'] : 'not found') . "\n";
+    } catch (Exception $e) {
+        echo "DB Error: " . $e->getMessage() . "\n";
+    }
+    
     echo "Public storage target: " . readlink(dirname(__DIR__) . '/public/storage') . "\n";
     echo "App storage dir: " . dirname(__DIR__) . '/storage/app/public' . "\n";
     echo "Does app storage dir exist? " . (is_dir(dirname(__DIR__) . '/storage/app/public') ? 'Yes' : 'No') . "\n";
-    echo "Files in app storage dir: \n";
-    print_r(scandir(dirname(__DIR__) . '/storage/app/public'));
+    echo "Does deals dir exist? " . (is_dir(dirname(__DIR__) . '/storage/app/public/deals') ? 'Yes' : 'No') . "\n";
     exit;
 }
 
