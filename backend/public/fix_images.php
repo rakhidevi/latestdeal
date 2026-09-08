@@ -40,11 +40,12 @@ if (file_exists($envFile)) {
 }
 
 // 2. Create storage symlink using PHP symlink() — more reliable than artisan on shared hosts
-$storageTarget = $root . '/storage/app/public';
+$storageTargetAbsolute = $root . '/storage/app/public';
+$storageTargetRelative = '../storage/app/public';
 $linkPath      = $publicDir . '/storage';
 
-$results['storage_target'] = $storageTarget;
-$results['target_exists']  = is_dir($storageTarget);
+$results['storage_target'] = $storageTargetAbsolute;
+$results['target_exists']  = is_dir($storageTargetAbsolute);
 $results['link_path']      = $linkPath;
 $results['link_before']    = file_exists($linkPath) ? (is_link($linkPath) ? 'symlink' : 'dir/file') : 'none';
 
@@ -59,8 +60,8 @@ if (is_link($linkPath)) {
 }
 
 // Create symlink via PHP
-if (is_dir($storageTarget)) {
-    $symlinkResult = symlink($storageTarget, $linkPath);
+if (is_dir($storageTargetAbsolute)) {
+    $symlinkResult = symlink($storageTargetRelative, $linkPath);
     $results['php_symlink'] = $symlinkResult ? 'success' : 'failed: ' . error_get_last()['message'];
 } else {
     $results['php_symlink'] = 'skipped - target does not exist';
