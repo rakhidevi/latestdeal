@@ -1,5 +1,21 @@
 <?php
 
+if (isset($_GET['check_deal_96'])) {
+    header('Content-Type: text/plain');
+    require dirname(__DIR__) . '/vendor/autoload.php';
+    $app = require_once dirname(__DIR__) . '/bootstrap/app.php';
+    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+    $deal = \App\Models\Deal::find(96);
+    echo "Image URL: " . ($deal ? $deal->image_url : 'not found') . "\n";
+    echo "Public storage target: " . readlink(dirname(__DIR__) . '/public/storage') . "\n";
+    echo "App storage dir: " . dirname(__DIR__) . '/storage/app/public' . "\n";
+    echo "Does app storage dir exist? " . (is_dir(dirname(__DIR__) . '/storage/app/public') ? 'Yes' : 'No') . "\n";
+    echo "Files in app storage dir: \n";
+    print_r(scandir(dirname(__DIR__) . '/storage/app/public'));
+    exit;
+}
+
 // ============================================================
 // FRESH COMPOSER INSTALL — wipes corrupt vendor state first
 // Usage: /unzip.php?composer=fresh
