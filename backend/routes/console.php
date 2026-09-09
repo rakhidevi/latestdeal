@@ -52,7 +52,8 @@ Artisan::command('images:prune {--hours=72}', function () {
     $this->info("Pruned {$count} images older than {$hours} hours.");
 })->purpose('Prune old deal images to save disk space');
 
-Schedule::command('images:prune --hours=72')->daily();
+// Disabled destructive image pruning: previously deleted deal images older than 72h, causing broken images for active deals
+// Schedule::command('images:prune --hours=72')->daily();
 
 // Shared Hosting Queue Worker Workaround
 // Runs the queue worker every minute and stops when empty.

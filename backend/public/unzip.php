@@ -1,26 +1,40 @@
 <?php
 
-if (isset($_GET['check_deal_96'])) {
-    header('Content-Type: text/plain');
-    $env = file_get_contents(dirname(__DIR__) . '/.env');
-    preg_match('/DB_HOST=(.*)/', $env, $m1);
-    preg_match('/DB_DATABASE=(.*)/', $env, $m2);
-    preg_match('/DB_USERNAME=(.*)/', $env, $m3);
-    preg_match('/DB_PASSWORD=(.*)/', $env, $m4);
-    
-    try {
-        $pdo = new PDO("mysql:host=" . trim($m1[1]) . ";dbname=" . trim($m2[1]), trim($m3[1]), trim($m4[1]));
-        $stmt = $pdo->query("SELECT id, image_path, title FROM deals WHERE id = 96");
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        echo "Image path: " . ($row ? $row['image_path'] : 'not found') . "\n";
-    } catch (Exception $e) {
-        echo "DB Error: " . $e->getMessage() . "\n";
+// ============================================================
+// SECURITY AUTHENTICATION BARRIER
+// Requires valid deployment token to prevent unauthorized access
+// ============================================================
+$envFile = dirname(__DIR__) . '/.env';
+$allowedTokens = [];
+if (file_exists($envFile)) {
+    $envContent = file_get_contents($envFile);
+    if (preg_match('/^DEPLOY_KEY=(.*)$/m', $envContent, $m)) {
+        $allowedTokens[] = trim($m[1], " \t\n\r\0\x0B\"'");
     }
-    
-    echo "Public storage target: " . readlink(dirname(__DIR__) . '/public/storage') . "\n";
-    echo "App storage dir: " . dirname(__DIR__) . '/storage/app/public' . "\n";
-    echo "Does app storage dir exist? " . (is_dir(dirname(__DIR__) . '/storage/app/public') ? 'Yes' : 'No') . "\n";
-    echo "Does deals dir exist? " . (is_dir(dirname(__DIR__) . '/storage/app/public/deals') ? 'Yes' : 'No') . "\n";
+    if (preg_match('/^WORKER_API_KEY=(.*)$/m', $envContent, $m)) {
+        $allowedTokens[] = trim($m[1], " \t\n\r\0\x0B\"'");
+    }
+    if (preg_match('/^API_KEY=(.*)$/m', $envContent, $m)) {
+        $allowedTokens[] = trim($m[1], " \t\n\r\0\x0B\"'");
+    }
+}
+$allowedTokens = array_values(array_filter($allowedTokens));
+
+$providedToken = $_GET['token'] ?? $_SERVER['HTTP_X_DEPLOY_TOKEN'] ?? null;
+$authorized = false;
+if (!empty($providedToken) && !empty($allowedTokens)) {
+    foreach ($allowedTokens as $token) {
+        if (hash_equals($token, $providedToken)) {
+            $authorized = true;
+            break;
+        }
+    }
+}
+
+if (!$authorized) {
+    http_response_code(403);
+    header('Content-Type: text/plain');
+    echo "Forbidden: Invalid or missing deployment token.\n";
     exit;
 }
 

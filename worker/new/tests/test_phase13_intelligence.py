@@ -78,23 +78,28 @@ class TestPhase13Intelligence(unittest.TestCase):
             {"id": 4, "name": "Sports"}
         ]
         
-        # Mock LLM response
-        with patch('services.ai.clients.create_llm_client') as mock_llm:
-            mock_client = MagicMock()
-            mock_client.generate.return_value = '''
-            {
-                "primary": "Footwear",
-                "secondary": ["Shoes", "Running Shoes", "Sports"]
+        classifier.category_names = [c['name'] for c in classifier.categories_cache]
+        
+        # 1. Test deterministic categorization (Shoes)
+        res = classifier.process({"normalized_title": "PUMA Men's Running Shoes"})
+        self.assertEqual(res['primary_category_id'], 2)
+        
+        # 2. Test LLM fallback categorization
+        import json
+        async def fake_chat(*args, **kwargs):
+            return {
+                'content': json.dumps({
+                    "primary": "Footwear",
+                    "secondary": ["Shoes", "Running Shoes", "Sports"]
+                })
             }
-            '''
-            classifier.llm = mock_client
-            
-            res = classifier.process({"normalized_title": "PUMA Men's Running Shoes"})
-            
-            self.assertEqual(res['primary_category_id'], 1)
-            self.assertIn(2, res['secondary_category_ids'])
-            self.assertIn(3, res['secondary_category_ids'])
-            self.assertIn(4, res['secondary_category_ids'])
+        
+        with patch('services.intelligence.taxonomy_classifier.router.chat', side_effect=fake_chat):
+            res_llm = classifier.process({"normalized_title": "PUMA Speedster Performance Gear"})
+            self.assertEqual(res_llm['primary_category_id'], 1)
+            self.assertIn(2, res_llm['secondary_category_ids'])
+            self.assertIn(3, res_llm['secondary_category_ids'])
+            self.assertIn(4, res_llm['secondary_category_ids'])
 
     def test_deal_intelligence(self):
         intel = DealIntelligence()

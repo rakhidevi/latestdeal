@@ -49,4 +49,8 @@ return [
         'channel_id' => env('TELEGRAM_CHANNEL_ID'),
     ],
 
+    'worker' => [
+        'key' => env('WORKER_API_KEY', env('API_KEY')),
+    ],
+
 ];

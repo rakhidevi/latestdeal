@@ -119,11 +119,13 @@ class PriceUpdateController extends Controller
         // Clean out unit price expressions like (₹70,99,000 / 100 g) before extracting numbers
         $cleanHtml = preg_replace('/\([^)]*?(?:per|\/|100\s*g|100\s*ml|kg|count)[^)]*?\)/i', '', $html);
         $cleanHtml = preg_replace('/₹?\s*[\d,.]+\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b/i', '', $cleanHtml);
+        // Additional aggressive cleaning for unit prices often appended directly like </span> /100 g
+        $cleanHtml = preg_replace('/<span[^>]*>[^<]*<\/span>\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b/i', '', $cleanHtml);
 
         // Check explicit M.R.P.: tag first
         if (preg_match('/M\.R\.P\.?:?\s*(?:(?:<\/?[^>]+>)|&nbsp;|\s)*₹?\s*([\d,]+)/i', $cleanHtml, $m)) {
             $candidate = (float)str_replace(',', '', $m[1]);
-            if ($candidate > 0 && (!$discountedPrice || ($candidate / $discountedPrice) < 10)) {
+            if ($candidate > 0 && (!$discountedPrice || ($candidate / $discountedPrice) < 15)) { // Increase max allowed MRP multiplier just in case (e.g. 95% off)
                 $originalPrice = $candidate;
             }
         }
@@ -132,8 +134,8 @@ class PriceUpdateController extends Controller
             if (preg_match_all('/class="a-text-price[^"]*"[^>]*>.*?class="a-offscreen"[^>]*>\s*₹?\s*([\d,.]+)/s', $cleanHtml, $matches)) {
                 foreach ($matches[1] as $priceStr) {
                     $candidate = (float)str_replace(',', '', $priceStr);
-                    // Filter out per-unit prices (e.g. max 10x multiplier)
-                    if ($discountedPrice && $candidate > $discountedPrice && ($candidate / $discountedPrice) < 10) {
+                    // Filter out per-unit prices (e.g. max 15x multiplier)
+                    if ($discountedPrice && $candidate > $discountedPrice && ($candidate / $discountedPrice) < 15) {
                         $originalPrice = $candidate;
                         break;
                     }

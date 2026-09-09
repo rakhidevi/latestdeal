@@ -142,13 +142,25 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                 "#priceBlockStrikePriceString",
                 "span.a-price.a-text-price span.a-offscreen"
             ]:
-                el = page.locator(selector).first
-                if el.count() > 0:
+                # There can be multiple matches. The first might be the unit price.
+                # Check all matches for the selector
+                elements = page.locator(selector).all()
+                for el in elements:
                     text_val = el.text_content().strip()
-                    val_lower = text_val.lower()
-                    if "per g" not in val_lower and "/100" not in val_lower and "per 100" not in val_lower and "/ 100" not in val_lower:
+                    # Check parent for unit price text
+                    parent = el.locator("..")
+                    parent_text = parent.text_content().lower() if parent.count() > 0 else ""
+                    # Also check grandparent to be safe
+                    grandparent = parent.locator("..") if parent.count() > 0 else None
+                    grandparent_text = grandparent.text_content().lower() if grandparent and grandparent.count() > 0 else ""
+                    
+                    full_context = parent_text + " " + grandparent_text
+                    
+                    if "per g" not in full_context and "/100" not in full_context and "per 100" not in full_context and "/ 100" not in full_context and "/ count" not in full_context and "/count" not in full_context:
                         original_price_html = text_val
                         break
+                if original_price_html:
+                    break
                         
             if not original_price_html or "per" in original_price_html.lower() or "/100" in original_price_html.lower():
                 mrp_label = page.locator("span:has-text('M.R.P.:')").first

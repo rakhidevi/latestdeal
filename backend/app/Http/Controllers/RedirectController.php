@@ -24,12 +24,10 @@ class RedirectController extends Controller
         // 2. Increment deal analytics counters safely
         if (!$isBot) {
             try {
-                if (Schema::hasColumn('deals', 'clicks_count')) {
-                    $deal->timestamps = false;
-                    $deal->increment('clicks_count');
-                    $deal->timestamps = true;
-                }
-            } catch (\Exception $e) {
+                $deal->timestamps = false;
+                $deal->increment('clicks_count');
+                $deal->timestamps = true;
+            } catch (\Throwable $e) {
                 Log::warning('Deal clicks_count increment error: ' . $e->getMessage());
             }
         }
@@ -43,7 +41,7 @@ class RedirectController extends Controller
                 'publisher_integration_id' => $request->query('pub', null),
                 'is_bot' => $isBot,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::warning('ClickLog create error: ' . $e->getMessage());
         }
 
@@ -68,7 +66,7 @@ class RedirectController extends Controller
                     'ip_hash' => $ipHash,
                     'referrer' => $request->server('HTTP_REFERER')
                 ]);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 Log::warning('UIC Click log error: ' . $e->getMessage());
             }
         }

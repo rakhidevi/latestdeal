@@ -431,4 +431,72 @@ class DealIngestionController
             'deal_id' => $deal->id
         ], 201);
     }
+
+    /**
+     * Batch ingest multiple deals from worker.
+     */
+    public function batchIngest(Request $request)
+    {
+        $payload = $request->json()->all() ?: $request->all();
+        $items = isset($payload['deals']) && is_array($payload['deals']) ? $payload['deals'] : (is_array($payload) && array_is_list($payload) ? $payload : [$payload]);
+
+        if (empty($items)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No deals provided in payload'
+            ], 422);
+        }
+
+        $results = [
+            'total' => count($items),
+            'created' => 0,
+            'updated' => 0,
+            'rejected' => 0,
+            'errors' => []
+        ];
+
+        foreach ($items as $index => $item) {
+            try {
+                $subRequest = Request::create('/api/worker/ingest', 'POST', [], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($item));
+                $subRequest->headers->set('Accept', 'application/json');
+                $response = $this->store($subRequest);
+                $data = json_decode($response->getContent(), true);
+
+                if ($response->getStatusCode() === 200 || $response->getStatusCode() === 201) {
+                    if (($data['status'] ?? '') === 'created') {
+                        $results['created']++;
+                    } else {
+                        $results['updated']++;
+                    }
+                } else {
+                    $results['rejected']++;
+                    $results['errors'][] = [
+                        'index' => $index,
+                        'asin' => $item['asin'] ?? 'unknown',
+                        'error' => $data['error'] ?? $data['message'] ?? 'Rejected'
+                    ];
+                }
+            } catch (\Illuminate\Validation\ValidationException $ve) {
+                $results['rejected']++;
+                $results['errors'][] = [
+                    'index' => $index,
+                    'asin' => $item['asin'] ?? 'unknown',
+                    'error' => $ve->errors()
+                ];
+            } catch (\Exception $e) {
+                $results['rejected']++;
+                $results['errors'][] = [
+                    'index' => $index,
+                    'asin' => $item['asin'] ?? 'unknown',
+                    'error' => $e->getMessage()
+                ];
+            }
+        }
+
+        return response()->json([
+            'status' => 'completed',
+            'summary' => $results
+        ], 200);
+    }
 }
+

@@ -18,17 +18,6 @@ Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\ShopperAuthContro
     ->middleware(['signed'])
     ->name('verification.verify');
 
-Route::get('/setup-scraper', function () {
-    \App\Models\Category::firstOrCreate(['id' => 1], ['name' => 'Electronics', 'slug' => 'electronics']);
-    \App\Models\Merchant::firstOrCreate(['id' => 1], [
-        'name' => 'Amazon', 
-        'domain' => 'amazon.in',
-        'affiliate_param_key' => 'tag',
-        'store_id' => 'kridaymart-21'
-    ]);
-    return "Category #1 and Merchant #1 created! Your Python Worker will now work perfectly.";
-});
-
 
 // Fallback for old integer IDs — serve directly, NO redirects (avoids infinite loops)
 Route::get('/go/{id}', function (\Illuminate\Http\Request $request, $id) {
@@ -134,13 +123,6 @@ Route::get('/admin/catalog/health', [\App\Http\Controllers\Admin\CatalogHealthCo
 
 
 
-Route::get('/clear-cache', function() {
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    \Illuminate\Support\Facades\Artisan::call('route:clear');
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
-    return "Cache cleared.";
-});
 
 // Temporary: Fix APP_URL in production .env so images load correctly
 
@@ -307,4 +289,24 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/preview-center', \App\Livewire\Admin\Marketing\PreviewCenter::class)->name('preview-center');
         Route::get('/module/{module}', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->name('placeholder');
     });
+
+    // Admin maintenance routes
+    Route::get('/clear-cache', function() {
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        return "Cache cleared.";
+    })->name('admin.clear-cache');
+
+    Route::get('/setup-scraper', function () {
+        \App\Models\Category::firstOrCreate(['id' => 1], ['name' => 'Electronics', 'slug' => 'electronics']);
+        \App\Models\Merchant::firstOrCreate(['id' => 1], [
+            'name' => 'Amazon', 
+            'domain' => 'amazon.in',
+            'affiliate_param_key' => 'tag',
+            'store_id' => 'kridaymart-21'
+        ]);
+        return "Category #1 and Merchant #1 created! Your Python Worker will now work perfectly.";
+    })->name('admin.setup-scraper');
 });

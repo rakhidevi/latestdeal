@@ -15,7 +15,7 @@ class WorkerAuthMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $expectedKey = env('WORKER_API_KEY');
+        $expectedKey = config('services.worker.key') ?: env('WORKER_API_KEY') ?: env('API_KEY');
         
         if (empty($expectedKey)) {
             // Fails closed if not configured
@@ -25,7 +25,7 @@ class WorkerAuthMiddleware
         // Try Bearer token first, fallback to custom header, then fallback to JSON payload
         $token = $request->bearerToken() ?: $request->header('X-Worker-Key') ?: $request->input('worker_api_key');
 
-        if ($token !== $expectedKey) {
+        if (!$token || !hash_equals((string) $expectedKey, (string) $token)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 

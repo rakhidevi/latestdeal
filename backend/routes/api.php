@@ -20,10 +20,26 @@ use App\Http\Controllers\Api\MetricsController;
 // Deal Ingestion Engine (Called by local Python Worker)
 Route::middleware([\App\Http\Middleware\WorkerAuthMiddleware::class])->group(function () {
     Route::post('/worker/ingest', [\App\Http\Controllers\Api\DealIngestionController::class, 'store']);
+    Route::post('/deals/batch', [\App\Http\Controllers\Api\DealIngestionController::class, 'batchIngest']);
+    Route::get('/deals/active', [\App\Http\Controllers\Api\DealIngestionController::class, 'activeDeals']);
+    Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionController::class, 'expire']);
+    Route::post('/deals/{id}/refresh-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'refreshPrice']);
+    Route::post('/deals/update-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'updatePrice']);
+
+    // Scraper Job Tracking
+    Route::post('/scraper/jobs', [\App\Http\Controllers\Api\ScraperJobController::class, 'store']);
+    Route::put('/scraper/jobs/{job}', [\App\Http\Controllers\Api\ScraperJobController::class, 'update']);
+
+    // Worker Compare Queue
+    Route::get('/worker/compare-jobs/pending', [\App\Http\Controllers\Api\LiveComparisonController::class, 'getNextJob']);
+    Route::post('/worker/compare-jobs/{job_id}/complete', [\App\Http\Controllers\Api\LiveComparisonController::class, 'completeJob']);
+
+    // Worker Telemetry & Jobs
     Route::post('/worker/heartbeat', [\App\Http\Controllers\Api\WorkerTelemetryController::class, 'heartbeat']);
     Route::get('/worker/jobs/claim', [\App\Http\Controllers\Api\WorkerJobController::class, 'claim']);
     Route::post('/worker/jobs/{id}/status', [\App\Http\Controllers\Api\WorkerJobController::class, 'updateStatus']);
     Route::post('/worker/jobs/{id}/heartbeat', [\App\Http\Controllers\Api\WorkerJobController::class, 'heartbeat']);
+
     // Content Quality Firewall Pipeline
     Route::post('/worker/production-sync', [\App\Http\Controllers\Api\DealIngestionController::class, 'productionSync']);
     Route::get('/worker/generations/claim', [\App\Http\Controllers\Api\DealGenerationApiController::class, 'claim']);
@@ -37,10 +53,49 @@ Route::middleware([\App\Http\Middleware\WorkerAuthMiddleware::class])->group(fun
     Route::get('/worker/intelligence/check-exists', [\App\Http\Controllers\Api\IntelligenceApiController::class, 'checkExists']);
     Route::get('/worker/intelligence/categories', [\App\Http\Controllers\Api\IntelligenceApiController::class, 'getCategories']);
     Route::get('/worker/intelligence/brands', [\App\Http\Controllers\Api\IntelligenceApiController::class, 'getBrands']);
-});
 
-Route::get('/deals/active', [\App\Http\Controllers\Api\DealIngestionController::class, 'activeDeals']);
-Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionController::class, 'expire']);
+    // Protected Maintenance
+    Route::get('/migrate', function() {
+        try {
+            if (function_exists('opcache_reset')) {
+                opcache_reset();
+            }
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            \Illuminate\Support\Facades\Artisan::call('route:clear');
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    });
+
+    Route::get('/queue-work', function() {
+        try {
+            $deals = \App\Models\Deal::where('status', 'raw')->get();
+            $count = 0;
+            foreach ($deals as $deal) {
+                if (!\App\Models\Deal::find($deal->id)) {
+                    continue;
+                }
+                $correlationId = \Illuminate\Support\Str::uuid()->toString();
+                $rawPayload = [
+                    'title' => $deal->title,
+                    'original_price' => $deal->original_price,
+                    'discounted_price' => $deal->discounted_price,
+                    'url' => $deal->url,
+                    'brand' => $deal->brand,
+                    'image_base64' => ''
+                ];
+                event(new \App\Events\DealDiscovered($deal, $correlationId, 'unknown', '1.0', ['raw_payload' => $rawPayload]));
+                $count++;
+            }
+            return response()->json(['message' => "Re-dispatched $count raw deals."]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    });
+});
 
 // Brand & Search Autocomplete API Engine
 Route::prefix('v1')->group(function () {
@@ -48,67 +103,6 @@ Route::prefix('v1')->group(function () {
     Route::get('/search/suggestions', [\App\Http\Controllers\Api\SearchSuggestionController::class, 'suggestions']);
     Route::get('/search', [\App\Http\Controllers\Api\SearchApiController::class, 'search']);
 });
-
-// Temporary manual migration route
-Route::get('/migrate', function() {
-    try {
-        if (function_exists('opcache_reset')) {
-            opcache_reset();
-        }
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        \Illuminate\Support\Facades\Artisan::call('route:clear');
-        \Illuminate\Support\Facades\Artisan::call('view:clear');
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-});
-
-Route::get('/migrate-brands-check', function() {
-    return \Illuminate\Support\Facades\DB::select('SHOW TABLES');
-});
-Route::get('/queue-work', function() {
-    try {
-        $deals = \App\Models\Deal::where('status', 'raw')->get();
-        $count = 0;
-        foreach ($deals as $deal) {
-            // Check if the deal was deleted by a previous iteration (due to deduplication)
-            if (!\App\Models\Deal::find($deal->id)) {
-                continue;
-            }
-            
-            $correlationId = \Illuminate\Support\Str::uuid()->toString();
-            // Reconstruct the raw_payload that would have been sent originally
-            $rawPayload = [
-                'title' => $deal->title,
-                'original_price' => $deal->original_price,
-                'discounted_price' => $deal->discounted_price,
-                'url' => $deal->url,
-                'brand' => $deal->brand,
-                'image_base64' => '' // We can't recover base64, but the listener handles empty
-            ];
-            event(new \App\Events\DealDiscovered($deal, $correlationId, 'unknown', '1.0', ['raw_payload' => $rawPayload]));
-            $count++;
-        }
-        return response()->json(['message' => "Re-dispatched $count raw deals."]);
-    } catch (\Exception $e) {
-        file_put_contents(storage_path('logs/queue-work-error.txt'), $e->getMessage() . "\n" . $e->getTraceAsString());
-        return response()->json([
-            'error' => $e->getMessage(),
-            'trace_saved' => true
-        ], 500);
-    }
-});
-
-Route::get('/debug-deal', function(\Illuminate\Http\Request $request) {
-    $deal = \App\Models\Deal::where('url', 'LIKE', '%' . $request->get('id') . '%')->first();
-    return response()->json($deal);
-});
-
-// Scraper Job Tracking
-Route::post('/scraper/jobs', [\App\Http\Controllers\Api\ScraperJobController::class, 'store']);
-Route::put('/scraper/jobs/{job}', [\App\Http\Controllers\Api\ScraperJobController::class, 'update']);
 
 // Crawler Configuration
 Route::get('/settings/crawlers', function () {
@@ -126,32 +120,13 @@ Route::get('/smart-search', [\App\Http\Controllers\Api\SmartSearchController::cl
 // Real-Time Price Comparison & Live Fetching
 Route::post('/compare-prices', [\App\Http\Controllers\Api\LiveComparisonController::class, 'compare']);
 Route::get('/compare-prices/{job_id}', [\App\Http\Controllers\Api\LiveComparisonController::class, 'checkStatus']);
-Route::get('/worker/compare-jobs/pending', [\App\Http\Controllers\Api\LiveComparisonController::class, 'getNextJob']);
-Route::post('/worker/compare-jobs/{job_id}/complete', [\App\Http\Controllers\Api\LiveComparisonController::class, 'completeJob']);
 
-Route::post('/deals/{id}/refresh-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'refreshPrice']);
-Route::post('/deals/update-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'updatePrice']);
-
-// Protected APIs (Requires Bearer Token)
-Route::group([], function () {
-    Route::get('/deals/active', function (\Illuminate\Http\Request $request) {
-        if (env('API_KEY') && $request->header('Authorization') !== 'Bearer ' . env('API_KEY')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-        return response()->json(['deals' => \App\Models\Deal::where('status', 'active')->get()]);
-    });
-    
-    // Publisher Metrics
-    Route::get('/publisher/metrics', [MetricsController::class, 'index']);
-});
+// Protected APIs
+Route::get('/publisher/metrics', [MetricsController::class, 'index']);
 
 // Retention Engine (Public)
 Route::post('/subscribe', [SubscriptionController::class, 'subscribe']);
 Route::post('/alerts', [SubscriptionController::class, 'setAlert']);
-Route::post('/deals/batch', [DealIngestionController::class, 'batchIngest']);
-
-// Search Suggestions
-Route::get('/search/suggestions', [\App\Http\Controllers\Api\SearchSuggestionController::class, 'suggestions']);
 
 // User Intelligence Center Tracking
 Route::post('/uic/track', [\App\Http\Controllers\Api\UICTrackingController::class, 'track']);
