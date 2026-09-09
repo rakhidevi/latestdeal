@@ -15,7 +15,7 @@ class WorkerAuthMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $expectedKey = config('services.worker.key') ?: env('WORKER_API_KEY') ?: env('API_KEY');
+        $expectedKey = config('services.worker.key') ?: config('services.worker.api_key') ?: env('WORKER_API_KEY') ?: env('API_KEY');
         
         if (empty($expectedKey)) {
             // Fails closed if not configured

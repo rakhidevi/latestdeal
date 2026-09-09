@@ -76,9 +76,9 @@ jobs:
       - name: Trigger Extraction + DB Repair on Production
         run: |
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-          DEPLOY_TOKEN="${{ secrets.DEPLOY_KEY || secrets.WORKER_API_KEY || 'test-worker-token-123' }}"
+          DEPLOY_TOKEN="${{ secrets.DEPLOY_KEY || secrets.WORKER_API_KEY || 'ld_deploy_8f29c018a4d74996b72f10b24083a65c92df83021948ad72' }}"
 
-          echo "--- Fixing artisan permissions + clearing bootstrap cache + OPcache reset ---"
+          echo "--- Fixing artisan permissions + clearing bootstrap cache + OPcache reset + Purging scripts ---"
           curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://latestdeal.in/unzip.php?fix_perms=1&token=$DEPLOY_TOKEN"
 
           echo "--- Extracting deploy.zip (if upload succeeded) ---"

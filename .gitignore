@@ -40,3 +40,8 @@ browser_profile/
 unused/
 node_modules/
 chrome_profile/
+*.sql
+*.zip
+temp_*
+trace.txt
+*.txt.txt
