@@ -30,10 +30,15 @@ class DealAdminService
 
         $illegalCount = $this->countIllegalDeals();
 
-        $allUrls = Deal::pluck('url')->toArray();
-        $uniqueDomains = collect($allUrls)->map(function ($url) {
-            return parse_url($url, PHP_URL_HOST);
-        })->filter()->unique()->values();
+        $uniqueDomains = \Illuminate\Support\Facades\Cache::remember('admin_catalog_domains', 300, function () {
+            $merchantDomains = \App\Models\Merchant::whereNotNull('domain')->pluck('domain');
+            if ($merchantDomains->isNotEmpty()) {
+                return $merchantDomains->values();
+            }
+            return Deal::latest()->limit(100)->pluck('url')->map(function ($url) {
+                return parse_url($url, PHP_URL_HOST);
+            })->filter()->unique()->values();
+        });
 
         return compact('deals', 'status', 'counts', 'search', 'illegalCount', 'uniqueDomains');
     }
@@ -77,7 +82,30 @@ class DealAdminService
 
     public function updateDealStatus(Deal $deal, string $status): bool
     {
-        return $deal->update(['status' => $status]);
+        $payload = ['status' => $status];
+
+        if ($status === 'active') {
+            $payload['editorial_status'] = Deal::STATUS_PUBLISHED;
+            $payload['reviewed_at'] = now();
+            $payload['editor_id'] = auth()->id() ?? 1;
+
+            if (empty($deal->editorial_summary)) {
+                $payload['editorial_summary'] = $deal->title . ($deal->description ? ' - ' . \Illuminate\Support\Str::limit($deal->description, 200) : '');
+            }
+            if (empty($deal->editorial_verdict)) {
+                $payload['editorial_verdict'] = "Verified deal offering significant savings on {$deal->title}. Recommended for value-conscious shoppers.";
+            }
+            if (empty($deal->pros) || !is_array($deal->pros)) {
+                $payload['pros'] = ['Authentic merchant discount', 'Strong value for price'];
+            }
+            if (empty($deal->cons) || !is_array($deal->cons)) {
+                $payload['cons'] = ['Limited time or stock availability'];
+            }
+        } elseif ($status === 'rejected') {
+            $payload['editorial_status'] = Deal::STATUS_ARCHIVED;
+        }
+
+        return $deal->update($payload);
     }
 
     public function destroyDeal(Deal $deal): ?bool

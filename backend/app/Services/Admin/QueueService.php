@@ -8,7 +8,11 @@ class QueueService
 {
     public function workQueue()
     {
-        Artisan::call('queue:work', ['--stop-when-empty' => true]);
+        Artisan::call('queue:work', [
+            '--stop-when-empty' => true,
+            '--max-jobs' => 10,
+            '--max-time' => 10,
+        ]);
     }
 
     public function clearFailedJobs()

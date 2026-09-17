@@ -26,7 +26,7 @@ class LinkController extends Controller
     {
         $request->validate([
             'url' => 'required|url',
-            'merchant_id' => 'nullable|exists:merchants,id',
+            'merchant_id' => 'required|exists:merchants,id',
             'sub_id' => 'nullable|string'
         ]);
 

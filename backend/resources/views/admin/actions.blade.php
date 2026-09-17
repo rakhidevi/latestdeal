@@ -1,7 +1,9 @@
-@extends('layouts.app')
+@extends('admin.layout')
+
+@section('title', 'Actions & Crawler Terminal')
 
 @section('content')
-<div class="bg-[#0d1117] min-h-screen text-[#c9d1d9] font-sans">
+<div class="bg-[#0d1117] rounded-3xl p-6 text-[#c9d1d9] font-sans shadow-2xl border border-[#30363d]">
     
     <!-- Top Stats Row -->
     <div class="border-b border-[#30363d] px-6 py-4 flex items-center justify-between">

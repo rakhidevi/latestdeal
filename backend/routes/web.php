@@ -106,8 +106,6 @@ use App\Http\Controllers\ArticleController;
 Route::get('/guides', [ArticleController::class, 'index'])->name('articles.index');
 Route::get('/guides/{slug}', [ArticleController::class, 'show'])->name('articles.show');
 
-// Operations & Catalog Health Dashboard
-Route::get('/admin/catalog/health', [\App\Http\Controllers\Admin\CatalogHealthController::class, 'show'])->name('admin.catalog.health');
 
 
 
@@ -210,6 +208,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/insights', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.insights');
+    Route::get('/catalog/health', [\App\Http\Controllers\Admin\CatalogHealthController::class, 'show'])->name('admin.catalog.health');
 
     // User Intelligence Center (UIC) Platform Routes
     Route::prefix('uic')->name('admin.uic.')->group(function () {
@@ -244,6 +243,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/merchants', [\App\Http\Controllers\Admin\MerchantController::class, 'index'])->name('admin.merchants');
     Route::post('/merchants', [\App\Http\Controllers\Admin\MerchantController::class, 'store'])->name('admin.merchants.store');
     Route::put('/merchants/{merchant}', [\App\Http\Controllers\Admin\MerchantController::class, 'update'])->name('admin.merchants.update');
+    Route::delete('/merchants/{merchant}', [\App\Http\Controllers\Admin\MerchantController::class, 'destroy'])->name('admin.merchants.destroy');
     
     // Phase 13 - Discovery Profiles
     Route::get('/discovery-profiles', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'index'])->name('admin.discovery-profiles');
@@ -287,26 +287,20 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/segments', \App\Livewire\Admin\Marketing\SegmentsModule::class)->name('segments');
         Route::get('/analytics', \App\Livewire\Admin\Marketing\AnalyticsModule::class)->name('analytics');
         Route::get('/preview-center', \App\Livewire\Admin\Marketing\PreviewCenter::class)->name('preview-center');
+        Route::get('/health', \App\Livewire\Admin\Marketing\HealthCenter::class)->name('health');
+        Route::get('/queue', \App\Livewire\Admin\Marketing\QueueMonitor::class)->name('queue');
+        Route::get('/timeline', \App\Livewire\Admin\Marketing\ActivityTimeline::class)->name('timeline');
+        Route::get('/audit', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->name('audit');
+        Route::get('/settings', \App\Livewire\Admin\Marketing\SettingsManager::class)->name('settings');
         Route::get('/module/{module}', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->name('placeholder');
     });
 
     // Admin maintenance routes
-    Route::get('/clear-cache', function() {
+    Route::match(['get', 'post'], '/clear-cache', function() {
         \Illuminate\Support\Facades\Artisan::call('cache:clear');
         \Illuminate\Support\Facades\Artisan::call('view:clear');
         \Illuminate\Support\Facades\Artisan::call('route:clear');
         \Illuminate\Support\Facades\Artisan::call('config:clear');
-        return "Cache cleared.";
+        return back()->with('success', 'Application cache cleared successfully.');
     })->name('admin.clear-cache');
-
-    Route::get('/setup-scraper', function () {
-        \App\Models\Category::firstOrCreate(['id' => 1], ['name' => 'Electronics', 'slug' => 'electronics']);
-        \App\Models\Merchant::firstOrCreate(['id' => 1], [
-            'name' => 'Amazon', 
-            'domain' => 'amazon.in',
-            'affiliate_param_key' => 'tag',
-            'store_id' => 'kridaymart-21'
-        ]);
-        return "Category #1 and Merchant #1 created! Your Python Worker will now work perfectly.";
-    })->name('admin.setup-scraper');
 });

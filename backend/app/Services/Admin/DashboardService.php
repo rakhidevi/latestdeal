@@ -44,8 +44,24 @@ class DashboardService
         $pendingReview = Deal::where('status', 'pending')->count();
         $totalClicks = DB::table('clicks')->count();
 
-        $metricsController = app(\App\Http\Controllers\Api\MetricsController::class);
-        $metrics = $metricsController->index(request())->getData(true);
+        $metricsDaily = DB::table('clicks')
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+            ->where('created_at', '>=', now()->subDays(30))
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        $dealImpressions = DB::table('uic_page_visits')->where('url', 'like', '%/deal/%')->count();
+        $calculatedCtr = $dealImpressions > 0 
+            ? round(($totalClicks / $dealImpressions) * 100, 2) 
+            : ($totalClicks > 0 ? 100.0 : 0.0);
+
+        $metrics = [
+            'total_clicks' => $totalClicks,
+            'ctr' => $calculatedCtr . '%',
+            'chart_labels' => $metricsDaily->pluck('date'),
+            'chart_data' => $metricsDaily->pluck('count')
+        ];
         
         $clickStats = DB::table('clicks')
             ->join('deals', 'clicks.deal_id', '=', 'deals.id')
@@ -94,39 +110,30 @@ class DashboardService
             ->get();
 
         $estimatedEarnings = $categoryStats->sum('estimated_revenue') ?? 0;
-        $ctr = $totalClicks > 0 && Deal::count() > 0 ? round(($totalClicks / Deal::count()) * 100, 2) : 0;
+        $ctr = $calculatedCtr;
 
         $rejectedDeals = Deal::where('status', 'rejected')->count();
         $missingImages = Deal::whereNull('image_path')->orWhere('image_path', '')->count();
 
-        // Review Queue Aging
-        $inReviewDeals = Deal::where('editorial_status', 'IN_REVIEW')->get();
-        $now = now();
+        // Optimized Review Queue Aging using SQL bounds
+        $oneHourAgo = now()->subHour();
+        $sixHoursAgo = now()->subHours(6);
+        $twentyFourHoursAgo = now()->subDay();
+
+        $under1h = Deal::where('editorial_status', 'IN_REVIEW')->where('updated_at', '>=', $oneHourAgo)->count();
+        $h1to6 = Deal::where('editorial_status', 'IN_REVIEW')->whereBetween('updated_at', [$sixHoursAgo, $oneHourAgo])->count();
+        $h6to24 = Deal::where('editorial_status', 'IN_REVIEW')->whereBetween('updated_at', [$twentyFourHoursAgo, $sixHoursAgo])->count();
+        $over24h = Deal::where('editorial_status', 'IN_REVIEW')->where('updated_at', '<', $twentyFourHoursAgo)->count();
+        $oldestTimestamp = Deal::where('editorial_status', 'IN_REVIEW')->min('updated_at');
+        $oldestDays = $oldestTimestamp ? \Carbon\Carbon::parse($oldestTimestamp)->diffInDays(now()) : 0;
+
         $reviewQueueAging = [
-            '<1h' => 0,
-            '1-6h' => 0,
-            '6-24h' => 0,
-            '>24h' => 0,
-            'oldest_days' => 0
+            '<1h' => $under1h,
+            '1-6h' => $h1to6,
+            '6-24h' => $h6to24,
+            '>24h' => $over24h,
+            'oldest_days' => $oldestDays
         ];
-        
-        $oldestDate = null;
-        
-        foreach ($inReviewDeals as $deal) {
-            $hours = $deal->updated_at->diffInHours($now);
-            if ($hours < 1) $reviewQueueAging['<1h']++;
-            elseif ($hours < 6) $reviewQueueAging['1-6h']++;
-            elseif ($hours < 24) $reviewQueueAging['6-24h']++;
-            else $reviewQueueAging['>24h']++;
-            
-            if (!$oldestDate || $deal->updated_at < $oldestDate) {
-                $oldestDate = $deal->updated_at;
-            }
-        }
-        
-        if ($oldestDate) {
-            $reviewQueueAging['oldest_days'] = $oldestDate->diffInDays($now);
-        }
 
         // Pipeline Metrics (Last 7 Days)
         $sevenDaysAgo = now()->subDays(7);

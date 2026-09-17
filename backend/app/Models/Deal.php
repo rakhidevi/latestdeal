@@ -379,12 +379,16 @@ class Deal extends Model
     /**
      * Determines if the deal CAN be published from IN_REVIEW.
      */
-    public function canPublish(): bool
+    public function canPublish(bool $isManualAdminOverride = false): bool
     {
         if ($this->editorial_status !== self::STATUS_IN_REVIEW && $this->editorial_status !== self::STATUS_PUBLISHED) return false;
         if (is_null($this->editorial_summary) || is_null($this->editorial_verdict)) return false;
         if (is_null($this->pros) || is_null($this->cons)) return false;
         
+        if ($isManualAdminOverride) {
+            return true;
+        }
+
         $hasPassedQa = $this->aiGenerations()->where(function ($q) {
             $q->where('qa_result', true)
               ->orWhere('qa_result', 1)

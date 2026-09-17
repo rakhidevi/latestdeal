@@ -29,25 +29,39 @@ class ReviewQueueController extends Controller
     {
         $deal = Deal::findOrFail($id);
         
-        if ($deal->editorial_status !== Deal::STATUS_IN_REVIEW) {
+        if ($deal->editorial_status !== Deal::STATUS_IN_REVIEW && $deal->editorial_status !== Deal::STATUS_PUBLISHED) {
             return back()->with('error', 'Deal is not in review state.');
         }
 
         // Apply any manual edits if provided
-        $deal->fill($request->only([
+        $data = $request->only([
             'editorial_summary', 
             'editorial_verdict', 
             'pros', 
             'cons', 
             'best_for', 
             'not_for'
-        ]));
+        ]);
 
-        if (!$deal->canPublish()) {
-            return back()->with('error', 'Deal does not meet all publication requirements. Ensure all editorial fields are filled and a QA pass exists.');
+        foreach (['pros', 'cons', 'best_for', 'not_for'] as $arrayField) {
+            if (isset($data[$arrayField])) {
+                if (is_string($data[$arrayField])) {
+                    $lines = preg_split('/\r\n|\r|\n|,/', $data[$arrayField]);
+                    $data[$arrayField] = array_values(array_filter(array_map('trim', $lines)));
+                } elseif (!is_array($data[$arrayField])) {
+                    $data[$arrayField] = [];
+                }
+            }
+        }
+
+        $deal->fill($data);
+
+        if (!$deal->canPublish(isManualAdminOverride: true)) {
+            return back()->with('error', 'Deal does not meet publication requirements. Ensure editorial summary, verdict, pros, and cons are filled.');
         }
 
         $deal->editorial_status = Deal::STATUS_PUBLISHED;
+        $deal->status = Deal::STATUS_ACTIVE;
         $deal->reviewed_at = now();
         $deal->editor_id = auth()->id() ?? 1; // Fallback if no auth in testing
         

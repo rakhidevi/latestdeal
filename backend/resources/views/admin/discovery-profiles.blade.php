@@ -1,4 +1,6 @@
-@extends('layouts.admin')
+@extends('admin.layout')
+
+@section('title', 'Discovery Profiles')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">

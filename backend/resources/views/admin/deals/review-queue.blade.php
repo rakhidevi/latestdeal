@@ -1,4 +1,6 @@
-@extends('layouts.admin')
+@extends('admin.layout')
+
+@section('title', 'Editorial Review Queue')
 
 @section('content')
 <div class="container-fluid px-4 py-6">

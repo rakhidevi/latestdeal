@@ -129,16 +129,35 @@ class UicController extends Controller
     public function conversionFunnel()
     {
         try {
-            $visitors = UicVisitor::count();
-            $productViews = UicPageVisit::where('url', 'like', '%/deal/%')->count();
-            $aiQuestions = UicAiConversation::count();
-            $affiliateClicks = UicAffiliateClick::count();
+            $totalVisitors = UicVisitor::count();
+            
+            $viewVisitors = UicPageVisit::where('url', 'like', '%/deal/%')
+                ->distinct('visitor_uuid')
+                ->count('visitor_uuid');
+                
+            $aiVisitors = UicAiConversation::distinct('visitor_uuid')
+                ->count('visitor_uuid');
+                
+            $clickVisitors = UicAffiliateClick::distinct('visitor_uuid')
+                ->count('visitor_uuid');
+
+            $viewRate = $totalVisitors > 0 ? round(($viewVisitors / $totalVisitors) * 100, 1) : 0;
+            $aiRate = $viewVisitors > 0 ? round(($aiVisitors / $viewVisitors) * 100, 1) : 0;
+            $clickRate = $aiVisitors > 0 ? round(($clickVisitors / $aiVisitors) * 100, 1) : ($viewVisitors > 0 ? round(($clickVisitors / $viewVisitors) * 100, 1) : 0);
+            $overallConversion = $totalVisitors > 0 ? round(($clickVisitors / $totalVisitors) * 100, 2) : 0;
+
+            $visitors = $totalVisitors;
+            $productViews = $viewVisitors;
+            $aiQuestions = $aiVisitors;
+            $affiliateClicks = $clickVisitors;
         } catch (\Exception $e) {
             $visitors = 0; $productViews = 0; $aiQuestions = 0; $affiliateClicks = 0;
+            $viewRate = 0; $aiRate = 0; $clickRate = 0; $overallConversion = 0;
         }
 
         return view('admin.uic.conversion_funnel', compact(
-            'visitors', 'productViews', 'aiQuestions', 'affiliateClicks'
+            'visitors', 'productViews', 'aiQuestions', 'affiliateClicks',
+            'viewRate', 'aiRate', 'clickRate', 'overallConversion'
         ));
     }
 

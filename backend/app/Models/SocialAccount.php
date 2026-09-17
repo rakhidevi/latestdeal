@@ -13,4 +13,13 @@ class SocialAccount extends Model
         'target_id',
         'is_active',
     ];
+
+    protected $casts = [
+        'access_token' => 'encrypted',
+        'is_active' => 'boolean',
+    ];
+
+    protected $hidden = [
+        'access_token',
+    ];
 }

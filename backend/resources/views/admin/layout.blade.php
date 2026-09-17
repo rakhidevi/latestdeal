@@ -6,6 +6,7 @@
     <meta name='impact-site-verification' value='dcd870d6-a11b-48ec-8df2-15ba5c96630b'>
     <title>Admin Dashboard - LatestDeal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Heroicons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -15,7 +16,7 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        primary: { 500: '#ef4444', 600: '#dc2626', 900: '#0f172a' },
+                        primary: { DEFAULT: '#ef4444', 500: '#ef4444', 600: '#dc2626', 900: '#0f172a' },
                         surface: '#ffffff',
                     },
                     animation: {
@@ -29,6 +30,7 @@
         }
     </script>
     <style>
+        [x-cloak] { display: none !important; }
         .glass-panel {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(12px);

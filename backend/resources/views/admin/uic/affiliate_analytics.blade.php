@@ -10,6 +10,19 @@
 
 <div class="glass-panel rounded-3xl p-8 shadow-lg mb-8">
     <h3 class="text-xl font-bold text-slate-800 mb-6">Recent Outbound Affiliate Clicks</h3>
+    <!-- Merchant Summary Cards -->
+    @if(isset($merchantClicks) && $merchantClicks->count() > 0)
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        @foreach($merchantClicks as $mc)
+        <div class="bg-white/80 rounded-2xl p-5 border border-slate-100 shadow-sm">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ $mc->deal->merchant->name ?? 'Merchant #' . $mc->merchant_id }}</h4>
+            <p class="text-3xl font-black text-emerald-600 mt-1">{{ number_format($mc->total_clicks) }}</p>
+            <span class="text-xs text-slate-400 font-medium">total clicks</span>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     <div class="overflow-x-auto">
         <table class="w-full text-left text-sm text-slate-600">
             <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-xs">
@@ -34,5 +47,11 @@
             </tbody>
         </table>
     </div>
+
+    @if(method_exists($clicks, 'links'))
+    <div class="mt-6 border-t border-slate-100 pt-4">
+        {{ $clicks->links() }}
+    </div>
+    @endif
 </div>
 @endsection

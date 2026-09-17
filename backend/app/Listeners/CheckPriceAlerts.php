@@ -21,12 +21,17 @@ class CheckPriceAlerts implements ShouldQueue
     {
         $deal = $event->deal;
         
-        // Find all active alerts where keyword matches deal title and target price is satisfied
-        $matchingAlerts = PriceAlert::where('is_fulfilled', false)
-            ->where('target_price', '>=', $deal->discounted_price)
-            ->whereRaw('LOWER(?) LIKE LOWER(CONCAT("%", keyword, "%"))', [$deal->title])
-            ->with('subscriber')
-            ->get();
+        $driver = \Illuminate\Support\Facades\DB::connection()->getDriverName();
+        $alertQuery = PriceAlert::where('is_fulfilled', false)
+            ->where('target_price', '>=', $deal->discounted_price);
+
+        if ($driver === 'sqlite') {
+            $alertQuery->whereRaw("LOWER(?) LIKE '%' || LOWER(keyword) || '%'", [$deal->title]);
+        } else {
+            $alertQuery->whereRaw('LOWER(?) LIKE LOWER(CONCAT("%", keyword, "%"))', [$deal->title]);
+        }
+
+        $matchingAlerts = $alertQuery->with('subscriber')->get();
 
         foreach ($matchingAlerts as $alert) {
             $subscriber = $alert->subscriber;

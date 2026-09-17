@@ -14,29 +14,40 @@ class DealGenerationApiController extends Controller
      */
     public function claim(Request $request)
     {
-        // Deals needing AI generation
-        $deal = Deal::where('editorial_status', Deal::STATUS_AI_GENERATING)
-                    ->orderBy('updated_at', 'asc')
-                    ->first();
-                    
-        if (!$deal) {
-            return response()->json(['message' => 'No deals pending generation.'], 404);
-        }
+        return \Illuminate\Support\Facades\DB::transaction(function () {
+            // Atomically select and lock the oldest pending deal
+            $deal = Deal::where('editorial_status', Deal::STATUS_AI_GENERATING)
+                        ->orderBy('updated_at', 'asc')
+                        ->lockForUpdate()
+                        ->first();
+                        
+            if (!$deal) {
+                return response()->json(['message' => 'No deals pending generation.'], 404);
+            }
 
-        // Determine what target to generate based on latest generation history if any
-        // We look for a pending generation record first. If none exists, we assume 'all'.
-        $pendingGen = DealAiGeneration::where('deal_id', $deal->id)
-                                      ->where('status', 'pending')
-                                      ->first();
-                                      
-        $generationTarget = $pendingGen ? $pendingGen->generation_target : 'all';
-        $generationId = $pendingGen ? $pendingGen->id : null;
-        
-        return response()->json([
-            'deal' => $deal,
-            'generation_target' => $generationTarget,
-            'pending_generation_id' => $generationId
-        ]);
+            // Mark as QUALITY_CHECK so concurrent workers do not claim the same deal
+            $deal->editorial_status = Deal::STATUS_QUALITY_CHECK;
+            $deal->touch();
+            $deal->save();
+
+            $pendingGen = DealAiGeneration::where('deal_id', $deal->id)
+                                          ->where('status', 'pending')
+                                          ->lockForUpdate()
+                                          ->first();
+                                          
+            $generationTarget = $pendingGen ? $pendingGen->generation_target : 'all';
+            $generationId = $pendingGen ? $pendingGen->id : null;
+
+            if ($pendingGen) {
+                $pendingGen->update(['status' => 'processing']);
+            }
+            
+            return response()->json([
+                'deal' => $deal,
+                'generation_target' => $generationTarget,
+                'pending_generation_id' => $generationId
+            ]);
+        });
     }
 
     /**

@@ -25,10 +25,10 @@ class MerchantController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string',
-            'domain' => 'required|string',
-            'store_id' => 'required|string',
-            'affiliate_param_key' => 'required|string',
+            'name' => 'required|string|max:255',
+            'domain' => 'required|string|max:255|unique:merchants,domain',
+            'store_id' => 'required|string|max:255',
+            'affiliate_param_key' => 'required|string|max:255',
             'status' => 'boolean'
         ]);
 
@@ -41,10 +41,10 @@ class MerchantController extends Controller
     public function update(Request $request, Merchant $merchant)
     {
         $validated = $request->validate([
-            'name' => 'required|string',
-            'domain' => 'required|string',
-            'store_id' => 'required|string',
-            'affiliate_param_key' => 'required|string',
+            'name' => 'required|string|max:255',
+            'domain' => 'required|string|max:255|unique:merchants,domain,' . $merchant->id,
+            'store_id' => 'required|string|max:255',
+            'affiliate_param_key' => 'required|string|max:255',
             'status' => 'boolean'
         ]);
 
@@ -52,5 +52,15 @@ class MerchantController extends Controller
 
         $this->merchantService->updateMerchant($merchant, $validated);
         return back()->with('success', 'Merchant updated successfully!');
+    }
+
+    public function destroy(Merchant $merchant)
+    {
+        if ($merchant->deals()->exists()) {
+            return back()->with('error', 'Cannot delete merchant with active catalog deals. Reassign or delete the deals first.');
+        }
+
+        $merchant->delete();
+        return back()->with('success', 'Merchant removed successfully.');
     }
 }

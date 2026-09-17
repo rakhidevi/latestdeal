@@ -13,10 +13,10 @@ class ScraperService
         $jobs = ScraperJob::orderBy('created_at', 'desc')->paginate(20);
         
         $metrics = [
-            'total_scraped' => ScraperJob::where('type', 'ingestion')->count(),
+            'total_scraped' => ScraperJob::whereIn('type', ['ingestion', 'URL_SCAN', 'CUSTOM_HUNT'])->count(),
             'accepted' => Deal::where('status', 'active')->count(),
             'rejected' => Deal::where('status', 'rejected')->count(),
-            'expired' => ScraperJob::where('type', 'expiry_check')->where('status', 'success')->count()
+            'expired' => Deal::where('status', 'expired')->count()
         ];
 
         return compact('jobs', 'metrics');
@@ -65,9 +65,22 @@ class ScraperService
     public function getScraperStatus()
     {
         $recentJobs = ScraperJob::orderBy('created_at', 'desc')->limit(5)->get();
+        $recentWorker = \App\Models\WorkerStatus::orderBy('last_seen', 'desc')->first();
+        
+        $isOnline = false;
+        $message = 'Worker idle or offline';
+        
+        if ($recentWorker) {
+            $isOnline = $recentWorker->health_status === 'online' && $recentWorker->last_seen && \Carbon\Carbon::parse($recentWorker->last_seen)->greaterThan(now()->subMinutes(10));
+            $message = $isOnline ? "Worker '{$recentWorker->worker_name}' active" : "Worker '{$recentWorker->worker_name}' offline";
+        } elseif (ScraperJob::where('created_at', '>=', now()->subMinutes(15))->exists()) {
+            $isOnline = true;
+            $message = 'Worker active in last 15m';
+        }
+
         return [
-            'running' => true,
-            'message' => 'Worker is operating in polling mode',
+            'running' => $isOnline,
+            'message' => $message,
             'recent_jobs' => $recentJobs
         ];
     }
