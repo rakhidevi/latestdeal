@@ -14,8 +14,9 @@ class RecommendationService
     {
         return Cache::remember("recommendations_trending_{$limit}", 300, function () use ($limit) {
             return Deal::where('status', 'active')
-                ->where('created_at', '>=', now()->subDays(3))
-                ->orderByRaw('(discounted_price / original_price) ASC')
+                ->where('original_price', '>', 0)
+                ->where('created_at', '>=', now()->subDays(30))
+                ->orderByRaw('(CASE WHEN original_price > 0 THEN (discounted_price / original_price) ELSE 1 END) ASC')
                 ->orderBy('ai_score', 'desc')
                 ->limit($limit)
                 ->get();

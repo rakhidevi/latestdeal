@@ -100,7 +100,7 @@
                         </li>
                     </ul>
                     <div class="mt-4 text-right">
-                        <a href="{{ route('admin.studio.knowledge-center') }}" class="text-xs text-indigo-600 hover:underline">Manage Governance &rarr;</a>
+                        <a href="{{ \Illuminate\Support\Facades\Route::has('admin.studio.knowledge-center') ? route('admin.studio.knowledge-center') : (\Illuminate\Support\Facades\Route::has('admin.discovery-profiles') ? route('admin.discovery-profiles') : '#') }}" class="text-xs text-indigo-600 hover:underline">Manage Governance &rarr;</a>
                     </div>
                 </div>
             </div>

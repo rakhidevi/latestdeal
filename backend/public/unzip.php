@@ -384,18 +384,35 @@ if (isset($_GET['migrate'])) {
     exit;
 }
 
+if (isset($_GET['tail_log'])) {
+    header('Content-Type: text/plain; charset=utf-8');
+    $logFile = __DIR__ . '/../storage/logs/laravel.log';
+    if (!file_exists($logFile)) {
+        echo "No laravel.log found.\n";
+        exit;
+    }
+    $lines = file($logFile);
+    $lastLines = array_slice($lines, -60);
+    echo implode('', $lastLines);
+    exit;
+}
+
 if (isset($_GET['fix_url'])) {
     $envFile = __DIR__ . '/../.env';
     if (!file_exists($envFile)) {
         echo json_encode(['error' => '.env not found']);
         exit;
     }
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $isStaging = strpos($host, 'staging') !== false;
+    $targetUrl = $isStaging ? 'https://staging.latestdeal.in' : 'https://latestdeal.in';
+
     $env = file_get_contents($envFile);
     $before = substr($env, 0, 200);
     if (preg_match('/^APP_URL=/m', $env)) {
-        $env = preg_replace('/^APP_URL=.*/m', 'APP_URL=https://latestdeal.in', $env);
+        $env = preg_replace('/^APP_URL=.*/m', "APP_URL={$targetUrl}", $env);
     } else {
-        $env = "APP_URL=https://latestdeal.in\n" . $env;
+        $env = "APP_URL={$targetUrl}\n" . $env;
     }
     file_put_contents($envFile, $env);
     // Run storage:link and cache clear
@@ -408,6 +425,7 @@ if (isset($_GET['fix_url'])) {
     header('Content-Type: application/json');
     echo json_encode([
         'status' => 'done',
+        'target_url' => $targetUrl,
         'env_before' => $before,
         'storage_link' => implode('\n', $o1),
         'config_clear' => implode('\n', $o2),
@@ -471,13 +489,15 @@ if ($return_var === 0) {
     $envFile = __DIR__ . '/../.env';
     if (file_exists($envFile)) {
         $envContent = file_get_contents($envFile);
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $isStaging = strpos($host, 'staging') !== false;
+        $targetUrl = $isStaging ? 'https://staging.latestdeal.in' : 'https://latestdeal.in';
+
         // Set APP_URL if missing or wrong
-        if (!preg_match('/^APP_URL=https:\/\/latestdeal\.in/m', $envContent)) {
-            if (preg_match('/^APP_URL=/m', $envContent)) {
-                $envContent = preg_replace('/^APP_URL=.*/m', 'APP_URL=https://latestdeal.in', $envContent);
-            } else {
-                $envContent = "APP_URL=https://latestdeal.in\n" . $envContent;
-            }
+        if (preg_match('/^APP_URL=/m', $envContent)) {
+            $envContent = preg_replace('/^APP_URL=.*/m', "APP_URL={$targetUrl}", $envContent);
+        } else {
+            $envContent = "APP_URL={$targetUrl}\n" . $envContent;
         }
         // NOTE: Do NOT change APP_ENV — setting it to 'production' enables ComingSoonMiddleware
         // Set APP_DEBUG=false for security
@@ -492,7 +512,7 @@ if ($return_var === 0) {
             $envContent .= "\nCOMING_SOON_ENABLED=false\n";
         }
         file_put_contents($envFile, $envContent);
-        echo "ENV file patched with APP_URL=https://latestdeal.in\n";
+        echo "ENV file patched with APP_URL={$targetUrl}\n";
     }
 
     // Run Laravel commands

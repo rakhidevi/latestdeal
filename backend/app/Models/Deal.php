@@ -69,16 +69,53 @@ class Deal extends Model
                 $deal->hash_id = $hash;
             }
             
+            // Critical Scraper Safeguard: unauthenticated scraper cannot directly publish
+            $isWorkerApi = request() ? request()->is('api/worker/*') : false;
+            if (!auth()->check() && !$isWorkerApi && $deal->editorial_status === self::STATUS_PUBLISHED) {
+                $deal->editorial_status = self::STATUS_DISCOVERED;
+            }
+
             // Ensure default editorial status if null
             if (empty($deal->editorial_status)) {
-                $deal->editorial_status = self::STATUS_PUBLISHED;
+                $deal->editorial_status = self::STATUS_DISCOVERED;
             }
         });
 
         static::updating(function ($deal) {
+            // Critical Scraper Safeguard
+            $isWorkerApi = request() ? request()->is('api/worker/*') : false;
+            if (!auth()->check() && !$isWorkerApi && $deal->isDirty('editorial_status') && $deal->editorial_status === self::STATUS_PUBLISHED) {
+                $deal->editorial_status = $deal->getOriginal('editorial_status') ?: self::STATUS_DISCOVERED;
+            }
+
+            // State transition validation
+            if ($deal->isDirty('editorial_status')) {
+                $oldStatus = $deal->getOriginal('editorial_status');
+                $newStatus = $deal->editorial_status;
+                
+                if ($oldStatus !== null && $oldStatus !== $newStatus) {
+                    $allowed = [
+                        self::STATUS_DISCOVERED => [self::STATUS_QUALIFIED, self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_QUALIFIED => [self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_DRAFT => [self::STATUS_AI_GENERATING, self::STATUS_QUALITY_CHECK, self::STATUS_REJECTED],
+                        self::STATUS_AI_GENERATING => [self::STATUS_QUALITY_CHECK, self::STATUS_IN_REVIEW, self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_QUALITY_CHECK => [self::STATUS_IN_REVIEW, self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_IN_REVIEW => [self::STATUS_PUBLISHED, self::STATUS_AI_GENERATING, self::STATUS_DRAFT, self::STATUS_REJECTED],
+                        self::STATUS_PUBLISHED => [self::STATUS_EXPIRED, self::STATUS_ARCHIVED, self::STATUS_DRAFT, self::STATUS_AI_GENERATING, self::STATUS_IN_REVIEW],
+                        self::STATUS_EXPIRED => [self::STATUS_ARCHIVED, self::STATUS_DRAFT],
+                        self::STATUS_ARCHIVED => [self::STATUS_DRAFT],
+                        self::STATUS_REJECTED => [self::STATUS_DRAFT],
+                    ];
+                    
+                    if (isset($allowed[$oldStatus]) && !in_array($newStatus, $allowed[$oldStatus])) {
+                        throw new \Exception("Invalid editorial status transition from {$oldStatus} to {$newStatus}");
+                    }
+                }
+            }
+
             // Guard against empty editorial status
             if (empty($deal->editorial_status)) {
-                $deal->editorial_status = $deal->getOriginal('editorial_status') ?: self::STATUS_PUBLISHED;
+                $deal->editorial_status = $deal->getOriginal('editorial_status') ?: self::STATUS_DISCOVERED;
             }
         });
 
