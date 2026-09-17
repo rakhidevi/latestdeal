@@ -54,8 +54,9 @@ jobs:
           upload_file backend/routes/web.php             routes/web.php
           upload_file backend/routes/api.php             routes/api.php
 
-          # Core Models & Services
+          # Core Models, Controllers & Services
           upload_file backend/app/Models/Deal.php         app/Models/Deal.php
+          upload_file backend/app/Http/Controllers/Frontend/BrowseController.php app/Http/Controllers/Frontend/BrowseController.php
           upload_file backend/app/Services/RecommendationService.php app/Services/RecommendationService.php
           upload_file backend/resources/views/livewire/admin/studio/admin-center.blade.php resources/views/livewire/admin/studio/admin-center.blade.php
 

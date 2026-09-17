@@ -365,6 +365,8 @@ if (isset($_GET['fix_perms'])) {
     
     // Reset OPcache again after artisan
     if (function_exists('opcache_reset')) opcache_reset();
+    @touch(__DIR__ . '/.lsphp_restart.txt');
+    @touch(dirname(__DIR__) . '/.lsphp_restart.txt');
     
     header('Content-Type: application/json');
     echo json_encode(['status' => 'done', 'results' => $results]);
@@ -392,8 +394,11 @@ if (isset($_GET['tail_log'])) {
         exit;
     }
     $lines = file($logFile);
-    $lastLines = array_slice($lines, -60);
-    echo implode('', $lastLines);
+    $errors = array_filter($lines, fn($l) => str_contains($l, 'local.ERROR'));
+    echo "--- RECENT ERRORS ---\n";
+    echo implode('', array_slice($errors, -10));
+    echo "\n--- LAST 100 LINES ---\n";
+    echo implode('', array_slice($lines, -100));
     exit;
 }
 
