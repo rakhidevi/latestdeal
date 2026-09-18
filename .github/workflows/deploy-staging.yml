@@ -57,6 +57,8 @@ jobs:
           # Core Models, Controllers & Services
           upload_file backend/app/Models/Deal.php         app/Models/Deal.php
           upload_file backend/app/Http/Controllers/Frontend/BrowseController.php app/Http/Controllers/Frontend/BrowseController.php
+          upload_file backend/app/Http/Controllers/ShopperAuthController.php app/Http/Controllers/ShopperAuthController.php
+          upload_file backend/app/Http/Controllers/PublisherAuthController.php app/Http/Controllers/PublisherAuthController.php
           upload_file backend/app/Services/RecommendationService.php app/Services/RecommendationService.php
           upload_file backend/resources/views/livewire/admin/studio/admin-center.blade.php resources/views/livewire/admin/studio/admin-center.blade.php
 
@@ -84,7 +86,13 @@ jobs:
           echo "--- Running migrations ---"
           curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?migrate=1&token=$DEPLOY_TOKEN"
 
+          echo "--- Seeding default admin user ---"
+          curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?seed_admin=1&token=$DEPLOY_TOKEN"
+
           echo "--- Patching APP_URL + storage symlink ---"
           curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?fix_url=1&token=$DEPLOY_TOKEN"
+
+          echo "--- Refreshing OPcache and permissions ---"
+          curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?fix_perms=1&token=$DEPLOY_TOKEN"
 
           echo "--- Done ---"

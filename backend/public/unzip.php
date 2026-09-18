@@ -373,6 +373,27 @@ if (isset($_GET['fix_perms'])) {
     exit;
 }
 
+if (isset($_GET['seed_admin'])) {
+    header('Content-Type: text/plain; charset=utf-8');
+    try {
+        require __DIR__.'/../vendor/autoload.php';
+        $app = require_once __DIR__.'/../bootstrap/app.php';
+        $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+        $admin = \App\Models\User::firstOrNew(['email' => 'admin@latestdeal.in']);
+        $admin->name = 'Admin';
+        $admin->password = \Illuminate\Support\Facades\Hash::make('password123');
+        $admin->role = 'admin';
+        $admin->email_verified_at = now();
+        $admin->save();
+
+        echo "SUCCESS: Admin user seeded/updated successfully!\nEmail: admin@latestdeal.in\nPassword: password123\nRole: admin\n";
+    } catch (\Throwable $e) {
+        echo "FAIL: " . $e->getMessage() . "\n";
+    }
+    exit;
+}
+
 if (isset($_GET['migrate'])) {
     try {
         require __DIR__.'/../vendor/autoload.php';
@@ -380,6 +401,15 @@ if (isset($_GET['migrate'])) {
         $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
         $kernel->call('migrate', ['--force' => true]);
         echo "Migrations executed: \n" . $kernel->output();
+
+        // Ensure default admin user is seeded
+        $admin = \App\Models\User::firstOrNew(['email' => 'admin@latestdeal.in']);
+        $admin->name = 'Admin';
+        $admin->password = \Illuminate\Support\Facades\Hash::make('password123');
+        $admin->role = 'admin';
+        $admin->email_verified_at = now();
+        $admin->save();
+        echo "Default admin user (admin@latestdeal.in) verified/seeded.\n";
     } catch (\Exception $e) {
         echo "Migration failed: " . $e->getMessage();
     }
