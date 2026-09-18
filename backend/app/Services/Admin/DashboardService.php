@@ -153,7 +153,7 @@ class DashboardService
         ];
 
         // Alerts addition
-        $inReviewCount = $inReviewDeals->count();
+        $inReviewCount = Deal::where('editorial_status', 'IN_REVIEW')->count();
         if ($inReviewCount > 100) {
             $alerts[] = ['type' => 'warning', 'message' => "Review Queue > 100", 'icon' => 'alert-circle'];
         }

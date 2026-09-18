@@ -60,6 +60,7 @@ jobs:
           upload_file backend/app/Http/Controllers/ShopperAuthController.php app/Http/Controllers/ShopperAuthController.php
           upload_file backend/app/Http/Controllers/PublisherAuthController.php app/Http/Controllers/PublisherAuthController.php
           upload_file backend/app/Services/RecommendationService.php app/Services/RecommendationService.php
+          upload_file backend/app/Services/Admin/DashboardService.php app/Services/Admin/DashboardService.php
           upload_file backend/resources/views/livewire/admin/studio/admin-center.blade.php resources/views/livewire/admin/studio/admin-center.blade.php
 
           echo "Direct file uploads complete."
