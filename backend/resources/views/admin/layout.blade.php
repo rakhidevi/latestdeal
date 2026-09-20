@@ -119,8 +119,8 @@
                 <!-- 4. Crawlers & Scrapers -->
                 <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">Crawlers & Operations</p>
                 <a href="{{ route('admin.actions') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.actions') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="activity" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Scraping Actions</span>
+                    <i data-lucide="cpu" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Crawler Operations</span>
                 </a>
 
                 <!-- 5. Directory -->

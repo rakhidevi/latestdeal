@@ -146,11 +146,11 @@
                                         <!-- DEAL CARD -->
                                         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155;">
 
-                                            <!-- Product Image with Discount Badge overlay -->
+                                             <!-- Product Image with Discount Badge overlay -->
                                             <tr>
                                                 <td style="position: relative; padding: 0; background-color: #ffffff;" align="center">
                                                     <a href="{{ url('/deal/' . $deal->slug . '/' . $deal->hash_id) }}" target="_blank" style="text-decoration: none; display: block;">
-                                                        <img src="{{ $deal->image_url }}" alt="{{ $deal->title }}" width="240" height="160" style="display: block; width: 100%; max-width: 264px; max-height: 160px; border-radius: 12px 12px 0 0; background-color: #ffffff;" />
+                                                        <img src="{{ $deal->image_url ?? $deal->image_path ?? asset('images/logo.png') }}" alt="{{ $deal->title }}" width="240" height="160" style="display: block; width: 100%; max-width: 264px; max-height: 160px; border-radius: 12px 12px 0 0; background-color: #ffffff;" />
                                                     </a>
                                                     <!-- Discount Badge — positioned absolutely -->
                                                     @if($deal->discount_percentage > 0)
@@ -166,9 +166,11 @@
                                             <!-- Deal Info -->
                                             <tr>
                                                 <td style="padding: 14px 14px 8px 14px;">
-                                                    @if($deal->brandRelation)
+                                                    @if(!empty($deal->brandRelation) && !empty($deal->brandRelation->name))
                                                     <p style="margin: 0 0 4px 0; font-size: 10px; font-weight: 800; color: #ef4444; text-transform: uppercase; letter-spacing: 1px;">{{ $deal->brandRelation->name }}</p>
-                                                    @elseif($deal->merchant)
+                                                    @elseif(!empty($deal->brand) && is_string($deal->brand))
+                                                    <p style="margin: 0 0 4px 0; font-size: 10px; font-weight: 800; color: #ef4444; text-transform: uppercase; letter-spacing: 1px;">{{ $deal->brand }}</p>
+                                                    @elseif(!empty($deal->merchant) && !empty($deal->merchant->name))
                                                     <p style="margin: 0 0 4px 0; font-size: 10px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px;">{{ $deal->merchant->name }}</p>
                                                     @endif
                                                     <a href="{{ url('/deal/' . $deal->slug . '/' . $deal->hash_id) }}" target="_blank" style="text-decoration: none;">
@@ -195,7 +197,7 @@
                                                     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                                                         <tr>
                                                             <td align="center" style="border-radius: 8px; background: linear-gradient(135deg, #ef4444, #dc2626);">
-                                                                <a href="{{ $deal->affiliate_url }}" target="_blank" style="font-size: 13px; font-weight: 800; color: #ffffff; text-decoration: none; border-radius: 8px; padding: 11px 0; display: block; text-align: center; letter-spacing: 0.5px;">
+                                                                <a href="{{ $deal->affiliate_url ?? $deal->short_url ?? $deal->url ?? url('/') }}" target="_blank" style="font-size: 13px; font-weight: 800; color: #ffffff; text-decoration: none; border-radius: 8px; padding: 11px 0; display: block; text-align: center; letter-spacing: 0.5px;">
                                                                     🛒 GRAB DEAL
                                                                 </a>
                                                             </td>

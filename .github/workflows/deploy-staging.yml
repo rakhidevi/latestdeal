@@ -80,6 +80,9 @@ jobs:
           upload_file backend/resources/views/admin/marketing/preview_page.blade.php resources/views/admin/marketing/preview_page.blade.php
           upload_file backend/resources/views/admin/marketing/subscribers_manager.blade.php resources/views/admin/marketing/subscribers_manager.blade.php
           upload_file backend/resources/views/admin/marketing/dispatch_campaign.blade.php resources/views/admin/marketing/dispatch_campaign.blade.php
+          upload_file backend/resources/views/admin/actions.blade.php resources/views/admin/actions.blade.php
+          upload_file backend/resources/views/emails/promo-deal-digest.blade.php resources/views/emails/promo-deal-digest.blade.php
+          upload_file backend/resources/views/emails/promo-deal-digest-plain.blade.php resources/views/emails/promo-deal-digest-plain.blade.php
           upload_file backend/resources/views/livewire/admin/studio/admin-center.blade.php resources/views/livewire/admin/studio/admin-center.blade.php
 
           echo "Direct file uploads complete."

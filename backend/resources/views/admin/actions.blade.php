@@ -1,510 +1,525 @@
 @extends('admin.layout')
 
-@section('title', 'Actions & Crawler Terminal')
+@section('title', 'Crawler Engine & System Operations')
 
 @section('content')
-<div class="bg-[#0d1117] rounded-3xl p-6 text-[#c9d1d9] font-sans shadow-2xl border border-[#30363d]">
+<div class="space-y-8" x-data="scraperOps()" x-init="init()">
     
-    <!-- Top Stats Row -->
-    <div class="border-b border-[#30363d] px-6 py-4 flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-white flex items-center gap-2">
-            <svg aria-hidden="true" height="24" viewBox="0 0 24 24" version="1.1" width="24" class="fill-current text-[#8b949e]">
-                <path d="M11.93 8.5a4.002 4.002 0 0 1-7.78 0H2v-1h2.15a4.002 4.002 0 0 1 7.78 0H22v1h-10.07Zm-3.93-1.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5ZM20 14h2v1h-2v-1Zm0-4h2v1h-2v-1ZM2 14h2v1H2v-1Zm0-4h2v1H2v-1Zm7 4h13v1H9v-1Zm0-4h13v1H9v-1Z"></path>
-            </svg>
-            Actions
-        </h1>
-        <div class="flex gap-4">
-            <div class="bg-[#161b22] border border-[#30363d] rounded-md px-4 py-2 flex flex-col items-center">
-                <span class="text-xs text-[#8b949e] uppercase font-bold tracking-wider">Total Scraped</span>
-                <span class="text-xl font-semibold text-white">{{ $metrics['total_scraped'] }}</span>
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Crawler Operations & System Utilities</h1>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+                      :class="isWorkerOnline ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'">
+                    <span class="w-2 h-2 rounded-full" :class="isWorkerOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
+                    <span x-text="workerStatusText">Checking Worker...</span>
+                </span>
             </div>
-            <div class="bg-[#161b22] border border-[#30363d] rounded-md px-4 py-2 flex flex-col items-center">
-                <span class="text-xs text-[#238636] uppercase font-bold tracking-wider">Accepted</span>
-                <span class="text-xl font-semibold text-[#3fb950]">{{ $metrics['accepted'] }}</span>
+            <p class="text-sm text-slate-500 mt-1">Manage background product ingestion queues, monitor headless scraper workers, and run maintenance tasks.</p>
+        </div>
+
+        <!-- Top Action Buttons -->
+        <div class="flex items-center gap-2">
+            <button @click="showArchitectureModal = true" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 shadow-sm transition">
+                <i data-lucide="help-circle" class="w-4 h-4 text-slate-500"></i>
+                <span>How Scraping Works</span>
+            </button>
+            <button @click="fetchStatus()" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition">
+                <i data-lucide="refresh-cw" class="w-4 h-4" :class="isPolling ? 'animate-spin' : ''"></i>
+                <span>Refresh Status</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Metrics Strip -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Scrape Jobs</span>
+                <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                </div>
             </div>
-            <div class="bg-[#161b22] border border-[#30363d] rounded-md px-4 py-2 flex flex-col items-center">
-                <span class="text-xs text-[#da3633] uppercase font-bold tracking-wider">Rejected / Fake</span>
-                <span class="text-xl font-semibold text-[#ff7b72]">{{ $metrics['rejected'] }}</span>
+            <p class="text-2xl font-black text-slate-900 mt-2">{{ number_format($metrics['total_scraped'] ?? 0) }}</p>
+            <p class="text-xs text-slate-500 mt-1">Ingested via worker queues</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Active Deals</span>
+                <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                </div>
             </div>
-            <div class="bg-[#161b22] border border-[#30363d] rounded-md px-4 py-2 flex flex-col items-center">
-                <span class="text-xs text-[#8b949e] uppercase font-bold tracking-wider">Expired Removed</span>
-                <span class="text-xl font-semibold text-white">{{ $metrics['expired'] }}</span>
+            <p class="text-2xl font-black text-emerald-600 mt-2">{{ number_format($metrics['accepted'] ?? 0) }}</p>
+            <p class="text-xs text-slate-500 mt-1">Live on store & published</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-rose-600">Rejected / Fake</span>
+                <div class="p-2 bg-rose-50 text-rose-600 rounded-xl">
+                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-rose-600 mt-2">{{ number_format($metrics['rejected'] ?? 0) }}</p>
+            <p class="text-xs text-slate-500 mt-1">Filtered by editorial gate</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Expired Purged</span>
+                <div class="p-2 bg-slate-100 text-slate-600 rounded-xl">
+                    <i data-lucide="archive" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <p class="text-2xl font-black text-slate-700 mt-2">{{ number_format($metrics['expired'] ?? 0) }}</p>
+            <p class="text-xs text-slate-500 mt-1">Priced out or out-of-stock</p>
+        </div>
+    </div>
+
+    <!-- Architecture & Operation Banner -->
+    <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-md border border-slate-800">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-medium border border-indigo-400/20">
+                    <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                    <span>Hybrid Scraper Architecture</span>
+                </div>
+                <h3 class="text-lg font-bold text-white">How LatestDeal Ingests Amazon & Flipkart Deals</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Shared web hosting (cPanel/MilesWeb) blocks headless Chromium browsers and proxy pools. To maintain 100% uptime without IP bans, scraping runs on your <strong>Local Machine</strong> via <code class="bg-black/40 px-1.5 py-0.5 rounded text-indigo-300 font-mono text-[11px]">worker/main.py</code>, while this web dashboard manages queues and receives cleaned deals.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <button @click="startScraper()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/40 transition">
+                    <i data-lucide="play" class="w-4 h-4"></i>
+                    <span>Queue Worker Wakeup</span>
+                </button>
+                <button @click="stopScraper()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-900/40 transition">
+                    <i data-lucide="square" class="w-4 h-4"></i>
+                    <span>Emergency Stop</span>
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="flex">
-        <!-- Sidebar -->
-        <div class="w-64 border-r border-[#30363d] min-h-screen p-4 flex flex-col gap-6">
-            <div>
-                <a href="#" class="block px-3 py-2 text-sm font-semibold text-white bg-[#21262d] rounded-md flex items-center justify-between">
-                    All workflows
-                </a>
+    <!-- Command Execution Feedback -->
+    @if(session('action_output'))
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+                <h4 class="text-emerald-800 font-bold text-sm flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                    Command Completed Successfully
+                </h4>
             </div>
-            <div>
-                <h3 class="px-3 text-xs font-semibold text-[#8b949e] uppercase tracking-wider mb-2">Ingestion</h3>
-                <a href="#" class="block px-3 py-1.5 text-sm text-[#c9d1d9] hover:bg-[#161b22] rounded-md transition-colors">
-                    Scrape Deal
-                </a>
-                <a href="#" class="block px-3 py-1.5 text-sm text-[#c9d1d9] hover:bg-[#161b22] rounded-md transition-colors">
-                    Bulk Import
-                </a>
-            </div>
-            <div>
-                <h3 class="px-3 text-xs font-semibold text-[#8b949e] uppercase tracking-wider mb-2">Maintenance</h3>
-                <a href="#" class="block px-3 py-1.5 text-sm text-[#c9d1d9] hover:bg-[#161b22] rounded-md transition-colors">
-                    Expiry Checker
-                </a>
-            </div>
+            <pre class="text-emerald-900 font-mono text-xs bg-emerald-100/50 p-3 rounded-xl border border-emerald-200 overflow-x-auto whitespace-pre-wrap">{{ session('action_output') }}</pre>
         </div>
-
-        <!-- Main Content -->
-        <div class="flex-1 p-6">
-            
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                    <span class="font-semibold text-white">All workflows</span>
-                </div>
-                <div class="relative">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 fill-current text-[#8b949e]" viewBox="0 0 16 16" width="16" height="16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"></path></svg>
-                    <input type="text" placeholder="Filter workflow runs" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm pl-9 pr-3 py-1.5 focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] outline-none w-80 text-white placeholder-[#8b949e]">
-                </div>
+    @endif
+    @if(session('error'))
+        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+                <h4 class="text-rose-800 font-bold text-sm flex items-center gap-2">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i>
+                    Command Execution Error
+                </h4>
             </div>
+            <pre class="text-rose-900 font-mono text-xs bg-rose-100/50 p-3 rounded-xl border border-rose-200 overflow-x-auto whitespace-pre-wrap">{{ session('error') }}</pre>
+        </div>
+    @endif
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left: Quick Ingestion & Worker Heartbeat -->
+        <div class="lg:col-span-1 space-y-6">
             
-            <!-- Live Scraper Terminal -->
-            <div class="border border-[#30363d] rounded-md bg-[#0d1117] mb-6 flex flex-col" x-data="scraperTerminal()" x-init="init()">
-                <div class="bg-[#161b22] px-4 py-3 border-b border-[#30363d] flex items-center justify-between rounded-t-md">
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm font-semibold text-white">Scraper Control Center</span>
-                        <div class="flex items-center gap-1.5 border border-[#30363d] rounded-full px-2.5 py-0.5 bg-[#0d1117]">
-                            <span class="relative flex h-2 w-2">
-                                <span x-show="isRunning" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3fb950] opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2" :class="isRunning ? 'bg-[#3fb950]' : 'bg-[#8b949e]'"></span>
-                            </span>
-                            <span class="text-xs font-mono" x-text="isRunning ? 'Running' : 'Idle'" :class="isRunning ? 'text-[#3fb950]' : 'text-[#8b949e]'"></span>
-                        </div>
+            <!-- Ingest Single Product URL -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <div class="flex items-center gap-2 text-slate-900 font-bold">
+                    <div class="p-2 bg-red-50 text-red-600 rounded-xl">
+                        <i data-lucide="link" class="w-4 h-4"></i>
                     </div>
-                    <div class="flex gap-2">
-                        <button @click="startScraper" x-show="!isRunning" class="text-xs bg-[#238636] hover:bg-[#2ea043] border border-[rgba(240,246,252,0.1)] text-white px-3 py-1 rounded-md font-semibold transition-colors">Start Worker</button>
-                        <button @click="stopScraper" x-show="isRunning" class="text-xs bg-[#da3633] hover:bg-[#f85149] border border-[rgba(240,246,252,0.1)] text-white px-3 py-1 rounded-md font-semibold transition-colors">Stop Worker</button>
-                    </div>
+                    <span>Queue Product URL</span>
                 </div>
-                
-                <div class="p-3 bg-[#0d1117] border-b border-[#30363d] flex gap-2">
-                    <select x-model="scrapeMode" class="bg-[#010409] border border-[#30363d] rounded-md text-sm px-3 py-1.5 focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] outline-none text-white w-48">
-                        <option value="ingestion">Standard Bot (Background)</option>
-                        <option value="sitestripe_automation">SiteStripe (Real Browser)</option>
-                    </select>
-                    <input type="url" x-model="scrapeUrlInput" placeholder="Enter Amazon/Flipkart URL..." class="flex-1 bg-[#010409] border border-[#30363d] rounded-md text-sm px-3 py-1.5 focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] outline-none text-white placeholder-[#8b949e]">
-                    <button @click="submitScrape" :disabled="!isRunning || isSubmitting" class="text-xs bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] disabled:opacity-50 text-white px-4 py-1.5 rounded-md font-semibold transition-colors flex items-center">
-                        <span x-show="!isSubmitting">Queue URL</span>
-                        <span x-show="isSubmitting" class="flex items-center gap-2">
-                            <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            Sending...
-                        </span>
+                <p class="text-xs text-slate-500">Paste any Amazon.in or Flipkart.com product link to immediately extract price, MRP, images, and generate affiliate tags.</p>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Extraction Mode</label>
+                        <select x-model="scrapeMode" class="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none">
+                            <option value="ingestion">Standard Bot (Background API / Fast)</option>
+                            <option value="sitestripe_automation">SiteStripe Bot (Real Browser Automation)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Product Link</label>
+                        <input type="url" x-model="scrapeUrlInput" placeholder="https://www.amazon.in/dp/B0..." class="w-full text-xs font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-red-500 focus:outline-none">
+                    </div>
+
+                    <button @click="submitScrape()" :disabled="isSubmitting || !scrapeUrlInput" class="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4" x-show="!isSubmitting"></i>
+                        <svg class="animate-spin h-4 w-4" x-show="isSubmitting" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span x-text="isSubmitting ? 'Queueing URL...' : 'Add to Scraper Queue'"></span>
                     </button>
-                </div>
 
-                <div class="p-3 bg-[#010409] border-b border-[#30363d] flex flex-col gap-3">
-                    <div class="text-xs font-semibold text-[#8b949e] uppercase tracking-wider">Custom Deal Hunter</div>
-                    <div class="flex flex-wrap gap-2">
-                        <select multiple size="5" x-model="huntCategory" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-64 scrollbar-thin scrollbar-thumb-[#30363d] scrollbar-track-transparent">
-                            <option value="">All Categories</option>
-                            <option value="Alexa Skills">Alexa Skills</option>
-                            <option value="Amazon Devices">Amazon Devices</option>
-                            <option value="Amazon Fashion">Amazon Fashion</option>
-                            <option value="Amazon Fresh">Amazon Fresh</option>
-                            <option value="Amazon Pharmacy">Amazon Pharmacy</option>
-                            <option value="Appliances">Appliances</option>
-                            <option value="Apps & Games">Apps & Games</option>
-                            <option value="Audible Audiobooks">Audible Audiobooks</option>
-                            <option value="Baby">Baby</option>
-                            <option value="Beauty">Beauty</option>
-                            <option value="Books">Books</option>
-                            <option value="Car & Motorbike">Car & Motorbike</option>
-                            <option value="Clothing & Accessories">Clothing & Accessories</option>
-                            <option value="Collectibles">Collectibles</option>
-                            <option value="Computers & Accessories">Computers & Accessories</option>
-                            <option value="Deals">Deals</option>
-                            <option value="Electronics">Electronics</option>
-                            <option value="Furniture">Furniture</option>
-                            <option value="Garden & Outdoors">Garden & Outdoors</option>
-                            <option value="Gift Cards">Gift Cards</option>
-                            <option value="Grocery & Gourmet Foods">Grocery & Gourmet Foods</option>
-                            <option value="Health & Personal Care">Health & Personal Care</option>
-                            <option value="Home & Kitchen">Home & Kitchen</option>
-                            <option value="Industrial & Scientific">Industrial & Scientific</option>
-                            <option value="Jewellery">Jewellery</option>
-                            <option value="Kindle Store">Kindle Store</option>
-                            <option value="Luggage & Bags">Luggage & Bags</option>
-                            <option value="Luxury Beauty">Luxury Beauty</option>
-                            <option value="Movies & TV Shows">Movies & TV Shows</option>
-                            <option value="MP3 Music">MP3 Music</option>
-                            <option value="Music">Music</option>
-                            <option value="Musical Instruments">Musical Instruments</option>
-                            <option value="Office Products">Office Products</option>
-                            <option value="Pet Supplies">Pet Supplies</option>
-                            <option value="Prime Video">Prime Video</option>
-                            <option value="Shoes & Handbags">Shoes & Handbags</option>
-                            <option value="Software">Software</option>
-                            <option value="Sports, Fitness & Outdoors">Sports, Fitness & Outdoors</option>
-                            <option value="Subscribe & Save">Subscribe & Save</option>
-                            <option value="Tools & Home Improvement">Tools & Home Improvement</option>
-                            <option value="Toys & Games">Toys & Games</option>
-                            <option value="Under ₹500">Under ₹500</option>
-                            <option value="Video Games">Video Games</option>
-                            <option value="Watches">Watches</option>
-                        </select>
-                        <select multiple size="5" x-model="huntBrand" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-64 scrollbar-thin scrollbar-thumb-[#30363d] scrollbar-track-transparent">
-                            <option value="">Any Brand</option>
-                            <option value="Apple">Apple</option>
-                            <option value="ASUS">ASUS</option>
-                            <option value="HP">HP</option>
-                            <option value="OnePlus">OnePlus</option>
-                            <option value="vivo">vivo</option>
-                            <option value="ECOVACS">ECOVACS</option>
-                            <option value="Samsung">Samsung</option>
-                            <option value="Sleepyhead">Sleepyhead</option>
-                            <option value="Sony">Sony</option>
-                            <option value="PHILIPS">PHILIPS</option>
-                            <option value="atomberg">atomberg</option>
-                            <option value="Insta360">Insta360</option>
-                            <option value="Amazon">Amazon</option>
-                            <option value="Flo">Flo</option>
-                            <option value="Lenovo">Lenovo</option>
-                            <option value="SLOVIC">SLOVIC</option>
-                            <option value="XGIMI">XGIMI</option>
-                            <option value="realme">realme</option>
-                            <option value="Lumio">Lumio</option>
-                            <option value="boAt">boAt</option>
-                        </select>
-                        <select multiple size="5" x-model="huntDiscount" class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-64 scrollbar-thin scrollbar-thumb-[#30363d] scrollbar-track-transparent">
-                            <option value="">Any Discount</option>
-                            <option value="10">10% Off or more</option>
-                            <option value="25">25% Off or more</option>
-                            <option value="35">35% Off or more</option>
-                            <option value="50">50% Off or more</option>
-                            <option value="60">60% Off or more</option>
-                            <option value="70">70% Off or more</option>
-                        </select>
-                        <div class="flex flex-col gap-2 flex-1">
-                            <input type="text" x-model="huntKeyword" placeholder="Additional Keyword (optional)..." class="bg-[#0d1117] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white placeholder-[#8b949e] w-full">
-                            <select x-model="huntMode" class="bg-[#010409] border border-[#30363d] rounded-md text-sm px-3 py-1.5 outline-none text-white w-full">
-                                <option value="ingestion">Mode: Standard Bot (Background)</option>
-                                <option value="sitestripe_automation">Mode: SiteStripe (Real Browser)</option>
-                            </select>
-                            <button @click="submitHunt" :disabled="!isRunning || isHunting" class="text-xs bg-[#238636] hover:bg-[#2ea043] border border-[rgba(240,246,252,0.1)] disabled:opacity-50 text-white px-4 py-2 rounded-md font-semibold transition-colors flex justify-center items-center mt-auto w-full">
-                                <span x-show="!isHunting">Hunt Deals</span>
-                                <span x-show="isHunting" class="flex items-center gap-2">
-                                    <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                    Hunting...
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-[#010409] text-[#c9d1d9] font-mono text-xs p-4 h-48 overflow-y-auto rounded-b-md" id="terminal-output">
-                    <template x-for="(log, index) in logs" :key="index">
-                        <div class="flex hover:bg-[#161b22] px-2 py-0.5">
-                            <span class="text-[#8b949e] w-12 text-right select-none pr-3" x-text="index + 1"></span>
-                            <span class="whitespace-pre-wrap" x-text="log" :class="log.includes('Failed') || log.includes('error') ? 'text-[#f85149]' : (log.includes('success') ? 'text-[#3fb950]' : '')"></span>
-                        </div>
-                    </template>
-                    <div x-show="logs.length === 0" class="text-[#8b949e] italic px-2">Terminal standby. Awaiting background worker logs...</div>
+                    <div x-show="submitMessage" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-700" x-text="submitMessage"></div>
                 </div>
             </div>
 
-            <!-- System Actions -->
-            <div class="border border-[#30363d] rounded-md bg-[#0d1117] mb-6">
-                <div class="bg-[#161b22] px-4 py-3 border-b border-[#30363d] rounded-t-md">
-                    <span class="text-sm font-semibold text-white">System Actions</span>
+            <!-- Worker Heartbeat Live Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-slate-900 font-bold">
+                        <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <i data-lucide="activity" class="w-4 h-4"></i>
+                        </div>
+                        <span>Worker Heartbeat</span>
+                    </div>
+                    <span class="text-[11px] font-mono text-slate-400" x-text="lastPingTime ? 'Ping: ' + lastPingTime : 'Awaiting ping'"></span>
                 </div>
+
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">Worker Status:</span>
+                        <span class="font-bold" :class="isWorkerOnline ? 'text-emerald-600' : 'text-slate-600'" x-text="workerStatusText"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">Local Execution Command:</span>
+                        <span class="font-mono text-[11px] font-bold text-slate-800">python worker/main.py</span>
+                    </div>
+                </div>
+
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                    To start local background ingestion on your Windows machine, open PowerShell in the project directory and run <code class="bg-slate-100 px-1 py-0.5 rounded font-mono text-slate-700">python worker/main.py</code>. It automatically polls this table for jobs.
+                </p>
+            </div>
+        </div>
+
+        <!-- Right: System Artisan Utilities & Jobs Table -->
+        <div class="lg:col-span-2 space-y-8">
+            
+            <!-- System Artisan Actions Hub -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-4 h-4 text-slate-700"></i>
+                        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">System Artisan Commands</h2>
+                    </div>
+                    <span class="text-xs text-slate-400">Direct Server Utilities</span>
+                </div>
+
                 <div class="p-6">
-                    @if(session('action_output'))
-                        <div class="mb-4 bg-green-900/30 border border-green-500/50 p-4 rounded-md">
-                            <h4 class="text-green-400 font-bold mb-2">Success Output:</h4>
-                            <pre class="text-green-300 font-mono text-xs overflow-x-auto">{{ session('action_output') }}</pre>
-                        </div>
-                    @endif
-                    @if(session('error'))
-                        <div class="mb-4 bg-red-900/30 border border-red-500/50 p-4 rounded-md">
-                            <h4 class="text-red-400 font-bold mb-2">Error:</h4>
-                            <pre class="text-red-300 font-mono text-xs overflow-x-auto">{{ session('error') }}</pre>
-                        </div>
-                    @endif
-                    <div class="overflow-x-auto border border-[#30363d] rounded-md">
-                        <table class="w-full text-sm text-left">
-                            <thead class="text-xs text-[#8b949e] uppercase bg-[#161b22] border-b border-[#30363d]">
-                                <tr>
-                                    <th class="px-4 py-3">Action</th>
-                                    <th class="px-4 py-3">Command Executed</th>
-                                    <th class="px-4 py-3 text-right">Execute</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-[#30363d]">
-                                <tr class="hover:bg-[#161b22] transition-colors">
-                                    <td class="px-4 py-4 font-semibold text-white">Clear Application Cache</td>
-                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan cache:clear</td>
-                                    <td class="px-4 py-4 text-right">
-                                        <form method="POST" action="{{ route('admin.actions.run') }}">
-                                            @csrf
-                                            <input type="hidden" name="command" value="cache:clear">
-                                            <button type="submit" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-[#161b22] transition-colors">
-                                    <td class="px-4 py-4 font-semibold text-white">Clear Config Cache</td>
-                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan config:clear</td>
-                                    <td class="px-4 py-4 text-right">
-                                        <form method="POST" action="{{ route('admin.actions.run') }}">
-                                            @csrf
-                                            <input type="hidden" name="command" value="config:clear">
-                                            <button type="submit" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-[#161b22] transition-colors">
-                                    <td class="px-4 py-4 font-semibold text-white">Clear View Cache</td>
-                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan view:clear</td>
-                                    <td class="px-4 py-4 text-right">
-                                        <form method="POST" action="{{ route('admin.actions.run') }}">
-                                            @csrf
-                                            <input type="hidden" name="command" value="view:clear">
-                                            <button type="submit" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-[#161b22] transition-colors">
-                                    <td class="px-4 py-4 font-semibold text-white">Optimize Platform (Cache All)</td>
-                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan optimize:clear</td>
-                                    <td class="px-4 py-4 text-right">
-                                        <form method="POST" action="{{ route('admin.actions.run') }}">
-                                            @csrf
-                                            <input type="hidden" name="command" value="optimize:clear">
-                                            <button type="submit" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-[#161b22] transition-colors">
-                                    <td class="px-4 py-4 font-semibold text-white">Flush Failed Jobs</td>
-                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan queue:flush</td>
-                                    <td class="px-4 py-4 text-right">
-                                        <form method="POST" action="{{ route('admin.actions.run') }}">
-                                            @csrf
-                                            <input type="hidden" name="command" value="queue:flush">
-                                            <button type="submit" class="bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-[#161b22] transition-colors">
-                                    <td class="px-4 py-4 font-semibold text-white">Run Database Migrations</td>
-                                    <td class="px-4 py-4 font-mono text-xs text-[#8b949e]">php artisan migrate --force</td>
-                                    <td class="px-4 py-4 text-right">
-                                        <form method="POST" action="{{ route('admin.actions.run') }}" onsubmit="return confirm('Are you sure you want to run migrations on the live database?');">
-                                            @csrf
-                                            <input type="hidden" name="command" value="migrate">
-                                            <button type="submit" class="bg-[#da3633] hover:bg-[#f85149] border border-[rgba(240,246,252,0.1)] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-colors">Run Action</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- Documentation -->
-                    <div class="mt-8 pt-6 border-t border-[#30363d]">
-                        <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-[#58a6ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            System Actions Documentation
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-[#8b949e]">
-                            <div>
-                                <h4 class="text-[#c9d1d9] font-medium mb-1">Clear Application Cache</h4>
-                                <p class="mb-4 leading-relaxed">Flushes the Redis/File cache. Use this if the homepage deals list or metrics seem stuck or are not updating after running the scraper.</p>
-                                
-                                <h4 class="text-[#c9d1d9] font-medium mb-1">Clear Config Cache</h4>
-                                <p class="mb-4 leading-relaxed">Flushes the cached configuration. If you edit your <code class="bg-[#161b22] px-1 py-0.5 rounded border border-[#30363d] font-mono text-xs">.env</code> file (e.g. adding AdSense keys, changing database creds), you MUST run this action to apply the changes.</p>
-                                
-                                <h4 class="text-[#c9d1d9] font-medium mb-1">Clear View Cache</h4>
-                                <p class="leading-relaxed">Flushes compiled Blade templates. Use this if you make modifications to the UI files and the changes are not showing up on the frontend.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        
+                        <!-- 1. Application Cache -->
+                        <div class="p-4 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-800">Clear Application Cache</span>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">cache:clear</span>
                             </div>
-                            <div>
-                                <h4 class="text-[#c9d1d9] font-medium mb-1">Optimize Platform</h4>
-                                <p class="mb-4 leading-relaxed">A macro command that runs all clearing commands simultaneously. The safest general-purpose reset command when things behave unexpectedly.</p>
-                                
-                                <h4 class="text-[#c9d1d9] font-medium mb-1">Flush Failed Jobs</h4>
-                                <p class="mb-4 leading-relaxed">Cleans up the database table of failed queue jobs. Useful for database maintenance if the background worker encounters frequent timeouts.</p>
-                                
-                                <h4 class="text-[#c9d1d9] font-medium mb-1">Run Database Migrations</h4>
-                                <p class="leading-relaxed">Executes pending schema changes. Only run this after deploying an update to the server that introduces new database columns or tables.</p>
-                            </div>
+                            <p class="text-xs text-slate-500">Flushes Redis and File storage caches when deal prices appear cached or old.</p>
+                            <form method="POST" action="{{ route('admin.actions.run') }}">
+                                @csrf
+                                <input type="hidden" name="command" value="cache:clear">
+                                <button type="submit" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg transition">
+                                    Run Action
+                                </button>
+                            </form>
                         </div>
+
+                        <!-- 2. Config Cache -->
+                        <div class="p-4 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-800">Clear Configuration</span>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">config:clear</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Reloads .env variables, SMTP credentials, and database settings immediately.</p>
+                            <form method="POST" action="{{ route('admin.actions.run') }}">
+                                @csrf
+                                <input type="hidden" name="command" value="config:clear">
+                                <button type="submit" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg transition">
+                                    Run Action
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- 3. View Cache -->
+                        <div class="p-4 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-800">Clear Compiled Views</span>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">view:clear</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Flushes compiled Blade templates. Use when recent layout modifications don't reflect.</p>
+                            <form method="POST" action="{{ route('admin.actions.run') }}">
+                                @csrf
+                                <input type="hidden" name="command" value="view:clear">
+                                <button type="submit" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg transition">
+                                    Run Action
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- 4. Optimize Clear -->
+                        <div class="p-4 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-800">Optimize System (Clear All)</span>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">optimize:clear</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Comprehensive cleanup executing cache, config, route, and view flushes in one stroke.</p>
+                            <form method="POST" action="{{ route('admin.actions.run') }}">
+                                @csrf
+                                <input type="hidden" name="command" value="optimize:clear">
+                                <button type="submit" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg transition">
+                                    Run Action
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- 5. Flush Failed Queue -->
+                        <div class="p-4 rounded-xl border border-slate-200 hover:border-slate-300 transition bg-white space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-800">Flush Failed Jobs</span>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">queue:flush</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Purges deadlocked or expired background queue jobs from the database table.</p>
+                            <form method="POST" action="{{ route('admin.actions.run') }}">
+                                @csrf
+                                <input type="hidden" name="command" value="queue:flush">
+                                <button type="submit" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg transition">
+                                    Run Action
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- 6. Run Migrations -->
+                        <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/30 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-amber-900">Run DB Migrations</span>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800">migrate --force</span>
+                            </div>
+                            <p class="text-xs text-amber-700">Applies pending database schema migrations on the live production database.</p>
+                            <form method="POST" action="{{ route('admin.actions.run') }}" onsubmit="return confirm('Execute pending database migrations on the live database?');">
+                                @csrf
+                                <input type="hidden" name="command" value="migrate">
+                                <button type="submit" class="w-full py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition">
+                                    Run Live Migration
+                                </button>
+                            </form>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
-            <!-- List Box -->
-            <div class="border border-[#30363d] rounded-md bg-[#0d1117]">
-                
-                <div class="bg-[#161b22] px-4 py-3 border-b border-[#30363d] flex items-center justify-between rounded-t-md">
-                    <span class="text-sm font-semibold text-white">{{ $jobs->total() }} workflow runs</span>
+            <!-- Ingestion & Scraper Job Queue Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Crawler Job History & Queue</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Showing {{ $jobs->total() }} recent background scraping activities</p>
+                    </div>
                 </div>
 
-                <div class="divide-y divide-[#30363d]">
-                    @foreach($jobs as $job)
-                        <div class="p-4 hover:bg-[#161b22] transition-colors flex flex-col gap-2 cursor-pointer" onclick="toggleLogs({{ $job->id }})">
-                            <div class="flex items-start justify-between">
-                                <div class="flex gap-3">
-                                    <!-- Status Icon -->
-                                    <div class="mt-0.5">
-                                        @if($job->status === 'success')
-                                            <svg class="fill-current text-[#3fb950]" viewBox="0 0 16 16" width="16" height="16"><path d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16Zm3.78-9.72a.751.751 0 0 0-1.06-1.06L6.75 9.19 5.28 7.72a.751.751 0 0 0-1.06 1.06l2 2a.751.751 0 0 0 1.06 0l4.5-4.5Z"></path></svg>
-                                        @elseif($job->status === 'failure')
-                                            <svg class="fill-current text-[#f85149]" viewBox="0 0 16 16" width="16" height="16"><path d="M2.343 13.657A8 8 0 1 1 13.658 2.343 8 8 0 0 1 2.343 13.657ZM6.03 4.97a.751.751 0 0 0-1.042.018.751.751 0 0 0-.018 1.042L6.94 8 4.97 9.97a.749.749 0 0 0 .326 1.275.749.749 0 0 0 .734-.215L8 9.06l1.97 1.97a.749.749 0 0 0 1.275-.326.749.749 0 0 0-.215-.734L9.06 8l1.97-1.97a.749.749 0 0 0-.326-1.275.749.749 0 0 0-.734.215L8 6.94Z"></path></svg>
-                                        @else
-                                            <svg class="fill-current text-[#e3b341] animate-spin" viewBox="0 0 16 16" width="16" height="16"><path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Z"></path></svg>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50">
+                                <th class="py-3.5 px-6">ID & Operation</th>
+                                <th class="py-3.5 px-4">Type</th>
+                                <th class="py-3.5 px-4">Status</th>
+                                <th class="py-3.5 px-4">Started</th>
+                                <th class="py-3.5 px-4">Duration</th>
+                                <th class="py-3.5 px-6 text-right">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            @forelse($jobs as $job)
+                                <tr class="hover:bg-slate-50/80 transition">
+                                    <td class="py-3.5 px-6">
+                                        <div class="font-bold text-slate-900">#{{ $job->id }} {{ $job->name }}</div>
+                                        @if(!empty($job->payload) && is_array($job->payload) && isset($job->payload['url']))
+                                            <div class="text-[11px] text-slate-400 font-mono truncate max-w-xs mt-0.5" title="{{ $job->payload['url'] }}">
+                                                {{ $job->payload['url'] }}
+                                            </div>
                                         @endif
-                                    </div>
-
-                                    <!-- Job Info -->
-                                    <div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-semibold text-white text-base hover:text-[#58a6ff]">{{ $job->name }}</span>
-                                            <span class="border border-[#30363d] text-[#8b949e] px-2 py-0.5 rounded-full text-xs font-medium bg-[#161b22]">{{ $job->type }}</span>
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                                            {{ $job->type }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        @if(in_array(strtolower($job->status), ['completed', 'success', 'done']))
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <i data-lucide="check-circle" class="w-3 h-3"></i>
+                                                {{ strtoupper($job->status) }}
+                                            </span>
+                                        @elseif(in_array(strtolower($job->status), ['failed', 'failure', 'error']))
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                                <i data-lucide="alert-circle" class="w-3 h-3"></i>
+                                                {{ strtoupper($job->status) }}
+                                            </span>
+                                        @elseif(in_array(strtolower($job->status), ['processing', 'claimed', 'running']))
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                <svg class="animate-spin w-3 h-3 text-blue-600" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                PROCESSING
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                <i data-lucide="clock" class="w-3 h-3"></i>
+                                                {{ strtoupper($job->status) }}
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                                        {{ $job->started_at ? $job->started_at->diffForHumans() : $job->created_at->diffForHumans() }}
+                                    </td>
+                                    <td class="py-3.5 px-4 text-slate-600 font-mono">
+                                        {{ $job->duration_seconds ? $job->duration_seconds . 's' : '—' }}
+                                    </td>
+                                    <td class="py-3.5 px-6 text-right">
+                                        <button @click="toggleLogs({{ $job->id }})" class="px-2.5 py-1 text-[11px] font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+                                            View Logs
+                                        </button>
+                                    </td>
+                                </tr>
+                                <!-- Expandable Log Details -->
+                                <tr id="logs-row-{{ $job->id }}" class="hidden bg-slate-900 text-slate-300">
+                                    <td colspan="6" class="p-4 font-mono text-[11px] leading-relaxed">
+                                        <div class="flex items-center justify-between mb-2 text-slate-400 border-b border-slate-800 pb-2">
+                                            <span>Run #{{ $job->id }} Trace Logs</span>
+                                            <span>Type: {{ $job->type }}</span>
                                         </div>
-                                        <div class="text-xs text-[#8b949e] mt-1 flex items-center gap-1">
-                                            Scraper Run #{{ $job->id }}: Triggered automatically via {{ $job->type }} queue
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Meta info -->
-                                <div class="text-xs text-[#8b949e] flex flex-col items-end gap-1">
-                                    <div class="flex items-center gap-1">
-                                        <svg class="fill-current" viewBox="0 0 16 16" width="14" height="14"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7-3.25v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5a.75.75 0 0 1 1.5 0Z"></path></svg>
-                                        {{ $job->started_at->diffForHumans() }}
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <svg class="fill-current" viewBox="0 0 16 16" width="14" height="14"><path d="M10.75 1.5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75Zm-5.5 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75ZM7.25 5v5.25a.75.75 0 0 0 1.5 0V5a.75.75 0 0 0-1.5 0ZM2.5 7.75A5.25 5.25 0 1 1 12.5 10a.75.75 0 0 0 1.5 0 6.75 6.75 0 1 0-12.87 2.876l-1.337 1.337A.75.75 0 0 0 .53 15.5h3.72a.75.75 0 0 0 .75-.75v-3.72a.75.75 0 0 0-1.28-.53l-1.124 1.124A5.239 5.239 0 0 1 2.5 7.75Z"></path></svg>
-                                        {{ $job->duration_seconds ?? '...' }}s
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Logs Section (Hidden by default) -->
-                            <div id="logs-{{ $job->id }}" class="hidden mt-4 bg-[#010409] border border-[#30363d] rounded-md p-4 font-mono text-xs overflow-x-auto text-[#c9d1d9]">
-                                @if(is_array($job->logs) && count($job->logs) > 0)
-                                    @foreach($job->logs as $index => $log)
-                                        <div class="flex hover:bg-[#161b22] px-2 py-0.5">
-                                            <span class="text-[#8b949e] w-8 text-right select-none pr-3">{{ $index + 1 }}</span>
-                                            <span class="whitespace-pre-wrap">{{ $log }}</span>
-                                        </div>
-                                    @endforeach
-                                @else
-                                    <div class="text-[#8b949e] px-2">No logs available for this run.</div>
-                                @endif
-                            </div>
-                        </div>
-                    @endforeach
+                                        @if(is_array($job->logs) && count($job->logs) > 0)
+                                            <div class="space-y-1 max-h-48 overflow-y-auto">
+                                                @foreach($job->logs as $idx => $line)
+                                                    <div class="flex gap-2">
+                                                        <span class="text-slate-600 select-none">{{ $idx + 1 }}</span>
+                                                        <span>{{ $line }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <p class="text-slate-500 italic">No console logs recorded for this job.</p>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="py-12 text-center text-slate-400">
+                                        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                                        <p class="font-medium text-sm">No crawler runs recorded yet</p>
+                                        <p class="text-xs mt-1">Queue a product link above to begin ingesting items.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
 
-            </div>
-
-            <!-- Pagination -->
-            <div class="mt-6 flex justify-center">
-                {{ $jobs->links() }}
+                @if($jobs->hasPages())
+                    <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+                        {{ $jobs->links() }}
+                    </div>
+                @endif
             </div>
 
         </div>
+
     </div>
+
+    <!-- Architecture Modal -->
+    <div x-show="showArchitectureModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div @click.away="showArchitectureModal = false" class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="info" class="w-5 h-5 text-indigo-600"></i>
+                    How Crawler & Operations Work
+                </h3>
+                <button @click="showArchitectureModal = false" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="text-xs text-slate-600 space-y-3 leading-relaxed">
+                <p>
+                    <strong>1. Why is this separate from the web server?</strong><br>
+                    E-commerce websites like Amazon and Flipkart utilize aggressive anti-bot protection (Cloudflare, CAPTCHA, IP rate limits). If your shared cPanel server makes thousands of curl requests, the shared IP quickly gets banned.
+                </p>
+                <p>
+                    <strong>2. The Hybrid Solution:</strong><br>
+                    - When you add a URL here, it goes into your database table <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">scraper_jobs</code>.<br>
+                    - Your local computer runs <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">worker/main.py</code> which utilizes Playwright (a real Chrome browser) with residential IP routing.<br>
+                    - The worker extracts discounts, verified prices, and high-res images, and publishes them back to LatestDeal.
+                </p>
+                <p>
+                    <strong>3. System Commands:</strong><br>
+                    Commands such as <em>Clear Cache</em> or <em>Run Migrations</em> allow you to run crucial Laravel artisan commands directly from your browser without opening an SSH terminal.
+                </p>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button @click="showArchitectureModal = false" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition">
+                    Got it!
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
     function toggleLogs(id) {
-        const logsDiv = document.getElementById('logs-' + id);
-        if (logsDiv.classList.contains('hidden')) {
-            logsDiv.classList.remove('hidden');
-        } else {
-            logsDiv.classList.add('hidden');
+        const el = document.getElementById('logs-row-' + id);
+        if (el) {
+            el.classList.toggle('hidden');
         }
     }
-    
-    function scraperTerminal() {
+
+    function scraperOps() {
         return {
-            isRunning: false,
-            logs: [],
-            pollInterval: null,
+            isWorkerOnline: false,
+            workerStatusText: 'Checking...',
+            lastPingTime: null,
+            isPolling: false,
+            showArchitectureModal: false,
             scrapeUrlInput: '',
             scrapeMode: 'ingestion',
             isSubmitting: false,
-            huntCategory: [],
-            huntBrand: [],
-            huntDiscount: [],
-            huntKeyword: '',
-            huntMode: 'ingestion',
-            isHunting: false,
+            submitMessage: '',
+            
             init() {
                 this.fetchStatus();
-                this.pollInterval = setInterval(() => {
-                    this.fetchStatus();
-                }, 1000);
+                // Check status every 15 seconds instead of spamming every second
+                setInterval(() => this.fetchStatus(), 15000);
             },
+
             async fetchStatus() {
+                this.isPolling = true;
                 try {
-                    const response = await fetch('{{ route("admin.scraper.status") }}');
-                    if (response.ok) {
-                        const data = await response.json();
-                        this.isRunning = data.running;
-                        const oldLength = this.logs.length;
-                        this.logs = data.logs || [];
-                        if (this.logs.length !== oldLength && this.logs.length > 0) {
-                            this.$nextTick(() => {
-                                const el = document.getElementById('terminal-output');
-                                if (el && (el.scrollHeight - el.scrollTop <= el.clientHeight + 100)) {
-                                    el.scrollTop = el.scrollHeight;
-                                }
-                            });
-                        }
+                    const res = await fetch('{{ route("admin.scraper.status") }}');
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.isWorkerOnline = !!data.running;
+                        this.workerStatusText = data.message || (data.running ? 'Worker Active' : 'Worker Offline / Standby');
+                        this.lastPingTime = new Date().toLocaleTimeString();
                     }
                 } catch (e) {
-                    console.error("Failed to fetch scraper status:", e);
+                    this.isWorkerOnline = false;
+                    this.workerStatusText = 'Offline (Server error)';
+                } finally {
+                    this.isPolling = false;
                 }
             },
-            async startScraper() {
-                try {
-                    await fetch('{{ route("admin.scraper.start") }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    this.fetchStatus();
-                } catch (e) {
-                    console.error("Failed to start scraper", e);
-                }
-            },
-            async stopScraper() {
-                try {
-                    await fetch('{{ route("admin.scraper.stop") }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    this.fetchStatus();
-                } catch (e) {
-                    console.error("Failed to stop scraper", e);
-                }
-            },
+
             async submitScrape() {
                 if (!this.scrapeUrlInput) return;
                 this.isSubmitting = true;
+                this.submitMessage = '';
                 try {
-                    await fetch('{{ route("admin.scraper.scrape") }}', {
+                    const res = await fetch('{{ route("admin.scraper.scrape") }}', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -512,37 +527,52 @@
                         },
                         body: JSON.stringify({ url: this.scrapeUrlInput, type: this.scrapeMode })
                     });
-                    this.scrapeUrlInput = '';
+                    const data = await res.json();
+                    if (data.success) {
+                        this.submitMessage = '✓ URL queued successfully! Worker will process it shortly.';
+                        this.scrapeUrlInput = '';
+                        setTimeout(() => this.submitMessage = '', 6000);
+                    } else {
+                        alert(data.error || 'Failed to queue URL');
+                    }
                 } catch (e) {
-                    console.error("Failed to submit scrape", e);
+                    alert('Request failed. Please check network.');
                 } finally {
                     this.isSubmitting = false;
                 }
             },
-            async submitHunt() {
-                this.isHunting = true;
+
+            async startScraper() {
                 try {
-                    await fetch('{{ route("admin.scraper.hunt") }}', {
+                    const res = await fetch('{{ route("admin.scraper.start") }}', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ 
-                            category: this.huntCategory,
-                            brand: this.huntBrand,
-                            discount: this.huntDiscount,
-                            keyword: this.huntKeyword,
-                            mode: this.huntMode
-                        })
+                        }
                     });
-                    
-                    // Reset fields slightly for visual feedback
-                    this.huntKeyword = '';
+                    const data = await res.json();
+                    alert(data.message || 'Worker start signal sent');
+                    this.fetchStatus();
                 } catch (e) {
-                    console.error("Failed to submit custom hunt", e);
-                } finally {
-                    this.isHunting = false;
+                    alert('Failed to send start signal');
+                }
+            },
+
+            async stopScraper() {
+                try {
+                    const res = await fetch('{{ route("admin.scraper.stop") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data = await res.json();
+                    alert(data.message || 'Worker stop signal sent');
+                    this.fetchStatus();
+                } catch (e) {
+                    alert('Failed to send stop signal');
                 }
             }
         }
