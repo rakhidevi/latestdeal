@@ -163,16 +163,6 @@ class Deal extends Model
     }
 
     /**
-     * Get the resolved affiliate redirect URL for this deal.
-     */
-    public function getAffiliateUrlAttribute(): string
-    {
-        return $this->attributes['affiliate_url']
-            ?? $this->attributes['short_url']
-            ?? (!empty($this->attributes['hash_id']) ? url('/r/' . $this->attributes['hash_id']) : ($this->attributes['url'] ?? url('/')));
-    }
-
-    /**
      * Get the social shares for this deal.
      */
     public function socialShares()
