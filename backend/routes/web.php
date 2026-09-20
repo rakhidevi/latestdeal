@@ -210,7 +210,51 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/insights', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.insights');
     Route::get('/catalog/health', [\App\Http\Controllers\Admin\CatalogHealthController::class, 'show'])->name('admin.catalog.health');
 
-    // User Intelligence Center (UIC) Platform Routes
+    // Deal Management (Full CRUD)
+    Route::get('/deals', [\App\Http\Controllers\Admin\DealController::class, 'index'])->name('admin.deals');
+    Route::get('/deals/create', [\App\Http\Controllers\Admin\DealController::class, 'create'])->name('admin.deals.create');
+    Route::post('/deals', [\App\Http\Controllers\Admin\DealController::class, 'store'])->name('admin.deals.store');
+    Route::get('/deals/{deal}/edit', [\App\Http\Controllers\Admin\DealController::class, 'edit'])->name('admin.deals.edit');
+    Route::put('/deals/{deal}', [\App\Http\Controllers\Admin\DealController::class, 'update'])->name('admin.deals.update');
+    Route::post('/deals/{deal}/duplicate', [\App\Http\Controllers\Admin\DealController::class, 'duplicate'])->name('admin.deals.duplicate');
+    Route::put('/deals/{deal}/status', [\App\Http\Controllers\Admin\DealController::class, 'updateStatus'])->name('admin.deals.status');
+    Route::delete('/deals/{deal}', [\App\Http\Controllers\Admin\DealController::class, 'destroy'])->name('admin.deals.destroy');
+    Route::delete('/deals-purge-illegal', [\App\Http\Controllers\Admin\DealController::class, 'purgeIllegal'])->name('admin.deals.purge-illegal');
+
+    // Admin Review Queue
+    Route::get('/deals/review-queue', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'index'])->name('admin.deals.review-queue');
+    Route::post('/deals/review-queue/{id}/approve', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'approve'])->name('admin.deals.approve');
+    Route::post('/deals/review-queue/{id}/reject', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'reject'])->name('admin.deals.reject');
+    Route::post('/deals/review-queue/{id}/regenerate', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'regenerate'])->name('admin.deals.regenerate');
+
+    // Taxonomy: Categories
+    Route::get('/categories', [\App\Http\Controllers\Admin\CategoryController::class, 'index'])->name('admin.categories');
+    Route::post('/categories', [\App\Http\Controllers\Admin\CategoryController::class, 'store'])->name('admin.categories.store');
+    Route::put('/categories/{category}', [\App\Http\Controllers\Admin\CategoryController::class, 'update'])->name('admin.categories.update');
+    Route::delete('/categories/{category}', [\App\Http\Controllers\Admin\CategoryController::class, 'destroy'])->name('admin.categories.destroy');
+
+    // Taxonomy: Brands
+    Route::get('/brands', [\App\Http\Controllers\Admin\BrandController::class, 'index'])->name('admin.brands');
+    Route::post('/brands', [\App\Http\Controllers\Admin\BrandController::class, 'store'])->name('admin.brands.store');
+    Route::put('/brands/{brand}', [\App\Http\Controllers\Admin\BrandController::class, 'update'])->name('admin.brands.update');
+    Route::delete('/brands/{brand}', [\App\Http\Controllers\Admin\BrandController::class, 'destroy'])->name('admin.brands.destroy');
+
+    // Marketing & Newsletters (Working System)
+    Route::prefix('marketing')->name('admin.marketing.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\NewsletterController::class, 'dispatchView'])->name('dashboard');
+        Route::get('/campaigns', [\App\Http\Controllers\Admin\NewsletterController::class, 'dispatchView'])->name('campaigns');
+        Route::post('/campaigns/trigger', [\App\Http\Controllers\Admin\NewsletterController::class, 'triggerCampaign'])->name('campaigns.trigger');
+        Route::get('/templates', [\App\Http\Controllers\Admin\NewsletterController::class, 'templates'])->name('templates');
+        Route::get('/templates/preview/{templateKey}', [\App\Http\Controllers\Admin\NewsletterController::class, 'previewPage'])->name('templates.preview');
+        Route::get('/templates/render/{templateKey}', [\App\Http\Controllers\Admin\NewsletterController::class, 'renderPreviewHtml'])->name('templates.render');
+        Route::post('/templates/test', [\App\Http\Controllers\Admin\NewsletterController::class, 'sendTestEmail'])->name('templates.test');
+        Route::get('/subscribers', [\App\Http\Controllers\Admin\NewsletterController::class, 'subscribers'])->name('subscribers');
+        Route::get('/subscribers/export', [\App\Http\Controllers\Admin\NewsletterController::class, 'exportSubscribers'])->name('subscribers.export');
+        Route::post('/subscribers/{id}/toggle', [\App\Http\Controllers\Admin\NewsletterController::class, 'toggleSubscriber'])->name('subscribers.toggle');
+        Route::delete('/subscribers/{id}', [\App\Http\Controllers\Admin\NewsletterController::class, 'destroySubscriber'])->name('subscribers.destroy');
+    });
+
+    // User Intelligence Center (UIC)
     Route::prefix('uic')->name('admin.uic.')->group(function () {
         Route::get('/user-intelligence', [\App\Http\Controllers\Admin\UicController::class, 'userIntelligence'])->name('user-intelligence');
         Route::get('/user-detail/{uuid}', [\App\Http\Controllers\Admin\UicController::class, 'userDetail'])->name('user-detail');
@@ -222,78 +266,49 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/geographic-insights', [\App\Http\Controllers\Admin\UicController::class, 'geographicInsights'])->name('geographic-insights');
     });
     
+    // Scraper Operations
     Route::get('/actions', [\App\Http\Controllers\Admin\ScraperController::class, 'actions'])->name('admin.actions');
     Route::post('/actions/run', [\App\Http\Controllers\Admin\ScraperController::class, 'runAction'])->name('admin.actions.run');
+    Route::post('/scraper/start', [\App\Http\Controllers\Admin\ScraperController::class, 'startScraper'])->name('admin.scraper.start');
+    Route::post('/scraper/stop', [\App\Http\Controllers\Admin\ScraperController::class, 'stopScraper'])->name('admin.scraper.stop');
+    Route::get('/scraper/status', [\App\Http\Controllers\Admin\ScraperController::class, 'scraperStatus'])->name('admin.scraper.status');
+    Route::post('/scraper/scrape', [\App\Http\Controllers\Admin\ScraperController::class, 'scrapeUrl'])->name('admin.scraper.scrape');
+    Route::post('/scraper/hunt', [\App\Http\Controllers\Admin\ScraperController::class, 'customHunt'])->name('admin.scraper.hunt');
     
+    // Settings & System
     Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('admin.settings');
     Route::post('/settings/save', [\App\Http\Controllers\Admin\SettingController::class, 'save'])->name('admin.settings.save');
     Route::post('/settings/toggle', [\App\Http\Controllers\Admin\SettingController::class, 'toggle'])->name('admin.settings.toggle');
-    
-    Route::get('/deals', [\App\Http\Controllers\Admin\DealController::class, 'index'])->name('admin.deals');
-    Route::put('/deals/{deal}/status', [\App\Http\Controllers\Admin\DealController::class, 'updateStatus'])->name('admin.deals.status');
-    Route::delete('/deals/{deal}', [\App\Http\Controllers\Admin\DealController::class, 'destroy'])->name('admin.deals.destroy');
-    Route::delete('/deals-purge-illegal', [\App\Http\Controllers\Admin\DealController::class, 'purgeIllegal'])->name('admin.deals.purge-illegal');
-    
-    // Phase 11.4 - Admin Review Queue
-    Route::get('/deals/review-queue', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'index'])->name('admin.deals.review-queue');
-    Route::post('/deals/review-queue/{id}/approve', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'approve'])->name('admin.deals.approve');
-    Route::post('/deals/review-queue/{id}/reject', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'reject'])->name('admin.deals.reject');
-    Route::post('/deals/review-queue/{id}/regenerate', [\App\Http\Controllers\Admin\ReviewQueueController::class, 'regenerate'])->name('admin.deals.regenerate');
+    Route::post('/settings/test-smtp', [\App\Http\Controllers\Admin\SettingController::class, 'testSmtp'])->name('admin.settings.test-smtp');
 
+    // Merchants
     Route::get('/merchants', [\App\Http\Controllers\Admin\MerchantController::class, 'index'])->name('admin.merchants');
     Route::post('/merchants', [\App\Http\Controllers\Admin\MerchantController::class, 'store'])->name('admin.merchants.store');
     Route::put('/merchants/{merchant}', [\App\Http\Controllers\Admin\MerchantController::class, 'update'])->name('admin.merchants.update');
     Route::delete('/merchants/{merchant}', [\App\Http\Controllers\Admin\MerchantController::class, 'destroy'])->name('admin.merchants.destroy');
     
-    // Phase 13 - Discovery Profiles
+    // Discovery Profiles
     Route::get('/discovery-profiles', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'index'])->name('admin.discovery-profiles');
     Route::post('/discovery-profiles', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'store'])->name('admin.discovery-profiles.store');
     Route::put('/discovery-profiles/{profile}', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'update'])->name('admin.discovery-profiles.update');
     Route::delete('/discovery-profiles/{profile}', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'destroy'])->name('admin.discovery-profiles.destroy');
     Route::put('/discovery-profiles/{profile}/toggle', [\App\Http\Controllers\Admin\DiscoveryProfileController::class, 'toggle'])->name('admin.discovery-profiles.toggle');
 
+    // Users
     Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users');
     Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
     
+    // Links & Social
     Route::get('/links', [\App\Http\Controllers\Admin\LinkController::class, 'index'])->name('admin.links');
     Route::post('/links/generate', [\App\Http\Controllers\Admin\LinkController::class, 'generate'])->name('admin.links.generate');
-    
-    Route::post('/queue/work', [\App\Http\Controllers\Admin\QueueController::class, 'work'])->name('admin.queue.work');
-    Route::post('/queue/clear', [\App\Http\Controllers\Admin\QueueController::class, 'clear'])->name('admin.queue.clear');
-    
-    Route::post('/scraper/start', [\App\Http\Controllers\Admin\ScraperController::class, 'startScraper'])->name('admin.scraper.start');
-    Route::post('/scraper/stop', [\App\Http\Controllers\Admin\ScraperController::class, 'stopScraper'])->name('admin.scraper.stop');
-    Route::get('/scraper/status', [\App\Http\Controllers\Admin\ScraperController::class, 'scraperStatus'])->name('admin.scraper.status');
-    Route::post('/scraper/scrape', [\App\Http\Controllers\Admin\ScraperController::class, 'scrapeUrl'])->name('admin.scraper.scrape');
-    Route::post('/scraper/hunt', [\App\Http\Controllers\Admin\ScraperController::class, 'customHunt'])->name('admin.scraper.hunt');
-
     Route::get('/social-accounts', [\App\Http\Controllers\Admin\SocialAccountController::class, 'index'])->name('admin.social-accounts');
     Route::post('/social-accounts', [\App\Http\Controllers\Admin\SocialAccountController::class, 'store'])->name('admin.social-accounts.store');
     Route::delete('/social-accounts/{socialAccount}', [\App\Http\Controllers\Admin\SocialAccountController::class, 'destroy'])->name('admin.social-accounts.delete');
     Route::put('/social-accounts/{socialAccount}/toggle', [\App\Http\Controllers\Admin\SocialAccountController::class, 'toggle'])->name('admin.social-accounts.toggle');
 
-    // Marketing Center
-    Route::prefix('marketing')->name('admin.marketing.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\MarketingController::class, 'dashboard'])->name('dashboard');
-        Route::get('/campaigns', [\App\Http\Controllers\Admin\MarketingController::class, 'campaigns'])->name('campaigns');
-        
-        // Modules (Placeholders for now)
-        Route::get('/templates', \App\Livewire\Admin\Marketing\TemplateLibrary::class)->name('templates');
-        Route::get('/templates/create', \App\Livewire\Admin\Marketing\TemplateEditor::class)->name('templates.create');
-        Route::get('/templates/{id}/edit', \App\Livewire\Admin\Marketing\TemplateEditor::class)->name('templates.edit');
-        Route::get('/themes', \App\Livewire\Admin\Marketing\ThemesModule::class)->name('themes');
-        Route::get('/assets', \App\Livewire\Admin\Marketing\AssetsModule::class)->name('assets');
-        Route::get('/subscribers', \App\Livewire\Admin\Marketing\SubscribersModule::class)->name('subscribers');
-        Route::get('/segments', \App\Livewire\Admin\Marketing\SegmentsModule::class)->name('segments');
-        Route::get('/analytics', \App\Livewire\Admin\Marketing\AnalyticsModule::class)->name('analytics');
-        Route::get('/preview-center', \App\Livewire\Admin\Marketing\PreviewCenter::class)->name('preview-center');
-        Route::get('/health', \App\Livewire\Admin\Marketing\HealthCenter::class)->name('health');
-        Route::get('/queue', \App\Livewire\Admin\Marketing\QueueMonitor::class)->name('queue');
-        Route::get('/timeline', \App\Livewire\Admin\Marketing\ActivityTimeline::class)->name('timeline');
-        Route::get('/audit', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->name('audit');
-        Route::get('/settings', \App\Livewire\Admin\Marketing\SettingsManager::class)->name('settings');
-        Route::get('/module/{module}', [\App\Http\Controllers\Admin\MarketingController::class, 'placeholder'])->name('placeholder');
-    });
+    // Queue Utilities
+    Route::post('/queue/work', [\App\Http\Controllers\Admin\QueueController::class, 'work'])->name('admin.queue.work');
+    Route::post('/queue/clear', [\App\Http\Controllers\Admin\QueueController::class, 'clear'])->name('admin.queue.clear');
 
     // Admin maintenance routes
     Route::match(['get', 'post'], '/clear-cache', function() {

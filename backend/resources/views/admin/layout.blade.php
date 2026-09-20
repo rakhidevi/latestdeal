@@ -60,163 +60,101 @@
                 <span class="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">LatestDeal</span>
             </div>
             
-            <nav class="flex-1 px-4 py-8 space-y-2 overflow-y-auto">
-                <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-2">Overview</p>
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.dashboard') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="font-medium">Dashboard</span>
+            <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+                <!-- 1. Overview -->
+                <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">Overview</p>
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.dashboard') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Dashboard</span>
                 </a>
-                
-                <p class="px-4 text-xs font-semibold text-red-400 uppercase tracking-wider mb-3 mt-6 flex items-center gap-1.5">
-                    <i data-lucide="brain-circuit" class="w-3.5 h-3.5"></i>
-                    User Intelligence (UIC)
+                <a href="{{ route('admin.uic.user-intelligence') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.uic.*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="brain-circuit" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Traffic Intelligence</span>
+                </a>
+
+                <!-- 2. Deals & Catalog -->
+                <p class="px-4 text-[11px] font-bold text-red-400 uppercase tracking-wider mb-2 mt-6 flex items-center gap-1.5">
+                    <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+                    Deals & Catalog
                 </p>
-                
-                <a href="{{ route('admin.uic.user-intelligence') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.user-intelligence*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="users" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">User Intelligence</span>
+                <a href="{{ route('admin.deals') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.deals') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="tag" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Deals Catalog</span>
+                </a>
+                <a href="{{ route('admin.deals.create') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.deals.create') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="plus-circle" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110 text-emerald-400"></i>
+                    <span class="text-sm font-medium">Add New Deal</span>
+                </a>
+                <a href="{{ route('admin.deals.review-queue') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.deals.review-queue') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="check-square" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110 text-orange-400"></i>
+                    <span class="text-sm font-medium">Review Queue</span>
+                </a>
+                <a href="{{ route('admin.categories') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.categories*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="folder-tree" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Categories</span>
+                </a>
+                <a href="{{ route('admin.brands') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.brands*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="award" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Brands</span>
                 </a>
 
-                <a href="{{ route('admin.uic.traffic-sources') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.traffic-sources') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="compass" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Traffic Sources</span>
-                </a>
-
-                <a href="{{ route('admin.uic.ai-conversations') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.ai-conversations') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="bot" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">AI Conversations</span>
-                </a>
-
-                <a href="{{ route('admin.uic.affiliate-analytics') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.affiliate-analytics') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="trending-up" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Affiliate Analytics</span>
-                </a>
-
-                <a href="{{ route('admin.uic.search-analytics') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.search-analytics') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="search" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Search Analytics</span>
-                </a>
-
-                <a href="{{ route('admin.uic.conversion-funnel') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.conversion-funnel') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="filter" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Conversion Funnel</span>
-                </a>
-
-                <a href="{{ route('admin.uic.geographic-insights') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.uic.geographic-insights') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="globe" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Geographic Insights</span>
-                </a>
-                
-                <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-8">Monitoring</p>
-                <a href="{{ route('admin.actions') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.actions') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="activity" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="font-medium">Scraping Actions</span>
-                </a>
-
-                <p class="px-4 text-xs font-semibold text-red-400 uppercase tracking-wider mb-3 mt-8 flex items-center gap-1.5">
-                    <i data-lucide="megaphone" class="w-3.5 h-3.5"></i>
-                    Marketing Center
+                <!-- 3. Marketing & Newsletters -->
+                <p class="px-4 text-[11px] font-bold text-red-400 uppercase tracking-wider mb-2 mt-6 flex items-center gap-1.5">
+                    <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+                    Marketing & Newsletters
                 </p>
-                <a href="{{ route('admin.marketing.dashboard') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.dashboard') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="home" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Marketing Home</span>
+                <a href="{{ route('admin.marketing.campaigns') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.marketing.campaigns*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="send" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Dispatch Newsletter</span>
                 </a>
-                <a href="{{ route('admin.marketing.campaigns') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.campaigns') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="mail" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Campaigns</span>
-                </a>
-                <a href="{{ route('admin.marketing.templates') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.templates') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                <a href="{{ route('admin.marketing.templates') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.marketing.templates*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                     <i data-lucide="layout-template" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Templates</span>
+                    <span class="text-sm font-medium">Email Templates</span>
                 </a>
-                <a href="{{ route('admin.marketing.themes') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.themes') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="palette" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Themes</span>
-                </a>
-                <a href="{{ route('admin.marketing.assets') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.assets') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="image" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Assets</span>
-                </a>
-                <a href="{{ route('admin.marketing.subscribers') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.subscribers') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                <a href="{{ route('admin.marketing.subscribers') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.marketing.subscribers*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                     <i data-lucide="users" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
                     <span class="text-sm font-medium">Subscribers</span>
                 </a>
-                <a href="{{ route('admin.marketing.segments') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.segments') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="pie-chart" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Segments</span>
-                </a>
-                <a href="{{ route('admin.marketing.analytics') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.analytics') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="bar-chart-2" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Analytics</span>
-                </a>
-                <a href="{{ route('admin.marketing.preview-center') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.preview-center') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="smartphone" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Preview Center</span>
-                </a>
 
-                <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 mt-8 flex items-center gap-1.5">
-                    <i data-lucide="server" class="w-3.5 h-3.5"></i>
-                    Operations
-                </p>
-                <a href="{{ route('admin.marketing.health') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.health') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                <!-- 4. Crawlers & Scrapers -->
+                <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">Crawlers & Operations</p>
+                <a href="{{ route('admin.actions') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.actions') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
                     <i data-lucide="activity" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Health Center</span>
-                </a>
-                <a href="{{ route('admin.marketing.queue') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.queue') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="list-ordered" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Queue Monitor</span>
-                </a>
-                <a href="{{ route('admin.marketing.timeline') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.timeline') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="clock" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Activity Timeline</span>
-                </a>
-                <a href="{{ route('admin.marketing.audit') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.marketing.audit') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="shield-alert" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="text-sm font-medium">Audit Logs</span>
+                    <span class="text-sm font-medium">Scraping Actions</span>
                 </a>
 
-                <a href="{{ route('admin.marketing.settings') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-300 group mt-2 {{ request()->routeIs('admin.marketing.settings') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="settings" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                <!-- 5. Directory -->
+                <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">Directory</p>
+                <a href="{{ route('admin.merchants') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.merchants*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="store" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Merchants / Stores</span>
+                </a>
+                <a href="{{ route('admin.users') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.users*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="user-cog" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Users & Roles</span>
+                </a>
+                <a href="{{ route('admin.social-accounts') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.social-accounts*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="share-2" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Social Channels</span>
+                </a>
+                <a href="{{ route('admin.links') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.links*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="link" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
+                    <span class="text-sm font-medium">Link Generator</span>
+                </a>
+
+                <!-- 6. System -->
+                <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">System</p>
+                <a href="{{ route('admin.settings') }}" class="flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.settings*') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
+                    <i data-lucide="sliders" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i>
                     <span class="text-sm font-medium">Settings</span>
                 </a>
-
-
-                <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-8">Management</p>
-                <a href="{{ route('admin.deals.review-queue') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.deals.review-queue') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="check-square" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="font-medium">Editorial Queue</span>
-                </a>
-                
-                <a href="{{ route('admin.deals') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.deals') && !request()->routeIs('admin.deals.review-queue') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="shopping-bag" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="font-medium">Deals Catalog</span>
-                </a>
-                
-                <a href="{{ route('admin.merchants') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.merchants') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="store" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="font-medium">Merchants</span>
-                </a>
-                
-                <a href="{{ route('admin.users') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.users') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="users" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="font-medium">Publishers</span>
-                </a>
-                
-                <p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 mt-8">Tools</p>
-                <a href="{{ route('admin.links') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.links') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="link" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="font-medium">Link Generator</span>
-                </a>
-
-                <a href="{{ route('admin.social-accounts') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.social-accounts') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="share-2" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="font-medium">Social Accounts</span>
-                </a>
-                
-                <a href="{{ route('admin.settings') }}" class="flex items-center px-4 py-3 rounded-xl transition-all duration-300 group {{ request()->routeIs('admin.settings') ? 'bg-red-600/20 text-red-400 shadow-inner border border-red-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="cpu" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i>
-                    <span class="font-medium">AI Settings</span>
-                </a>
+                <form action="{{ route('admin.clear-cache') }}" method="POST" class="w-full">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 text-slate-400 hover:bg-white/5 hover:text-amber-300 text-left">
+                        <i data-lucide="trash" class="w-4 h-4 mr-3"></i>
+                        <span class="text-xs font-medium">Purge App Cache</span>
+                    </button>
+                </form>
             </nav>
             
             <div class="p-4 bg-black/20 border-t border-white/5">
