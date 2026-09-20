@@ -163,21 +163,6 @@ class Deal extends Model
     }
 
     /**
-     * Get the full URL for the deal's product image.
-     */
-    public function getImageUrlAttribute(): string
-    {
-        $path = $this->attributes['image_path'] ?? null;
-        if (!$path) {
-            return asset('images/logo.png');
-        }
-        if (Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
-        }
-        return asset($path);
-    }
-
-    /**
      * Get the resolved affiliate redirect URL for this deal.
      */
     public function getAffiliateUrlAttribute(): string
