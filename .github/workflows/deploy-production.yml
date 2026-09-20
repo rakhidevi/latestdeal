@@ -52,16 +52,46 @@ jobs:
 
           # Routes
           upload_file backend/routes/web.php             routes/web.php
+          upload_file backend/routes/api.php             routes/api.php
 
-          # Layouts
+          # Core Models, Controllers & Services
+          upload_file backend/app/Models/Deal.php         app/Models/Deal.php
+          upload_file backend/app/Http/Controllers/Frontend/BrowseController.php app/Http/Controllers/Frontend/BrowseController.php
+          upload_file backend/app/Http/Controllers/ShopperAuthController.php app/Http/Controllers/ShopperAuthController.php
+          upload_file backend/app/Http/Controllers/PublisherAuthController.php app/Http/Controllers/PublisherAuthController.php
+          upload_file backend/app/Http/Controllers/Admin/DealController.php app/Http/Controllers/Admin/DealController.php
+          upload_file backend/app/Http/Controllers/Admin/CategoryController.php app/Http/Controllers/Admin/CategoryController.php
+          upload_file backend/app/Http/Controllers/Admin/BrandController.php app/Http/Controllers/Admin/BrandController.php
+          upload_file backend/app/Http/Controllers/Admin/NewsletterController.php app/Http/Controllers/Admin/NewsletterController.php
+          upload_file backend/app/Http/Controllers/Admin/SettingController.php app/Http/Controllers/Admin/SettingController.php
+          upload_file backend/app/Services/Admin/SettingService.php app/Services/Admin/SettingService.php
+          upload_file backend/app/Services/RecommendationService.php app/Services/RecommendationService.php
+          upload_file backend/app/Services/Admin/DashboardService.php app/Services/Admin/DashboardService.php
+
+          # Layouts & Public Pages
           upload_file "backend/resources/views/layouts/app.blade.php" "resources/views/layouts/app.blade.php"
-
-          # Compliance pages (create dir first via a dummy upload)
           upload_file backend/resources/views/pages/about.blade.php       resources/views/pages/about.blade.php
           upload_file backend/resources/views/pages/contact.blade.php     resources/views/pages/contact.blade.php
           upload_file backend/resources/views/pages/privacy.blade.php     resources/views/pages/privacy.blade.php
           upload_file backend/resources/views/pages/terms.blade.php       resources/views/pages/terms.blade.php
           upload_file backend/resources/views/pages/disclosure.blade.php  resources/views/pages/disclosure.blade.php
+
+          # Admin Views
+          upload_file backend/resources/views/admin/layout.blade.php resources/views/admin/layout.blade.php
+          upload_file backend/resources/views/admin/deals.blade.php resources/views/admin/deals.blade.php
+          upload_file backend/resources/views/admin/deals/create.blade.php resources/views/admin/deals/create.blade.php
+          upload_file backend/resources/views/admin/deals/edit.blade.php resources/views/admin/deals/edit.blade.php
+          upload_file backend/resources/views/admin/categories.blade.php resources/views/admin/categories.blade.php
+          upload_file backend/resources/views/admin/brands.blade.php resources/views/admin/brands.blade.php
+          upload_file backend/resources/views/admin/settings.blade.php resources/views/admin/settings.blade.php
+          upload_file backend/resources/views/admin/marketing/templates_manager.blade.php resources/views/admin/marketing/templates_manager.blade.php
+          upload_file backend/resources/views/admin/marketing/preview_page.blade.php resources/views/admin/marketing/preview_page.blade.php
+          upload_file backend/resources/views/admin/marketing/subscribers_manager.blade.php resources/views/admin/marketing/subscribers_manager.blade.php
+          upload_file backend/resources/views/admin/marketing/dispatch_campaign.blade.php resources/views/admin/marketing/dispatch_campaign.blade.php
+          upload_file backend/resources/views/admin/actions.blade.php resources/views/admin/actions.blade.php
+          upload_file backend/resources/views/emails/promo-deal-digest.blade.php resources/views/emails/promo-deal-digest.blade.php
+          upload_file backend/resources/views/emails/promo-deal-digest-plain.blade.php resources/views/emails/promo-deal-digest-plain.blade.php
+          upload_file backend/resources/views/livewire/admin/studio/admin-center.blade.php resources/views/livewire/admin/studio/admin-center.blade.php
 
           echo "Direct file uploads complete."
 
@@ -89,6 +119,9 @@ jobs:
 
           echo "--- Patching APP_URL + storage symlink ---"
           curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://latestdeal.in/unzip.php?fix_url=1&token=$DEPLOY_TOKEN"
+
+          echo "--- Refreshing OPcache and permissions ---"
+          curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://latestdeal.in/unzip.php?fix_perms=1&token=$DEPLOY_TOKEN"
 
           echo "--- Done ---"
 
