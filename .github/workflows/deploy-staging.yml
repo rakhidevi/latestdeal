@@ -65,6 +65,9 @@ jobs:
           upload_file backend/app/Http/Controllers/Admin/NewsletterController.php app/Http/Controllers/Admin/NewsletterController.php
           upload_file backend/app/Http/Controllers/Admin/SettingController.php app/Http/Controllers/Admin/SettingController.php
           upload_file backend/app/Services/Admin/SettingService.php app/Services/Admin/SettingService.php
+          upload_file backend/app/Services/Admin/DealAdminService.php app/Services/Admin/DealAdminService.php
+          upload_file backend/app/Services/SearchPipeline/FilterNormalizer.php app/Services/SearchPipeline/FilterNormalizer.php
+          upload_file backend/app/Services/SearchPipeline/Pipes/ApplyRanking.php app/Services/SearchPipeline/Pipes/ApplyRanking.php
           upload_file backend/app/Services/RecommendationService.php app/Services/RecommendationService.php
           upload_file backend/app/Services/Admin/DashboardService.php app/Services/Admin/DashboardService.php
 

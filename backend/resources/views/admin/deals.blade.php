@@ -29,19 +29,27 @@
 
     <!-- Search & Filter Controls -->
     <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <!-- Search Form -->
-        <form method="GET" action="{{ route('admin.deals') }}" class="flex items-center gap-2 flex-1 max-w-xl">
+        <!-- Search & Sort Form -->
+        <form method="GET" action="{{ route('admin.deals') }}" class="flex flex-wrap items-center gap-2 flex-1 max-w-2xl">
             <input type="hidden" name="status" value="{{ $status }}">
-            <div class="relative flex-1">
+            <div class="relative flex-1 min-w-[220px]">
                 <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
                 <input type="text" name="search" value="{{ $search }}" placeholder="Search by deal title, merchant, or URL..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all shadow-sm">
             </div>
+
+            <!-- Sort Selector -->
+            <select name="sort_by" onchange="this.form.submit()" class="py-2.5 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all shadow-sm cursor-pointer">
+                <option value="created_at" {{ ($sortBy ?? 'created_at') === 'created_at' ? 'selected' : '' }}>🕒 Published Date (Newest)</option>
+                <option value="updated_at" {{ ($sortBy ?? '') === 'updated_at' ? 'selected' : '' }}>🔄 Last Updated (Latest)</option>
+                <option value="discount" {{ ($sortBy ?? '') === 'discount' ? 'selected' : '' }}>📉 Highest Discount</option>
+            </select>
+
             <button type="submit" class="px-5 py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-900 transition-colors shadow-sm">
-                Search
+                Filter
             </button>
-            @if(!empty($search))
+            @if(!empty($search) || ($sortBy ?? 'created_at') !== 'created_at')
                 <a href="{{ route('admin.deals', ['status' => $status]) }}" class="px-3.5 py-2.5 text-sm text-slate-600 hover:text-slate-900 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-                    Clear
+                    Reset
                 </a>
             @endif
         </form>
@@ -147,6 +155,36 @@
                         <a href="{{ $deal->url }}" target="_blank" class="hover:text-blue-600 flex items-center gap-0.5" title="Open source store URL">
                             <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Source
                         </a>
+                    </div>
+                </div>
+
+                <!-- Admin-Only Timestamps & Audit Box -->
+                <div class="mt-2.5 bg-slate-50/90 rounded-xl p-2.5 border border-slate-200/70 space-y-1 text-[11px]">
+                    <div class="flex items-center justify-between">
+                        <span class="flex items-center gap-1 text-slate-500 font-medium">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-500"></i>
+                            Published:
+                        </span>
+                        <span class="font-mono text-slate-700 font-semibold" title="{{ $deal->created_at }}">
+                            {{ $deal->created_at ? $deal->created_at->format('d M Y, h:i A') : 'N/A' }}
+                            <span class="text-slate-400 font-normal text-[10px]">({{ $deal->created_at ? $deal->created_at->diffForHumans() : '' }})</span>
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="flex items-center gap-1 text-slate-500 font-medium">
+                            <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500"></i>
+                            Updated:
+                        </span>
+                        <span class="font-mono text-slate-700 font-semibold" title="{{ $deal->updated_at }}">
+                            {{ $deal->updated_at ? $deal->updated_at->format('d M Y, h:i A') : 'N/A' }}
+                            <span class="text-slate-400 font-normal text-[10px]">({{ $deal->updated_at ? $deal->updated_at->diffForHumans() : '' }})</span>
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-200/50 text-[10px]">
+                        <span class="text-slate-400">Editorial:</span>
+                        <span class="font-bold px-1.5 py-0.5 rounded {{ $deal->editorial_status === 'PUBLISHED' ? 'bg-emerald-100 text-emerald-800' : ($deal->editorial_status === 'REJECTED' ? 'bg-rose-100 text-rose-800' : 'bg-slate-200 text-slate-700') }}">
+                            {{ $deal->editorial_status ?? 'DRAFT' }}
+                        </span>
                     </div>
                 </div>
             </div>

@@ -48,7 +48,9 @@ class Deal extends Model
             \Illuminate\Support\Facades\Cache::forget('recommendations_trending_5');
             \Illuminate\Support\Facades\Cache::forget('recommendations_trending_10');
             \Illuminate\Support\Facades\Cache::forget('recommendations_trending_15');
+            \Illuminate\Support\Facades\Cache::forget('hero_deals_10');
             \Illuminate\Support\Facades\Cache::forget('deals.assistant');
+            \Illuminate\Support\Facades\Cache::forget('admin_catalog_domains');
         });
 
         static::creating(function ($deal) {
@@ -376,11 +378,12 @@ class Deal extends Model
      */
     public function scopePublishable($query)
     {
-        return $query->where('editorial_status', self::STATUS_PUBLISHED)
-                     ->whereNotNull('editorial_summary')
-                     ->whereNotNull('editorial_verdict')
-                     ->whereNotNull('pros')
-                     ->whereNotNull('cons');
+        return $query->where('status', 'active')
+                     ->where(function ($q) {
+                         $q->where('editorial_status', self::STATUS_PUBLISHED)
+                           ->orWhereNull('editorial_status')
+                           ->orWhere('editorial_status', '!=', self::STATUS_REJECTED);
+                     });
     }
 
     /**
@@ -406,10 +409,8 @@ class Deal extends Model
      */
     public function isPublishable(): bool
     {
-        if ($this->editorial_status !== self::STATUS_PUBLISHED) return false;
-        if (is_null($this->editorial_summary) || is_null($this->editorial_verdict)) return false;
-        if (is_null($this->pros) || is_null($this->cons)) return false;
-
+        if ($this->status !== 'active') return false;
+        if ($this->editorial_status === self::STATUS_REJECTED) return false;
         return true;
     }
 

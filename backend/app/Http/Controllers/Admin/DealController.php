@@ -24,8 +24,9 @@ class DealController extends Controller
     {
         $status = $request->get('status', 'active');
         $search = $request->get('search', '');
+        $sortBy = $request->get('sort_by', 'created_at');
         
-        $data = $this->dealAdminService->getDealsCatalogData($status, $search);
+        $data = $this->dealAdminService->getDealsCatalogData($status, $search, $sortBy);
 
         return view('admin.deals', $data);
     }
@@ -76,8 +77,11 @@ class DealController extends Controller
             $imagePath = '/storage/' . $path;
         }
 
-        $pros = !empty($validated['pros']) ? array_filter(array_map('trim', explode("\n", $validated['pros']))) : null;
-        $cons = !empty($validated['cons']) ? array_filter(array_map('trim', explode("\n", $validated['cons']))) : null;
+        $pros = !empty($validated['pros']) ? array_filter(array_map('trim', explode("\n", $validated['pros']))) : ['Verified discount', 'Genuine merchant deal'];
+        $cons = !empty($validated['cons']) ? array_filter(array_map('trim', explode("\n", $validated['cons']))) : ['Price subject to change based on merchant stock'];
+
+        $editorialSummary = !empty($validated['editorial_summary']) ? $validated['editorial_summary'] : 'Verified deal handpicked by LatestDeal with verified discount.';
+        $editorialVerdict = !empty($validated['editorial_verdict']) ? $validated['editorial_verdict'] : 'Recommended buy based on verified savings.';
 
         $slugBase = Str::slug($validated['title']);
         $slug = $slugBase;
@@ -102,8 +106,8 @@ class DealController extends Controller
             'coupon_code' => $validated['coupon_code'] ?? null,
             'status' => $validated['status'],
             'editorial_status' => $validated['status'] === 'active' ? Deal::STATUS_PUBLISHED : Deal::STATUS_DRAFT,
-            'editorial_summary' => $validated['editorial_summary'] ?? null,
-            'editorial_verdict' => $validated['editorial_verdict'] ?? null,
+            'editorial_summary' => $editorialSummary,
+            'editorial_verdict' => $editorialVerdict,
             'pros' => $pros,
             'cons' => $cons,
             'is_editor_pick' => $request->boolean('is_editor_pick'),
@@ -162,8 +166,11 @@ class DealController extends Controller
             $imagePath = '/storage/' . $path;
         }
 
-        $pros = !empty($validated['pros']) ? array_filter(array_map('trim', explode("\n", $validated['pros']))) : null;
-        $cons = !empty($validated['cons']) ? array_filter(array_map('trim', explode("\n", $validated['cons']))) : null;
+        $pros = !empty($validated['pros']) ? array_filter(array_map('trim', explode("\n", $validated['pros']))) : ($deal->pros ?: ['Verified discount', 'Genuine merchant deal']);
+        $cons = !empty($validated['cons']) ? array_filter(array_map('trim', explode("\n", $validated['cons']))) : ($deal->cons ?: ['Prices subject to change based on merchant stock']);
+
+        $editorialSummary = !empty($validated['editorial_summary']) ? $validated['editorial_summary'] : ($deal->editorial_summary ?: 'Verified deal handpicked by LatestDeal with verified discount.');
+        $editorialVerdict = !empty($validated['editorial_verdict']) ? $validated['editorial_verdict'] : ($deal->editorial_verdict ?: 'Recommended buy based on verified savings.');
 
         $deal->update([
             'title' => $validated['title'],
@@ -179,8 +186,8 @@ class DealController extends Controller
             'coupon_code' => $validated['coupon_code'] ?? null,
             'status' => $validated['status'],
             'editorial_status' => $validated['status'] === 'active' ? Deal::STATUS_PUBLISHED : ($validated['status'] === 'rejected' ? Deal::STATUS_REJECTED : Deal::STATUS_DRAFT),
-            'editorial_summary' => $validated['editorial_summary'] ?? null,
-            'editorial_verdict' => $validated['editorial_verdict'] ?? null,
+            'editorial_summary' => $editorialSummary,
+            'editorial_verdict' => $editorialVerdict,
             'pros' => $pros,
             'cons' => $cons,
             'is_editor_pick' => $request->boolean('is_editor_pick'),

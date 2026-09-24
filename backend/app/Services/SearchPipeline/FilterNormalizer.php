@@ -75,6 +75,14 @@ class FilterNormalizer
             $normalized['tag'] = trim((string)$rawFilters['tag']);
         }
 
+        // 9. Sorting
+        if (!empty($rawFilters['sort'])) {
+            $sort = strtolower(trim((string)$rawFilters['sort']));
+            if (in_array($sort, ['newest', 'recent', 'discount', 'price_asc', 'price_low', 'price_desc', 'price_high', 'featured', 'popular'])) {
+                $normalized['sort'] = $sort;
+            }
+        }
+
         return $normalized;
     }
 }

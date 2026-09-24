@@ -16,14 +16,15 @@ class ApplyRanking
 
         // If a specific sort is requested, use it instead of the AI ranking engine
         if (!empty($filters['sort'])) {
-            if ($filters['sort'] === 'discount') {
-                $query->orderByRaw('(original_price - discounted_price) DESC');
-            } elseif ($filters['sort'] === 'price_asc') {
-                $query->orderBy('discounted_price', 'asc');
-            } elseif ($filters['sort'] === 'price_desc') {
-                $query->orderBy('discounted_price', 'desc');
-            } elseif ($filters['sort'] === 'newest') {
-                $query->orderBy('created_at', 'desc');
+            $sort = $filters['sort'];
+            if ($sort === 'discount') {
+                $query->orderByRaw('(original_price - discounted_price) DESC')->orderBy('created_at', 'desc');
+            } elseif ($sort === 'price_asc' || $sort === 'price_low') {
+                $query->orderBy('discounted_price', 'asc')->orderBy('created_at', 'desc');
+            } elseif ($sort === 'price_desc' || $sort === 'price_high') {
+                $query->orderBy('discounted_price', 'desc')->orderBy('created_at', 'desc');
+            } elseif ($sort === 'newest' || $sort === 'recent') {
+                $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
             }
             return $next($payload);
         }
@@ -40,9 +41,9 @@ class ApplyRanking
         }
 
         // ── DB-agnostic Ranking Engine ──────────────────────────────────────
-        // Supports SQLite (production) and MySQL (future) without code changes.
+        // Supports SQLite and MySQL without code changes.
         //
-        // Rank = discount_score * 0.4 + ai_score * 0.3 + freshness_score * 0.3 + price_bump_boost
+        // Rank = discount_score * 0.35 + ai_score * 0.25 + freshness_score * 0.20 + new_arrival_boost + price_bump_boost
         // ──────────────────────────────────────────────────────────────────────
         $driver = DB::getDriverName();
 
@@ -54,7 +55,12 @@ class ApplyRanking
 
         if ($driver === 'sqlite') {
             // SQLite: no GREATEST/DATEDIFF/TIMESTAMPDIFF — use julianday() arithmetic + MAX(a,b)
-            $freshness = "MAX(100 - (CAST((julianday('now') - julianday(created_at)) AS INTEGER) * 5), 0)";
+            $freshness = "MAX(100 - (CAST((julianday('now') - julianday(COALESCE(created_at, 'now'))) AS INTEGER) * 5), 0)";
+            $newArrivalBoost = "CASE
+                WHEN (julianday('now') - julianday(COALESCE(created_at, 'now'))) <= 2 THEN 80
+                WHEN (julianday('now') - julianday(COALESCE(created_at, 'now'))) <= 7 THEN 40
+                ELSE 0
+            END";
 
             if ($hasPriceBump) {
                 $hoursAgo = "CAST((julianday('now') - julianday(price_bumped_at)) * 24 AS INTEGER)";
@@ -68,7 +74,12 @@ class ApplyRanking
             }
         } else {
             // MySQL / MariaDB
-            $freshness = "GREATEST(100 - (DATEDIFF(NOW(), created_at) * 5), 0)";
+            $freshness = "GREATEST(100 - (DATEDIFF(NOW(), COALESCE(created_at, NOW())) * 5), 0)";
+            $newArrivalBoost = "CASE
+                WHEN created_at >= NOW() - INTERVAL 48 HOUR THEN 80
+                WHEN created_at >= NOW() - INTERVAL 7 DAY THEN 40
+                ELSE 0
+            END";
 
             if ($hasPriceBump) {
                 $priceBumpBoost = "CASE
@@ -81,9 +92,9 @@ class ApplyRanking
             }
         }
 
-        $rankFormula = "({$discountExpr} * 0.4 + IFNULL(ai_score, 50) * 0.3 + {$freshness} * 0.3 + ({$priceBumpBoost}))";
+        $rankFormula = "({$discountExpr} * 0.35 + IFNULL(ai_score, 50) * 0.25 + {$freshness} * 0.20 + {$newArrivalBoost} + ({$priceBumpBoost}))";
 
-        $query->orderByRaw("{$rankFormula} DESC");
+        $query->orderByRaw("{$rankFormula} DESC, created_at DESC, id DESC");
 
         return $next($payload);
     }

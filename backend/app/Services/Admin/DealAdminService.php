@@ -9,7 +9,7 @@ class DealAdminService
     /**
      * Get deals with filtering and counts for the admin catalog.
      */
-    public function getDealsCatalogData($status, $search)
+    public function getDealsCatalogData($status, $search, $sortBy = 'created_at')
     {
         $query = Deal::where('status', $status);
         
@@ -20,7 +20,15 @@ class DealAdminService
             });
         }
         
-        $deals = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        if ($sortBy === 'updated_at') {
+            $query->orderBy('updated_at', 'desc');
+        } elseif ($sortBy === 'discount') {
+            $query->orderBy('discount_percentage', 'desc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+        
+        $deals = $query->paginate(20)->withQueryString();
         
         $counts = [
             'pending' => Deal::where('status', 'pending')->count(),
@@ -40,7 +48,7 @@ class DealAdminService
             })->filter()->unique()->values();
         });
 
-        return compact('deals', 'status', 'counts', 'search', 'illegalCount', 'uniqueDomains');
+        return compact('deals', 'status', 'counts', 'search', 'sortBy', 'illegalCount', 'uniqueDomains');
     }
 
     /**
