@@ -320,6 +320,13 @@ async def handler(event):
         )
 
     # 5. Construct Final Payload
+    resolved_brand = None
+    if deal.brand:
+        b_norm = deal.brand.strip().lower()
+        disallowed = ["amazon", "amazon.in", "flipkart", "flipkart.com", "unknown", "generic", "n/a", "none"]
+        if b_norm not in disallowed:
+            resolved_brand = deal.brand.strip()
+
     payload = {
         "title": deal.title,
         "original_price": deal.original_price or 0,
@@ -329,9 +336,12 @@ async def handler(event):
         "category_name": deal.category.name if deal.category else "Electronics",
         "ai_caption": caption_text,
         "features": deal_data.get('features', []) if deal_data else [],
-        "brand": deal.brand or deal.merchant,
+        "brand": resolved_brand,
         "image_base64": image_base64,
-        "ai_score": deal.ai_score or 85
+        "ai_score": deal.ai_score if deal.ai_score is not None else 85,
+        "deal_qualification": getattr(deal, 'deal_qualification', None),
+        "verdict_code": getattr(deal, 'verdict_code', None),
+        "price_intelligence": deal.price_intelligence.model_dump() if getattr(deal, 'price_intelligence', None) else None
     }
             
     # 6. Push to Laravel

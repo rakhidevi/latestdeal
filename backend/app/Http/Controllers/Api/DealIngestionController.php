@@ -51,8 +51,10 @@ class DealIngestionController
             'ai_score' => 'nullable|integer|min:-100|max:100',
             'short_url' => 'nullable|url',
             'observation_id' => 'required|string',
-            'editorial_status' => 'nullable|string', // Will be ignored and forced to AUTO
-            'price_intelligence' => 'nullable|array', // Accept factual data
+            'editorial_status' => 'nullable|string', // Will be ignored and determined by deterministic gate
+            'price_intelligence' => 'nullable', // Accept factual price intelligence data
+            'deal_qualification' => 'nullable|string',
+            'verdict_code' => 'nullable|string',
             'secondary_category_ids' => 'nullable|array',
             'secondary_category_ids.*' => 'integer'
         ]);
@@ -155,6 +157,50 @@ class DealIngestionController
             $validated['image_url'] = $validated['image_url'];
         }
 
+        // Resolve Price Intelligence Payload
+        $priceIntel = $validated['price_intelligence'] ?? null;
+        if (is_string($priceIntel)) {
+            $priceIntel = json_decode($priceIntel, true);
+        }
+
+        $dealQual = $validated['deal_qualification'] ?? ($priceIntel['deal_qualification'] ?? null);
+        $dealScore = $validated['ai_score'] ?? ($priceIntel['deal_score'] ?? 0);
+        $verdictCode = $validated['verdict_code'] ?? ($priceIntel['verdict_code'] ?? null);
+
+        // Strict Deterministic Publishing Gate:
+        // 1. Only HOT_DEAL or GOOD_DEAL qualify for instant frontpage publication.
+        // 2. Score MUST be >= 50 (NO bypass for poor score even if marked LOWEST_30D/90D).
+        // 3. Verdict Code MUST NOT be WAIT or DO_NOT_BUY.
+        $isPublishableDeal = in_array($dealQual, ['HOT_DEAL', 'GOOD_DEAL']) && $dealScore >= 50 && $verdictCode !== 'WAIT' && $verdictCode !== 'DO_NOT_BUY';
+
+        $dealStatus = $isPublishableDeal ? 'active' : 'pending';
+        $dealEditorialStatus = $isPublishableDeal ? Deal::STATUS_PUBLISHED : Deal::STATUS_DRAFT;
+
+        // Strict Brand Resolution (Never allow marketplace names as brand)
+        $brandId = null;
+        $cleanBrand = null;
+        if (!empty($validated['brand'])) {
+            $candidateBrand = trim($validated['brand']);
+            $lowerCandidate = strtolower($candidateBrand);
+            $disallowedBrands = [
+                'amazon', 'amazon.in', 'amazon in', 'amazon.com', 
+                'flipkart', 'flipkart.com', 
+                'myntra', 'ajio', 'meesho', 'tata cliq', 
+                'unknown', 'generic', 'n/a', 'na', 'none'
+            ];
+            if (!in_array($lowerCandidate, $disallowedBrands)) {
+                $cleanBrand = Str::limit($candidateBrand, 250, '');
+                $slug = Str::slug($cleanBrand);
+                if (!empty($slug)) {
+                    $brand = \App\Models\Brand::firstOrCreate(
+                        ['slug' => $slug],
+                        ['name' => $cleanBrand, 'is_active' => true]
+                    );
+                    $brandId = $brand->id;
+                }
+            }
+        }
+
         // 2. Check for Duplicates based on URL or ASIN or Exact Title (Strict Idempotency & Variation handling)
         $existingUrlDeal = Deal::where('url', $validated['url'])->first();
         if (!$existingUrlDeal && !empty($validated['asin']) && $validated['asin'] !== 'unknown') {
@@ -189,11 +235,18 @@ class DealIngestionController
                 $updateData = [
                     'original_price' => $validated['original_price'],
                     'discounted_price' => $validated['discounted_price'],
-                    'status' => 'active' // reactivate if it was expired
+                    'status' => $dealStatus,
+                    'editorial_status' => $dealEditorialStatus,
+                    'price_intelligence' => $priceIntel,
+                    'ai_score' => $dealScore
                 ];
+
+                if ($cleanBrand) {
+                    $updateData['brand'] = $cleanBrand;
+                    $updateData['brand_id'] = $brandId;
+                }
                 
                 if ($needsEditorialUpdate) {
-                    $updateData['editorial_status'] = 'PUBLISHED';
                     $updateData['editorial_summary'] = preg_replace('/(?m)^.*?(?:Buy Now|Grab it here):\s*https?:\/\/[^\s]+.*$/iu', '', $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.');
                     $updateData['editorial_verdict'] = $validated['verdict'] ?? 'Recommended buy based on price drop.';
                     $updateData['pros'] = isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : ['Great value', 'Verified by AI'];
@@ -203,7 +256,7 @@ class DealIngestionController
                 $existingUrlDeal->update($updateData);
                 
                 $status = 'updated';
-                $message = 'Deal already exists. Updated and republished.';
+                $message = 'Deal already exists. Updated with price intelligence.';
             }
             
             return response()->json([
@@ -214,22 +267,7 @@ class DealIngestionController
             ], 200);
         }
 
-        // 2.5 Resolve Brand ID
-        $brandId = null;
-        if (!empty($validated['brand'])) {
-            $brandName = trim(Str::limit($validated['brand'], 250, ''));
-            $slug = Str::slug($brandName);
-            if (!empty($slug)) {
-                $brand = \App\Models\Brand::firstOrCreate(
-                    ['slug' => $slug],
-                    ['name' => $brandName, 'is_active' => true]
-                );
-                $brandId = $brand->id;
-            }
-        }
-
-        // 3. Persist Raw Payload (Status: raw)
-        // Since we already checked for existence, this will always create.
+        // 3. Persist Raw Payload
         $deal = Deal::create([
             'asin' => $validated['asin'] ?? null,
             'url' => $validated['url'],
@@ -241,18 +279,18 @@ class DealIngestionController
             'original_price' => $validated['original_price'],
             'discounted_price' => $validated['discounted_price'],
             'calculated_discount_percent' => $validated['calculated_discount'] ?? null,
-            'price_intelligence' => isset($validated['price_intelligence']) ? (is_string($validated['price_intelligence']) ? json_decode($validated['price_intelligence'], true) : $validated['price_intelligence']) : null,
+            'price_intelligence' => $priceIntel,
             'coupon_code' => $validated['promo_code'] ?? null,
-            'brand' => isset($validated['brand']) ? Str::limit($validated['brand'], 250, '') : null,
+            'brand' => $cleanBrand,
             'features' => isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : null,
             'verdict' => $validated['verdict'] ?? null,
             'trust_metrics' => isset($validated['trust_metrics']) ? (is_string($validated['trust_metrics']) ? json_decode($validated['trust_metrics'], true) : $validated['trust_metrics']) : null,
             'confidence_score' => $validated['confidence_score'] ?? null,
             'confidence_reasons' => isset($validated['confidence_reasons']) ? (is_string($validated['confidence_reasons']) ? json_decode($validated['confidence_reasons'], true) : $validated['confidence_reasons']) : null,
             'ai_caption' => $validated['ai_caption'] ?? null,
-            'ai_score' => $validated['ai_score'] ?? null,
-            'status' => 'active', // Enum supports active/expired
-            'editorial_status' => 'PUBLISHED', // Set to PUBLISHED so deals show up immediately in the grid
+            'ai_score' => $dealScore,
+            'status' => $dealStatus,
+            'editorial_status' => $dealEditorialStatus,
             'editorial_summary' => preg_replace('/(?m)^.*?(?:Buy Now|Grab it here):\s*https?:\/\/[^\s]+.*$/iu', '', $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.'),
             'editorial_verdict' => $validated['verdict'] ?? 'Recommended buy based on price drop.',
             'pros' => isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : ['Great value', 'Verified by AI'],
@@ -263,9 +301,11 @@ class DealIngestionController
             'short_url' => $validated['short_url'] ?? null,
         ]);
 
-        // 4. Queue Processing (Dispatch Event)
+        // 4. Queue Processing (Dispatch Event only if publishable)
         $correlationId = Str::uuid()->toString();
-        event(new \App\Events\DealDiscovered($deal, $correlationId, 'unknown', '1.0', ['raw_payload' => $validated]));
+        if ($isPublishableDeal) {
+            event(new \App\Events\DealDiscovered($deal, $correlationId, 'unknown', '1.0', ['raw_payload' => $validated]));
+        }
         
         // 4.5 Save secondary categories
         if (!empty($validated['secondary_category_ids'])) {

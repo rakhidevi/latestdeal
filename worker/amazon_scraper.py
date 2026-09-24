@@ -9,6 +9,98 @@ from interfaces import MerchantScraper
 from models import Deal, DealCategory, PlaywrightTimeout, AffiliateLinkFailed, ScraperException
 from utils import extract_amazon_asin
 
+import json
+import re
+
+def extract_amazon_brand(page, title: str = "") -> Optional[str]:
+    """
+    Extracts brand following a strict confidence hierarchy:
+    1. JSON-LD Schema.org brand metadata
+    2. #bylineInfo / Store link ("Visit the Bajaj Store" -> "Bajaj")
+    3. Product Overview Table (.po-brand)
+    4. First token of title heuristic
+    5. Cleanliness Guard: NEVER allow marketplace name (Amazon, Flipkart, etc.)
+    """
+    brand = None
+    
+    # 1. JSON-LD Schema.org
+    try:
+        scripts = page.locator("script[type='application/ld+json']").all()
+        for script in scripts:
+            try:
+                raw_json = script.text_content()
+                if not raw_json:
+                    continue
+                data = json.loads(raw_json)
+                if isinstance(data, dict):
+                    if "brand" in data:
+                        b = data["brand"]
+                        brand = b.get("name") if isinstance(b, dict) else str(b)
+                        if brand:
+                            break
+                    elif "@graph" in data and isinstance(data["@graph"], list):
+                        for item in data["@graph"]:
+                            if isinstance(item, dict) and "brand" in item:
+                                b = item["brand"]
+                                brand = b.get("name") if isinstance(b, dict) else str(b)
+                                if brand:
+                                    break
+            except Exception:
+                continue
+    except Exception:
+        pass
+
+    # 2. #bylineInfo / Store link
+    if not brand:
+        try:
+            byline = page.locator("#bylineInfo").first
+            if byline.count() > 0:
+                raw_text = byline.text_content().strip()
+                cleaned = re.sub(r'^(visit\s+the\s+|brand:\s*)', '', raw_text, flags=re.IGNORECASE)
+                cleaned = re.sub(r'\s+store$', '', cleaned, flags=re.IGNORECASE).strip()
+                if cleaned:
+                    brand = cleaned
+        except Exception:
+            pass
+
+    # 3. Product Overview Table (.po-brand / Brand row)
+    if not brand:
+        try:
+            for selector in [
+                "tr.po-brand td.po-break-word",
+                "tr.po-brand span.po-break-word",
+                "tr:has-text('Brand') td.po-break-word",
+                "tr:has-text('Brand') td:nth-child(2)",
+                "div#productOverview_feature_div tr:has-text('Brand') td:last-child"
+            ]:
+                el = page.locator(selector).first
+                if el.count() > 0:
+                    text_val = el.text_content().strip()
+                    if text_val:
+                        brand = text_val
+                        break
+        except Exception:
+            pass
+
+    # 4. Fallback Title Extraction
+    if not brand and title:
+        parts = title.split()
+        if parts:
+            first_word = parts[0].strip(",.:;|/- ")
+            if len(first_word) >= 2 and not first_word.isdigit() and first_word.lower() not in ["new", "best", "the", "all", "pack", "set", "buy"]:
+                brand = first_word
+
+    # 5. Cleanliness Guard: NEVER allow marketplace / merchant name to be the brand
+    if brand:
+        brand = brand.strip()
+        if brand.lower() in ["amazon", "amazon.in", "flipkart", "myntra", "direct", "unknown"]:
+            return None
+        if "amazonbasics" in brand.lower() or "amazon basics" in brand.lower():
+            return "Amazon Basics"
+
+    return brand
+
+
 class AmazonScraper(MerchantScraper):
     
     @classmethod
@@ -87,9 +179,13 @@ class AmazonScraper(MerchantScraper):
                     if curr_price and orig_price and orig_price > curr_price:
                         discount = round(((orig_price - curr_price) / orig_price) * 100, 2)
                         
+                    # Extract Brand using Confidence Hierarchy
+                    resolved_brand = extract_amazon_brand(page, title)
+                    
                     return Deal(
                         merchant="amazon",
                         title=title,
+                        brand=resolved_brand,
                         price=curr_price,
                         original_price=orig_price,
                         discount_percent=discount,

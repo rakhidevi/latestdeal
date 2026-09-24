@@ -99,7 +99,7 @@ class Deal extends Model
                     $allowed = [
                         self::STATUS_DISCOVERED => [self::STATUS_QUALIFIED, self::STATUS_DRAFT, self::STATUS_REJECTED],
                         self::STATUS_QUALIFIED => [self::STATUS_DRAFT, self::STATUS_REJECTED],
-                        self::STATUS_DRAFT => [self::STATUS_AI_GENERATING, self::STATUS_QUALITY_CHECK, self::STATUS_REJECTED],
+                        self::STATUS_DRAFT => [self::STATUS_AI_GENERATING, self::STATUS_QUALITY_CHECK, self::STATUS_REJECTED, self::STATUS_PUBLISHED],
                         self::STATUS_AI_GENERATING => [self::STATUS_QUALITY_CHECK, self::STATUS_IN_REVIEW, self::STATUS_DRAFT, self::STATUS_REJECTED],
                         self::STATUS_QUALITY_CHECK => [self::STATUS_IN_REVIEW, self::STATUS_DRAFT, self::STATUS_REJECTED],
                         self::STATUS_IN_REVIEW => [self::STATUS_PUBLISHED, self::STATUS_AI_GENERATING, self::STATUS_DRAFT, self::STATUS_REJECTED],
@@ -132,8 +132,24 @@ class Deal extends Model
         'best_for' => 'array',
         'not_for' => 'array',
         'reviewed_at' => 'datetime',
-        'is_editor_pick' => 'boolean'
+        'is_editor_pick' => 'boolean',
+        'price_intelligence' => 'array'
     ];
+
+    public function getDealQualificationAttribute()
+    {
+        return $this->price_intelligence['deal_qualification'] ?? null;
+    }
+
+    public function getVerdictCodeAttribute()
+    {
+        return $this->price_intelligence['verdict_code'] ?? null;
+    }
+
+    public function getHistoricalStatusAttribute()
+    {
+        return $this->price_intelligence['historical_status'] ?? null;
+    }
 
     public function merchant()
     {

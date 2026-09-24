@@ -20,6 +20,11 @@ class CheckPublisherRules implements ShouldQueue
     public function handle(DealIngested $event): void
     {
         $deal = $event->deal;
+        if ($deal->status !== 'active' || $deal->editorial_status !== \App\Models\Deal::STATUS_PUBLISHED) {
+            Log::info("Skipping social broadcast for Deal {$deal->id}: Not active/published (status: {$deal->status}, editorial: {$deal->editorial_status}).");
+            return;
+        }
+
         $discount = 0;
         if ($deal->original_price > 0) {
             $discount = round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100);

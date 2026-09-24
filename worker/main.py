@@ -136,7 +136,10 @@ async def process_queue():
             caption_text = deal.ai_caption or f"🚨 {deal.title} \n\n"
             if deal.coupon:
                 caption_text += f"\n✂️ Coupon: {deal.coupon}"
-            caption_text += f"\n\n👉🏻 Buy Now: {deal.affiliate_url or deal.canonical_url}"
+            if getattr(deal, 'verdict_code', None) == "WAIT":
+                caption_text += f"\n\n📊 Track Price on LatestDeal: {deal.canonical_url}"
+            else:
+                caption_text += f"\n\n👉🏻 Buy Now: {deal.affiliate_url or deal.canonical_url}"
             
             # 3. Create Composite Image
             add_log("Composing deal image...")
@@ -156,6 +159,14 @@ async def process_queue():
             def extract_asin(url):
                 match = re.search(r'/dp/([A-Z0-9]{10})', url)
                 return match.group(1) if match else "unknown"
+
+            # Strict Brand Sanity Check: Brand MUST NEVER equal merchant (Amazon, Flipkart, etc.)
+            resolved_brand = None
+            if deal.brand:
+                b_norm = deal.brand.strip().lower()
+                disallowed = ["amazon", "amazon.in", "flipkart", "flipkart.com", "unknown", "generic", "n/a", "none"]
+                if b_norm not in disallowed:
+                    resolved_brand = deal.brand.strip()
             
             payload = {
                 "asin": extract_asin(deal.canonical_url),
@@ -170,15 +181,18 @@ async def process_queue():
                 "category_name": deal.category.name if deal.category else "Electronics",
                 "ai_caption": caption_text,
                 "features": [],
-                "brand": deal.brand or deal.merchant,
+                "brand": resolved_brand,
                 "image_base64": base64_image,
-                "ai_score": deal.ai_score or 85,
-                "opportunity_score": deal.ai_score or 85,
+                "ai_score": deal.ai_score if deal.ai_score is not None else 85,
+                "opportunity_score": deal.ai_score if deal.ai_score is not None else 85,
                 "deal_type": job_type if job_type in ['deal', 'mega_loot'] else 'deal',
                 "trust_metrics": json.dumps(deal.trust_metrics) if deal.trust_metrics else None,
                 "verdict": deal.verdict,
                 "confidence_score": deal.confidence_score,
-                "confidence_reasons": json.dumps(deal.confidence_reasons) if deal.confidence_reasons else None
+                "confidence_reasons": json.dumps(deal.confidence_reasons) if deal.confidence_reasons else None,
+                "deal_qualification": getattr(deal, 'deal_qualification', None),
+                "verdict_code": getattr(deal, 'verdict_code', None),
+                "price_intelligence": deal.price_intelligence.model_dump() if getattr(deal, 'price_intelligence', None) else None
             }
             
             # 5. Push to Laravel

@@ -186,6 +186,14 @@
                             {{ $deal->editorial_status ?? 'DRAFT' }}
                         </span>
                     </div>
+                    @if($deal->price_intelligence)
+                    <div class="flex items-center justify-between text-[10px]">
+                        <span class="text-slate-400">Intelligence:</span>
+                        <span class="font-bold px-1.5 py-0.5 rounded {{ in_array($deal->deal_qualification, ['HOT_DEAL', 'GOOD_DEAL']) ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                            {{ $deal->deal_qualification ?? 'NORMAL' }} (Score: {{ $deal->ai_score ?? ($deal->price_intelligence['deal_score'] ?? '-') }})
+                        </span>
+                    </div>
+                    @endif
                 </div>
             </div>
 

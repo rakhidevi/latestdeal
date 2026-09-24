@@ -32,6 +32,11 @@ class PublishDealToTelegramJob implements ShouldQueue
      */
     public function handle(): void
     {
+        if ($this->deal->status !== 'active' || $this->deal->editorial_status !== Deal::STATUS_PUBLISHED) {
+            \Illuminate\Support\Facades\Log::info("PublishDealToTelegramJob: Skipping deal {$this->deal->id} because it is not active/published (status: {$this->deal->status}, editorial: {$this->deal->editorial_status}).");
+            return;
+        }
+
         $account = \App\Models\SocialAccount::find($this->accountId);
         $telegramService = new \App\Services\TelegramBotService($account);
 

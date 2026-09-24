@@ -35,6 +35,24 @@ class DatabaseValidationFailed(ScraperException):
 # STANDARDIZED SCHEMAS
 # ==========================================
 
+class PriceIntelligence(BaseModel):
+    history_30d_low: Optional[float] = None
+    history_30d_high: Optional[float] = None
+    history_90d_low: Optional[float] = None
+    history_90d_high: Optional[float] = None
+    history_90d_median: Optional[float] = None
+    history_365d_low: Optional[float] = None
+    history_365d_high: Optional[float] = None
+    current_vs_30d_low_pct: Optional[float] = None
+    current_vs_90d_low_pct: Optional[float] = None
+    current_vs_90d_median_pct: Optional[float] = None
+    historical_status: str = Field(default="NORMAL_PRICE", description="ALL_TIME_LOW, LOWEST_90D, LOWEST_30D, NEAR_90D_LOW, BELOW_MEDIAN, NORMAL_PRICE, ABOVE_NORMAL")
+    deal_score: int = Field(default=0, ge=0, le=100, description="Deterministic deal score 0-100")
+    deal_qualification: str = Field(default="CATALOG_ONLY", description="HOT_DEAL, GOOD_DEAL, WATCH, CATALOG_ONLY, REJECT")
+    verdict_code: str = Field(default="WAIT", description="BUY_NOW, CONSIDER, WAIT")
+    source: str = Field(default="price_engine", description="Origin of intelligence data")
+    source_checked_at: Optional[str] = None
+
 class DealCategory(BaseModel):
     name: str = Field(description="The canonical name of the category")
     confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="Confidence score from AI or Keyword Classifier")
@@ -63,9 +81,12 @@ class Deal(BaseModel):
     source: str = Field(default="telegram", description="Where this deal came from (telegram, hunter, etc)")
     
     ai_caption: Optional[str] = Field(default=None, description="Generated social media caption")
-    ai_score: Optional[int] = Field(default=None, ge=1, le=100, description="1-100 deal score")
+    ai_score: Optional[int] = Field(default=None, ge=0, le=100, description="1-100 deal score")
     trust_metrics: Optional[dict] = Field(default=None, description="Checklist of trust factors")
     verdict: Optional[str] = Field(default=None, description="AI recommendation: Buy Now vs Wait")
+    verdict_code: Optional[str] = Field(default="WAIT", description="Deterministic verdict: BUY_NOW, CONSIDER, WAIT")
+    deal_qualification: Optional[str] = Field(default="CATALOG_ONLY", description="HOT_DEAL, GOOD_DEAL, WATCH, CATALOG_ONLY, REJECT")
+    price_intelligence: Optional[PriceIntelligence] = Field(default=None, description="Deterministic price history intelligence")
     
     confidence_score: Optional[int] = Field(default=None, ge=1, le=100, description="Confidence in deal quality")
     confidence_reasons: Optional[list] = Field(default_factory=list, description="Reasons for confidence score")
