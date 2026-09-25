@@ -33,7 +33,7 @@ class ScrapingPipeline:
             # 5. Generate Affiliate Link
             try:
                 from affiliate_service import AffiliateService
-                affiliate_url = AffiliateService.get_affiliate_link(merchant, canonical_url)
+                affiliate_url = AffiliateService.get_affiliate_link(merchant, canonical_url, deal=deal)
                 deal.affiliate_url = affiliate_url
             except Exception as e:
                 print(f"Warning: Failed to generate affiliate link: {e}")

@@ -87,6 +87,7 @@ class Deal(BaseModel):
     verdict_code: Optional[str] = Field(default="WAIT", description="Deterministic verdict: BUY_NOW, CONSIDER, WAIT")
     deal_qualification: Optional[str] = Field(default="CATALOG_ONLY", description="HOT_DEAL, GOOD_DEAL, WATCH, CATALOG_ONLY, REJECT")
     price_intelligence: Optional[PriceIntelligence] = Field(default=None, description="Deterministic price history intelligence")
+    price_history_raw: Optional[dict] = Field(default=None, description="Raw historical price observations or Rufus AI history")
     
     confidence_score: Optional[int] = Field(default=None, ge=1, le=100, description="Confidence in deal quality")
     confidence_reasons: Optional[list] = Field(default_factory=list, description="Reasons for confidence score")

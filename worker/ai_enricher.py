@@ -30,6 +30,7 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
             deal.price_intelligence = DealIntelligenceEngine.evaluate(
                 current_price=deal.price or 0.0,
                 original_price=deal.original_price,
+                history=getattr(deal, "price_history_raw", None),
                 rating=getattr(deal, "rating", None),
                 review_count=getattr(deal, "review_count", None),
                 is_prime=getattr(deal, "is_prime", False),

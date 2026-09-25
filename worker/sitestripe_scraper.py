@@ -1,10 +1,106 @@
 import os
 import time
 import random
+import re
 from playwright.sync_api import sync_playwright
 from playwright_stealth import Stealth
 from utils import clean_amazon_url
 from domains import AMAZON_PRODUCT_PREFIXES
+
+def extract_rufus_price_history(page) -> dict:
+    """
+    Detects and clicks the native Amazon Rufus AI 'Price history' ingress widget.
+    Extracts 30-day, 90-day (3M), and 365-day (1Y) price ranges.
+    """
+    history = {}
+    try:
+        ingress_selectors = [
+            "#rufus-price-ingress-cc input",
+            "#rufus-price-ingress-cc",
+            "#rufus-price-ingress-bb input",
+            "#rufus-price-ingress-bb",
+            "[data-query-text='Price history']",
+            ".rufus-ingress-div-block"
+        ]
+        btn = None
+        for sel in ingress_selectors:
+            loc = page.locator(sel).first
+            if loc.count() > 0:
+                btn = loc
+                break
+
+        if not btn:
+            print("[Rufus AI] No Price history ingress widget found on page.")
+            return None
+
+        print("[Rufus AI] Found native 'Price history' button. Clicking...")
+        btn.click(force=True)
+        time.sleep(2.5)
+
+        # Check if Sign-in is required
+        body_text = page.locator("body").inner_text()
+        if "Please sign in to begin using Rufus" in body_text:
+            print("[Rufus AI] Rufus requires Amazon sign-in.")
+            return None
+
+        # 1. Parse 30-Day Range from the initial text
+        m_30 = re.search(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', body_text, re.IGNORECASE)
+        if m_30:
+            history["history_30d_low"] = float(m_30.group(1).replace(',', ''))
+            history["history_30d_high"] = float(m_30.group(2).replace(',', ''))
+            print(f"[Rufus AI] Extracted 30D Range: ₹{history['history_30d_low']} - ₹{history['history_30d_high']}")
+
+        # 2. Click 3M (90-Day) Tab
+        try:
+            tab_3m = page.locator('button:has-text("3M"), [aria-label*="3 month"], [data-value="3M"]').first
+            if tab_3m.count() > 0:
+                print("[Rufus AI] Clicking 3M (90-Day) tab...")
+                tab_3m.click(force=True)
+                time.sleep(1.5)
+                text_3m = page.locator("body").inner_text()
+                m_90 = re.search(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', text_3m, re.IGNORECASE)
+                if m_90:
+                    history["history_90d_low"] = float(m_90.group(1).replace(',', ''))
+                    history["history_90d_high"] = float(m_90.group(2).replace(',', ''))
+                    history["history_90d_median"] = round((history["history_90d_low"] + history["history_90d_high"]) / 2.0, 2)
+                    print(f"[Rufus AI] Extracted 90D Range: ₹{history['history_90d_low']} - ₹{history['history_90d_high']}")
+        except Exception as e3:
+            print(f"[Rufus AI] 3M tab extraction note: {e3}")
+
+        # 3. Click 1Y (365-Day) Tab
+        try:
+            tab_1y = page.locator('button:has-text("1Y"), [aria-label*="1 year"], [data-value="1Y"]').first
+            if tab_1y.count() > 0:
+                print("[Rufus AI] Clicking 1Y (365-Day) tab...")
+                tab_1y.click(force=True)
+                time.sleep(1.5)
+                text_1y = page.locator("body").inner_text()
+                m_365 = re.search(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', text_1y, re.IGNORECASE)
+                if m_365:
+                    history["history_365d_low"] = float(m_365.group(1).replace(',', ''))
+                    history["history_365d_high"] = float(m_365.group(2).replace(',', ''))
+                    print(f"[Rufus AI] Extracted 365D Range: ₹{history['history_365d_low']} - ₹{history['history_365d_high']}")
+        except Exception as ey:
+            print(f"[Rufus AI] 1Y tab extraction note: {ey}")
+
+        # 4. Close the drawer cleanly
+        try:
+            close_btn = page.locator('button[aria-label="Close"], #rufus-close, [aria-label*="close"]').first
+            if close_btn.count() > 0:
+                close_btn.click(force=True)
+            else:
+                page.keyboard.press("Escape")
+        except:
+            pass
+
+        if history:
+            history["source"] = "rufus_ai"
+            return history
+
+    except Exception as e:
+        print(f"[Rufus AI] Extraction error: {e}")
+
+    return None
 
 def get_sitestripe_link_and_data(url: str) -> dict:
     """
@@ -263,6 +359,14 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                     return False
                 print(f"SiteStripe bar not found or failed to copy! Error: {e}")
                 print("Returning raw data without shortlink.")
+
+            # 2.5 Extract Rufus AI Price History
+            print("Checking for Rufus AI Price History...")
+            rufus_history = extract_rufus_price_history(page)
+            if rufus_history:
+                print(f"[Rufus AI] Attached price history to deal: {rufus_history}")
+            else:
+                print("[Rufus AI] No Price history available or sign-in required.")
             
             raw_data = {
                 "url": clean_url,
@@ -276,6 +380,7 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                 "review_count": review_count,
                 "is_prime": is_prime,
                 "is_fulfilled": is_fulfilled,
+                "price_history": rufus_history,
                 "scraper_type": "SiteStripe Automation"
             }
             

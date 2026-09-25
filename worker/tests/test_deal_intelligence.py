@@ -270,6 +270,38 @@ def test_brand_extraction_bajaj_never_amazon():
     brand5 = extract_amazon_brand(page5, "Echo Dot 5th Gen")
     assert brand5 != "Amazon", f"Brand extraction returned 'Amazon'!"
 
+def test_rufus_price_history_integration():
+    """
+    Verify that the exact dictionary structure emitted by Rufus AI in sitestripe_scraper.py
+    properly feeds into DealIntelligenceEngine and determines the historical deal metrics.
+    """
+    rufus_history = {
+        "history_30d_low": 1499.0,
+        "history_30d_high": 1999.0,
+        "history_90d_low": 1499.0,
+        "history_90d_high": 2499.0,
+        "history_90d_median": 1999.0,
+        "history_365d_low": 1299.0,
+        "history_365d_high": 2999.0,
+        "source": "rufus_ai"
+    }
+
+    # Product priced at ₹1,349 (near all-time low of 1299, below 30d/90d low)
+    intel = DealIntelligenceEngine.evaluate(
+        current_price=1349.0,
+        original_price=3499.0,
+        history=rufus_history,
+        rating=4.4,
+        review_count=1200,
+        is_prime=True,
+        is_fulfilled=True
+    )
+
+    print(f"Rufus Test Score: {intel.deal_score}, Status: {intel.historical_status}, Qual: {intel.deal_qualification}")
+    assert intel.deal_score >= 80, f"Expected high score for Rufus drop, got {intel.deal_score}"
+    assert intel.deal_qualification in ["HOT_DEAL", "GOOD_DEAL"]
+    assert intel.source == "rufus_ai" or intel.historical_status in ["ALL_TIME_LOW", "LOWEST_90D"]
+
 if __name__ == "__main__":
     print("\n--- Running Deal Intelligence Test Suite ---")
     test_bajaj_iron_regression()
@@ -282,4 +314,7 @@ if __name__ == "__main__":
     print("[PASS] test_genuine_hot_deal_all_time_low passed")
     test_brand_extraction_bajaj_never_amazon()
     print("[PASS] test_brand_extraction_bajaj_never_amazon passed")
-    print("\n*** ALL 5 DEAL INTELLIGENCE & BRAND TESTS PASSED SUCCESSFULLY! ***\n")
+    test_rufus_price_history_integration()
+    print("[PASS] test_rufus_price_history_integration passed")
+    print("\n*** ALL 6 DEAL INTELLIGENCE & BRAND TESTS PASSED SUCCESSFULLY! ***\n")
+
