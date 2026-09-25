@@ -4,6 +4,7 @@ import random
 import re
 from playwright.sync_api import sync_playwright
 from playwright_stealth import Stealth
+from filelock import FileLock, Timeout
 from utils import clean_amazon_url
 from domains import AMAZON_PRODUCT_PREFIXES
 
@@ -56,75 +57,123 @@ def extract_rufus_price_history(page) -> dict:
         time.sleep(0.5)
         btn.click(force=True)
 
-        # 1. Dynamically wait up to 15 seconds for Rufus AI to generate the price history response
+        # Verify drawer opening, retry click if necessary
+        time.sleep(1.5)
+        if page.locator('button[data-pricing-window-index], .rufus-pricing-button, [aria-label*="Rufus"]').count() == 0:
+            try:
+                page.evaluate("el => el.click()", btn.element_handle())
+            except Exception:
+                pass
+
+        def parse_chart_ticks(full_text):
+            """Parses the price ticks displayed on the interactive Rufus graph."""
+            idx = full_text.find("Prices reflect the lowest")
+            if idx != -1:
+                start_idx = full_text.rfind("1Y", 0, idx)
+                snippet = full_text[start_idx:idx] if start_idx != -1 else full_text[max(0, idx-300):idx]
+                ticks = [float(p.replace(',', '')) for p in re.findall(r'₹\s*([\d,]+)', snippet) if p.replace(',', '').isdigit() and float(p.replace(',', '')) > 0]
+                if ticks:
+                    return sorted(ticks)
+            return []
+
+        # 1. Dynamically wait up to 25 seconds for Rufus AI to generate the price history response
         print("[Rufus AI] Waiting for Rufus AI to generate price history...")
         start_t = time.time()
-        m_30 = None
         
-        while time.time() - start_t < 15:
+        while time.time() - start_t < 25:
             body_text = page.locator("body").inner_text()
             if "Please sign in to begin using Rufus" in body_text:
                 print("[Rufus AI] Rufus requires Amazon sign-in. Please log into Amazon via launch_browser.py.")
                 return None
             
-            m_30 = re.search(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', body_text, re.IGNORECASE)
-            if m_30:
+            if "ranged from" in body_text or parse_chart_ticks(body_text):
                 break
                 
             time.sleep(1.0)
 
-        if not m_30:
-            print("[Rufus AI] Price history did not finish generating within 15 seconds.")
-            return None
+        body_text = page.locator("body").inner_text()
+        m_30 = re.search(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', body_text, re.IGNORECASE)
+        if m_30:
+            history["history_30d_low"] = float(m_30.group(1).replace(',', ''))
+            history["history_30d_high"] = float(m_30.group(2).replace(',', ''))
+            print(f"[Rufus AI] Extracted 30D Range from text: ₹{history['history_30d_low']} - ₹{history['history_30d_high']}")
+        else:
+            ticks_1m = parse_chart_ticks(body_text)
+            if ticks_1m:
+                history["history_30d_low"] = min(ticks_1m)
+                history["history_30d_high"] = max(ticks_1m)
+                print(f"[Rufus AI] Extracted 30D Range from chart ticks: ₹{history['history_30d_low']} - ₹{history['history_30d_high']}")
+            else:
+                print("[Rufus AI] Price history did not finish generating within timeout.")
+                return None
 
-        history["history_30d_low"] = float(m_30.group(1).replace(',', ''))
-        history["history_30d_high"] = float(m_30.group(2).replace(',', ''))
-        print(f"[Rufus AI] Extracted 30D Range: ₹{history['history_30d_low']} - ₹{history['history_30d_high']}")
+
 
         # 2. Click 3M (90-Day) Tab
         try:
-            tab_3m = page.locator('button:has-text("3M"), div[role="tab"]:has-text("3M"), [data-value="3M"], [aria-label*="3M"], span:has-text("3M")').first
+            try:
+                page.wait_for_selector('button[data-pricing-window-index="1"], button:has-text("3M"), [aria-label*="3 month"]', timeout=8000)
+            except Exception:
+                pass
+
+            tab_3m = page.locator('button[data-pricing-window-index="1"], button:has-text("3M"), [aria-label*="3 month"]').first
             if tab_3m.count() > 0:
                 print("[Rufus AI] Clicking 3M (90-Day) tab...")
+                tab_3m.scroll_into_view_if_needed()
                 tab_3m.click(force=True)
-                # Poll up to 6 seconds for updated range text
-                t3_start = time.time()
-                while time.time() - t3_start < 6:
-                    time.sleep(1.0)
-                    text_3m = page.locator("body").inner_text()
-                    ranges = re.findall(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', text_3m, re.IGNORECASE)
-                    if ranges:
-                        last_r = ranges[-1]
-                        low_val = float(last_r[0].replace(',', ''))
-                        high_val = float(last_r[1].replace(',', ''))
-                        history["history_90d_low"] = low_val
-                        history["history_90d_high"] = high_val
-                        history["history_90d_median"] = round((low_val + high_val) / 2.0, 2)
-                        print(f"[Rufus AI] Extracted 90D Range: ₹{low_val} - ₹{high_val}")
-                        break
+                time.sleep(2.0)
+                text_3m = page.locator("body").inner_text()
+                
+                # Method A: Text summary if present
+                ranges = re.findall(r'(?:past\s*3\s*months|past\s*90\s*days|3M).*?ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', text_3m, re.IGNORECASE)
+                if ranges:
+                    history["history_90d_low"] = float(ranges[-1][0].replace(',', ''))
+                    history["history_90d_high"] = float(ranges[-1][1].replace(',', ''))
+                    history["history_90d_median"] = round((history["history_90d_low"] + history["history_90d_high"]) / 2.0, 2)
+                    print(f"[Rufus AI] Extracted 90D Range from text: ₹{history['history_90d_low']} - ₹{history['history_90d_high']}")
+                else:
+                    # Method B: Exact Y-axis ticks of the interactive 3M chart
+                    ticks_3m = parse_chart_ticks(text_3m)
+                    if ticks_3m:
+                        history["history_90d_low"] = min(ticks_3m)
+                        history["history_90d_high"] = max(ticks_3m)
+                        history["history_90d_median"] = ticks_3m[len(ticks_3m)//2]
+                        print(f"[Rufus AI] Extracted 90D Range from chart ticks: ₹{history['history_90d_low']} - ₹{history['history_90d_high']} (Median: ₹{history['history_90d_median']})")
+            else:
+                print("[Rufus AI] 3M tab not detected in DOM.")
         except Exception as e3:
             print(f"[Rufus AI] 3M tab extraction note: {e3}")
 
         # 3. Click 1Y (365-Day) Tab
         try:
-            tab_1y = page.locator('button:has-text("1Y"), div[role="tab"]:has-text("1Y"), [data-value="1Y"], [aria-label*="1Y"], span:has-text("1Y")').first
+            try:
+                page.wait_for_selector('button[data-pricing-window-index="2"], button:has-text("1Y"), [aria-label*="1 year"]', timeout=5000)
+            except Exception:
+                pass
+
+            tab_1y = page.locator('button[data-pricing-window-index="2"], button:has-text("1Y"), [aria-label*="1 year"]').first
             if tab_1y.count() > 0:
                 print("[Rufus AI] Clicking 1Y (365-Day) tab...")
+                tab_1y.scroll_into_view_if_needed()
                 tab_1y.click(force=True)
-                # Poll up to 6 seconds for updated range text
-                ty_start = time.time()
-                while time.time() - ty_start < 6:
-                    time.sleep(1.0)
-                    text_1y = page.locator("body").inner_text()
-                    ranges_y = re.findall(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', text_1y, re.IGNORECASE)
-                    if ranges_y:
-                        last_ry = ranges_y[-1]
-                        low_y = float(last_ry[0].replace(',', ''))
-                        high_y = float(last_ry[1].replace(',', ''))
-                        history["history_365d_low"] = low_y
-                        history["history_365d_high"] = high_y
-                        print(f"[Rufus AI] Extracted 365D Range: ₹{low_y} - ₹{high_y}")
-                        break
+                time.sleep(2.0)
+                text_1y = page.locator("body").inner_text()
+                
+                # Method A: Text summary if present
+                ranges_y = re.findall(r'(?:past\s*(?:year|12\s*months|365\s*days)|1Y).*?ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', text_1y, re.IGNORECASE)
+                if ranges_y:
+                    history["history_365d_low"] = float(ranges_y[-1][0].replace(',', ''))
+                    history["history_365d_high"] = float(ranges_y[-1][1].replace(',', ''))
+                    print(f"[Rufus AI] Extracted 365D Range from text: ₹{history['history_365d_low']} - ₹{history['history_365d_high']}")
+                else:
+                    # Method B: Exact Y-axis ticks of the interactive 1Y chart
+                    ticks_1y = parse_chart_ticks(text_1y)
+                    if ticks_1y:
+                        history["history_365d_low"] = min(ticks_1y)
+                        history["history_365d_high"] = max(ticks_1y)
+                        print(f"[Rufus AI] Extracted 365D Range from chart ticks: ₹{history['history_365d_low']} - ₹{history['history_365d_high']}")
+            else:
+                print("[Rufus AI] 1Y tab not detected in DOM.")
         except Exception as ey:
             print(f"[Rufus AI] 1Y tab extraction note: {ey}")
 
@@ -152,6 +201,17 @@ def get_sitestripe_link_and_data(url: str) -> dict:
     """
     Uses a persistent Playwright browser to generate short links via SiteStripe.
     """
+    lock_path = os.path.join(os.path.dirname(__file__), "browser_profile.lock")
+    lock = FileLock(lock_path, timeout=120)
+    
+    try:
+        with lock:
+            return _execute_sitestripe_scrape(url)
+    except Timeout:
+        print("[BrowserLock] Timed out waiting for browser profile lock (another worker is currently using Chrome).")
+        return None
+
+def _execute_sitestripe_scrape(url: str) -> dict:
     with sync_playwright() as p:
         user_data_dir = os.path.join(os.path.dirname(__file__), 'browser_profile')
         os.makedirs(user_data_dir, exist_ok=True)
@@ -177,8 +237,13 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                 context.on("page", close_extra_page)
                 
                 # Clean up any restored tabs from previous sessions
+                time.sleep(1)
                 while len(context.pages) > 1:
                     context.pages[-1].close()
+                try:
+                    context.remove_listener("page", close_extra_page)
+                except Exception:
+                    pass
                 page = context.pages[0] if context.pages else context.new_page()
                 Stealth().use_sync(page)
                 break
@@ -418,6 +483,14 @@ def get_sitestripe_link_and_data(url: str) -> dict:
                         short_url = ""
                     else:
                         print(f"Successfully generated SiteStripe Link: {short_url}")
+                        try:
+                            pop_close = page.locator(".a-popover-header button.a-button-close, [aria-label*='Close'], button.a-button-close").first
+                            if pop_close.count() > 0:
+                                pop_close.click(force=True)
+                            page.keyboard.press("Escape")
+                            time.sleep(1.0)
+                        except:
+                            pass
                 except Exception as e:
                     # Check for "Frequently Returned Item" which disables the Get Link button
                     page_text = page.content()

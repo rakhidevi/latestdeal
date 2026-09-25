@@ -3,6 +3,7 @@ import random
 import time
 from playwright.sync_api import sync_playwright
 from playwright_stealth import Stealth
+from filelock import FileLock, Timeout
 
 DESKTOP_USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -16,11 +17,20 @@ class BrowserManager:
         self._playwright = None
         self._browser = None
         self._page = None
+        self._lock = None
 
     def start(self):
-        self._playwright = sync_playwright().start()
         user_data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'browser_profile'))
         os.makedirs(user_data_dir, exist_ok=True)
+        lock_path = os.path.abspath(os.path.join(user_data_dir, '..', 'browser_profile.lock'))
+        self._lock = FileLock(lock_path, timeout=60)
+        try:
+            self._lock.acquire()
+        except Timeout:
+            print("BrowserManager: Timed out waiting for browser profile lock.")
+            raise
+
+        self._playwright = sync_playwright().start()
         
         self._browser = None
         for attempt in range(2):
@@ -74,5 +84,10 @@ class BrowserManager:
         if self._playwright:
             try:
                 self._playwright.stop()
+            except:
+                pass
+        if self._lock:
+            try:
+                self._lock.release()
             except:
                 pass

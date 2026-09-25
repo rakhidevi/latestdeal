@@ -3,6 +3,7 @@ import time
 import random
 from playwright.sync_api import sync_playwright
 from playwright_stealth import Stealth
+from filelock import FileLock, Timeout
 from database import add_to_queue
 import argparse
 
@@ -39,10 +40,14 @@ def hunt_amazon_deals(job_type='ingestion', category=None, brand=None, discount=
         
     print(f"Hunting for deals on: {url} (Target Queue: {job_type})")
     
-    with sync_playwright() as p:
-        context = setup_browser(p)
-        page = context.pages[0] if context.pages else context.new_page()
-        Stealth().use_sync(page)
+    lock_path = os.path.join(os.path.dirname(__file__), "browser_profile.lock")
+    lock = FileLock(lock_path, timeout=60)
+    try:
+        with lock:
+            with sync_playwright() as p:
+                context = setup_browser(p)
+                page = context.pages[0] if context.pages else context.new_page()
+                Stealth().use_sync(page)
         
         try:
             page.goto(url, wait_until="domcontentloaded", timeout=60000)
@@ -102,6 +107,8 @@ def hunt_amazon_deals(job_type='ingestion', category=None, brand=None, discount=
                 page.close()
             if 'context' in locals():
                 context.close()
+    except Timeout:
+        print("[Hunter] Timed out waiting for browser profile lock (another worker is currently using Chrome). Skipping cycle.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Hunt Amazon Deals')

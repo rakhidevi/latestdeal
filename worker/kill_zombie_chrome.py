@@ -1,19 +1,28 @@
+import os
 import psutil
+from filelock import FileLock, Timeout
 
-target_dir = r"K:\WhatsAppUtility\LatestDeal\worker\browser_profile"
-killed = 0
+lock_path = r"K:\WhatsAppUtility\LatestDeal\worker\browser_profile.lock"
+lock = FileLock(lock_path)
 
-for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-    try:
-        if proc.info['name'] and 'chrome.exe' in proc.info['name'].lower():
-            cmdline = proc.info['cmdline']
-            if cmdline:
-                cmd_str = " ".join(cmdline)
-                if target_dir in cmd_str:
-                    print(f"Killing zombie Playwright chrome.exe (PID: {proc.info['pid']})")
-                    proc.kill()
-                    killed += 1
-    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-        pass
+try:
+    with lock.acquire(timeout=0.1):
+        target_dir = r"K:\WhatsAppUtility\LatestDeal\worker\browser_profile"
+        killed = 0
 
-print(f"Cleanup complete. Killed {killed} zombie processes.")
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                if proc.info['name'] and 'chrome.exe' in proc.info['name'].lower():
+                    cmdline = proc.info['cmdline']
+                    if cmdline:
+                        cmd_str = " ".join(cmdline)
+                        if target_dir in cmd_str:
+                            print(f"Killing zombie Playwright chrome.exe (PID: {proc.info['pid']})")
+                            proc.kill()
+                            killed += 1
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+
+        print(f"Cleanup complete. Killed {killed} zombie processes.")
+except Timeout:
+    print("An active Python worker currently holds the browser lock. Refusing to kill active Chrome.")

@@ -170,11 +170,16 @@ class AmazonPublisher(BasePublisher):
             # SiteStripe UI Automation Fallback for `amzn.to` or `link.amazon` shortlinks
             from playwright.sync_api import sync_playwright
             from playwright_stealth import Stealth
+            from filelock import FileLock, Timeout
             
             short_url = ""
             user_data_dir = os.path.join(project_root, 'worker', 'browser_profile')
+            lock_path = os.path.join(project_root, 'worker', 'browser_profile.lock')
+            lock = FileLock(lock_path, timeout=120)
             
-            with sync_playwright() as p:
+            try:
+                with lock:
+                    with sync_playwright() as p:
                 context = None
                 for attempt in range(2):
                     try:
@@ -279,6 +284,8 @@ class AmazonPublisher(BasePublisher):
                 finally:
                     if context:
                         context.close()
+            except Timeout:
+                print("Provider: Timed out waiting for browser lock.")
                         
             if short_url and ("amzn.to" in short_url or "link.amazon" in short_url):
                 return {"affiliate_url": short_url}
