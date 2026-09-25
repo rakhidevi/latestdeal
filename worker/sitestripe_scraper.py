@@ -14,6 +14,17 @@ def extract_rufus_price_history(page) -> dict:
     """
     history = {}
     try:
+        # Scroll to price section to trigger hydration of dynamic Rufus ingress widgets
+        try:
+            price_box = page.locator("#corePriceDisplay_desktop_feature_div, .priceToPay, #unifiedPrice_feature_div").first
+            if price_box.count() > 0:
+                price_box.scroll_into_view_if_needed(timeout=2000)
+            else:
+                page.evaluate("window.scrollBy(0, 350)")
+            time.sleep(1.5)
+        except Exception:
+            pass
+
         ingress_selectors = [
             "#rufus-price-ingress-cc input",
             "#rufus-price-ingress-cc",
@@ -22,6 +33,13 @@ def extract_rufus_price_history(page) -> dict:
             "[data-query-text='Price history']",
             ".rufus-ingress-div-block"
         ]
+        
+        # Wait up to 3 seconds for Rufus widget to hydrate
+        try:
+            page.wait_for_selector(", ".join(ingress_selectors), timeout=3000)
+        except Exception:
+            pass
+
         btn = None
         for sel in ingress_selectors:
             loc = page.locator(sel).first
@@ -30,10 +48,12 @@ def extract_rufus_price_history(page) -> dict:
                 break
 
         if not btn:
-            print("[Rufus AI] No Price history ingress widget found on page.")
+            print("[Rufus AI] Price history button not present on this product (Amazon displays Rufus on select categories/items).")
             return None
 
         print("[Rufus AI] Found native 'Price history' button. Clicking...")
+        btn.scroll_into_view_if_needed()
+        time.sleep(0.5)
         btn.click(force=True)
         time.sleep(2.5)
 
@@ -149,11 +169,14 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             
         try:
             print(f"Navigating to raw URL: {url}...")
-            # We use wait_until="networkidle" to ensure JS redirects (like indiafreestuff or amzn.to) finish
-            page.goto(url, wait_until="networkidle", timeout=60000)
+            # Use domcontentloaded so heavy tracking beacons don't freeze navigation for 60 seconds
+            try:
+                page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            except Exception as eg:
+                print(f"Navigation warning: {eg}")
             
-            # Wait a few seconds for any lingering client-side redirects
-            time.sleep(3)
+            # Wait for dynamic DOM elements to settle
+            time.sleep(2)
             
             final_raw_url = page.url
             print(f"Resolved raw URL: {final_raw_url}")
@@ -201,15 +224,17 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             else:
                 clean_url = final_raw_url
             
+            has_sitestripe = True
             if page.locator("div#amzn-ss-wrap").count() == 0:
                 # Give it a second just in case it's loading slowly
                 time.sleep(2)
                 if page.locator("div#amzn-ss-wrap").count() == 0:
-                    print("[ACTION REQUIRED] SiteStripe not detected. Please log into Amazon in the browser window!")
-                    print("We cannot pause for input() here because we are running in the background. Please restart the worker manually and login.")
-                    return False
-                
-            print("Waiting for SiteStripe to load...")
+                    print("[SiteStripe] SiteStripe bar not detected on this page/session. Continuing with Rufus AI & product extraction.")
+                    has_sitestripe = False
+                else:
+                    print("SiteStripe bar detected.")
+            else:
+                print("SiteStripe bar detected.")
             
             print("Page loaded. Waiting for human delay...")
             time.sleep(random.uniform(5.0, 10.0))
@@ -304,61 +329,77 @@ def get_sitestripe_link_and_data(url: str) -> dict:
             # 1.5 Extract Prime / FBA status
             is_prime = False
             is_fulfilled = False
-            if page.locator("i.a-icon-prime").count() > 0 or "prime" in (page.locator("#primeSavingsBadge").text_content() or "").lower():
-                is_prime = True
-            if page.locator("span.a-declarative:has-text('Fulfilled by Amazon')").count() > 0 or "fulfilled by amazon" in (page.locator("#merchant-info").text_content() or "").lower():
-                is_fulfilled = True
+            try:
+                if page.locator("i.a-icon-prime").count() > 0:
+                    is_prime = True
+                elif page.locator("#primeSavingsBadge").count() > 0:
+                    badge_txt = page.locator("#primeSavingsBadge").first.inner_text().lower()
+                    if "prime" in badge_txt:
+                        is_prime = True
+            except Exception:
+                pass
+
+            try:
+                if page.locator("span.a-declarative:has-text('Fulfilled by Amazon')").count() > 0:
+                    is_fulfilled = True
+                elif page.locator("#merchant-info").count() > 0:
+                    merchant_txt = page.locator("#merchant-info").first.inner_text().lower()
+                    if "fulfilled by amazon" in merchant_txt:
+                        is_fulfilled = True
+            except Exception:
+                pass
 
             # 2. SiteStripe Automation
-            print("Looking for SiteStripe bar...")
             short_url = ""
-            try:
-                page.wait_for_selector("#amzn-ss-text-link", timeout=10000)
-                sitestripe_text_btn = page.locator("#amzn-ss-text-link").first
-                    
-                print("Clicking SiteStripe 'Get Link' button...")
-                sitestripe_text_btn.click(force=True)
-                
-                import pyperclip
-                pyperclip.copy("") # Clear clipboard first
-                
-                # Wait for popover to appear
-                print("Waiting for popover...")
-                page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce", timeout=10000)
-                
-                copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce").first
-                copy_btn.click(force=True)
-                
-                # Wait for the "Copied to clipboard" toast to ensure it copied
+            if has_sitestripe:
+                print("Looking for SiteStripe bar...")
                 try:
-                    page.wait_for_selector("#amzn-ss-copy-toast:not([style*='display: none'])", timeout=5000)
-                except Exception as e:
-                    print(f"Toast didn't appear, trying clipboard anyway: {e}")
+                    page.wait_for_selector("#amzn-ss-text-link", timeout=10000)
+                    sitestripe_text_btn = page.locator("#amzn-ss-text-link").first
+                        
+                    print("Clicking SiteStripe 'Get Link' button...")
+                    sitestripe_text_btn.click(force=True)
                     
-                time.sleep(1) # Extra buffer for clipboard to write
-                
-                try:
-                    short_url = page.evaluate("navigator.clipboard.readText()")
-                except:
-                    short_url = ""
-                
-                if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
-                    print("Browser clipboard API failed. Falling back to OS clipboard (pyperclip)...")
-                    short_url = pyperclip.paste()
+                    import pyperclip
+                    pyperclip.copy("") # Clear clipboard first
+                    
+                    # Wait for popover to appear
+                    print("Waiting for popover...")
+                    page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce", timeout=10000)
+                    
+                    copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce").first
+                    copy_btn.click(force=True)
+                    
+                    # Wait for the "Copied to clipboard" toast to ensure it copied
+                    try:
+                        page.wait_for_selector("#amzn-ss-copy-toast:not([style*='display: none'])", timeout=5000)
+                    except Exception as e:
+                        print(f"Toast didn't appear, trying clipboard anyway: {e}")
+                        
+                    time.sleep(1) # Extra buffer for clipboard to write
+                    
+                    try:
+                        short_url = page.evaluate("navigator.clipboard.readText()")
+                    except:
+                        short_url = ""
+                    
+                    if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
+                        print("Browser clipboard API failed. Falling back to OS clipboard (pyperclip)...")
+                        short_url = pyperclip.paste()
 
-                if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
-                    print(f"Failed to extract valid short URL from clipboard. Found: {short_url}")
-                    short_url = ""
-                else:
-                    print(f"Successfully generated SiteStripe Link: {short_url}")
-            except Exception as e:
-                # Check for "Frequently Returned Item" which disables the Get Link button
-                page_text = page.content()
-                if "Frequently Returned Item" in page_text or "lower return rates" in page_text:
-                    print("Deal REJECTED: Frequently Returned Item (SiteStripe 'Get Link' disabled)")
-                    return False
-                print(f"SiteStripe bar not found or failed to copy! Error: {e}")
-                print("Returning raw data without shortlink.")
+                    if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
+                        print(f"Failed to extract valid short URL from clipboard. Found: {short_url}")
+                        short_url = ""
+                    else:
+                        print(f"Successfully generated SiteStripe Link: {short_url}")
+                except Exception as e:
+                    # Check for "Frequently Returned Item" which disables the Get Link button
+                    page_text = page.content()
+                    if "Frequently Returned Item" in page_text or "lower return rates" in page_text:
+                        print("Deal REJECTED: Frequently Returned Item (SiteStripe 'Get Link' disabled)")
+                        return False
+                    print(f"SiteStripe bar not found or failed to copy! Error: {e}")
+                    print("Returning raw data without shortlink.")
 
             # 2.5 Extract Rufus AI Price History
             print("Checking for Rufus AI Price History...")
