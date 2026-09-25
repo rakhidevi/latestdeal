@@ -55,57 +55,83 @@ def extract_rufus_price_history(page) -> dict:
         btn.scroll_into_view_if_needed()
         time.sleep(0.5)
         btn.click(force=True)
-        time.sleep(2.5)
 
-        # Check if Sign-in is required
-        body_text = page.locator("body").inner_text()
-        if "Please sign in to begin using Rufus" in body_text:
-            print("[Rufus AI] Rufus requires Amazon sign-in.")
+        # 1. Dynamically wait up to 15 seconds for Rufus AI to generate the price history response
+        print("[Rufus AI] Waiting for Rufus AI to generate price history...")
+        start_t = time.time()
+        m_30 = None
+        
+        while time.time() - start_t < 15:
+            body_text = page.locator("body").inner_text()
+            if "Please sign in to begin using Rufus" in body_text:
+                print("[Rufus AI] Rufus requires Amazon sign-in. Please log into Amazon via launch_browser.py.")
+                return None
+            
+            m_30 = re.search(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', body_text, re.IGNORECASE)
+            if m_30:
+                break
+                
+            time.sleep(1.0)
+
+        if not m_30:
+            print("[Rufus AI] Price history did not finish generating within 15 seconds.")
             return None
 
-        # 1. Parse 30-Day Range from the initial text
-        m_30 = re.search(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', body_text, re.IGNORECASE)
-        if m_30:
-            history["history_30d_low"] = float(m_30.group(1).replace(',', ''))
-            history["history_30d_high"] = float(m_30.group(2).replace(',', ''))
-            print(f"[Rufus AI] Extracted 30D Range: ₹{history['history_30d_low']} - ₹{history['history_30d_high']}")
+        history["history_30d_low"] = float(m_30.group(1).replace(',', ''))
+        history["history_30d_high"] = float(m_30.group(2).replace(',', ''))
+        print(f"[Rufus AI] Extracted 30D Range: ₹{history['history_30d_low']} - ₹{history['history_30d_high']}")
 
         # 2. Click 3M (90-Day) Tab
         try:
-            tab_3m = page.locator('button:has-text("3M"), [aria-label*="3 month"], [data-value="3M"]').first
+            tab_3m = page.locator('button:has-text("3M"), div[role="tab"]:has-text("3M"), [data-value="3M"], [aria-label*="3M"], span:has-text("3M")').first
             if tab_3m.count() > 0:
                 print("[Rufus AI] Clicking 3M (90-Day) tab...")
                 tab_3m.click(force=True)
-                time.sleep(1.5)
-                text_3m = page.locator("body").inner_text()
-                m_90 = re.search(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', text_3m, re.IGNORECASE)
-                if m_90:
-                    history["history_90d_low"] = float(m_90.group(1).replace(',', ''))
-                    history["history_90d_high"] = float(m_90.group(2).replace(',', ''))
-                    history["history_90d_median"] = round((history["history_90d_low"] + history["history_90d_high"]) / 2.0, 2)
-                    print(f"[Rufus AI] Extracted 90D Range: ₹{history['history_90d_low']} - ₹{history['history_90d_high']}")
+                # Poll up to 6 seconds for updated range text
+                t3_start = time.time()
+                while time.time() - t3_start < 6:
+                    time.sleep(1.0)
+                    text_3m = page.locator("body").inner_text()
+                    ranges = re.findall(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', text_3m, re.IGNORECASE)
+                    if ranges:
+                        last_r = ranges[-1]
+                        low_val = float(last_r[0].replace(',', ''))
+                        high_val = float(last_r[1].replace(',', ''))
+                        history["history_90d_low"] = low_val
+                        history["history_90d_high"] = high_val
+                        history["history_90d_median"] = round((low_val + high_val) / 2.0, 2)
+                        print(f"[Rufus AI] Extracted 90D Range: ₹{low_val} - ₹{high_val}")
+                        break
         except Exception as e3:
             print(f"[Rufus AI] 3M tab extraction note: {e3}")
 
         # 3. Click 1Y (365-Day) Tab
         try:
-            tab_1y = page.locator('button:has-text("1Y"), [aria-label*="1 year"], [data-value="1Y"]').first
+            tab_1y = page.locator('button:has-text("1Y"), div[role="tab"]:has-text("1Y"), [data-value="1Y"], [aria-label*="1Y"], span:has-text("1Y")').first
             if tab_1y.count() > 0:
                 print("[Rufus AI] Clicking 1Y (365-Day) tab...")
                 tab_1y.click(force=True)
-                time.sleep(1.5)
-                text_1y = page.locator("body").inner_text()
-                m_365 = re.search(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', text_1y, re.IGNORECASE)
-                if m_365:
-                    history["history_365d_low"] = float(m_365.group(1).replace(',', ''))
-                    history["history_365d_high"] = float(m_365.group(2).replace(',', ''))
-                    print(f"[Rufus AI] Extracted 365D Range: ₹{history['history_365d_low']} - ₹{history['history_365d_high']}")
+                # Poll up to 6 seconds for updated range text
+                ty_start = time.time()
+                while time.time() - ty_start < 6:
+                    time.sleep(1.0)
+                    text_1y = page.locator("body").inner_text()
+                    ranges_y = re.findall(r'ranged from\s*[₹\s]*([\d,]+)\s*to\s*[₹\s]*([\d,]+)', text_1y, re.IGNORECASE)
+                    if ranges_y:
+                        last_ry = ranges_y[-1]
+                        low_y = float(last_ry[0].replace(',', ''))
+                        high_y = float(last_ry[1].replace(',', ''))
+                        history["history_365d_low"] = low_y
+                        history["history_365d_high"] = high_y
+                        print(f"[Rufus AI] Extracted 365D Range: ₹{low_y} - ₹{high_y}")
+                        break
         except Exception as ey:
             print(f"[Rufus AI] 1Y tab extraction note: {ey}")
 
         # 4. Close the drawer cleanly
+        time.sleep(1.5)
         try:
-            close_btn = page.locator('button[aria-label="Close"], #rufus-close, [aria-label*="close"]').first
+            close_btn = page.locator('button[aria-label="Close"], #rufus-close, [aria-label*="close"], button:has-text("✕")').first
             if close_btn.count() > 0:
                 close_btn.click(force=True)
             else:
