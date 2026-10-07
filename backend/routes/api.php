@@ -23,7 +23,6 @@ Route::middleware([\App\Http\Middleware\WorkerAuthMiddleware::class])->group(fun
     Route::post('/deals/batch', [\App\Http\Controllers\Api\DealIngestionController::class, 'batchIngest']);
     Route::get('/deals/active', [\App\Http\Controllers\Api\DealIngestionController::class, 'activeDeals']);
     Route::post('/deals/{deal}/expire', [\App\Http\Controllers\Api\DealIngestionController::class, 'expire']);
-    Route::post('/deals/{id}/refresh-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'refreshPrice']);
     Route::post('/deals/update-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'updatePrice']);
 
     // Scraper Job Tracking
@@ -120,6 +119,9 @@ Route::get('/smart-search', [\App\Http\Controllers\Api\SmartSearchController::cl
 // Real-Time Price Comparison & Live Fetching
 Route::post('/compare-prices', [\App\Http\Controllers\Api\LiveComparisonController::class, 'compare']);
 Route::get('/compare-prices/{job_id}', [\App\Http\Controllers\Api\LiveComparisonController::class, 'checkStatus']);
+
+// Real-Time Price Verification (Client-Facing, Rate-Limited)
+Route::match(['GET', 'POST'], '/deals/{id}/refresh-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'refreshPrice'])->middleware('throttle:60,1');
 
 // Protected APIs
 Route::get('/publisher/metrics', [MetricsController::class, 'index']);

@@ -70,9 +70,12 @@ jobs:
           upload_file backend/app/Services/SearchPipeline/Pipes/ApplyRanking.php app/Services/SearchPipeline/Pipes/ApplyRanking.php
           upload_file backend/app/Services/RecommendationService.php app/Services/RecommendationService.php
           upload_file backend/app/Services/Admin/DashboardService.php app/Services/Admin/DashboardService.php
+          upload_file backend/app/Http/Controllers/Api/PriceUpdateController.php app/Http/Controllers/Api/PriceUpdateController.php
 
           # Layouts & Public Pages
           upload_file "backend/resources/views/layouts/app.blade.php" "resources/views/layouts/app.blade.php"
+          upload_file backend/resources/views/deals/show.blade.php resources/views/deals/show.blade.php
+          upload_file backend/resources/views/sitemap.blade.php resources/views/sitemap.blade.php
           upload_file backend/resources/views/pages/about.blade.php       resources/views/pages/about.blade.php
           upload_file backend/resources/views/pages/contact.blade.php     resources/views/pages/contact.blade.php
           upload_file backend/resources/views/pages/privacy.blade.php     resources/views/pages/privacy.blade.php

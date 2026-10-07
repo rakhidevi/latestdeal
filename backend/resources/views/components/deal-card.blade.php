@@ -52,7 +52,7 @@
             Create Alert
         </button>
         @endauth
-        <button onclick="navigator.clipboard.writeText('{{ route('deal.show', $deal->slug) }}'); alert('Link copied!');" class="w-2/3 bg-white text-slate-900 font-bold py-1.5 rounded-lg text-xs hover:bg-emerald-50 hover:text-emerald-600 transition flex items-center justify-center gap-1.5">
+        <button onclick="navigator.clipboard.writeText('{{ route('deals.show', $deal->slug) }}'); alert('Link copied!');" class="w-2/3 bg-white text-slate-900 font-bold py-1.5 rounded-lg text-xs hover:bg-emerald-50 hover:text-emerald-600 transition flex items-center justify-center gap-1.5">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
             Share
         </button>
@@ -88,7 +88,7 @@
         @endif
       </div>
       <div class="flex gap-1.5 w-full xl:w-auto">
-        <a href="{{ route('deal.show', $deal->slug) }}" class="flex-1 xl:flex-none text-center rounded border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 dark:border-slate-700 dark:bg-slate-800 dark:text-red-400 dark:hover:bg-slate-700 transition">Details</a>
+        <a href="{{ route('deals.show', $deal->slug) }}" class="flex-1 xl:flex-none text-center rounded border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 dark:border-slate-700 dark:bg-slate-800 dark:text-red-400 dark:hover:bg-slate-700 transition">Details</a>
         
         {{-- CRO: Pulse effect on Visit button if it's a high heat deal --}}
         <a href="{{ route('deal.redirect', $deal->hash_id) }}" target="_blank" rel="noreferrer" class="flex-1 xl:flex-none text-center rounded px-2 py-1 text-[11px] font-semibold text-white transition {{ $discountPct >= 50 ? 'bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-red-500 hover:bg-red-600' }}">

@@ -38,12 +38,15 @@ class WorkerIngestionTest extends TestCase
         $payload = [
             'title' => 'Test iPhone 15',
             'original_price' => 79900,
-            'discounted_price' => 74900,
+            'discounted_price' => 49900,
             'url' => 'https://amazon.in/dp/B0CHX1W1XY',
             'observation_id' => 'obs_12345',
             'asin' => 'B0CHX1W1XY',
             'trace_id' => 'trace_123',
             'pipeline_run_id' => 'run_123',
+            'deal_qualification' => 'HOT_DEAL',
+            'ai_score' => 85,
+            'verdict_code' => 'BUY_NOW',
             'editorial_status' => 'PUBLISHED' // Attempting to hack status
         ];
 
@@ -93,7 +96,7 @@ class WorkerIngestionTest extends TestCase
         // 2. Exact Duplicate request
         $response2 = $this->postJson('/api/worker/ingest', $payload, ['Authorization' => 'Bearer test-secret-key']);
         $response2->assertStatus(200);
-        $this->assertEquals('Deal already exists. No changes made.', $response2->json('message'));
+        $this->assertEquals('Deal already exists. Updated with price intelligence.', $response2->json('message'));
         $this->assertEquals($dealId, $response2->json('deal_id'));
         $this->assertNull($response2->json('correlation_id'));
 

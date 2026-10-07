@@ -10,11 +10,11 @@
                           "💰 *Deal Price:* ₹" . number_format($deal->discounted_price) . "\n" .
                           ($discount > 0 ? "❌ *Regular Price:* ₹" . number_format($deal->original_price) . " (" . $discount . "% OFF)\n\n" : "\n") .
                           "🛒 *Buy it Now:*\n" . route('deal.redirect', $deal->hash_id) . "\n\n" .
-                          "👇 *View Deal Details:*\n" . route('deal.show', $deal->slug);
+                          "👇 *View Deal Details:*\n" . route('deals.show', $deal->slug);
 @endphp
 
 <div x-data="{
-    shareUrl: '{{ route('deal.show', $deal->slug) }}',
+    shareUrl: '{{ route('deals.show', $deal->slug) }}',
     shareText: @js($formattedShareText),
     
     async webShare() {

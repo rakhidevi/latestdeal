@@ -40,7 +40,7 @@ class PriceUpdateController extends Controller
                 'User-Agent' => $ua,
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language' => 'en-US,en;q=0.5'
-            ])->timeout(10)->get($deal->url);
+            ])->timeout(12)->get($deal->url);
 
             if ($response->status() === 404 || str_contains($response->body(), 'Looking for something?') || str_contains($response->body(), 'not a functioning page')) {
                 $deal->status = 'expired';
@@ -71,6 +71,18 @@ class PriceUpdateController extends Controller
 
                 if ($newOriginalPrice && $newOriginalPrice > 0) {
                     $deal->original_price = $newOriginalPrice;
+                    $updated = true;
+                }
+
+                // Guard against corrupted MRP (e.g. 100x unit-price/paise multiplier bug)
+                if ($deal->original_price && $deal->discounted_price > 0 && ($deal->original_price / $deal->discounted_price) > 15) {
+                    if ($newOriginalPrice && ($newOriginalPrice / $deal->discounted_price) <= 15) {
+                        $deal->original_price = $newOriginalPrice;
+                    } elseif (abs(($deal->original_price / 100) - $deal->discounted_price) < 5) {
+                        $deal->original_price = round($deal->original_price / 100, 2);
+                    } else {
+                        $deal->original_price = $deal->discounted_price;
+                    }
                     $updated = true;
                 }
 

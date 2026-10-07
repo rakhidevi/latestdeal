@@ -36,7 +36,7 @@
     @endforeach
     @foreach ($deals as $deal)
         <url>
-            <loc>{{ route('deal.show', $deal->slug) }}</loc>
+            <loc>{{ route('deals.show', $deal->slug) }}</loc>
             <lastmod>{{ $deal->updated_at->tz('UTC')->toAtomString() }}</lastmod>
             <changefreq>hourly</changefreq>
             <priority>0.8</priority>

@@ -45,7 +45,7 @@
         </div>
         <div class="flex space-x-4 overflow-x-auto pb-4 snap-x">
             @foreach($recommendedDeals as $deal)
-            <a href="{{ route('deal.show', $deal->slug) }}" class="snap-start flex-none w-64 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-3 shadow-sm hover:shadow-md transition-shadow group">
+            <a href="{{ route('deals.show', $deal->slug) }}" class="snap-start flex-none w-64 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-3 shadow-sm hover:shadow-md transition-shadow group">
                 <div class="aspect-video rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-2 mb-3 overflow-hidden">
                     <img src="{{ $deal->image_url }}" alt="{{ $deal->title }}" class="max-w-full max-h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500" onerror="this.src='{{ asset('images/logo.png') }}'">
                 </div>
@@ -72,7 +72,7 @@
         </div>
         <div class="flex space-x-4 overflow-x-auto pb-4 snap-x opacity-90">
             @foreach($recentlyViewedDeals as $deal)
-            <a href="{{ route('deal.show', $deal->slug) }}" class="snap-start flex-none w-48 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-3 shadow-sm hover:shadow-md transition-shadow group">
+            <a href="{{ route('deals.show', $deal->slug) }}" class="snap-start flex-none w-48 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-3 shadow-sm hover:shadow-md transition-shadow group">
                 <div class="aspect-square rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-2 mb-2 overflow-hidden">
                     <img src="{{ $deal->image_url }}" alt="{{ $deal->title }}" class="max-w-full max-h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500" onerror="this.src='{{ asset('images/logo.png') }}'">
                 </div>
@@ -125,7 +125,7 @@
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                 </button>
                             </form>
-                            <a href="{{ route('deal.show', $deal->slug) }}" class="block">
+                            <a href="{{ route('deals.show', $deal->slug) }}" class="block">
                                 <div class="aspect-[4/3] rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-4 mb-4 overflow-hidden">
                                     <img src="{{ $deal->image_url }}" alt="{{ $deal->title }}" class="max-w-full max-h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500" onerror="this.src='{{ asset('images/logo.png') }}'">
                                 </div>

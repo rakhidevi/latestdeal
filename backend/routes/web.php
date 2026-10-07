@@ -33,8 +33,8 @@ Route::get('/deal/{id}', function ($id) {
 // The Redirect Engine Endpoint
 Route::get('/go/{deal:hash_id}', [\App\Http\Controllers\RedirectController::class, 'redirect'])->name('deal.redirect');
 
-// Deal Detail Page
-Route::get('/deal/{deal:slug}', [\App\Http\Controllers\DealController::class, 'show'])->name('deal.show');
+// Real-Time Price Verification
+Route::match(['GET', 'POST'], '/deals/{id}/refresh-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'refreshPrice'])->name('deal.refresh-price');
 
 // Compliance & Information Pages
 Route::view('/about', 'pages.about')->name('about');

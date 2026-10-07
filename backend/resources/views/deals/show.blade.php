@@ -9,7 +9,7 @@
     @endphp
     <title>{{ $deal->title }} | {{ $discountPercent > 0 ? "Save {$discountPercent}%" : 'Best Price' }} | LatestDeal.in</title>
     <meta name="description" content="Get {{ $deal->title }} for just ₹{{ number_format($deal->discounted_price) }}. Original price: ₹{{ number_format($deal->original_price) }}.">
-    <link rel="canonical" href="{{ route('deal.show', $deal->slug) }}">
+    <link rel="canonical" href="{{ route('deals.show', $deal->slug) }}">
     
     @if(!$deal->isIndexable())
         <meta name="robots" content="noindex, follow">
@@ -19,7 +19,7 @@
     <meta property="og:title" content="{{ $deal->title }} | Save {{ $discountPercent }}%">
     <meta property="og:description" content="Get it for just ₹{{ number_format($deal->discounted_price) }}! Regular Price: ₹{{ number_format($deal->original_price) }}.">
     <meta property="og:image" content="{{ filter_var($deal->image_path, FILTER_VALIDATE_URL) ? $deal->image_path : asset($deal->image_path) }}">
-    <meta property="og:url" content="{{ route('deal.show', $deal->slug) }}">
+    <meta property="og:url" content="{{ route('deals.show', $deal->slug) }}">
     <meta property="og:type" content="product">
     
     <!-- Twitter Cards -->
@@ -37,7 +37,7 @@
       "description": "Get {{ addslashes($deal->title) }} at a discounted price.",
       "offers": {
         "@@type": "Offer",
-        "url": "{{ route('deal.show', $deal->slug) }}",
+        "url": "{{ route('deals.show', $deal->slug) }}",
         "priceCurrency": "INR",
         "price": "{{ $deal->discounted_price }}",
         "itemCondition": "https://schema.org/NewCondition",
@@ -677,13 +677,10 @@
             verifyPrice() {
                 this.isChecking = true;
                 this.justVerified = false;
-                fetch(`/api/deals/${this.dealId}/refresh-price`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-                }).then(res => res.json())
-                .then(data => {
+                
+                const handleSuccess = (data) => {
                     this.isChecking = false;
-                    if (data.success) {
+                    if (data && data.success) {
                         if (data.discounted_price) {
                             this.currentPrice = data.discounted_price;
                         }
@@ -697,17 +694,46 @@
                         }
                         this.justVerified = true;
                         setTimeout(() => { this.justVerified = false; }, 4000);
+                    } else if (data && data.is_expired) {
+                        alert('⚠️ This deal has expired or the product listing was removed on Amazon.');
+                        window.location.reload();
                     } else {
-                        if (data.is_expired) {
-                            alert('⚠️ This deal has expired or the product listing was removed on Amazon.');
-                            window.location.reload();
-                        } else {
-                            alert(data.message || 'Price check completed.');
-                        }
+                        alert((data && data.message) || 'Price check completed.');
                     }
-                }).catch(err => {
-                    this.isChecking = false;
-                    alert('Network error while requesting price check.');
+                };
+
+                // Request real-time verification with fallback
+                fetch(`/api/deals/${this.dealId}/refresh-price`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        return fetch(`/deals/${this.dealId}/refresh-price`, {
+                            method: 'GET',
+                            headers: { 'Accept': 'application/json' }
+                        }).then(r => r.json());
+                    }
+                    return res.json();
+                })
+                .then(handleSuccess)
+                .catch(err => {
+                    // Secondary fallback to GET
+                    fetch(`/deals/${this.dealId}/refresh-price`, {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' }
+                    })
+                    .then(r => r.json())
+                    .then(handleSuccess)
+                    .catch(() => {
+                        this.isChecking = false;
+                        alert('Network error while requesting price check.');
+                    });
                 });
             },
             listenForUpdates() {

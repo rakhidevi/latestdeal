@@ -269,18 +269,16 @@ class BrowseController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
 
-        // 1. Direct Access Enforcement: Unpublished deals conceptually do not exist publicly
-        if (!$deal->isPublishable()) {
-            abort(404);
-        }
-
-        // 2. Expired Lifecycle Enforcement
+        // 1. Expired Lifecycle Enforcement
         if ($deal->status === \App\Models\Deal::STATUS_EXPIRED) {
             // If it doesn't have substantial historical value (isIndexable), it's obsolete.
             if (!$deal->isIndexable()) {
                 abort(410); // 410 Gone
             }
             // (Future enhancement: return 301 Redirect if $deal->replacement_id exists)
+        } elseif (!$deal->isPublishable()) {
+            // 2. Direct Access Enforcement: Unpublished deals conceptually do not exist publicly
+            abort(404);
         }
 
         // 3. Server-Generated Canonical URL (Strips UTMs and params)

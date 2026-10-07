@@ -57,12 +57,12 @@ class DealStateTransitionTest extends TestCase
     public function test_invalid_state_transition_throws_exception()
     {
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage("Invalid editorial status transition from DRAFT to PUBLISHED");
+        $this->expectExceptionMessage("Invalid editorial status transition from DISCOVERED to PUBLISHED");
 
         $deal = Deal::create([
             'title' => 'Test Deal',
             'url' => 'https://example.com',
-            'editorial_status' => Deal::STATUS_DRAFT,
+            'editorial_status' => Deal::STATUS_DISCOVERED,
             'category_id' => 1,
             'merchant_id' => 1,
             'brand_id' => 1,
@@ -72,7 +72,7 @@ class DealStateTransitionTest extends TestCase
             'hash_id' => \Illuminate\Support\Str::random(6)
         ]);
         
-        // Direct jump from Draft -> Published is illegal
+        // Direct jump from Discovered -> Published is illegal
         $deal->editorial_status = Deal::STATUS_PUBLISHED;
         $deal->save();
     }

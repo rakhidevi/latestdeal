@@ -394,6 +394,38 @@ if (isset($_GET['seed_admin'])) {
     exit;
 }
 
+if (isset($_GET['fix_mrp'])) {
+    header('Content-Type: text/plain; charset=utf-8');
+    try {
+        require __DIR__.'/../vendor/autoload.php';
+        $app = require_once __DIR__.'/../bootstrap/app.php';
+        $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+        $corruptDeals = \App\Models\Deal::whereNotNull('original_price')
+            ->whereNotNull('discounted_price')
+            ->where('discounted_price', '>', 0)
+            ->whereRaw('original_price > (discounted_price * 15)')
+            ->get();
+
+        $fixedCount = 0;
+        foreach ($corruptDeals as $d) {
+            $oldMrp = $d->original_price;
+            if (abs(($d->original_price / 100) - $d->discounted_price) < 5) {
+                $d->original_price = round($d->original_price / 100, 2);
+            } else {
+                $d->original_price = $d->discounted_price;
+            }
+            $d->save();
+            $fixedCount++;
+            echo "Fixed Deal ID {$d->id}: MRP {$oldMrp} -> {$d->original_price} (Price: {$d->discounted_price})\n";
+        }
+        echo "SUCCESS: Checked deals. Total fixed: {$fixedCount}\n";
+    } catch (\Throwable $e) {
+        echo "FAIL: " . $e->getMessage() . "\n";
+    }
+    exit;
+}
+
 if (isset($_GET['migrate'])) {
     try {
         require __DIR__.'/../vendor/autoload.php';

@@ -394,12 +394,7 @@ class Deal extends Model
      */
     public function scopePublishable($query)
     {
-        return $query->where('status', 'active')
-                     ->where(function ($q) {
-                         $q->where('editorial_status', self::STATUS_PUBLISHED)
-                           ->orWhereNull('editorial_status')
-                           ->orWhere('editorial_status', '!=', self::STATUS_REJECTED);
-                     });
+        return $query->where('editorial_status', self::STATUS_PUBLISHED);
     }
 
     /**
@@ -407,26 +402,30 @@ class Deal extends Model
      */
     public function scopeIndexable($query)
     {
-        return $query->publishable()->where(function ($q) {
-            $q->where('status', '!=', self::STATUS_EXPIRED)
-              ->orWhere(function ($sub) {
-                  $sub->where('status', self::STATUS_EXPIRED)
-                      ->where(function ($hist) {
-                          $hist->where('is_editor_pick', true)
-                               ->orWhereRaw('LENGTH(editorial_summary) > 200');
-                      });
-              });
-        });
+        return $query->where('editorial_status', self::STATUS_PUBLISHED)
+            ->where(function ($q) {
+                $q->where(function ($subActive) {
+                    $subActive->where('status', 'active');
+                })->orWhere(function ($subExpired) {
+                    $subExpired->whereIn('status', ['expired', self::STATUS_EXPIRED])
+                        ->where(function ($hist) {
+                            $hist->where('is_editor_pick', true)
+                                 ->orWhereRaw('LENGTH(editorial_summary) > 200');
+                        });
+                });
+            });
     }
 
     /**
      * Publication Quality Firewall logic gate.
      * Determines if a deal has sufficient original value to exist publicly.
      */
-    public function isPublishable(): bool
+    public function isPublishable(bool $allowExpired = false): bool
     {
-        if ($this->status !== 'active') return false;
-        if ($this->editorial_status === self::STATUS_REJECTED) return false;
+        $isExpired = strtolower($this->status) === 'expired' || $this->status === self::STATUS_EXPIRED;
+        if (!$allowExpired && $this->status !== 'active') return false;
+        if ($allowExpired && !$isExpired && $this->status !== 'active') return false;
+        if ($this->editorial_status !== self::STATUS_PUBLISHED) return false;
         return true;
     }
 
@@ -459,12 +458,13 @@ class Deal extends Model
      */
     public function isIndexable(): bool
     {
-        if (!$this->isPublishable()) return false;
+        if (!$this->isPublishable(allowExpired: true)) return false;
         
-        if ($this->status === self::STATUS_EXPIRED) {
+        $isExpired = strtolower($this->status) === 'expired' || $this->status === self::STATUS_EXPIRED;
+        if ($isExpired) {
             // Expired deals are only indexable if they have substantial historical value
             // Proxy for high value: Editor's pick or lengthy editorial summary
-            return $this->is_editor_pick || strlen((string)$this->editorial_summary) > 200;
+            return (bool) ($this->is_editor_pick || strlen((string)$this->editorial_summary) > 200);
         }
 
         return true;

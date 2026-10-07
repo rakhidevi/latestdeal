@@ -31,6 +31,6 @@ class PingGoogleIndexingApiJob implements ShouldQueue
     {
         // Placeholder for Google Indexing API logic
         // E.g., making a POST request to https://indexing.googleapis.com/v3/urlNotifications:publish
-        Log::info("Pinging Google Indexing API for deal: {$this->deal->title} (URL: " . route('deal.show', $this->deal->hash_id) . ")");
+        Log::info("Pinging Google Indexing API for deal: {$this->deal->title} (URL: " . route('deals.show', $this->deal->slug) . ")");
     }
 }

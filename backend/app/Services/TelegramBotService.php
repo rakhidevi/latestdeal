@@ -69,7 +69,7 @@ class TelegramBotService
             $caption .= "✔️ Premium Quality\n✔️ Limited Time Offer\n\n";
         }
         
-        $readMoreUrl = route('deal.show', ['deal' => $deal->slug]);
+        $readMoreUrl = route('deals.show', ['slug' => $deal->slug]);
         $buyNowUrl = route('deal.redirect', ['deal' => $deal->hash_id]);
 
         $caption .= "📖 <b>Read More:</b> " . $readMoreUrl . "\n\n";
