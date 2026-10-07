@@ -267,10 +267,22 @@ class BrowseController extends Controller
     {
         $deal = Deal::with(['merchant', 'category', 'brandRelation', 'priceHistories', 'tags'])
             ->where('slug', $slug)
-            ->firstOrFail();
+            ->first();
+
+        if (!$deal && preg_match('/-(\d+)$/', $slug, $matches)) {
+            $deal = Deal::with(['merchant', 'category', 'brandRelation', 'priceHistories', 'tags'])->find($matches[1]);
+            if ($deal && empty($deal->getAttributes()['slug'])) {
+                $deal->slug = $slug;
+                $deal->saveQuietly();
+            }
+        }
+
+        if (!$deal) {
+            abort(404);
+        }
 
         // 1. Expired Lifecycle Enforcement
-        if ($deal->status === \App\Models\Deal::STATUS_EXPIRED) {
+        if (strtolower($deal->status) === 'expired' || $deal->status === \App\Models\Deal::STATUS_EXPIRED) {
             // If it doesn't have substantial historical value (isIndexable), it's obsolete.
             if (!$deal->isIndexable()) {
                 abort(410); // 410 Gone

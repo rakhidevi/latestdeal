@@ -27,7 +27,7 @@ Route::get('/go/{id}', function (\Illuminate\Http\Request $request, $id) {
 
 Route::get('/deal/{id}', function ($id) {
     $deal = \App\Models\Deal::findOrFail($id);
-    return app(\App\Http\Controllers\DealController::class)->show($deal);
+    return redirect()->to(route('deals.show', $deal->slug), 301);
 })->where('id', '[0-9]+');
 
 // The Redirect Engine Endpoint

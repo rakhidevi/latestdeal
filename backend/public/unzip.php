@@ -426,6 +426,36 @@ if (isset($_GET['fix_mrp'])) {
     exit;
 }
 
+if (isset($_GET['inspect_deal'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    try {
+        require __DIR__.'/../vendor/autoload.php';
+        $app = require_once __DIR__.'/../bootstrap/app.php';
+        $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+        $id = (int)$_GET['inspect_deal'];
+        $deal = \App\Models\Deal::find($id);
+        if ($deal) {
+            echo json_encode([
+                'id' => $deal->id,
+                'title' => $deal->title,
+                'slug' => $deal->slug,
+                'raw_slug_attr' => $deal->getAttributes()['slug'] ?? null,
+                'status' => $deal->status,
+                'editorial_status' => $deal->editorial_status,
+                'discounted_price' => $deal->discounted_price,
+                'original_price' => $deal->original_price,
+                'isPublishable' => $deal->isPublishable(),
+                'isIndexable' => $deal->isIndexable(),
+            ], JSON_PRETTY_PRINT);
+        } else {
+            echo json_encode(['error' => 'not found']);
+        }
+    } catch (\Throwable $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+    exit;
+}
+
 if (isset($_GET['migrate'])) {
     try {
         require __DIR__.'/../vendor/autoload.php';
