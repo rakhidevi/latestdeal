@@ -12,9 +12,8 @@ class DirectoryController extends Controller
 {
     public function categories(Request $request)
     {
-        $categories = Category::where('slug', '!=', 'general')
-            ->where('name', '!=', 'General')
-            ->where('name', '!=', 'All Other Categories')
+        $categories = Category::whereNotIn('slug', ['general', 'uncategorized', 'all-other-categories'])
+            ->whereNotIn('name', ['General', 'Uncategorized', 'uncategorized', 'All Other Categories'])
             ->withCount(['deals as active_deals_count' => function ($q) {
                 $q->where('status', 'active');
             }])

@@ -43,12 +43,19 @@
         "itemCondition": "https://schema.org/NewCondition",
         "availability": "https://schema.org/InStock"
       },
+      @php
+        $trustMetrics = is_array($deal->trust_metrics) ? $deal->trust_metrics : (json_decode($deal->trust_metrics ?? '', true) ?? []);
+        $reviewCount = $trustMetrics['reviews_count'] ?? $trustMetrics['review_count'] ?? null;
+        $ratingValue = $trustMetrics['rating'] ?? ($deal->ai_score ? round($deal->ai_score / 20, 1) : null);
+      @endphp
+      @if($reviewCount && $ratingValue)
       "aggregateRating": {
         "@@type": "AggregateRating",
-        "ratingValue": "{{ $deal->ai_score ? round($deal->ai_score / 20, 1) : 4.8 }}",
+        "ratingValue": "{{ $ratingValue }}",
         "bestRating": "5",
-        "reviewCount": "{{ ($deal->id % 100) + 25 }}"
+        "reviewCount": "{{ $reviewCount }}"
       },
+      @endif
       "review": {
         "@@type": "Review",
         "reviewRating": {

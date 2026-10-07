@@ -165,7 +165,7 @@
           "@@type": "SearchAction",
           "target": {
             "@@type": "EntryPoint",
-            "urlTemplate": "@json(url('/'))?search={search_term_string}"
+            "urlTemplate": @json(url('/') . '?search={search_term_string}')
           },
           "query-input": "required name=search_term_string"
         }
@@ -703,8 +703,8 @@
                             <li><a href="{{ route('deals.discount', '70-89-off') }}" class="text-[13px] transition flex items-center gap-2 py-1 px-1.5 rounded-lg {{ $currRange === '70-89-off' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold' : 'text-gray-700 dark:text-slate-200 hover:text-emerald-600 font-semibold' }}">🟢 70% – 89% Off</a></li>
                             <li><a href="{{ route('deals.discount', '50-69-off') }}" class="text-[13px] transition flex items-center gap-2 py-1 px-1.5 rounded-lg {{ $currRange === '50-69-off' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-extrabold' : 'text-gray-700 dark:text-slate-200 hover:text-amber-600 font-semibold' }}">🟡 50% – 69% Off</a></li>
                             <li><a href="{{ route('deals.discount', '25-49-off') }}" class="text-[13px] transition flex items-center gap-2 py-1 px-1.5 rounded-lg {{ $currRange === '25-49-off' ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-extrabold' : 'text-gray-700 dark:text-slate-200 hover:text-blue-600 font-semibold' }}">🔵 25% – 49% Off</a></li>
-                            <li class="pt-2 border-t border-gray-200 dark:border-slate-700/80"><a href="/?max_price=500" class="text-[13px] transition flex items-center gap-2 py-1 px-1.5 rounded-lg {{ $maxPrice == '500' ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 font-extrabold' : 'text-gray-700 dark:text-slate-200 hover:text-red-600 font-semibold' }}">💵 Under ₹500</a></li>
-                            <li><a href="/?max_price=1000" class="text-[13px] transition flex items-center gap-2 py-1 px-1.5 rounded-lg {{ $maxPrice == '1000' ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 font-extrabold' : 'text-gray-700 dark:text-slate-200 hover:text-red-600 font-semibold' }}">🏷️ Under ₹1,000</a></li>
+                            <li class="pt-2 border-t border-gray-200 dark:border-slate-700/80"><a href="{{ route('deals.discount', 'under-500') }}" class="text-[13px] transition flex items-center gap-2 py-1 px-1.5 rounded-lg {{ $currRange === 'under-500' || $maxPrice == '500' ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 font-extrabold' : 'text-gray-700 dark:text-slate-200 hover:text-red-600 font-semibold' }}">💵 Under ₹500</a></li>
+                            <li><a href="{{ route('deals.discount', 'under-1000') }}" class="text-[13px] transition flex items-center gap-2 py-1 px-1.5 rounded-lg {{ $currRange === 'under-1000' || $maxPrice == '1000' ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 font-extrabold' : 'text-gray-700 dark:text-slate-200 hover:text-red-600 font-semibold' }}">🏷️ Under ₹1,000</a></li>
                         </ul>
                     </div>
                 </div>
@@ -1075,7 +1075,9 @@
                     <ul class="space-y-3">
                         <li><a href="/?sort=discount" class="hover:text-red-500 transition-colors">Deals</a></li>
                         <li><a href="{{ route('articles.index') }}" class="hover:text-red-500 transition-colors">Guides & Tips</a></li>
+                        <li><a href="{{ route('how.it.works') }}" class="hover:text-red-500 transition-colors">How It Works</a></li>
                         <li><a href="{{ route('about') }}" class="hover:text-red-500 transition-colors">About Us</a></li>
+                        <li><a href="{{ route('editorial.team') }}" class="hover:text-red-500 transition-colors">Editorial Team</a></li>
                     </ul>
                 </div>
 
@@ -1083,10 +1085,13 @@
                 <div>
                     <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Legal & Trust</h3>
                     <ul class="space-y-3">
-                        <li><a href="{{ route('contact') }}" class="hover:text-red-500 transition-colors">Contact Us</a></li>
+                        <li><a href="{{ route('editorial.policy') }}" class="hover:text-red-500 transition-colors">Editorial Policy</a></li>
+                        <li><a href="{{ route('corrections.policy') }}" class="hover:text-red-500 transition-colors">Corrections Policy</a></li>
+                        <li><a href="{{ route('cookie') }}" class="hover:text-red-500 transition-colors">Cookie Policy</a></li>
                         <li><a href="{{ route('privacy') }}" class="hover:text-red-500 transition-colors">Privacy Policy</a></li>
                         <li><a href="{{ route('terms') }}" class="hover:text-red-500 transition-colors">Terms of Service</a></li>
                         <li><a href="{{ route('affiliate.disclosure') }}" class="hover:text-red-500 transition-colors">Affiliate Disclosure</a></li>
+                        <li><a href="{{ route('contact') }}" class="hover:text-red-500 transition-colors">Contact Us</a></li>
                     </ul>
                 </div>
             </div>

@@ -56,7 +56,7 @@
     }
   </style>
 
-@if(request()->is('/'))
+@if(request()->is('/') && !request()->filled('search') && !request()->filled('q') && !request()->filled('max_price'))
   <div x-data="{
         activeSlide: 0,
         totalSlides: {{ (isset($heroDeals) && count($heroDeals) > 0) ? min(count($heroDeals), 10) : 10 }},
@@ -441,7 +441,7 @@
   </div>
 @else
   <!-- 100% Full-Width Edge-to-Edge Brand / Category Command Banner -->
-  @if(isset($brand) || isset($category) || isset($merchant) || (isset($pageTitle) && !request()->is('/')))
+  @if(isset($brand) || isset($category) || isset($merchant) || (isset($pageTitle) && !request()->is('/')) || request()->filled('q') || request()->filled('search') || request()->filled('max_price'))
       @php
           $entityName = isset($brand) ? $brand->name : (isset($category) ? $category->name : (isset($merchant) ? $merchant->name : ($pageTitle ?? 'Deals')));
           $entityType = isset($brand) ? 'Brand' : (isset($category) ? 'Category' : (isset($merchant) ? 'Store' : 'Deals'));
