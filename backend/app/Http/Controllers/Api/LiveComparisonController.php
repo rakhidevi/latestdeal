@@ -132,9 +132,12 @@ class LiveComparisonController extends Controller
             return response()->json(['error' => 'Job not found'], 404);
         }
 
+        $results = $request->input('results', []);
+        $aiScore = $request->input('ai_score', 85);
+
         $payload = json_decode($job->payload, true) ?? [];
-        $payload['results'] = $request->input('results', []);
-        $payload['ai_score'] = $request->input('ai_score', 85);
+        $payload['results'] = $results;
+        $payload['ai_score'] = $aiScore;
 
         DB::table('scraper_jobs')->where('id', $jobId)->update([
             'status' => 'success',
@@ -142,6 +145,29 @@ class LiveComparisonController extends Controller
             'completed_at' => now(),
             'updated_at' => now()
         ]);
+
+        $dealId = $payload['deal_id'] ?? null;
+        if ($dealId) {
+            // Immediately warm cache
+            Cache::put("compare_prices_{$dealId}", [
+                'results' => $results,
+                'ai_score' => $aiScore
+            ], now()->addMinutes(60));
+
+            // Persist to Deal model
+            $deal = Deal::find($dealId);
+            if ($deal) {
+                $pi = is_array($deal->price_intelligence) ? $deal->price_intelligence : (json_decode($deal->price_intelligence, true) ?? []);
+                $pi['comparison_results'] = $results;
+                $pi['ai_score'] = $aiScore;
+                $pi['compared_at'] = now()->toIso8601String();
+                $deal->price_intelligence = $pi;
+                if ($aiScore && !$deal->ai_score) {
+                    $deal->ai_score = $aiScore;
+                }
+                $deal->save();
+            }
+        }
 
         return response()->json(['status' => 'success']);
     }
