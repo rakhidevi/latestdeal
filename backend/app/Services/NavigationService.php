@@ -52,10 +52,12 @@ class NavigationService
 
         $categories = collect();
         if ($hasCategoriesTable) {
-            $catQuery = Category::where('slug', '!=', 'general')->where('name', '!=', 'General');
+            $catQuery = Category::whereNotIn('slug', ['general', 'uncategorized', 'all-other-categories'])
+                ->whereNotIn('name', ['General', 'Uncategorized', 'uncategorized', 'All Other Categories']);
             if ($hasCatCount) {
-                // Prioritize categories with deals, then order by deal count. Single query.
-                $catQuery->orderByRaw('deal_count > 0 DESC, deal_count DESC');
+                // Prioritize categories with deals, and exclude empty ones
+                $catQuery->where('deal_count', '>', 0)
+                    ->orderBy('deal_count', 'desc');
             }
             $categories = $catQuery->get();
         }

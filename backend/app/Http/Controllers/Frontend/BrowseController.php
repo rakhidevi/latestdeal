@@ -48,11 +48,17 @@ class BrowseController extends Controller
         }
 
         $pageTitle = 'All Deals';
+        if ($request->filled('q') || $request->filled('search')) {
+            $searchTerm = $request->input('q') ?? $request->input('search');
+            $pageTitle = 'Search: "' . e($searchTerm) . '"';
+        } elseif ($request->filled('max_price')) {
+            $pageTitle = 'Deals Under ₹' . number_format((float)$request->input('max_price'));
+        }
         
         $seoMeta = $this->seoService->generateMeta(
             $pageTitle . ' | LatestDeal',
             'Find the best deals and discounts across all categories.',
-            url('/')
+            url()->current()
         );
 
         $trendingDeals = null;
@@ -227,13 +233,16 @@ class BrowseController extends Controller
     {
         $filters = array_merge($request->all(), []);
         
-        // Handle routes like 90-off, 50-69-off
+        // Handle routes like 90-off, 50-69-off, under-500, under-1000
         if (preg_match('/^(\d+)-off$/', $range, $matches)) {
             $filters['discount_range'] = $matches[1] . '+';
             $pageTitle = $matches[1] . '%+ Off Deals';
         } elseif (preg_match('/^(\d+)-(\d+)-off$/', $range, $matches)) {
             $filters['discount_range'] = $matches[1] . '-' . $matches[2];
             $pageTitle = $matches[1] . '% - ' . $matches[2] . '% Off Deals';
+        } elseif (preg_match('/^under-(\d+)$/', $range, $matches)) {
+            $filters['max_price'] = (float) $matches[1];
+            $pageTitle = 'Deals Under ₹' . number_format($matches[1]);
         } else {
             abort(404);
         }
@@ -241,7 +250,7 @@ class BrowseController extends Controller
         $deals = $this->pipeline->search($filters);
 
         // Fallback: If no deals match exact discount tier, return top discounted deals sorted by discount percentage
-        if ($deals->isEmpty()) {
+        if ($deals->isEmpty() && isset($filters['discount_range'])) {
             unset($filters['discount_range'], $filters['discount_min'], $filters['discount_max']);
             $filters['sort'] = 'discount';
             $deals = $this->pipeline->search($filters);
@@ -249,7 +258,7 @@ class BrowseController extends Controller
 
         $breadcrumbs = $this->breadcrumbService->generate([
             ['title' => 'Home', 'url' => '/'],
-            ['title' => 'Discounts', 'url' => '#'],
+            ['title' => isset($filters['max_price']) ? 'Budget Deals' : 'Discounts', 'url' => '#'],
             ['title' => $pageTitle, 'url' => ''],
         ]);
         

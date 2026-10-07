@@ -70,9 +70,10 @@ class AppServiceProvider extends ServiceProvider
 
                     $categories = collect();
                     if ($categoriesTableExists) {
-                        $catQuery = \App\Models\Category::where('slug', '!=', 'general')->where('name', '!=', 'General');
+                        $catQuery = \App\Models\Category::whereNotIn('slug', ['general', 'uncategorized', 'all-other-categories'])
+                            ->whereNotIn('name', ['General', 'Uncategorized', 'uncategorized', 'All Other Categories']);
                         if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'deal_count')) {
-                            $catQuery->orderBy('deal_count', 'desc');
+                            $catQuery->where('deal_count', '>', 0)->orderBy('deal_count', 'desc');
                         }
                         $categories = $catQuery->take(7)->get();
                     }

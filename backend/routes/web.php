@@ -36,12 +36,6 @@ Route::get('/go/{deal:hash_id}', [\App\Http\Controllers\RedirectController::clas
 // Real-Time Price Verification
 Route::match(['GET', 'POST'], '/deals/{id}/refresh-price', [\App\Http\Controllers\Api\PriceUpdateController::class, 'refreshPrice'])->name('deal.refresh-price');
 
-// Compliance & Information Pages
-Route::view('/about', 'pages.about')->name('about');
-Route::view('/contact', 'pages.contact')->name('contact');
-Route::view('/privacy-policy', 'pages.privacy')->name('privacy');
-Route::view('/terms', 'pages.terms')->name('terms');
-Route::view('/affiliate-disclosure', 'pages.disclosure')->name('affiliate.disclosure');
 
 // AI Shopping Assistant
 Route::get('/assistant', function () {
@@ -97,9 +91,11 @@ Route::view('/privacy', 'privacy')->name('privacy');
 Route::view('/terms', 'terms')->name('terms');
 Route::view('/cookie-policy', 'cookie-policy')->name('cookie');
 Route::view('/editorial-policy', 'editorial-policy')->name('editorial.policy');
+Route::view('/corrections-policy', 'corrections-policy')->name('corrections.policy');
 Route::view('/how-it-works', 'how-it-works')->name('how.it.works');
 Route::view('/affiliate-disclosure', 'affiliate-disclosure')->name('affiliate.disclosure');
 Route::view('/editorial-team', 'editorial-team')->name('editorial.team');
+Route::get('/search', [BrowseController::class, 'index'])->name('search');
 
 // --- Phase 4 & Phase 9: Editorial Content Hub ---
 use App\Http\Controllers\ArticleController;
