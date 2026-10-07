@@ -365,6 +365,68 @@
                 </p>
             </div>
 
+            <!-- Multi-Store Price Comparison & Intelligence Card -->
+            @php
+                $piData = is_array($deal->price_intelligence) ? $deal->price_intelligence : (json_decode($deal->price_intelligence ?? '', true) ?? []);
+                $existingComparisons = $piData['comparison_results'] ?? [];
+            @endphp
+            <div x-data="multiStoreComparator({{ $deal->id }}, @js($deal->title), {{ $deal->discounted_price }}, @js($existingComparisons))" 
+                 class="mt-8 bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
+                            </span>
+                            <h3 class="text-lg font-black text-slate-900 dark:text-white">Multi-Store Price Comparison</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Live market comparison across Amazon, Flipkart, Croma & Reliance Digital</p>
+                    </div>
+
+                    <button @click="compareStores" 
+                            :disabled="isComparing"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors disabled:opacity-50">
+                        <svg x-show="isComparing" class="animate-spin h-3.5 w-3.5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <svg x-show="!isComparing" class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        <span x-text="isComparing ? compareStatus : 'Refresh Comparison'"></span>
+                    </button>
+                </div>
+
+                <!-- Stores List -->
+                <div class="space-y-3">
+                    <template x-if="stores.length > 0">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <template x-for="store in stores" :key="store.store">
+                                <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 transition">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center text-xs font-black shadow-sm text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600" x-text="store.store ? store.store.charAt(0) : 'S'"></div>
+                                        <div>
+                                            <div class="text-xs font-bold text-slate-900 dark:text-white" x-text="store.store"></div>
+                                            <div class="text-[10px] text-slate-400" x-text="store.in_stock ? 'In Stock' : 'Out of Stock'"></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-sm font-black text-slate-900 dark:text-white" x-text="store.price ? '₹' + Number(store.price).toLocaleString('en-IN') : 'Check Store'"></div>
+                                        <template x-if="store.url">
+                                            <a :href="store.url" target="_blank" rel="noopener noreferrer nofollow" class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline">View Deal →</a>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template x-if="stores.length === 0 && !isComparing">
+                        <div class="text-center py-6 px-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700">
+                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Click below to search & compare live prices on Amazon, Flipkart, Croma, and Reliance Digital.</p>
+                            <button @click="compareStores" class="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-sm">
+                                🔍 Compare 4 Stores Now
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
             <!-- Price History Chart -->
             @if(isset($priceHistory) && $priceHistory->count() > 1)
             <div class="mt-8 bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-gray-200 dark:border-slate-800 shadow-sm">
@@ -767,6 +829,73 @@
                                 this.justVerified = false;
                             }, 4000);
                         });
+                }
+            }
+        }));
+
+        Alpine.data('multiStoreComparator', (dealId, dealTitle, dealPrice, initialStores) => ({
+            dealId: dealId,
+            dealTitle: dealTitle,
+            dealPrice: dealPrice,
+            stores: initialStores || [],
+            isComparing: false,
+            compareStatus: 'Scanning stores...',
+            
+            async compareStores() {
+                this.isComparing = true;
+                this.compareStatus = 'Searching stores...';
+                
+                try {
+                    const res = await fetch('/api/compare-prices', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            deal_id: this.dealId,
+                            title: this.dealTitle
+                        })
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.status === 'cache_hit') {
+                        this.stores = data.data.results || [];
+                        this.isComparing = false;
+                        return;
+                    }
+                    
+                    if (data.job_id) {
+                        const jobId = data.job_id;
+                        let attempts = 0;
+                        const poll = setInterval(async () => {
+                            attempts++;
+                            this.compareStatus = `Scanning stores (${attempts}s)...`;
+                            
+                            try {
+                                const statusRes = await fetch(`/api/compare-prices/${jobId}`);
+                                const statusData = await statusRes.json();
+                                
+                                if (statusData.status === 'completed') {
+                                    clearInterval(poll);
+                                    this.stores = statusData.data.results || [];
+                                    this.isComparing = false;
+                                } else if (statusData.status === 'failed' || attempts > 20) {
+                                    clearInterval(poll);
+                                    this.isComparing = false;
+                                }
+                            } catch (e) {
+                                clearInterval(poll);
+                                this.isComparing = false;
+                            }
+                        }, 1500);
+                    } else {
+                        this.isComparing = false;
+                    }
+                } catch (e) {
+                    this.isComparing = false;
                 }
             }
         }));
