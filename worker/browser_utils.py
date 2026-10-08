@@ -1,22 +1,30 @@
 import os
+import time
 from playwright.sync_api import Playwright, BrowserContext
 
-def setup_browser_persistent(p: Playwright) -> BrowserContext:
+def get_profile_dir(profile_name: str = "sitestripe") -> str:
+    """Returns partitioned user data directory for a specific worker profile."""
+    base_dir = os.path.join(os.path.dirname(__file__), 'browser_profiles', profile_name)
+    os.makedirs(base_dir, exist_ok=True)
+    return base_dir
+
+def setup_browser_persistent(p: Playwright, profile_name: str = "sitestripe") -> BrowserContext:
     """
     Sets up the Playwright persistent browser context following strict AGENTS.md rules.
-    Used ONLY when cookies/auth are required (e.g. Amazon SiteStripe).
+    Used when cookies/auth/SiteStripe are required.
+    Partitions profiles per worker to prevent cross-worker browser lock collisions.
     """
-    user_data_dir = os.path.join(os.path.dirname(__file__), 'browser_profile')
-    os.makedirs(user_data_dir, exist_ok=True)
-    
-    # Aggressively kill any existing Chrome instance using this exact profile to prevent 'Opening in existing browser session' lock issues.
-    os.system(f'wmic process where "name=\'chrome.exe\' and commandline like \'%browser_profile%\'" call terminate >nul 2>&1')
+    user_data_dir = get_profile_dir(profile_name)
 
     launch_args = {
         "user_data_dir": user_data_dir,
         "headless": False, 
         "executable_path": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-        "args": ["--disable-blink-features=AutomationControlled"],
+        "args": [
+            "--disable-blink-features=AutomationControlled",
+            "--no-first-run",
+            "--no-default-browser-check"
+        ],
         "ignore_default_args": ["--enable-automation", "--no-sandbox"],
         "permissions": ["clipboard-read", "clipboard-write"], 
     }
@@ -26,8 +34,7 @@ def setup_browser_persistent(p: Playwright) -> BrowserContext:
 def setup_browser_stateless(p: Playwright):
     """
     Sets up a stateless browser instance following AGENTS.md rules 
-    (real Chrome, headless=False, stealth) but without a persistent profile 
-    to avoid lock conflicts (as requested in 10-point plan).
+    (real Chrome, headless=False, stealth) without persistent profile.
     Returns (browser, context).
     """
     browser = p.chromium.launch(
@@ -37,7 +44,8 @@ def setup_browser_stateless(p: Playwright):
         ignore_default_args=["--enable-automation", "--no-sandbox"]
     )
     context = browser.new_context(
-        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        permissions=["clipboard-read", "clipboard-write"]
     )
     return browser, context
 

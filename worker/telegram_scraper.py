@@ -207,40 +207,19 @@ async def handler(event):
             print(f"🚫 Blocked Keyword Detected ('{kw}'). Ignoring illegal/spam deal.")
             return
     
-    # 1. Pre-extract URL and run generic pipeline
-    url = ""
+    # 1. Pre-extract URL
+    raw_url = ""
     urls = re.findall(r'(https?://[^\s]+)', message_text)
     if urls:
         raw_url = urls[0]
-        
         # Check against ignored domains in config
         from config_manager import config
         ignore_domains = config.get("scraper", {}).get("ignore_domains", [])
         if any(ignored in raw_url for ignored in ignore_domains):
             print(f"🚫 URL matched ignore list: {raw_url}. Skipping.")
             return
-            
-        try:
-            from pipeline import ScrapingPipeline
-            # Retry loop for resilient scraping
-            max_retries = 2
-            deal = None
-            for attempt in range(max_retries):
-                try:
-                    deal = await asyncio.to_thread(ScrapingPipeline.process_url, raw_url, "telegram")
-                    break
-                except Exception as e:
-                    print(f"Pipeline attempt {attempt+1} failed for {raw_url}: {e}")
-                    if attempt == max_retries - 1:
-                        return
-                    await asyncio.sleep(2)
-        except Exception as e:
-            print(f"Failed to load pipeline: {e}")
-            return
-            
+
     # 2. Extract extra text from Telegram message using LLM to find Promo Codes/Bank Offers
-    # Since the pipeline already got the core product info (Title, Price, etc), we only need 
-    # to supplement it with Telegram-specific context (like coupon codes or bank offers).
     print("Parsing message with LLM for supplementary Telegram context...")
     deal_data = await asyncio.to_thread(parse_telegram_message, message_text, "http://localhost:11434")
     
@@ -248,110 +227,29 @@ async def handler(event):
         print("Not a valid deal or parsing failed. Skipping.")
         return
         
-    if not url and deal_data:
-        # Fallback if regex missed it but LLM found it
+    if not raw_url and deal_data and deal_data.get('url'):
         raw_url = deal_data.get('url')
-        if raw_url:
-            try:
-                from pipeline import ScrapingPipeline
-                max_retries = 2
-                for attempt in range(max_retries):
-                    try:
-                        deal = await asyncio.to_thread(ScrapingPipeline.process_url, raw_url, "telegram")
-                        break
-                    except Exception as e:
-                        print(f"Fallback Pipeline attempt {attempt+1} failed for {raw_url}: {e}")
-                        if attempt == max_retries - 1:
-                            return
-                        await asyncio.sleep(2)
-            except Exception as e:
-                print(f"Failed to load pipeline: {e}")
-                return
 
-    if 'deal' not in locals() or not deal:
-        print("No URL found in deal or pipeline completely failed. Skipping.")
+    if not raw_url:
+        print("No URL found in message. Skipping.")
         return
 
-    # Merge Telegram context into the Deal object
-    if deal_data:
-        if not deal.coupon and deal_data.get('promo_code'):
-            deal.coupon = deal_data['promo_code']
-        # We can also add bank_offer to features if not present
-        if deal_data.get('bank_offer'):
-            deal.title = f"[Bank Offer: {deal_data['bank_offer']}] " + deal.title
+    # 3. Enqueue to deals_queue so main worker orchestrates extraction safely
+    from database import add_to_queue
+    from utils import clean_amazon_url
+    clean_url = clean_amazon_url(raw_url, resolve_redirects=False)
 
-    print(f"✅ Extracted Deal: {deal.title} (₹{deal.price})")
-            
-    # 3. Build AI Caption using the extra Telegram info
-    caption_text = deal.ai_caption or f"🚨 {deal.title} \n\n"
-    if deal.coupon:
-        caption_text += f"\n✂️ Coupon: {deal.coupon}"
-    caption_text += f"\n\n👉🏻 Buy Now: {deal.affiliate_url or deal.canonical_url}"
-
-    # 4. Handle Image
-    # If the telegram message has a photo, let's download it
-    image_base64 = ""
-    if event.message.photo:
-        print("Downloading image from Telegram message...")
-        photo_path = await event.message.download_media(file="temp_telegram_img.jpg")
-        if photo_path:
-            import base64
-            with open(photo_path, "rb") as image_file:
-                raw_b64 = base64.b64encode(image_file.read()).decode('utf-8')
-                image_base64 = f"data:image/jpeg;base64,{raw_b64}"
-            os.remove(photo_path)
-            
-    # Fallback to Composer if no image found in Telegram message
-    if not image_base64:
-        print("No image in message, attempting to scrape image from URL...")
-        og_url = deal.image_url
-        if not og_url:
-            og_url = await asyncio.to_thread(fetch_og_image, deal.canonical_url)
-        
-        # Use fetched image or dummy gradient placeholder
-        placeholder_url = og_url if og_url else "https://placehold.co/800x800/e2e8f0/475569.png?text=Loot+Deal"
-        print(f"Generating deal card with image: {placeholder_url}")
-        
-        image_base64 = await asyncio.to_thread(
-            compose_image, 
-            placeholder_url, 
-            deal.original_price or 0, 
-            deal.price or 0
-        )
-
-    # 5. Construct Final Payload
-    resolved_brand = None
-    if deal.brand:
-        b_norm = deal.brand.strip().lower()
-        disallowed = ["amazon", "amazon.in", "flipkart", "flipkart.com", "unknown", "generic", "n/a", "none"]
-        if b_norm not in disallowed:
-            resolved_brand = deal.brand.strip()
-
-    payload = {
-        "title": deal.title,
-        "original_price": deal.original_price or 0,
-        "discounted_price": deal.price or 0,
-        "url": deal.affiliate_url or deal.canonical_url,
-        "category_id": deal.category.id if (deal.category and hasattr(deal.category, 'id')) else 1, # Hardcoded fallback for production API
-        "category_name": deal.category.name if deal.category else "Electronics",
-        "ai_caption": caption_text,
-        "features": deal_data.get('features', []) if deal_data else [],
-        "brand": resolved_brand,
-        "image_base64": image_base64,
-        "ai_score": deal.ai_score if deal.ai_score is not None else 85,
-        "deal_qualification": getattr(deal, 'deal_qualification', None),
-        "verdict_code": getattr(deal, 'verdict_code', None),
-        "price_intelligence": deal.price_intelligence.model_dump() if getattr(deal, 'price_intelligence', None) else None
+    meta = {
+        "telegram": {
+            "raw_text": message_text,
+            "promo_code": deal_data.get('promo_code', '') if deal_data else '',
+            "bank_offer": deal_data.get('bank_offer', '') if deal_data else '',
+            "features": deal_data.get('features', []) if deal_data else []
+        }
     }
-            
-    # 6. Push to Laravel
-    print("Pushing to Laravel Production Database...")
-    success = await asyncio.to_thread(push_to_production, payload)
     
-    if success:
-        print("🚀 Successfully pushed automated Telegram deal!")
-    else:
-        print("❌ Failed to push to Laravel API.")
+    add_to_queue(clean_url, job_type="ingestion", data=json.dumps(meta))
+    print(f"📥 Successfully queued Telegram deal: {clean_url}")
 
 async def main():
     print("Starting Automated Telegram Scraper...")

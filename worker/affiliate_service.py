@@ -7,7 +7,14 @@ class AffiliateService:
         Abstracts affiliate link generation based on the provider.
         Returns the shortened affiliate URL, or the raw URL on failure.
         Transfers Rufus AI price history to deal if available.
+        Re-uses single-pass affiliate shortlinks if already extracted.
         """
+        # If deal already contains a valid shortened affiliate link, return immediately
+        if deal and getattr(deal, 'affiliate_url', None):
+            existing_aff = deal.affiliate_url
+            if existing_aff != product_url and any(token in existing_aff for token in ["amzn.to", "link.amazon", "fkrt.it", "affid="]):
+                return existing_aff
+
         if provider.lower() == "amazon":
             try:
                 data = get_sitestripe_link_and_data(product_url)

@@ -35,6 +35,9 @@ temp_out.txt
 classes.txt
 browser_profile/
 /worker/browser_profile/
+browser_profiles/
+/worker/browser_profiles/
+*.session*
 /worker/*.session*
 
 unused/

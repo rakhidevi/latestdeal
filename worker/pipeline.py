@@ -30,14 +30,17 @@ class ScrapingPipeline:
             deal = scraper.extract(canonical_url)
             deal.source = source
             
-            # 5. Generate Affiliate Link
-            try:
-                from affiliate_service import AffiliateService
-                affiliate_url = AffiliateService.get_affiliate_link(merchant, canonical_url, deal=deal)
-                deal.affiliate_url = affiliate_url
-            except Exception as e:
-                print(f"Warning: Failed to generate affiliate link: {e}")
-                deal.affiliate_url = canonical_url # Fallback to raw canonical if affiliate fails
+            # 5. Generate Affiliate Link (Single-Pass optimization)
+            if not getattr(deal, 'affiliate_url', None) or deal.affiliate_url == canonical_url:
+                try:
+                    from affiliate_service import AffiliateService
+                    affiliate_url = AffiliateService.get_affiliate_link(merchant, canonical_url, deal=deal)
+                    deal.affiliate_url = affiliate_url
+                except Exception as e:
+                    print(f"Warning: Failed to generate affiliate link: {e}")
+                    deal.affiliate_url = canonical_url # Fallback to raw canonical if affiliate fails
+            else:
+                print(f"[Pipeline] Single-pass affiliate URL preserved: {deal.affiliate_url}")
             tracker.mark_end("scrape")
                 
             # 6. AI Enrichment (Category, Score, Caption)

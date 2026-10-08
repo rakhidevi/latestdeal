@@ -197,41 +197,96 @@ def extract_rufus_price_history(page) -> dict:
 
     return None
 
+def extract_sitestripe_link(page) -> str:
+    """
+    Extracts shortened affiliate URL directly from Amazon SiteStripe bar on the current page.
+    Assumes page is already loaded with authenticated session.
+    """
+    try:
+        if page.locator("div#amzn-ss-wrap").count() == 0:
+            time.sleep(2)
+            if page.locator("div#amzn-ss-wrap").count() == 0:
+                print("[SiteStripe] SiteStripe bar not present on this session.")
+                return ""
+
+        print("[SiteStripe] SiteStripe bar detected. Clicking 'Get Link'...")
+        page.wait_for_selector("#amzn-ss-text-link", timeout=6000)
+        sitestripe_text_btn = page.locator("#amzn-ss-text-link").first
+        sitestripe_text_btn.click(force=True)
+
+        import pyperclip
+        try:
+            pyperclip.copy("")
+        except Exception:
+            pass
+
+        page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce", timeout=6000)
+        copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce").first
+        copy_btn.click(force=True)
+
+        try:
+            page.wait_for_selector("#amzn-ss-copy-toast:not([style*='display: none'])", timeout=3000)
+        except Exception:
+            pass
+
+        time.sleep(0.8)
+        short_url = ""
+        try:
+            short_url = page.evaluate("navigator.clipboard.readText()")
+        except Exception:
+            short_url = ""
+
+        if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
+            try:
+                short_url = pyperclip.paste()
+            except Exception:
+                pass
+
+        if short_url and ("amzn.to" in short_url or "link.amazon" in short_url):
+            print(f"[SiteStripe] Extracted link: {short_url}")
+            try:
+                pop_close = page.locator(".a-popover-header button.a-button-close, [aria-label*='Close'], button.a-button-close").first
+                if pop_close.count() > 0:
+                    pop_close.click(force=True)
+                page.keyboard.press("Escape")
+            except Exception:
+                pass
+            return short_url.strip()
+        else:
+            print(f"[SiteStripe] No valid shortlink in clipboard: {short_url}")
+            return ""
+    except Exception as e:
+        print(f"[SiteStripe] Extraction warning: {e}")
+        return ""
+
 def get_sitestripe_link_and_data(url: str) -> dict:
     """
     Uses a persistent Playwright browser to generate short links via SiteStripe.
     """
-    lock_path = os.path.join(os.path.dirname(__file__), "browser_profile.lock")
-    lock = FileLock(lock_path, timeout=120)
+    lock_dir = os.path.join(os.path.dirname(__file__), "browser_profiles")
+    os.makedirs(lock_dir, exist_ok=True)
+    lock_path = os.path.join(lock_dir, "sitestripe.lock")
+    lock = FileLock(lock_path, timeout=60)
     
     try:
         with lock:
             return _execute_sitestripe_scrape(url)
     except Timeout:
-        print("[BrowserLock] Timed out waiting for browser profile lock (another worker is currently using Chrome).")
+        print("[BrowserLock] Timed out waiting for SiteStripe browser profile lock.")
         return None
 
 def _execute_sitestripe_scrape(url: str) -> dict:
+    from browser_utils import setup_browser_persistent, get_page
     with sync_playwright() as p:
-        user_data_dir = os.path.join(os.path.dirname(__file__), 'browser_profile')
-        os.makedirs(user_data_dir, exist_ok=True)
-        
         context = None
         for attempt in range(2):
             try:
-                # Launch Chrome visibly so the user can log in if needed
-                context = p.chromium.launch_persistent_context(
-                    user_data_dir=user_data_dir,
-                    headless=False,
-                    executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe", # Use REAL local Chrome
-                    permissions=["clipboard-read", "clipboard-write"], # Grant clipboard permissions
-                    args=["--disable-blink-features=AutomationControlled"]
-                )
+                context = setup_browser_persistent(p, profile_name="sitestripe")
                 
                 # Aggressively close any extra tabs that pop in from asynchronous session restore
-                def close_extra_page(p):
+                def close_extra_page(pr):
                     try:
-                        p.close()
+                        pr.close()
                     except:
                         pass
                 context.on("page", close_extra_page)
@@ -244,19 +299,14 @@ def _execute_sitestripe_scrape(url: str) -> dict:
                     context.remove_listener("page", close_extra_page)
                 except Exception:
                     pass
-                page = context.pages[0] if context.pages else context.new_page()
+                page = get_page(context)
                 Stealth().use_sync(page)
                 break
             except Exception as e:
-                print(f"ERROR: Playwright browser profile is LOCKED! {e}")
-                if attempt == 0:
-                    import subprocess, sys
-                    print("Attempting to auto-kill zombie Chrome processes and retry...")
-                    subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "kill_zombie_chrome.py")])
-                    time.sleep(2)
-                else:
-                    print("Please close any extra Chrome windows or restart your computer to clear the locks.")
-                    return False
+                print(f"Warning: SiteStripe browser launch attempt {attempt+1} failed: {e}")
+                if attempt == 1:
+                    return None
+                time.sleep(2)
             
         try:
             print(f"Navigating to raw URL: {url}...")
@@ -443,62 +493,7 @@ def _execute_sitestripe_scrape(url: str) -> dict:
             # 2. SiteStripe Automation
             short_url = ""
             if has_sitestripe:
-                print("Looking for SiteStripe bar...")
-                try:
-                    page.wait_for_selector("#amzn-ss-text-link", timeout=10000)
-                    sitestripe_text_btn = page.locator("#amzn-ss-text-link").first
-                        
-                    print("Clicking SiteStripe 'Get Link' button...")
-                    sitestripe_text_btn.click(force=True)
-                    
-                    import pyperclip
-                    pyperclip.copy("") # Clear clipboard first
-                    
-                    # Wait for popover to appear
-                    print("Waiting for popover...")
-                    page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce", timeout=10000)
-                    
-                    copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce").first
-                    copy_btn.click(force=True)
-                    
-                    # Wait for the "Copied to clipboard" toast to ensure it copied
-                    try:
-                        page.wait_for_selector("#amzn-ss-copy-toast:not([style*='display: none'])", timeout=5000)
-                    except Exception as e:
-                        print(f"Toast didn't appear, trying clipboard anyway: {e}")
-                        
-                    time.sleep(1) # Extra buffer for clipboard to write
-                    
-                    try:
-                        short_url = page.evaluate("navigator.clipboard.readText()")
-                    except:
-                        short_url = ""
-                    
-                    if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
-                        print("Browser clipboard API failed. Falling back to OS clipboard (pyperclip)...")
-                        short_url = pyperclip.paste()
-
-                    if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
-                        print(f"Failed to extract valid short URL from clipboard. Found: {short_url}")
-                        short_url = ""
-                    else:
-                        print(f"Successfully generated SiteStripe Link: {short_url}")
-                        try:
-                            pop_close = page.locator(".a-popover-header button.a-button-close, [aria-label*='Close'], button.a-button-close").first
-                            if pop_close.count() > 0:
-                                pop_close.click(force=True)
-                            page.keyboard.press("Escape")
-                            time.sleep(1.0)
-                        except:
-                            pass
-                except Exception as e:
-                    # Check for "Frequently Returned Item" which disables the Get Link button
-                    page_text = page.content()
-                    if "Frequently Returned Item" in page_text or "lower return rates" in page_text:
-                        print("Deal REJECTED: Frequently Returned Item (SiteStripe 'Get Link' disabled)")
-                        return False
-                    print(f"SiteStripe bar not found or failed to copy! Error: {e}")
-                    print("Returning raw data without shortlink.")
+                short_url = extract_sitestripe_link(page)
 
             # 2.5 Extract Rufus AI Price History
             print("Checking for Rufus AI Price History...")
