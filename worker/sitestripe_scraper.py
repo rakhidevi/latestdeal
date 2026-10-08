@@ -96,13 +96,13 @@ def extract_rufus_price_history(page) -> dict:
         if m_30:
             history["history_30d_low"] = float(m_30.group(1).replace(',', ''))
             history["history_30d_high"] = float(m_30.group(2).replace(',', ''))
-            print(f"[Rufus AI] Extracted 30D Range from text: ₹{history['history_30d_low']} - ₹{history['history_30d_high']}")
+            print(f"[Rufus AI] Extracted 30D Range from text: Rs. {history['history_30d_low']} - Rs. {history['history_30d_high']}")
         else:
             ticks_1m = parse_chart_ticks(body_text)
             if ticks_1m:
                 history["history_30d_low"] = min(ticks_1m)
                 history["history_30d_high"] = max(ticks_1m)
-                print(f"[Rufus AI] Extracted 30D Range from chart ticks: ₹{history['history_30d_low']} - ₹{history['history_30d_high']}")
+                print(f"[Rufus AI] Extracted 30D Range from chart ticks: Rs. {history['history_30d_low']} - Rs. {history['history_30d_high']}")
             else:
                 print("[Rufus AI] Price history did not finish generating within timeout.")
                 return None
@@ -130,7 +130,7 @@ def extract_rufus_price_history(page) -> dict:
                     history["history_90d_low"] = float(ranges[-1][0].replace(',', ''))
                     history["history_90d_high"] = float(ranges[-1][1].replace(',', ''))
                     history["history_90d_median"] = round((history["history_90d_low"] + history["history_90d_high"]) / 2.0, 2)
-                    print(f"[Rufus AI] Extracted 90D Range from text: ₹{history['history_90d_low']} - ₹{history['history_90d_high']}")
+                    print(f"[Rufus AI] Extracted 90D Range from text: Rs. {history['history_90d_low']} - Rs. {history['history_90d_high']}")
                 else:
                     # Method B: Exact Y-axis ticks of the interactive 3M chart
                     ticks_3m = parse_chart_ticks(text_3m)
@@ -138,7 +138,7 @@ def extract_rufus_price_history(page) -> dict:
                         history["history_90d_low"] = min(ticks_3m)
                         history["history_90d_high"] = max(ticks_3m)
                         history["history_90d_median"] = ticks_3m[len(ticks_3m)//2]
-                        print(f"[Rufus AI] Extracted 90D Range from chart ticks: ₹{history['history_90d_low']} - ₹{history['history_90d_high']} (Median: ₹{history['history_90d_median']})")
+                        print(f"[Rufus AI] Extracted 90D Range from chart ticks: Rs. {history['history_90d_low']} - Rs. {history['history_90d_high']} (Median: Rs. {history['history_90d_median']})")
             else:
                 print("[Rufus AI] 3M tab not detected in DOM.")
         except Exception as e3:
@@ -164,14 +164,14 @@ def extract_rufus_price_history(page) -> dict:
                 if ranges_y:
                     history["history_365d_low"] = float(ranges_y[-1][0].replace(',', ''))
                     history["history_365d_high"] = float(ranges_y[-1][1].replace(',', ''))
-                    print(f"[Rufus AI] Extracted 365D Range from text: ₹{history['history_365d_low']} - ₹{history['history_365d_high']}")
+                    print(f"[Rufus AI] Extracted 365D Range from text: Rs. {history['history_365d_low']} - Rs. {history['history_365d_high']}")
                 else:
                     # Method B: Exact Y-axis ticks of the interactive 1Y chart
                     ticks_1y = parse_chart_ticks(text_1y)
                     if ticks_1y:
                         history["history_365d_low"] = min(ticks_1y)
                         history["history_365d_high"] = max(ticks_1y)
-                        print(f"[Rufus AI] Extracted 365D Range from chart ticks: ₹{history['history_365d_low']} - ₹{history['history_365d_high']}")
+                        print(f"[Rufus AI] Extracted 365D Range from chart ticks: Rs. {history['history_365d_low']} - Rs. {history['history_365d_high']}")
             else:
                 print("[Rufus AI] 1Y tab not detected in DOM.")
         except Exception as ey:
@@ -210,18 +210,29 @@ def extract_sitestripe_link(page) -> str:
                 return ""
 
         print("[SiteStripe] SiteStripe bar detected. Clicking 'Get Link'...")
-        page.wait_for_selector("#amzn-ss-text-link", timeout=6000)
-        sitestripe_text_btn = page.locator("#amzn-ss-text-link").first
-        sitestripe_text_btn.click(force=True)
-
-        import pyperclip
+        # Ensure clipboard write hook is active in page
         try:
-            pyperclip.copy("")
+            page.evaluate("""
+                if (!window.__copied_sitestripe_link) {
+                    window.__copied_sitestripe_link = '';
+                    if (navigator.clipboard) {
+                        const origWrite = navigator.clipboard.writeText;
+                        navigator.clipboard.writeText = function(text) {
+                            window.__copied_sitestripe_link = text;
+                            return origWrite ? origWrite.apply(this, arguments) : Promise.resolve();
+                        };
+                    }
+                }
+            """)
         except Exception:
             pass
 
-        page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce", timeout=6000)
-        copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce").first
+        page.wait_for_selector("#amzn-ss-get-link-button, #amzn-ss-text-link button, #amzn-ss-text-link", timeout=6000)
+        sitestripe_text_btn = page.locator("#amzn-ss-get-link-button, #amzn-ss-text-link button, #amzn-ss-text-link").first
+        sitestripe_text_btn.click(force=True)
+
+        page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce, button:has-text('Copy affiliate link')", timeout=6000)
+        copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce, button:has-text('Copy affiliate link')").first
         copy_btn.click(force=True)
 
         try:
@@ -232,12 +243,19 @@ def extract_sitestripe_link(page) -> str:
         time.sleep(0.8)
         short_url = ""
         try:
-            short_url = page.evaluate("navigator.clipboard.readText()")
+            short_url = page.evaluate("window.__copied_sitestripe_link || ''")
         except Exception:
             short_url = ""
 
         if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
             try:
+                short_url = page.evaluate("navigator.clipboard.readText()")
+            except Exception:
+                short_url = ""
+
+        if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
+            try:
+                import pyperclip
                 short_url = pyperclip.paste()
             except Exception:
                 pass
@@ -253,7 +271,7 @@ def extract_sitestripe_link(page) -> str:
                 pass
             return short_url.strip()
         else:
-            print(f"[SiteStripe] No valid shortlink in clipboard: {short_url}")
+            print(f"[SiteStripe] No valid shortlink intercepted: '{short_url}'")
             return ""
     except Exception as e:
         print(f"[SiteStripe] Extraction warning: {e}")
