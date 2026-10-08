@@ -7,22 +7,41 @@
 @endsection
 
 @section('content')
-<div class="relative min-h-screen pt-24 pb-20">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="text-center mb-16">
-            <span class="inline-block py-1 px-3 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm font-bold tracking-widest uppercase mb-4 shadow-sm">
-                Commitment to Accuracy
+<div class="py-6 sm:py-10 font-sans">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        
+        <!-- Breadcrumb Navigation -->
+        <nav class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-slate-500 mb-6" aria-label="Breadcrumb">
+            <a href="/" class="hover:text-red-600 dark:hover:text-red-400 transition-colors">Home</a>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="text-slate-600 dark:text-slate-400">Legal & Trust</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="text-slate-900 dark:text-white font-bold" aria-current="page">Corrections Policy</span>
+        </nav>
+
+        <!-- Header Section -->
+        <div class="text-center mb-10 sm:mb-12">
+            <span class="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold tracking-widest uppercase mb-4 shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                Accuracy & Accountability
             </span>
-            <h1 class="text-4xl md:text-5xl font-black text-slate-800 dark:text-white tracking-tight mb-4">
-                Corrections & Updates <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">Policy</span>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
+                Corrections & Updates <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">Policy</span>
             </h1>
-            <p class="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+            <p class="text-base sm:text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed">
                 Transparency and factual accuracy are the bedrock of our platform. When an error is made, we correct it promptly and visibly.
             </p>
+            <div class="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                <span>Governed by Editorial Oversight</span>
+                <span>•</span>
+                <span>Updated {{ date('F Y') }}</span>
+            </div>
         </div>
 
-        <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/80 dark:border-slate-800 rounded-3xl p-8 md:p-12 shadow-2xl shadow-slate-200/50 dark:shadow-none">
-            <div class="prose prose-lg prose-slate dark:prose-invert max-w-none prose-headings:font-black prose-headings:text-slate-800 dark:prose-headings:text-white">
+        <!-- Main Card Container -->
+        <div class="bg-white dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-10 md:p-12 shadow-xl shadow-slate-200/40 dark:shadow-none">
+            <div class="prose prose-slate dark:prose-invert max-w-none prose-headings:font-black prose-headings:text-slate-900 dark:prose-headings:text-white prose-headings:tracking-tight prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-li:text-slate-600 dark:prose-li:text-slate-300 prose-strong:text-slate-900 dark:prose-strong:text-white prose-a:text-red-600 dark:prose-a:text-red-400 hover:prose-a:underline">
+                
                 <h2>1. Our Commitment to Factual Accuracy</h2>
                 <p>
                     At <strong>LatestDeal.in</strong>, our mission is to deliver dependable shopping intelligence. Whether calculating real price drops, comparing historical MRPs, or evaluating product specifications, our editorial and automated pipelines adhere to rigorous verification standards.
@@ -49,12 +68,15 @@
                 <p>
                     We actively welcome feedback and correction requests from our readers and community. If you notice an inaccuracy in any buying guide, price chart, or deal card, please contact our editorial desk:
                 </p>
-                <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6 my-6">
-                    <p class="font-semibold text-emerald-900 dark:text-emerald-300 mb-1">Editorial Corrections Desk</p>
-                    <p class="text-sm text-emerald-800 dark:text-emerald-400">
-                        Email: <a href="mailto:support@latestdeal.in" class="underline font-bold text-emerald-700 dark:text-emerald-300">support@latestdeal.in</a><br>
-                        Subject line: <em>Correction Request: [URL or Product Title]</em><br>
-                        Please include the specific URL, the perceived error, and any supporting documentation or live links.
+                
+                <div class="not-prose my-6 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
+                    <h4 class="font-black text-slate-900 dark:text-white text-base mb-2">Editorial Corrections Desk</h4>
+                    <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
+                        Email: <a href="mailto:support@latestdeal.in" class="font-bold text-red-600 dark:text-red-400 hover:underline">support@latestdeal.in</a><br>
+                        Subject line: <em>Correction Request: [URL or Product Title]</em>
+                    </p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Please include the specific page URL, description of the inaccuracy, and any supporting documentation or retailer links.
                     </p>
                 </div>
 
@@ -62,11 +84,20 @@
                 <p>
                     This Corrections Policy is reviewed periodically to reflect evolving e-commerce standards, regulatory guidance, and consumer protection best practices.
                 </p>
-                <p class="text-sm text-slate-400 mt-8">
-                    Last Updated: {{ date('F Y') }}
-                </p>
             </div>
         </div>
+
+        <!-- Quick Navigation Footer Bar for Trust & Legal Pages -->
+        <div class="mt-10 p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold">
+            <span class="text-slate-500 dark:text-slate-400">Related policies and editorial resources:</span>
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('editorial.policy') }}" class="text-red-600 dark:text-red-400 hover:underline">Editorial Policy →</a>
+                <a href="{{ route('editorial.team') }}" class="text-red-600 dark:text-red-400 hover:underline">Editorial Team →</a>
+                <a href="{{ route('affiliate.disclosure') }}" class="text-red-600 dark:text-red-400 hover:underline">Affiliate Disclosure →</a>
+                <a href="{{ route('contact') }}" class="text-red-600 dark:text-red-400 hover:underline">Contact Desk →</a>
+            </div>
+        </div>
+
     </div>
 </div>
 @endsection

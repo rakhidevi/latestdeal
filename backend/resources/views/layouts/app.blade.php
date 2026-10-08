@@ -1047,60 +1047,136 @@
         </main>
     </div>
 
-    <footer class="border-t border-red-100 bg-white pt-12 pb-8 text-sm text-gray-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 mt-12">
+    <footer class="border-t border-slate-200/80 bg-white pt-14 pb-10 text-sm font-sans text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 mt-16 transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+            <!-- Top Trust Signals Strip -->
+            <div class="mb-12 pb-10 border-b border-slate-100 dark:border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                <div class="flex items-center gap-2.5">
+                    <span class="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </span>
+                    <span>100% Verified Deals</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    </span>
+                    <span>Historical Price Tracking</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </span>
+                    <span>Multi-Store Comparison</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                    <span>Real-Time Price Updates</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12 mb-12">
                 <!-- Branding & About -->
                 <div class="md:col-span-2">
-                    <a href="/" class="flex items-center mb-4 group">
+                    <a href="/" class="flex items-center mb-4 group" aria-label="LatestDeal Home">
                         <img src="/images/logo.png" alt="LatestDeal" class="theme-logo h-8 w-auto block dark:hidden group-hover:scale-105 transition-transform" />
                         <img src="/images/logo-white.png" alt="LatestDeal" class="theme-logo h-8 w-auto hidden dark:block group-hover:scale-105 transition-transform" />
                     </a>
-                    <p class="text-slate-500 dark:text-slate-400 max-w-sm mb-6 leading-relaxed">
-                        Autonomous global deal discovery engine. We scour the web to find the best discounts, offers, and coupons so you never pay full price.
+                    <p class="text-slate-500 dark:text-slate-400 max-w-sm mb-6 leading-relaxed text-sm">
+                        Autonomous shopping intelligence platform. We monitor prices across India's top retailers to discover real price drops, expose fake discounts, and help you save money.
                     </p>
-                    <div class="flex space-x-5">
-                        <a href="https://t.me/latestdealin" target="_blank" class="text-slate-400 hover:text-red-500 transition-colors">
-                            <span class="sr-only">Telegram</span>
-                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <div class="flex items-center gap-3">
+                        <a href="https://t.me/latestdealin" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all shadow-sm group">
+                            <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.415-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.254-.241-1.868-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.892-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
                             </svg>
+                            <span>Join Telegram Channel</span>
                         </a>
                     </div>
                 </div>
 
                 <!-- Quick Links -->
                 <div>
-                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Platform</h3>
-                    <ul class="space-y-3">
-                        <li><a href="/?sort=discount" class="hover:text-red-500 transition-colors">Deals</a></li>
-                        <li><a href="{{ route('articles.index') }}" class="hover:text-red-500 transition-colors">Guides & Tips</a></li>
-                        <li><a href="{{ route('how.it.works') }}" class="hover:text-red-500 transition-colors">How It Works</a></li>
-                        <li><a href="{{ route('about') }}" class="hover:text-red-500 transition-colors">About Us</a></li>
-                        <li><a href="{{ route('editorial.team') }}" class="hover:text-red-500 transition-colors">Editorial Team</a></li>
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Platform</h3>
+                    <ul class="space-y-2.5 text-sm">
+                        <li>
+                            <a href="/?sort=discount" class="text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                Deals Catalog
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('articles.index') }}" class="{{ request()->routeIs('articles.*') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                Buying Guides & Tips
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('how.it.works') }}" class="{{ request()->routeIs('how.it.works') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                How It Works
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                About Us
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('editorial.team') }}" class="{{ request()->routeIs('editorial.team') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                Editorial Team
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
-                <!-- Legal -->
+                <!-- Legal & Trust -->
                 <div>
-                    <h3 class="font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Legal & Trust</h3>
-                    <ul class="space-y-3">
-                        <li><a href="{{ route('editorial.policy') }}" class="hover:text-red-500 transition-colors">Editorial Policy</a></li>
-                        <li><a href="{{ route('corrections.policy') }}" class="hover:text-red-500 transition-colors">Corrections Policy</a></li>
-                        <li><a href="{{ route('cookie') }}" class="hover:text-red-500 transition-colors">Cookie Policy</a></li>
-                        <li><a href="{{ route('privacy') }}" class="hover:text-red-500 transition-colors">Privacy Policy</a></li>
-                        <li><a href="{{ route('terms') }}" class="hover:text-red-500 transition-colors">Terms of Service</a></li>
-                        <li><a href="{{ route('affiliate.disclosure') }}" class="hover:text-red-500 transition-colors">Affiliate Disclosure</a></li>
-                        <li><a href="{{ route('contact') }}" class="hover:text-red-500 transition-colors">Contact Us</a></li>
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider text-xs">Legal & Trust</h3>
+                    <ul class="space-y-2.5 text-sm">
+                        <li>
+                            <a href="{{ route('editorial.policy') }}" class="{{ request()->routeIs('editorial.policy') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                Editorial Policy
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('corrections.policy') }}" class="{{ request()->routeIs('corrections.policy') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                Corrections Policy
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('cookie') }}" class="{{ request()->routeIs('cookie') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                Cookie Policy
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('privacy') }}" class="{{ request()->routeIs('privacy') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                Privacy Policy
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('terms') }}" class="{{ request()->routeIs('terms') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                Terms of Service
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('affiliate.disclosure') }}" class="{{ request()->routeIs('affiliate.disclosure') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                Affiliate Disclosure
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'text-red-600 dark:text-red-400 font-bold' : 'text-slate-600 dark:text-slate-400' }} hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1.5">
+                                Contact Us
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
 
             <!-- Bottom Copyright -->
-            <div class="pt-8 border-t border-slate-200 dark:border-slate-800/60 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p>&copy; {{ date('Y') }} LatestDeal. All rights reserved.</p>
-                <p class="flex items-center gap-1.5 text-xs text-slate-400">
-                    Made with <svg class="h-3 w-3 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> by LatestDeal Team
+            <div class="pt-8 border-t border-slate-200 dark:border-slate-800/80 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
+                <p>&copy; {{ date('Y') }} LatestDeal.in. All rights reserved. Operating with editorial independence.</p>
+                <p class="flex items-center gap-1.5 text-slate-400">
+                    Built with <svg class="h-3.5 w-3.5 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> for smart shoppers worldwide
                 </p>
             </div>
         </div>
