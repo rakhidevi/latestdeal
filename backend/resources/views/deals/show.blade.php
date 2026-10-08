@@ -841,6 +841,12 @@
             isComparing: false,
             compareStatus: 'Scanning stores...',
             
+            init() {
+                if ((!this.stores || this.stores.length === 0) && this.dealTitle) {
+                    this.compareStores();
+                }
+            },
+            
             async compareStores() {
                 this.isComparing = true;
                 this.compareStatus = 'Searching stores...';
