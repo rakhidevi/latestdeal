@@ -76,6 +76,16 @@ jobs:
           upload_file "backend/resources/views/layouts/app.blade.php" "resources/views/layouts/app.blade.php"
           upload_file backend/resources/views/deals/show.blade.php resources/views/deals/show.blade.php
           upload_file backend/resources/views/sitemap.blade.php resources/views/sitemap.blade.php
+          upload_file backend/resources/views/about.blade.php resources/views/about.blade.php
+          upload_file backend/resources/views/editorial-policy.blade.php resources/views/editorial-policy.blade.php
+          upload_file backend/resources/views/corrections-policy.blade.php resources/views/corrections-policy.blade.php
+          upload_file backend/resources/views/cookie-policy.blade.php resources/views/cookie-policy.blade.php
+          upload_file backend/resources/views/how-it-works.blade.php resources/views/how-it-works.blade.php
+          upload_file backend/resources/views/affiliate-disclosure.blade.php resources/views/affiliate-disclosure.blade.php
+          upload_file backend/resources/views/editorial-team.blade.php resources/views/editorial-team.blade.php
+          upload_file backend/resources/views/privacy.blade.php resources/views/privacy.blade.php
+          upload_file backend/resources/views/terms.blade.php resources/views/terms.blade.php
+          upload_file backend/resources/views/contact.blade.php resources/views/contact.blade.php
           upload_file backend/resources/views/pages/about.blade.php       resources/views/pages/about.blade.php
           upload_file backend/resources/views/pages/contact.blade.php     resources/views/pages/contact.blade.php
           upload_file backend/resources/views/pages/privacy.blade.php     resources/views/pages/privacy.blade.php

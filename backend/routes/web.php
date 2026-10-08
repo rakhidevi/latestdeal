@@ -95,6 +95,9 @@ Route::view('/corrections-policy', 'corrections-policy')->name('corrections.poli
 Route::view('/how-it-works', 'how-it-works')->name('how.it.works');
 Route::view('/affiliate-disclosure', 'affiliate-disclosure')->name('affiliate.disclosure');
 Route::view('/editorial-team', 'editorial-team')->name('editorial.team');
+Route::redirect('/privacy-policy', '/privacy', 301);
+Route::redirect('/terms-of-service', '/terms', 301);
+Route::redirect('/disclosure', '/affiliate-disclosure', 301);
 Route::get('/search', [BrowseController::class, 'index'])->name('search');
 
 // --- Phase 4 & Phase 9: Editorial Content Hub ---
