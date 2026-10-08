@@ -7,7 +7,7 @@
 @endsection
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="w-full max-w-4xl mx-auto py-8 sm:py-12">
     <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 p-8 md:p-12">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">How LatestDeal Works</h1>
         
@@ -18,50 +18,52 @@
                 Most bargain sites simply repost whatever affiliate links offer the highest commission. LatestDeal works entirely differently: we operate a high-frequency autonomous intelligence platform engineered to eliminate artificial discounts and find real savings.
             </p>
 
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-10 mb-4">The 4-Stage Intelligence Pipeline</h2>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-10 mb-6">The 4-Stage Intelligence Pipeline</h2>
 
-            <!-- Pipeline Step 1 -->
-            <div class="my-6 p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-sm flex items-center justify-center">1</span>
-                    <h3 class="font-bold text-lg text-gray-900 dark:text-white">Continuous Autonomous Crawling</h3>
+            <div class="not-prose space-y-5 my-6">
+                <!-- Pipeline Step 1 -->
+                <div class="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800 flex items-start gap-4">
+                    <span class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-base flex items-center justify-center shrink-0 mt-0.5 shadow-sm">1</span>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-1.5">Continuous Autonomous Crawling</h3>
+                        <p class="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
+                            Our distributed crawler fleet tracks product feeds across leading marketplaces (Amazon, Flipkart, Croma, Reliance Digital, Myntra) 24 hours a day, monitoring real-time price fluctuations and stock levels.
+                        </p>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
-                    Our distributed crawler fleet tracks product feeds across leading marketplaces (Amazon, Flipkart, Croma, Reliance Digital, Myntra) 24 hours a day, monitoring real-time price fluctuations and stock levels.
-                </p>
-            </div>
 
-            <!-- Pipeline Step 2 -->
-            <div class="my-6 p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-sm flex items-center justify-center">2</span>
-                    <h3 class="font-bold text-lg text-gray-900 dark:text-white">Multi-Store Search &amp; Cross-Store Comparison</h3>
+                <!-- Pipeline Step 2 -->
+                <div class="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800 flex items-start gap-4">
+                    <span class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-base flex items-center justify-center shrink-0 mt-0.5 shadow-sm">2</span>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-1.5">Multi-Store Search &amp; Cross-Store Comparison</h3>
+                        <p class="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
+                            When a price drop occurs, our internal search engine scans identical products across all major competing retailers. If an item is cheaper on another store, our deterministic gate blocks the listing or flags it as &ldquo;Cheaper Elsewhere&rdquo;.
+                        </p>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
-                    When a price drop occurs, our internal search engine scans identical products across all major competing retailers. If an item is cheaper on another store, our deterministic gate blocks the listing or flags it as &ldquo;Cheaper Elsewhere&rdquo;.
-                </p>
-            </div>
 
-            <!-- Pipeline Step 3 -->
-            <div class="my-6 p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-sm flex items-center justify-center">3</span>
-                    <h3 class="font-bold text-lg text-gray-900 dark:text-white">90-Day Historical Trend Analysis</h3>
+                <!-- Pipeline Step 3 -->
+                <div class="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800 flex items-start gap-4">
+                    <span class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-base flex items-center justify-center shrink-0 mt-0.5 shadow-sm">3</span>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-1.5">90-Day Historical Trend Analysis</h3>
+                        <p class="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
+                            We compare the current drop against 30, 90, and 180-day historical prices to determine whether the discount is genuine or merely an inflated MRP illusion. Deals scoring below threshold are rejected from publication.
+                        </p>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
-                    We compare the current drop against 30, 90, and 180-day historical prices to determine whether the discount is genuine or merely an inflated MRP illusion. Deals scoring below threshold are rejected from publication.
-                </p>
-            </div>
 
-            <!-- Pipeline Step 4 -->
-            <div class="my-6 p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-sm flex items-center justify-center">4</span>
-                    <h3 class="font-bold text-lg text-gray-900 dark:text-white">Human Editorial Quality Audit</h3>
+                <!-- Pipeline Step 4 -->
+                <div class="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800 flex items-start gap-4">
+                    <span class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 font-bold text-base flex items-center justify-center shrink-0 mt-0.5 shadow-sm">4</span>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-1.5">Human Editorial Quality Audit</h3>
+                        <p class="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
+                            Qualified deals receive human editorial review. Editors verify seller integrity, check return policies, test product specs, and author comprehensive evergreen buying guides.
+                        </p>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
-                    Qualified deals receive human editorial review. Editors verify seller integrity, check return policies, test product specs, and author comprehensive evergreen buying guides.
-                </p>
             </div>
 
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-10 mb-4">Why Trust Our Platform?</h2>
