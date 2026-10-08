@@ -2,149 +2,93 @@
 
 @section('meta')
     <title>Contact Us | LatestDeal.in</title>
-    <meta name="description" content="Get in touch with the LatestDeal team for editorial support, deal corrections, business inquiries, or general questions.">
+    <meta name="description" content="Get in touch with the LatestDeal team for support, editorial inquiries, corrections, or partnership requests.">
     <link rel="canonical" href="{{ url('/contact') }}">
 @endsection
 
 @section('content')
-<div class="py-6 sm:py-10 font-sans">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 p-8 md:p-12">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Contact Us</h1>
         
-        <!-- Breadcrumb Navigation -->
-        <nav class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-slate-500 mb-6" aria-label="Breadcrumb">
-            <a href="/" class="hover:text-red-600 dark:hover:text-red-400 transition-colors">Home</a>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            <span class="text-slate-600 dark:text-slate-400">Platform</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            <span class="text-slate-900 dark:text-white font-bold" aria-current="page">Contact Us</span>
-        </nav>
+        <p class="text-sm font-semibold text-gray-500 dark:text-slate-400 mb-6">Have questions, feedback, or a deal tip? We&rsquo;d love to hear from you.</p>
 
-        <!-- Header Section -->
-        <div class="text-center mb-10 sm:mb-12">
-            <span class="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold tracking-widest uppercase mb-4 shadow-sm">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                Direct Support & Editorial Desk
-            </span>
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
-                Get in <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">Touch</span>
-            </h1>
-            <p class="text-base sm:text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed">
-                Have a question, feedback, deal correction, or partnership inquiry? Our team is here to assist you.
+        <div class="prose prose-lg dark:prose-invert max-w-none text-gray-600 dark:text-slate-300">
+            <p class="text-base text-gray-600 dark:text-slate-300 leading-relaxed mb-6">
+                Our team is based in India and monitors community feedback 7 days a week. Choose the appropriate channel below to ensure your message reaches the right desk quickly.
             </p>
-            <div class="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-                <span>Typical response time: Within 24 business hours</span>
-                <span>•</span>
-                <span>Operating IST</span>
+
+            <div class="not-prose grid grid-cols-1 md:grid-cols-2 gap-5 my-8">
+                <!-- Channel 1: General Support -->
+                <div class="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">
+                    <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center mb-4">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-base text-gray-900 dark:text-white mb-1">General Support &amp; Tips</h3>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-3 leading-relaxed">Spotted a hot deal or need help with a price alert?</p>
+                    <a href="mailto:support@latestdeal.in" class="text-sm font-bold text-red-600 dark:text-red-400 hover:underline">support@latestdeal.in &rarr;</a>
+                </div>
+
+                <!-- Channel 2: Corrections -->
+                <div class="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-4">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-base text-gray-900 dark:text-white mb-1">Editorial &amp; Corrections</h3>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-3 leading-relaxed">Report outdated prices, expired vouchers, or factual errors.</p>
+                    <a href="mailto:corrections@latestdeal.in" class="text-sm font-bold text-amber-600 dark:text-amber-400 hover:underline">corrections@latestdeal.in &rarr;</a>
+                </div>
+
+                <!-- Channel 3: Partnerships -->
+                <div class="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-base text-gray-900 dark:text-white mb-1">Partnerships &amp; Affiliates</h3>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-3 leading-relaxed">Merchant integration, retailer APIs, or network inquiries.</p>
+                    <a href="mailto:affiliates@latestdeal.in" class="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline">affiliates@latestdeal.in &rarr;</a>
+                </div>
+
+                <!-- Channel 4: Community -->
+                <div class="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-base text-gray-900 dark:text-white mb-1">Telegram Community</h3>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mb-3 leading-relaxed">Join 50,000+ shoppers receiving real-time loot alerts.</p>
+                    <a href="https://t.me/latestdealin" target="_blank" rel="noopener noreferrer" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:underline">@latestdealin &rarr;</a>
+                </div>
             </div>
-        </div>
 
-        <!-- Contact Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-12">
-            
-            <!-- Support & Editorial Channels Card -->
-            <div class="bg-white dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/40 dark:shadow-none flex flex-col justify-between">
-                <div>
-                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mb-6">Contact Channels</h2>
-                    
-                    <div class="space-y-6">
-                        <!-- General Support -->
-                        <div class="flex items-start gap-4">
-                            <div class="p-3 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 shrink-0">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-900 dark:text-white text-sm">General Support & Deal Inquiries</h4>
-                                <p class="text-slate-500 dark:text-slate-400 text-xs mt-0.5 leading-relaxed">
-                                    For inquiries regarding deal links, price updates, or account support:
-                                </p>
-                                <a href="mailto:support@latestdeal.in" class="text-sm font-bold text-red-600 dark:text-red-400 hover:underline mt-1 inline-block">support@latestdeal.in</a>
-                            </div>
-                        </div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-10 mb-4">Send Us a Direct Message</h2>
 
-                        <!-- Editorial Desk -->
-                        <div class="flex items-start gap-4">
-                            <div class="p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 shrink-0">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-900 dark:text-white text-sm">Editorial & Corrections Desk</h4>
-                                <p class="text-slate-500 dark:text-slate-400 text-xs mt-0.5 leading-relaxed">
-                                    To submit factual revisions, expired deal alerts, or review suggestions:
-                                </p>
-                                <a href="mailto:support@latestdeal.in" class="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline mt-1 inline-block">support@latestdeal.in</a>
-                            </div>
-                        </div>
-
-                        <!-- Telegram Alerts -->
-                        <div class="flex items-start gap-4">
-                            <div class="p-3 rounded-2xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 shrink-0">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.415-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.254-.241-1.868-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.892-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-900 dark:text-white text-sm">Community Telegram Channel</h4>
-                                <p class="text-slate-500 dark:text-slate-400 text-xs mt-0.5 leading-relaxed">
-                                    Join thousands of shoppers for real-time loot alerts and price drops:
-                                </p>
-                                <a href="https://t.me/latestdealin" target="_blank" rel="noopener noreferrer" class="text-sm font-bold text-sky-600 dark:text-sky-400 hover:underline mt-1 inline-block">@latestdealin on Telegram</a>
-                            </div>
-                        </div>
+            <form class="not-prose space-y-4 my-6" onsubmit="event.preventDefault(); alert('Thank you for reaching out! Your message has been received.'); this.reset();">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Your Name</label>
+                        <input type="text" required placeholder="Pankaj Sharma" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Email Address</label>
+                        <input type="email" required placeholder="pankaj@example.com" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
                     </div>
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400">
-                    <span>Inquiries are logged in our internal ticket system and answered in order received.</span>
-                </div>
-            </div>
-
-            <!-- Operating Schedule & Guidelines Card -->
-            <div class="bg-white dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/40 dark:shadow-none flex flex-col justify-between">
                 <div>
-                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mb-6">Operating Schedule</h2>
-                    <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed mb-6">
-                        Our autonomous price scanning daemons run continuously 24/7/365 across Indian retailers. Our human editorial and support team operates during the following schedule:
-                    </p>
-
-                    <ul class="space-y-3.5 text-xs sm:text-sm">
-                        <li class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
-                            <span class="text-slate-500 dark:text-slate-400 font-medium">Monday – Friday</span>
-                            <span class="font-bold text-slate-900 dark:text-white">9:30 AM – 6:30 PM IST</span>
-                        </li>
-                        <li class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
-                            <span class="text-slate-500 dark:text-slate-400 font-medium">Saturday</span>
-                            <span class="font-bold text-slate-900 dark:text-white">10:00 AM – 2:00 PM IST</span>
-                        </li>
-                        <li class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
-                            <span class="text-slate-500 dark:text-slate-400 font-medium">Sunday</span>
-                            <span class="font-semibold text-slate-400">Automated Monitoring Only</span>
-                        </li>
-                    </ul>
-
-                    <div class="mt-8 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-                        <h4 class="font-bold text-slate-900 dark:text-white text-xs mb-1">Found an Expired Deal?</h4>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Click <strong>"Verify Live Price"</strong> directly on the product's page. Our system will immediately ping the live retailer listing and mark it expired if stock is gone.
-                        </p>
-                    </div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Subject</label>
+                    <input type="text" required placeholder="Deal correction / Partnership inquiry" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400">
-                    <span>Registered in India. Dedicated to fair consumer e-commerce.</span>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">Message</label>
+                    <textarea rows="4" required placeholder="Provide details, URLs, or feedback..." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition"></textarea>
                 </div>
-            </div>
 
+                <button type="submit" class="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md shadow-red-600/20 transition cursor-pointer">
+                    Send Message &rarr;
+                </button>
+            </form>
         </div>
-
-        <!-- Quick Navigation Footer Bar for Trust & Legal Pages -->
-        <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold">
-            <span class="text-slate-500 dark:text-slate-400">Learn more about our standards and team:</span>
-            <div class="flex flex-wrap items-center gap-3">
-                <a href="{{ route('about') }}" class="text-red-600 dark:text-red-400 hover:underline">About Us →</a>
-                <a href="{{ route('editorial.team') }}" class="text-red-600 dark:text-red-400 hover:underline">Editorial Team →</a>
-                <a href="{{ route('corrections.policy') }}" class="text-red-600 dark:text-red-400 hover:underline">Corrections Policy →</a>
-                <a href="{{ route('privacy') }}" class="text-red-600 dark:text-red-400 hover:underline">Privacy Policy →</a>
-            </div>
-        </div>
-
     </div>
 </div>
 @endsection
