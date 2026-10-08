@@ -52,6 +52,9 @@ class PriceIntelligence(BaseModel):
     verdict_code: str = Field(default="WAIT", description="BUY_NOW, CONSIDER, WAIT")
     source: str = Field(default="price_engine", description="Origin of intelligence data")
     source_checked_at: Optional[str] = None
+    comparison_results: Optional[list] = Field(default_factory=list, description="Multi-store competitor price results")
+    competitor_min_price: Optional[float] = None
+    competitor_spread_pct: Optional[float] = None
 
 class DealCategory(BaseModel):
     name: str = Field(description="The canonical name of the category")

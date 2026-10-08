@@ -5,12 +5,19 @@ from pydantic import BaseModel, Field
 from typing import List
 
 from models import Deal, DealCategory, AICategoryFailed
-from worker.evidence_builder import EvidenceBuilder
-
-# New Decision Engine Imports
-from worker.new.sdk.discovery.decision.engine import OpportunityEngine
-from worker.new.sdk.discovery.decision.aggregator import EvidenceAggregator
-from worker.new.sdk.foundation.dto.models import TraceContext
+try:
+    from worker.evidence_builder import EvidenceBuilder
+    from worker.new.sdk.discovery.decision.engine import OpportunityEngine
+    from worker.new.sdk.discovery.decision.aggregator import EvidenceAggregator
+    from worker.new.sdk.foundation.dto.models import TraceContext
+except ImportError:
+    try:
+        from evidence_builder import EvidenceBuilder
+        from new.sdk.discovery.decision.engine import OpportunityEngine
+        from new.sdk.discovery.decision.aggregator import EvidenceAggregator
+        from new.sdk.foundation.dto.models import TraceContext
+    except ImportError:
+        pass
 
 class AIEnrichmentSchema(BaseModel):
     category_name: str = Field(description="The canonical category of the product (e.g. Electronics, Fashion)")
@@ -34,7 +41,8 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
                 rating=getattr(deal, "rating", None),
                 review_count=getattr(deal, "review_count", None),
                 is_prime=getattr(deal, "is_prime", False),
-                is_fulfilled=getattr(deal, "is_fulfilled", False)
+                is_fulfilled=getattr(deal, "is_fulfilled", False),
+                competitors=getattr(deal, "competitor_results", None)
             )
 
         v_code = deal.price_intelligence.verdict_code
@@ -50,6 +58,15 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
         deal.deal_qualification = d_qual
         deal.verdict_code = v_code
         
+        comp_min = deal.price_intelligence.competitor_min_price
+        comp_info = ""
+        if comp_min:
+            diff = comp_min - (deal.price or 0.0)
+            if diff > 0:
+                comp_info = f"- Market Intelligence: ₹{diff:,.0f} CHEAPER than lowest major competitor (Competitor: ₹{comp_min:,.0f})"
+            else:
+                comp_info = f"- Market Intelligence: Competitor price is lower or matched (Competitor: ₹{comp_min:,.0f})"
+
         print(f"[Engine] Deterministic Deal Score: {deal.ai_score}/100, Qualification: {d_qual}, Verdict Code: {v_code}")
         
         # 2. LLM Content Generation Pipeline (Strictly Read-Only Verdict)
@@ -71,6 +88,7 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
         - Historical Status: {h_status}
         - Deal Qualification: {d_qual}
         - REQUIRED VERDICT DIRECTION: {v_code}
+        {comp_info}
         
         If this product information does not look like an actual product deal or looks like an error page, set the category_name strictly to 'nodeal'.
         Otherwise, provide the missing information in strict JSON. Do NOT output the schema itself. Output a JSON object with these exact keys:

@@ -42,8 +42,21 @@ class ScrapingPipeline:
             else:
                 print(f"[Pipeline] Single-pass affiliate URL preserved: {deal.affiliate_url}")
             tracker.mark_end("scrape")
+
+            # 5.5 Multi-Store Market Price Intelligence (In-House Search Tool)
+            tracker.mark_start("serp_intelligence")
+            try:
+                from local_serp_service import search_all_stores
+                print(f"[Pipeline] Scanning competitor stores for: '{deal.title[:60]}'...")
+                raw_competitors = search_all_stores(deal.title)
+                deal.competitor_results = [r.to_dict() for r in raw_competitors]
+                print(f"[Pipeline] Found {len(deal.competitor_results)} competitor prices.")
+            except Exception as se:
+                print(f"[Pipeline] Multi-store intelligence notice: {se}")
+                deal.competitor_results = []
+            tracker.mark_end("serp_intelligence")
                 
-            # 6. AI Enrichment (Category, Score, Caption)
+            # 6. AI Enrichment (Category, Score, Caption, Cross-Store Arbitrage)
             tracker.mark_start("ai")
             try:
                 deal = enrich_deal(deal, preserved_score=discovery_job.opportunity_score if discovery_job else None)

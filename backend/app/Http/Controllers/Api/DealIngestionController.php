@@ -254,6 +254,14 @@ class DealIngestionController
                 }
                 
                 $existingUrlDeal->update($updateData);
+
+                // Pre-warm multi-store price intelligence cache
+                if (!empty($priceIntel['comparison_results'])) {
+                    \Illuminate\Support\Facades\Cache::put("compare_prices_{$existingUrlDeal->id}", [
+                        'results' => $priceIntel['comparison_results'],
+                        'ai_score' => $dealScore
+                    ], now()->addMinutes(60));
+                }
                 
                 $status = 'updated';
                 $message = 'Deal already exists. Updated with price intelligence.';
@@ -310,6 +318,14 @@ class DealIngestionController
         // 4.5 Save secondary categories
         if (!empty($validated['secondary_category_ids'])) {
             $deal->categories()->syncWithoutDetaching($validated['secondary_category_ids']);
+        }
+
+        // 4.6 Warm Multi-Store Price Comparison Cache
+        if (!empty($priceIntel['comparison_results'])) {
+            \Illuminate\Support\Facades\Cache::put("compare_prices_{$deal->id}", [
+                'results' => $priceIntel['comparison_results'],
+                'ai_score' => $dealScore
+            ], now()->addMinutes(60));
         }
 
         // 5. Return HTTP 200 immediately
