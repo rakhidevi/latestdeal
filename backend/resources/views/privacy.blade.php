@@ -1,113 +1,105 @@
 @extends('layouts.app')
 
 @section('meta')
-    <title>Privacy Policy - LatestDeal</title>
+    <title>Privacy Policy | LatestDeal.in</title>
+    <meta name="description" content="Read LatestDeal's Privacy Policy to understand how we collect, handle, and protect your personal information with full transparency.">
+    <link rel="canonical" href="{{ url('/privacy') }}">
 @endsection
 
 @section('content')
-<div class="relative min-h-screen pt-24 pb-20">
-    <!-- Background Decorators -->
-    <div class="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-sky-50/50 to-transparent -z-10"></div>
-    <div class="absolute -top-40 -left-40 w-96 h-96 bg-sky-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
-    <div class="absolute top-20 -right-20 w-72 h-72 bg-emerald-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
-
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="py-6 sm:py-10 font-sans">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
         
+        <!-- Breadcrumb Navigation -->
+        <nav class="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-slate-500 mb-6" aria-label="Breadcrumb">
+            <a href="/" class="hover:text-red-600 dark:hover:text-red-400 transition-colors">Home</a>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="text-slate-600 dark:text-slate-400">Legal & Trust</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="text-slate-900 dark:text-white font-bold" aria-current="page">Privacy Policy</span>
+        </nav>
+
         <!-- Header Section -->
-        <div class="text-center mb-16">
-            <span class="inline-block py-1 px-3 rounded-full bg-sky-50 border border-sky-100 text-sky-600 text-sm font-bold tracking-widest uppercase mb-4 shadow-sm">
-                Data Protection
+        <div class="text-center mb-10 sm:mb-12">
+            <span class="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold tracking-widest uppercase mb-4 shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                Data Protection & Privacy
             </span>
-            <h1 class="text-4xl md:text-5xl font-black text-slate-800 tracking-tight mb-4">
-                Privacy <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-emerald-600">Policy</span>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
+                Privacy <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">Policy</span>
             </h1>
-            <p class="text-lg text-slate-500 font-medium max-w-2xl mx-auto">
-                How we collect, use, and protect your data. Last updated on <span class="text-slate-700 font-bold">{{ date('F d, Y') }}</span>
+            <p class="text-base sm:text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed">
+                How we collect, use, and protect your data. We respect your digital privacy and adhere to modern data protection principles.
             </p>
-        </div>
-
-        <!-- Glassmorphic Content Card -->
-        <div class="bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-8 md:p-12 shadow-2xl shadow-slate-200/50">
-            
-            <div class="prose prose-lg prose-slate max-w-none prose-headings:font-black prose-headings:text-slate-800 prose-a:text-sky-600 hover:prose-a:text-sky-500 prose-p:text-slate-600 prose-p:leading-relaxed">
-                
-                <h2 class="flex items-center gap-3">
-                    <i data-lucide="database" class="w-8 h-8 text-sky-500"></i>
-                    1. Information We Collect
-                </h2>
-                <p>
-                    We collect information you provide directly to us, such as when you create or modify your account, subscribe to price alerts, contact customer support, or otherwise communicate with us. This information may include your name, email address, and saved deal preferences.
-                </p>
-
-                <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent my-8"></div>
-
-                <h2 class="flex items-center gap-3">
-                    <i data-lucide="cpu" class="w-8 h-8 text-emerald-500"></i>
-                    2. How We Use Information
-                </h2>
-                <p>
-                    We use the information we collect about you to provide, maintain, and improve our services, including to facilitate notifications, send price drop alerts, provide deals you request, develop new features, authenticate users, and send product updates.
-                </p>
-                <div class="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-6 my-6 flex items-start gap-4">
-                    <div class="p-2 bg-emerald-100 rounded-lg shrink-0">
-                        <i data-lucide="shield" class="w-5 h-5 text-emerald-600"></i>
-                    </div>
-                    <p class="m-0 text-sm text-emerald-800">
-                        <strong>Privacy Commitment:</strong> We never sell your personal data to third parties or data brokers. Your information is strictly used to improve your shopping experience.
-                    </p>
-                </div>
-
-                <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent my-8"></div>
-
-                <h2 class="flex items-center gap-3">
-                    <i data-lucide="share-2" class="w-8 h-8 text-indigo-500"></i>
-                    3. Sharing of Information
-                </h2>
-                <p>
-                    We may share the information we collect about you as described in this Statement or as described at the time of collection or sharing, including with third parties to provide you a service you requested through a partnership or promotional offering made by a third party or us.
-                </p>
-
-                <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent my-8"></div>
-
-                <h2 class="flex items-center gap-3">
-                    <i data-lucide="cookie" class="w-8 h-8 text-amber-500"></i>
-                    4. Cookies, Tracking, and Advertising
-                </h2>
-                <p>
-                    We use cookies and similar technologies for purposes such as authenticating users, remembering user preferences, determining the popularity of content, and analyzing site traffic. 
-                </p>
-                <p>
-                    <strong>Third-Party Advertising & AdSense:</strong> We use third-party advertising companies, including Google AdSense, to serve ads when you visit our website. These companies may use information (not including your name, address, email address, or telephone number) about your visits to this and other websites in order to provide advertisements about goods and services of interest to you.
-                </p>
-                <ul class="list-disc pl-5 my-4">
-                    <li>Third party vendors, including Google, use cookies to serve ads based on your prior visits to our website or other websites.</li>
-                    <li>Google's use of advertising cookies enables it and its partners to serve ads to our users based on their visit to our sites and/or other sites on the Internet.</li>
-                    <li>You may opt out of personalized advertising by visiting <a href="https://myadcenter.google.com/" target="_blank" rel="noopener">Google Ads Settings</a>. Alternatively, you can opt out of a third-party vendor's use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener">www.aboutads.info</a>.</li>
-                </ul>
-                <p>
-                    <strong>Affiliate Tracking:</strong> As an affiliate platform, tracking cookies are utilized by our merchant partners (like Amazon) when you click "Buy Now" to attribute the sale to LatestDeal.
-                </p>
-
-                <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent my-8"></div>
-                
-                <h2 class="flex items-center gap-3">
-                    <i data-lucide="user-x" class="w-8 h-8 text-rose-500"></i>
-                    5. Your Rights & Data Deletion
-                </h2>
-                <p>
-                    You have the right to access, modify, or delete your personal data at any time. You can delete your account directly from your Profile settings. Upon deletion, all associated data, including saved deals and price alerts, will be permanently removed from our servers.
-                </p>
-
+            <div class="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                <span>Compliance & Data Protection Office</span>
+                <span>•</span>
+                <span>Updated {{ date('F Y') }}</span>
             </div>
         </div>
 
-        <!-- Call to Action -->
-        <div class="mt-12 text-center">
-            <p class="text-slate-500 mb-6">Have questions about our privacy practices?</p>
-            <a href="mailto:privacy@latestdeal.in" class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-                <i data-lucide="mail" class="w-4 h-4"></i>
-                Contact Privacy Team
-            </a>
+        <!-- Main Card Container -->
+        <div class="bg-white dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-10 md:p-12 shadow-xl shadow-slate-200/40 dark:shadow-none">
+            <div class="prose prose-slate dark:prose-invert max-w-none prose-headings:font-black prose-headings:text-slate-900 dark:prose-headings:text-white prose-headings:tracking-tight prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-li:text-slate-600 dark:prose-li:text-slate-300 prose-strong:text-slate-900 dark:prose-strong:text-white prose-a:text-red-600 dark:prose-a:text-red-400 hover:prose-a:underline">
+                
+                <h2>1. Information We Collect</h2>
+                <p>
+                    We collect only the minimum information necessary to deliver a personalized, functional deal discovery experience:
+                </p>
+                <ul>
+                    <li><strong>Account Information:</strong> If you voluntarily register an account, we store your name, email address, and encrypted credentials.</li>
+                    <li><strong>Deal Preferences & Bookmarks:</strong> Deals you save, price alerts you subscribe to, and customized notification preferences.</li>
+                    <li><strong>Technical & Log Data:</strong> Standard IP address, browser user-agent, operating system, and referral source used strictly for diagnostics, rate-limiting, and DDoS defense.</li>
+                </ul>
+
+                <h2>2. How We Use Your Information</h2>
+                <p>We use your information exclusively for the following purposes:</p>
+                <ul>
+                    <li>To dispatch requested deal alerts and instant price drop notifications.</li>
+                    <li>To authenticate your session and preserve interface preferences.</li>
+                    <li>To prevent automated scrapers from overwhelming our search infrastructure.</li>
+                    <li>To optimize site performance and troubleshoot server exceptions.</li>
+                </ul>
+
+                <!-- Zero Data Sale Callout -->
+                <div class="not-prose my-6 p-6 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
+                    <div class="flex items-center gap-2.5 mb-2">
+                        <span class="p-1 rounded-lg bg-emerald-200 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                        <h4 class="font-black text-emerald-900 dark:text-emerald-300 text-sm">Zero Data Selling Guarantee</h4>
+                    </div>
+                    <p class="text-xs text-emerald-800 dark:text-emerald-400 leading-relaxed">
+                        We never sell, rent, or trade your personal information or browsing records to data brokers, advertising aggregators, or external commercial third parties.
+                    </p>
+                </div>
+
+                <h2>3. Third-Party Services & Links</h2>
+                <p>
+                    LatestDeal contains links to external retail platforms (including Amazon.in, Flipkart, Croma, and Reliance Digital). When you click an external link, you leave our site and become subject to the privacy practices of that specific retailer. We recommend reviewing their privacy statements before completing transactions.
+                </p>
+
+                <h2>4. Data Retention & Security</h2>
+                <p>
+                    We apply enterprise security measures—including TLS 1.3 encryption in transit, strict database access controls, and salted password hashing—to safeguard your data. You may request account deletion and complete erasure of your saved deals at any time.
+                </p>
+
+                <h2>5. Your Privacy Rights</h2>
+                <p>
+                    Under applicable data protection frameworks, you maintain the right to access, rectify, or request deletion of your personal data stored on our servers. To exercise these rights, please contact our Data Protection Officer at <a href="mailto:support@latestdeal.in">support@latestdeal.in</a>.
+                </p>
+            </div>
+        </div>
+
+        <!-- Quick Navigation Footer Bar for Trust & Legal Pages -->
+        <div class="mt-10 p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/70 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold">
+            <span class="text-slate-500 dark:text-slate-400">Related legal policies:</span>
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('terms') }}" class="text-red-600 dark:text-red-400 hover:underline">Terms of Service →</a>
+                <a href="{{ route('cookie') }}" class="text-red-600 dark:text-red-400 hover:underline">Cookie Policy →</a>
+                <a href="{{ route('affiliate.disclosure') }}" class="text-red-600 dark:text-red-400 hover:underline">Affiliate Disclosure →</a>
+                <a href="{{ route('contact') }}" class="text-red-600 dark:text-red-400 hover:underline">Contact Desk →</a>
+            </div>
         </div>
 
     </div>
