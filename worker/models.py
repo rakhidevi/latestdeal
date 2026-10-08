@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
 # ==========================================
@@ -36,6 +36,8 @@ class DatabaseValidationFailed(ScraperException):
 # ==========================================
 
 class PriceIntelligence(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     history_30d_low: Optional[float] = None
     history_30d_high: Optional[float] = None
     history_90d_low: Optional[float] = None
@@ -57,10 +59,14 @@ class PriceIntelligence(BaseModel):
     competitor_spread_pct: Optional[float] = None
 
 class DealCategory(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     name: str = Field(description="The canonical name of the category")
     confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="Confidence score from AI or Keyword Classifier")
 
 class Deal(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     merchant: str = Field(description="The domain or slug of the merchant (e.g. amazon, flipkart)")
     title: str = Field(description="Product title")
     price: Optional[float] = Field(default=None, description="Discounted price")
@@ -74,6 +80,8 @@ class Deal(BaseModel):
     coupon: Optional[str] = Field(default=None, description="Promo code if any")
     category: Optional[DealCategory] = Field(default=None, description="Categorization info")
     brand: Optional[str] = Field(default=None, description="Product brand")
+    features: Optional[list[str]] = Field(default_factory=list, description="List of product bullet points / features")
+    competitor_results: Optional[list] = Field(default_factory=list, description="Multi-store competitor price results")
     
     rating: Optional[float] = Field(default=None, description="Product rating (e.g. 4.5)")
     review_count: Optional[int] = Field(default=None, description="Number of customer reviews")

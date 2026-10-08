@@ -264,7 +264,8 @@ class AmazonScraper(MerchantScraper):
                         image_url=image_url,
                         canonical_url=cleaned_url,
                         affiliate_url=sitestripe_url if sitestripe_url else cleaned_url,
-                        rating=clean_price(star_rating) if star_rating else None
+                        rating=clean_price(star_rating) if star_rating else None,
+                        features=features
                     )
 
                     if features:

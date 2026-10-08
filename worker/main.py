@@ -191,7 +191,7 @@ async def process_queue():
                 "category_id": deal.category.id if (deal.category and hasattr(deal.category, 'id')) else 1, # Hardcoded fallback for production API
                 "category_name": deal.category.name if deal.category else "Electronics",
                 "ai_caption": caption_text,
-                "features": [],
+                "features": getattr(deal, 'features', []) or [],
                 "brand": resolved_brand,
                 "image_base64": base64_image,
                 "ai_score": deal.ai_score if deal.ai_score is not None else 85,
