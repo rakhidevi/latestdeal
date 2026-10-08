@@ -1041,8 +1041,8 @@
 
     @yield('hero')
 
-    <div class="mx-auto flex max-w-7xl px-4 py-4 md:px-6 gap-6">
-        <main class="flex-1 min-w-0 min-h-[calc(100vh-130px)] w-full">
+    <div class="mx-auto max-w-7xl px-4 py-4 md:px-6">
+        <main class="min-w-0 min-h-[calc(100vh-130px)] w-full">
             @yield('content')
         </main>
     </div>
