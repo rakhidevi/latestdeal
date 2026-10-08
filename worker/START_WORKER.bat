@@ -37,16 +37,16 @@ goto menu
 
 :kill_all
 echo.
-echo Stopping any hidden/stuck Python instances...
-taskkill /F /IM python.exe >nul 2>&1
+echo Stopping any running LatestDeal worker instances...
+venv\Scripts\python.exe cleanup_workers.py
 echo Done!
 pause
 goto menu
 
 :start_all
 echo.
-echo Stopping any hidden/stuck Python instances...
-taskkill /F /IM python.exe >nul 2>&1
+echo Stopping any running LatestDeal worker instances...
+venv\Scripts\python.exe cleanup_workers.py
 echo Starting the Core Daemon (Port 8001)...
 start "LatestDeal Daemon" /MIN cmd /c "venv\Scripts\python.exe daemon.py"
 echo Starting the Dashboard UI (Port 5000)...

@@ -19,7 +19,7 @@ import argparse
 # Global lock to serialize browser access
 browser_lock = asyncio.Lock()
 
-from database import init_db, get_next_pending, mark_status, add_to_queue, update_job_data
+from database import init_db, get_next_pending, mark_status, add_to_queue, update_job_data, has_pending_deals
 from image_composer import compose_image
 from api_client import push_to_production, create_job, update_job
 import requests
@@ -58,10 +58,11 @@ async def process_queue():
             job_logs.append(msg)
             update_job(job_id, logs=[msg])
             
-        # Determine if it's a DiscoveryJob
+        # Determine if it's a DiscoveryJob or Telegram deal
         data_str = deal_item.get('data')
         discovery_job = None
         publishing_context = None
+        telegram_meta = {}
         
         if data_str:
             try:
@@ -70,6 +71,8 @@ async def process_queue():
                     from worker.new.sdk.foundation.dto.models import DiscoveryJob, PublishingContext
                     discovery_job = DiscoveryJob(**parsed)
                     publishing_context = PublishingContext(job=discovery_job)
+                elif 'telegram' in parsed:
+                    telegram_meta = parsed.get('telegram', {})
             except Exception:
                 pass
                 
@@ -103,12 +106,20 @@ async def process_queue():
                 from pipeline import ScrapingPipeline
                 async with browser_lock:
                     deal = await asyncio.to_thread(ScrapingPipeline.process_url, url, "dashboard", discovery_job)
+
+            # Apply supplementary Telegram context if present
+            if telegram_meta:
+                if not getattr(deal, 'coupon', None) and telegram_meta.get('promo_code'):
+                    deal.coupon = telegram_meta['promo_code']
+                if telegram_meta.get('bank_offer') and not (deal.title or "").startswith("[Bank Offer"):
+                    deal.title = f"[Bank Offer: {telegram_meta['bank_offer']}] " + (deal.title or "")
                 
             if publishing_context:
                 publishing_context.affiliate_url = deal.affiliate_url
                 emit_event("AffiliateResolved")
                 
-            update_job(job_id, type=f"ingestion ({deal.merchant})")
+            source_tag = "telegram" if telegram_meta else "ingestion"
+            update_job(job_id, type=f"{source_tag} ({deal.merchant})")
             
             # --- FAST PATH FOR REAL-TIME PRICE UPDATES ---
             if job_type == 'price_update':
@@ -251,20 +262,34 @@ async def expiry_checker():
                 active_deals = response.json().get('deals', [])
                 add_log(f"Found {len(active_deals)} active deals to check.")
                 for deal in active_deals:
+                    # Cooperative yield: Pause immediately if new deals are queued for ingestion
+                    while has_pending_deals():
+                        add_log("Pending deal detected in queue. Yielding expiry check to prioritize ingestion...")
+                        await asyncio.sleep(5)
+
                     add_log(f"Checking expiry for deal: {deal['url']}")
-                    # Re-scrape
-                    from pipeline import ScrapingPipeline
+                    
+                    # Lightweight verification without full AI enrichment/caption generation
+                    from merchant_registry import MerchantDetector, get_scraper
+                    from url_resolver import resolve_url
                     from models import ScraperException
                     
                     is_expired = False
                     try:
                         async with browser_lock:
-                            scraped_deal = await asyncio.to_thread(ScrapingPipeline.process_url, deal['url'], "expiry_check")
+                            def _check_expiry(target_url):
+                                canon = resolve_url(target_url)
+                                merch = MerchantDetector.detect(canon)
+                                scr = get_scraper(merch)
+                                return scr.extract(canon)
+
+                            scraped_deal = await asyncio.to_thread(_check_expiry, deal['url'])
                         
-                        # Basic Expiry Logic: if title says 'currently unavailable' or price isn't found
-                        if "currently unavailable" in (scraped_deal.title or "").lower():
+                        # Expiry Logic: title indicates unavailable, or price is missing/zero
+                        title_lower = (scraped_deal.title or "").lower()
+                        if "currently unavailable" in title_lower or "out of stock" in title_lower:
                             is_expired = True
-                        elif not scraped_deal.price:
+                        elif not scraped_deal.price or scraped_deal.price <= 0:
                             is_expired = True
                             
                     except ScraperException as e:
@@ -277,14 +302,18 @@ async def expiry_checker():
                         
                     if is_expired:
                         add_log(f"🚨 Deal Expired: {deal['url']}. Notifying backend...")
-                        requests.post(
-                            f"{backend_url}/deals/{deal['id']}/expire",
-                            headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-                        )
+                        try:
+                            requests.post(
+                                f"{backend_url}/deals/{deal['id']}/expire",
+                                headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+                                timeout=10
+                            )
+                        except Exception as post_err:
+                            add_log(f"Failed to post deal expiry to backend: {post_err}")
                         expired_count += 1
                     
-                    # Sleep to avoid banning IP during expiry checks
-                    await asyncio.sleep(10)
+                    # Sleep to avoid banning IP and give event loop time
+                    await asyncio.sleep(6)
                 add_log(f"Completed expiry check. Removed {expired_count} expired deals.")
                 update_job(job_id, status="success")
             else:

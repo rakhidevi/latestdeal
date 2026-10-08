@@ -6,21 +6,7 @@ from playwright_stealth import Stealth
 from filelock import FileLock, Timeout
 from database import add_to_queue
 import argparse
-
-def setup_browser(p):
-    """Launches a persistent browser session (visible) to store cookies/auth."""
-    user_data_dir = os.path.join(os.path.dirname(__file__), 'browser_profile')
-    os.makedirs(user_data_dir, exist_ok=True)
-    
-    # Launch Chrome visibly so the user can log in if needed
-    browser = p.chromium.launch_persistent_context(
-        user_data_dir=user_data_dir,
-        headless=False,
-        executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe", # Use REAL local Chrome
-        args=["--disable-blink-features=AutomationControlled"],
-        ignore_default_args=["--enable-automation", "--no-sandbox"]
-    )
-    return browser
+from browser_utils import setup_browser_persistent, get_page
 
 def hunt_amazon_deals(job_type='ingestion', category=None, brand=None, discount=None, keyword=None):
     """Navigates to Amazon Deals and extracts product URLs into the queue."""
@@ -40,75 +26,70 @@ def hunt_amazon_deals(job_type='ingestion', category=None, brand=None, discount=
         
     print(f"Hunting for deals on: {url} (Target Queue: {job_type})")
     
-    lock_path = os.path.join(os.path.dirname(__file__), "browser_profile.lock")
-    lock = FileLock(lock_path, timeout=60)
+    lock_dir = os.path.join(os.path.dirname(__file__), "browser_profiles")
+    os.makedirs(lock_dir, exist_ok=True)
+    lock_path = os.path.join(lock_dir, "hunter.lock")
+    lock = FileLock(lock_path, timeout=30)
+    
     try:
         with lock:
             with sync_playwright() as p:
-                context = setup_browser(p)
-                page = context.pages[0] if context.pages else context.new_page()
-                Stealth().use_sync(page)
-        
-        try:
-            page.goto(url, wait_until="domcontentloaded", timeout=60000)
-            
-            # Check if user needs to log in
-            if page.locator("text='Sign in'").count() > 0 or page.locator("text='Sign In'").count() > 0:
-                print("\n🚨 [ACTION REQUIRED] Please log into Amazon in the browser window! 🚨")
-                input("Press ENTER here after you have successfully logged in...")
-                page.goto(url, wait_until="domcontentloaded", timeout=60000)
-                
-            print("Page loaded. Waiting for human delay...")
-            time.sleep(random.uniform(5.0, 10.0))
-            
-            # Scroll down to load lazy-loaded deals
-            for _ in range(5):
-                page.mouse.wheel(0, random.randint(500, 1000))
-                time.sleep(random.uniform(1.0, 2.5))
-                
-            page.screenshot(path="hunter_debug.png", full_page=True)
-                
-            # Extract links from deal cards
-            print("Extracting deal links...")
-            deal_links = []
-            
-            # Find all links on the page that contain /dp/ (Amazon products)
-            elements = page.locator("a[href*='/dp/']").all()
-                
-            for el in elements:
+                context = setup_browser_persistent(p, profile_name="hunter")
                 try:
-                    href = el.get_attribute("href")
-                    if href:
-                        clean_href = href.split("?")[0].split("ref=")[0]
-                        if not clean_href.startswith("http"):
-                            clean_href = "https://www.amazon.in" + clean_href
-                        deal_links.append(clean_href)
-                except:
-                    continue
+                    page = get_page(context)
+                    Stealth().use_sync(page)
                     
-            deal_links = list(set(deal_links)) # Remove duplicates
-            print(f"Found {len(deal_links)} potential deal URLs.")
-            
-            # Add to queue
-            added = 0
-            for link in deal_links:
-                try:
-                    add_to_queue(link, job_type)
-                    added += 1
-                except:
-                    pass
+                    page.goto(url, wait_until="domcontentloaded", timeout=45000)
+                    time.sleep(random.uniform(2.0, 4.0))
+
+                    page_title = page.title()
+                    if "Robot Check" in page_title or "CAPTCHA" in page_title:
+                        print("⚠️ [Hunter] Amazon Bot Check detected during discovery. Cooling down...")
+                        return
+
+                    print("Page loaded. Scrolling to reveal dynamic deals...")
+                    # Scroll down to load lazy-loaded deals
+                    for _ in range(4):
+                        page.mouse.wheel(0, random.randint(500, 1000))
+                        time.sleep(random.uniform(0.8, 1.5))
+                        
+                    # Extract links from deal cards
+                    print("Extracting deal links...")
+                    deal_links = []
                     
-            print(f"Successfully queued {added} new deals.")
-            
-        except Exception as e:
-            print(f"Error while hunting deals: {e}")
-        finally:
-            if 'page' in locals():
-                page.close()
-            if 'context' in locals():
-                context.close()
+                    # Find all links on the page that contain /dp/ (Amazon products)
+                    elements = page.locator("a[href*='/dp/']").all()
+                        
+                    for el in elements:
+                        try:
+                            href = el.get_attribute("href")
+                            if href:
+                                clean_href = href.split("?")[0].split("ref=")[0]
+                                if not clean_href.startswith("http"):
+                                    clean_href = "https://www.amazon.in" + clean_href
+                                deal_links.append(clean_href)
+                        except Exception:
+                            continue
+                            
+                    deal_links = list(set(deal_links)) # Remove duplicates
+                    print(f"Found {len(deal_links)} potential deal URLs.")
+                    
+                    # Add to queue
+                    added = 0
+                    for link in deal_links:
+                        try:
+                            add_to_queue(link, job_type)
+                            added += 1
+                        except Exception:
+                            pass
+                            
+                    print(f"Successfully queued {added} new deals.")
+                finally:
+                    context.close()
     except Timeout:
-        print("[Hunter] Timed out waiting for browser profile lock (another worker is currently using Chrome). Skipping cycle.")
+        print("[Hunter] Timed out waiting for hunter browser lock. Skipping cycle.")
+    except Exception as e:
+        print(f"Error while hunting deals: {e}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Hunt Amazon Deals')

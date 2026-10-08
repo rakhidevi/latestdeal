@@ -61,15 +61,15 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add_to_queue(url: str, job_type: str = 'ingestion'):
+def add_to_queue(url: str, job_type: str = 'ingestion', data: str = None):
     init_db() # Ensure schema is up to date
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     try:
         cursor.execute("""
-            INSERT INTO deals_queue (url, status, type) VALUES (?, 'pending', ?)
-            ON CONFLICT(url) DO UPDATE SET status = 'pending', type = ?
-        """, (url, job_type, job_type))
+            INSERT INTO deals_queue (url, status, type, data) VALUES (?, 'pending', ?, ?)
+            ON CONFLICT(url) DO UPDATE SET status = 'pending', type = ?, data = COALESCE(?, deals_queue.data)
+        """, (url, job_type, data, job_type, data))
         conn.commit()
     except sqlite3.Error as e:
         print(f"Database error: {e}")
@@ -186,3 +186,15 @@ def mark_status(item_id: int, status: str):
     cursor.execute("UPDATE deals_queue SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (status, item_id))
     conn.commit()
     conn.close()
+
+def has_pending_deals() -> bool:
+    """Checks whether there are any pending deals in the queue awaiting ingestion."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM deals_queue WHERE status = 'pending' LIMIT 1")
+        row = cursor.fetchone()
+        conn.close()
+        return bool(row)
+    except Exception:
+        return False

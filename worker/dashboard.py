@@ -55,11 +55,49 @@ def index():
 
 @app.route('/api/status')
 def status():
+    import psutil
+    
+    # Internal subprocess status
+    is_server = processes['server'] is not None and processes['server'].poll() is None
+    is_desktop = processes['desktop'] is not None and processes['desktop'].poll() is None
+    is_hunter = processes['hunter'] is not None and processes['hunter'].poll() is None
+    is_telegram = processes['telegram'] is not None and processes['telegram'].poll() is None
+    is_compare = False
+
+    # Dynamic system process discovery via psutil (detects workers launched via START_WORKER.bat or CLI)
+    try:
+        current_pid = os.getpid()
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                if proc.info['pid'] == current_pid:
+                    continue
+                cmd = proc.info.get('cmdline') or []
+                cmd_str = " ".join(cmd).lower()
+                name_str = (proc.info.get('name') or "").lower()
+                
+                if "python" in name_str or any("python" in a.lower() for a in cmd):
+                    if "main.py" in cmd_str:
+                        if "--mode desktop" in cmd_str:
+                            is_desktop = True
+                        else:
+                            is_server = True
+                    if "hunter.py" in cmd_str or "run_hunter_loop" in cmd_str:
+                        is_hunter = True
+                    if "telegram_scraper.py" in cmd_str:
+                        is_telegram = True
+                    if "compare_worker.py" in cmd_str:
+                        is_compare = True
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+    except Exception as e:
+        print(f"[Dashboard] Process scan error: {e}")
+
     return jsonify({
-        'server': processes['server'] is not None and processes['server'].poll() is None,
-        'desktop': processes['desktop'] is not None and processes['desktop'].poll() is None,
-        'hunter': processes['hunter'] is not None and processes['hunter'].poll() is None,
-        'telegram': processes['telegram'] is not None and processes['telegram'].poll() is None,
+        'server': is_server,
+        'desktop': is_desktop,
+        'hunter': is_hunter,
+        'telegram': is_telegram,
+        'compare': is_compare,
         'udemy': processes['udemy'] is not None and processes['udemy'].poll() is None,
         'coursera': processes['coursera'] is not None and processes['coursera'].poll() is None,
         'settings': hunter_settings
