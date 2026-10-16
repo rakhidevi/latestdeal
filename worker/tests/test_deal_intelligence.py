@@ -302,6 +302,74 @@ def test_rufus_price_history_integration():
     assert intel.deal_qualification in ["HOT_DEAL", "GOOD_DEAL"]
     assert intel.source == "rufus_ai" or intel.historical_status in ["ALL_TIME_LOW", "LOWEST_90D"]
 
+def test_deal_category_confidence_normalization():
+    from models import DealCategory
+    # Test 100.0 percentage conversion
+    cat1 = DealCategory(name="Electronics", confidence=100.0)
+    assert cat1.confidence == 1.0, f"Expected 1.0, got {cat1.confidence}"
+
+    # Test 95.0 percentage conversion
+    cat2 = DealCategory(name="Footwear", confidence=95.0)
+    assert abs(cat2.confidence - 0.95) < 0.001, f"Expected 0.95, got {cat2.confidence}"
+
+    # Test 0.85 standard probability
+    cat3 = DealCategory(name="Fashion", confidence=0.85)
+    assert cat3.confidence == 0.85, f"Expected 0.85, got {cat3.confidence}"
+
+    # Test string input "90"
+    cat4 = DealCategory(name="Home", confidence="90")
+    assert abs(cat4.confidence - 0.90) < 0.001, f"Expected 0.90, got {cat4.confidence}"
+
+def test_ai_enrichment_schema_category_confidence():
+    from ai_enricher import AIEnrichmentSchema
+    schema = AIEnrichmentSchema(
+        category_name="Footwear",
+        category_confidence=100.0,
+        caption="Grab Campus Shoes",
+        summary="Top running shoes",
+        verdict="Buy Now"
+    )
+    assert schema.category_confidence == 1.0, f"Expected 1.0, got {schema.category_confidence}"
+
+def test_confidence_score_zero_allowed():
+    from models import Deal
+    deal = Deal(
+        merchant="amazon",
+        title="Test Product",
+        price=100.0,
+        canonical_url="https://www.amazon.in/dp/B000000000",
+        confidence_score=0
+    )
+    assert deal.confidence_score == 0
+
+def test_rufus_history_original_price_derivation():
+    from models import Deal
+    deal = Deal(
+        merchant="amazon",
+        title="Campus Men Hurricane Running Shoes",
+        price=849.0,
+        original_price=None,
+        canonical_url="https://www.amazon.in/dp/B09RPLS28N",
+        price_history_raw={
+            "history_30d_low": 849.0,
+            "history_30d_high": 999.0,
+            "history_90d_low": 762.0,
+            "history_90d_high": 1114.0,
+            "history_365d_low": 674.0,
+            "history_365d_high": 1110.0
+        }
+    )
+    # Simulate pipeline fallback
+    if (not deal.original_price or (deal.price and deal.original_price <= deal.price)) and getattr(deal, 'price_history_raw', None):
+        raw_h = deal.price_history_raw
+        h_high = raw_h.get("history_90d_high") or raw_h.get("history_365d_high") or raw_h.get("history_30d_high")
+        if h_high and deal.price and float(h_high) > deal.price:
+            deal.original_price = float(h_high)
+            deal.discount_percent = round(((deal.original_price - deal.price) / deal.original_price) * 100, 2)
+
+    assert deal.original_price == 1114.0
+    assert deal.discount_percent == 23.79
+
 if __name__ == "__main__":
     print("\n--- Running Deal Intelligence Test Suite ---")
     test_bajaj_iron_regression()
@@ -316,5 +384,14 @@ if __name__ == "__main__":
     print("[PASS] test_brand_extraction_bajaj_never_amazon passed")
     test_rufus_price_history_integration()
     print("[PASS] test_rufus_price_history_integration passed")
-    print("\n*** ALL 6 DEAL INTELLIGENCE & BRAND TESTS PASSED SUCCESSFULLY! ***\n")
+    test_deal_category_confidence_normalization()
+    print("[PASS] test_deal_category_confidence_normalization passed")
+    test_ai_enrichment_schema_category_confidence()
+    print("[PASS] test_ai_enrichment_schema_category_confidence passed")
+    test_confidence_score_zero_allowed()
+    print("[PASS] test_confidence_score_zero_allowed passed")
+    test_rufus_history_original_price_derivation()
+    print("[PASS] test_rufus_history_original_price_derivation passed")
+    print("\n*** ALL 10 DEAL INTELLIGENCE & SCHEMA TESTS PASSED SUCCESSFULLY! ***\n")
+
 

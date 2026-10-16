@@ -254,6 +254,17 @@ class AmazonScraper(MerchantScraper):
                         except Exception as rhe:
                             print(f"[AmazonScraper] Rufus AI extraction notice: {rhe}")
 
+                    if (not orig_price or (curr_price and orig_price <= curr_price)) and rufus_history:
+                        hist_high = (
+                            rufus_history.get("history_90d_high")
+                            or rufus_history.get("history_365d_high")
+                            or rufus_history.get("history_30d_high")
+                        )
+                        if hist_high and curr_price and hist_high > curr_price:
+                            orig_price = float(hist_high)
+                            discount = round(((orig_price - curr_price) / orig_price) * 100, 2)
+                            print(f"[AmazonScraper] Populated original price from Rufus AI history: Rs.{orig_price} ({discount}% drop from historical high)")
+
                     deal = Deal(
                         merchant="amazon",
                         title=title,

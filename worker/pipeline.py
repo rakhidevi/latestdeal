@@ -56,6 +56,15 @@ class ScrapingPipeline:
                 deal.competitor_results = []
             tracker.mark_end("serp_intelligence")
                 
+            # 5.6 Derive original MSRP from Rufus price history if missing or <= current price
+            if (not deal.original_price or (deal.price and deal.original_price <= deal.price)) and getattr(deal, 'price_history_raw', None):
+                raw_h = deal.price_history_raw
+                h_high = raw_h.get("history_90d_high") or raw_h.get("history_365d_high") or raw_h.get("history_30d_high")
+                if h_high and deal.price and float(h_high) > deal.price:
+                    deal.original_price = float(h_high)
+                    deal.discount_percent = round(((deal.original_price - deal.price) / deal.original_price) * 100, 2)
+                    print(f"[Pipeline] Derived original price from price history: Rs.{deal.original_price} ({deal.discount_percent}% drop)")
+
             # 6. AI Enrichment (Category, Score, Caption, Cross-Store Arbitrage)
             tracker.mark_start("ai")
             try:
