@@ -1,7 +1,7 @@
 import os
 import json
 from openai import OpenAI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List
 
 from models import Deal, DealCategory, AICategoryFailed
@@ -21,12 +21,25 @@ except ImportError:
 
 class AIEnrichmentSchema(BaseModel):
     category_name: str = Field(description="The canonical category of the product (e.g. Electronics, Fashion)")
-    category_confidence: float = Field(description="Confidence score from 0.0 to 1.0 of the categorization")
+    category_confidence: float = Field(default=0.9, description="Confidence score from 0.0 to 1.0 of the categorization")
     caption: str = Field(description="A catchy short caption for this deal")
     summary: str = Field(default="", description="A short 1-2 sentence summary of why this is a good deal")
     verdict: str = Field(default="", description="AI recommendation: Buy Now vs Wait, with a short explanation")
     pros: List[str] = Field(default_factory=list, description="List of 2-3 pros of this product")
     cons: List[str] = Field(default_factory=list, description="List of 1-2 cons of this product")
+
+    @field_validator('category_confidence', mode='before')
+    @classmethod
+    def normalize_category_confidence(cls, v):
+        if v is None:
+            return 0.0
+        try:
+            val = float(v)
+            if val > 1.0:
+                val = val / 100.0
+            return max(0.0, min(1.0, val))
+        except (ValueError, TypeError):
+            return 0.0
 
 def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserved_score: float = None) -> Deal:
     """Uses deterministic validation engine for scoring, and LLM strictly for content generation."""
@@ -63,9 +76,9 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
         if comp_min:
             diff = comp_min - (deal.price or 0.0)
             if diff > 0:
-                comp_info = f"- Market Intelligence: ₹{diff:,.0f} CHEAPER than lowest major competitor (Competitor: ₹{comp_min:,.0f})"
+                comp_info = f"- Market Intelligence: Rs.{diff:,.0f} CHEAPER than lowest major competitor (Competitor: Rs.{comp_min:,.0f})"
             else:
-                comp_info = f"- Market Intelligence: Competitor price is lower or matched (Competitor: ₹{comp_min:,.0f})"
+                comp_info = f"- Market Intelligence: Competitor price is lower or matched (Competitor: Rs.{comp_min:,.0f})"
 
         print(f"[Engine] Deterministic Deal Score: {deal.ai_score}/100, Qualification: {d_qual}, Verdict Code: {v_code}")
         
@@ -90,8 +103,7 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
         - REQUIRED VERDICT DIRECTION: {v_code}
         {comp_info}
         
-        If this product information does not look like an actual product deal or looks like an error page, set the category_name strictly to 'nodeal'.
-        Otherwise, provide the missing information in strict JSON. Do NOT output the schema itself. Output a JSON object with these exact keys:
+        Provide the information in strict JSON. Do NOT output the schema itself. Output a JSON object with these exact keys:
         - "category_name" (string)
         - "category_confidence" (float)
         - "caption" (string)
@@ -101,13 +113,16 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
         - "cons" (list of strings)
         
         CRITICAL INSTRUCTIONS:
-        1. 'caption' must be an SEO-optimized, highly engaging title/hook (under 100 chars). Use powerful action words.
-        2. 'summary' must be a unique, SEO-friendly meta description (120-150 chars). Include the brand name, product type, and core benefit. Do NOT just repeat the title.
-        3. 'verdict' MUST strictly adhere to the REQUIRED VERDICT DIRECTION '{v_code}':
+        1. 'category_name' must be the canonical product category (e.g. 'Electronics', 'Fashion', 'Footwear', 'Home & Kitchen', 'Mobiles', 'Beauty & Personal Care', 'Food & Grocery').
+           - ONLY set category_name to 'nodeal' if the title indicates a 404 error, captcha block, robot check, or completely empty/corrupted title.
+           - NEVER set category_name to 'nodeal' simply because Deal Quality Score is low or VERDICT is 'WAIT'. Real products at normal or modest prices are valid catalog entries!
+        2. 'caption' must be an SEO-optimized, highly engaging title/hook (under 100 chars). Use powerful action words.
+        3. 'summary' must be a unique, SEO-friendly meta description (120-150 chars). Include the brand name, product type, and core benefit. Do NOT just repeat the title.
+        4. 'verdict' MUST strictly adhere to the REQUIRED VERDICT DIRECTION '{v_code}':
            - If '{v_code}' is 'WAIT': Explain clearly why the shopper should WAIT for a better drop or upcoming sale (e.g. price is near ordinary selling levels and not an exceptional historical low). You are strictly FORBIDDEN from recommending "Buy Now".
            - If '{v_code}' is 'BUY_NOW': Recommend "Buy Now" explaining that the item is at a significant price drop or rare historical low.
            - If '{v_code}' is 'CONSIDER': Explain that this is a fair price or modest discount.
-        4. Do NOT include ANY URLs, links, or "Buy Now: https://..." anywhere in your output. We handle linking separately.
+        5. Do NOT include ANY URLs, links, or "Buy Now: https://..." anywhere in your output. We handle linking separately.
         """
         
         response = asyncio.run(router.chat(
@@ -121,7 +136,32 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
         data = json.loads(response['content'])
         parsed = AIEnrichmentSchema(**data)
         
-        deal.category = DealCategory(name=parsed.category_name, confidence=parsed.category_confidence)
+        category_name = parsed.category_name
+        if category_name.strip().lower() in ["nodeal", "no deal", "not a deal"]:
+            # Recover genuine products from false nodeal classification
+            title_lower = (deal.title or "").lower()
+            error_keywords = ["page not found", "robot check", "captcha", "error 404", "sorry! we couldn't find"]
+            is_real_product = (len(deal.title or "") >= 10) and not any(kw in title_lower for kw in error_keywords)
+            if is_real_product:
+                if any(k in title_lower for k in ['shoe', 'running', 'sneaker', 'sandal', 'slipper', 'boot']):
+                    category_name = "Footwear"
+                elif any(k in title_lower for k in ['bedsheet', 'mattress', 'pillow', 'blanket', 'curtain', 'home', 'kitchen', 'cooker', 'pan', 'bottle', 'mug']):
+                    category_name = "Home & Kitchen"
+                elif any(k in title_lower for k in ['shirt', 't-shirt', 'pant', 'jeans', 'trousers', 'dress', 'kurta', 'jacket', 'fashion', 'wear']):
+                    category_name = "Fashion"
+                elif any(k in title_lower for k in ['phone', 'mobile', 'smartphone', 'iphone', 'samsung galaxy', 'redmi', 'realme', 'poco', 'oneplus']):
+                    category_name = "Mobiles"
+                elif any(k in title_lower for k in ['laptop', 'headphone', 'earphone', 'earbuds', 'watch', 'smartwatch', 'speaker', 'tv', 'electronics']):
+                    category_name = "Electronics"
+                elif any(k in title_lower for k in ['shampoo', 'cream', 'serum', 'lotion', 'perfume', 'makeup', 'face wash', 'beauty']):
+                    category_name = "Beauty & Personal Care"
+                elif any(k in title_lower for k in ['cookie', 'biscuit', 'chocolate', 'tea', 'coffee', 'grocery', 'snack']):
+                    category_name = "Food & Grocery"
+                else:
+                    category_name = "General Deals"
+                print(f"[AI Fallback] Recovered authentic product from 'nodeal' hallucination -> Category: {category_name}")
+
+        deal.category = DealCategory(name=category_name, confidence=parsed.category_confidence)
         deal.ai_caption = parsed.caption
         deal.verdict = parsed.verdict
         deal.verdict_code = v_code

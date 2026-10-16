@@ -151,7 +151,7 @@ def _ddg_search_store(query: str, store_key: str, max_results: int = 3) -> list[
 
         if results:
             logger.info(f"[DDG] {store_key}: {len(results)} results, best price: "
-                        f"₹{results[0].price}")
+                        f"Rs.{results[0].price}")
 
     except Exception as e:
         logger.warning(f"[DDG] {store_key} search failed: {e}")

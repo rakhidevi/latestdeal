@@ -179,6 +179,35 @@ async def process_queue():
                 if b_norm not in disallowed:
                     resolved_brand = deal.brand.strip()
             
+            # Price & Discount Sanity Gate (Prevent 422 Client Error: No discount)
+            curr_price = deal.price or 0.0
+            orig_price = deal.original_price or 0.0
+
+            if (orig_price <= curr_price or orig_price <= 0) and curr_price > 0:
+                pi = getattr(deal, 'price_intelligence', None)
+                hist_high = None
+                if pi:
+                    hist_high = pi.history_90d_high or pi.history_365d_high or pi.history_30d_high
+                elif getattr(deal, 'price_history_raw', None):
+                    raw = deal.price_history_raw
+                    hist_high = raw.get("history_90d_high") or raw.get("history_365d_high") or raw.get("history_30d_high")
+                
+                if hist_high and hist_high > curr_price:
+                    orig_price = float(hist_high)
+                    deal.original_price = orig_price
+
+            if curr_price <= 0:
+                add_log(f"Deal skipped: Invalid or zero price (Rs.{curr_price}).")
+                mark_status(item_id, 'skipped')
+                update_job(job_id, status="failure", logs=job_logs + [f"Skipped: Invalid zero price Rs.{curr_price}"])
+                continue
+
+            if orig_price <= curr_price:
+                add_log(f"Deal skipped: No genuine discount (Price Rs.{curr_price} >= Original Rs.{orig_price}).")
+                mark_status(item_id, 'skipped')
+                update_job(job_id, status="failure", logs=job_logs + [f"Skipped: No genuine discount (Price Rs.{curr_price} >= Original Rs.{orig_price})"])
+                continue
+
             payload = {
                 "asin": extract_asin(deal.canonical_url),
                 "trace_id": str(uuid.uuid4()),

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional
 
 # ==========================================
@@ -64,6 +64,19 @@ class DealCategory(BaseModel):
     name: str = Field(description="The canonical name of the category")
     confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="Confidence score from AI or Keyword Classifier")
 
+    @field_validator('confidence', mode='before')
+    @classmethod
+    def normalize_confidence(cls, v):
+        if v is None:
+            return 0.0
+        try:
+            val = float(v)
+            if val > 1.0:
+                val = val / 100.0
+            return max(0.0, min(1.0, val))
+        except (ValueError, TypeError):
+            return 0.0
+
 class Deal(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -100,5 +113,6 @@ class Deal(BaseModel):
     price_intelligence: Optional[PriceIntelligence] = Field(default=None, description="Deterministic price history intelligence")
     price_history_raw: Optional[dict] = Field(default=None, description="Raw historical price observations or Rufus AI history")
     
-    confidence_score: Optional[int] = Field(default=None, ge=1, le=100, description="Confidence in deal quality")
+    confidence_score: Optional[int] = Field(default=None, ge=0, le=100, description="Confidence in deal quality")
     confidence_reasons: Optional[list] = Field(default_factory=list, description="Reasons for confidence score")
+
