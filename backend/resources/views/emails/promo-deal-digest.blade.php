@@ -18,6 +18,11 @@
         body { margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #0f172a; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         a { color: inherit; }
 
+        .deal-img {
+            object-fit: contain !important;
+            object-position: center !important;
+        }
+
         @media screen and (max-width: 600px) {
             .email-container { width: 100% !important; }
             .deal-cell { display: block !important; width: 100% !important; padding: 0 0 12px 0 !important; }
@@ -25,6 +30,8 @@
             .hero-sub { font-size: 15px !important; }
             .cat-cell { display: inline-block !important; margin-bottom: 6px !important; }
             .mob-pad { padding: 16px 12px !important; }
+            .deal-img-cell { height: 210px !important; }
+            .deal-img { max-height: 190px !important; max-width: 260px !important; }
         }
     </style>
 </head>
@@ -148,14 +155,32 @@
 
                                              <!-- Product Image with Discount Badge overlay -->
                                             <tr>
-                                                <td style="position: relative; padding: 0; background-color: #ffffff;" align="center">
-                                                    <a href="{{ url('/deal/' . $deal->slug . '/' . $deal->hash_id) }}" target="_blank" style="text-decoration: none; display: block;">
-                                                        <img src="{{ $deal->image_url ?? $deal->image_path ?? asset('images/logo.png') }}" alt="{{ $deal->title }}" width="240" height="160" style="display: block; width: 100%; max-width: 264px; max-height: 160px; border-radius: 12px 12px 0 0; background-color: #ffffff;" />
+                                                <td class="deal-img-cell" height="180" align="center" valign="middle" style="position: relative; padding: 12px 10px 8px 10px; background-color: #ffffff; height: 180px; text-align: center; vertical-align: middle; border-radius: 12px 12px 0 0;">
+                                                    <a href="{{ url('/deal/' . $deal->slug . '/' . $deal->hash_id) }}" target="_blank" style="text-decoration: none; display: block; text-align: center; line-height: 0;">
+                                                        <!--[if mso]>
+                                                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                            <tr>
+                                                                <td height="160" align="center" valign="middle" style="height: 160px; background-color: #ffffff; text-align: center;">
+                                                                    <img src="{{ $deal->image_url ?? $deal->image_path ?? asset('images/logo.png') }}" alt="{{ $deal->title }}" width="160" style="display: block; width: 160px; height: auto; margin: 0 auto; border: 0;" />
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                        <div style="display:none; mso-hide:all;">
+                                                        <![endif]-->
+                                                        <img src="{{ $deal->image_url ?? $deal->image_path ?? asset('images/logo.png') }}" 
+                                                             alt="{{ $deal->title }}" 
+                                                             class="deal-img" 
+                                                             width="220" 
+                                                             height="160" 
+                                                             style="display: block; width: 100%; max-width: 220px; height: 160px; max-height: 160px; object-fit: contain; object-position: center; margin: 0 auto; border: 0; outline: none; background-color: #ffffff;" />
+                                                        <!--[if mso]>
+                                                        </div>
+                                                        <![endif]-->
                                                     </a>
                                                     <!-- Discount Badge — positioned absolutely -->
                                                     @if($deal->discount_percentage > 0)
                                                     <!--[if !mso]><!-->
-                                                    <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #dc2626, #b91c1c); color: #ffffff; font-size: 14px; font-weight: 900; padding: 6px 10px; border-radius: 8px; line-height: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                                                    <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #dc2626, #b91c1c); color: #ffffff; font-size: 14px; font-weight: 900; padding: 6px 10px; border-radius: 8px; line-height: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 2; pointer-events: none;">
                                                         {{ round($deal->discount_percentage) }}%<br><span style="font-size: 9px; font-weight: 600; letter-spacing: 0.5px;">OFF</span>
                                                     </div>
                                                     <!--<![endif]-->
