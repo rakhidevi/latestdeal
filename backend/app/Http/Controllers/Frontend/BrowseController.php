@@ -91,13 +91,41 @@ class BrowseController extends Controller
 
     public function byCategory(Request $request, $slug)
     {
-        $category = Category::where('slug', $slug)->first();
+        $slugAliases = [
+            'home' => 'home-kitchen',
+            'kitchen' => 'home-kitchen',
+            'home-and-kitchen' => 'home-kitchen',
+            'fashion' => 'fashion-accessories',
+            'clothing' => 'fashion-accessories',
+            'beauty' => 'beauty-personal-care',
+            'personal-care' => 'beauty-personal-care',
+            'courses' => 'courses-education',
+            'education' => 'courses-education',
+            'baby' => 'baby-products',
+            'grocery' => 'grocery',
+            'food' => 'grocery',
+        ];
+
+        $canonicalSlug = $slugAliases[strtolower($slug)] ?? strtolower($slug);
+
+        // Redirect short/common aliases to canonical category URL
+        if ($canonicalSlug !== strtolower($slug)) {
+            return redirect()->route('deals.category', array_merge($request->query(), ['slug' => $canonicalSlug]), 301);
+        }
+
+        $category = Category::where('slug', $canonicalSlug)->first();
         if (!$category) {
-            $name = ucwords(str_replace(['-', '_'], ' ', $slug));
-            $category = Category::firstOrCreate(['slug' => $slug], ['name' => $name, 'icon' => '📦']);
+            $category = Category::where('slug', 'like', $canonicalSlug . '-%')
+                ->orWhere('slug', 'like', '%-' . $canonicalSlug)
+                ->first();
+        }
+
+        if (!$category) {
+            $name = ucwords(str_replace(['-', '_'], ' ', $canonicalSlug));
+            $category = Category::firstOrCreate(['slug' => $canonicalSlug], ['name' => $name, 'icon' => '📦']);
         }
         
-        $filters = array_merge($request->all(), ['category_slug' => $slug]);
+        $filters = array_merge($request->all(), ['category_slug' => $category->slug]);
         $deals = $this->pipeline->search($filters);
         
         $pageTitle = $category->name . ' Deals';

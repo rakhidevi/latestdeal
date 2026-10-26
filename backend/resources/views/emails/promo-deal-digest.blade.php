@@ -106,9 +106,9 @@
                             @php
                                 $categories = [
                                     ['📱', 'Electronics', 'electronics'],
-                                    ['👗', 'Fashion', 'fashion'],
-                                    ['🏠', 'Home', 'home'],
-                                    ['✨', 'Beauty', 'beauty'],
+                                    ['👗', 'Fashion', 'fashion-accessories'],
+                                    ['🏠', 'Home & Kitchen', 'home-kitchen'],
+                                    ['✨', 'Beauty', 'beauty-personal-care'],
                                     ['🎮', 'Gaming', 'gaming'],
                                 ];
                             @endphp
