@@ -223,6 +223,18 @@
                     </form>
                 @endif
 
+                @if($deal->guideArticle)
+                    <a href="{{ route('articles.show', $deal->guideArticle->slug) }}" target="_blank" title="View Guide: {{ $deal->guideArticle->title }}" class="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
+                        <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                    </a>
+                @endif
+                <form action="{{ route('admin.deals.generate-guide', $deal->id) }}" method="POST" title="{{ $deal->guideArticle ? 'Regenerate Buying Guide' : 'Generate Buying Guide' }}">
+                    @csrf
+                    <button type="submit" class="p-1.5 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                    </button>
+                </form>
+
                 <form action="{{ route('admin.deals.duplicate', $deal->id) }}" method="POST" title="Duplicate deal">
                     @csrf
                     <button type="submit" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
@@ -257,3 +269,4 @@
     </div>
 </div>
 @endsection
+

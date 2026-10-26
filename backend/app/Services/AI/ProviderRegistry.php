@@ -20,17 +20,24 @@ class ProviderRegistry
 
     protected function loadConfiguration(): void
     {
-        $orderEnv = env('AI_PROVIDER_ORDER', 'nvidia,ollama,groq,cerebras');
+        $orderEnv = env('AI_PROVIDER_ORDER', 'ollama,nvidia,groq,cerebras');
         $this->order = array_filter(array_map('trim', explode(',', $orderEnv)));
 
         foreach ($this->order as $providerKey) {
             $prefix = 'AI_' . strtoupper($providerKey) . '_';
             
             if (env($prefix . 'ENABLED', false)) {
+                $apiKey = env($prefix . 'API_KEY');
+
+                // Skip external cloud providers if no API key is set
+                if ($providerKey !== 'ollama' && empty($apiKey)) {
+                    continue;
+                }
+
                 $config = [
                     'id' => $providerKey,
                     'base_url' => env($prefix . 'BASE_URL'),
-                    'api_key' => env($prefix . 'API_KEY'),
+                    'api_key' => $apiKey,
                     'model' => env($prefix . 'MODEL'),
                     'vision_model' => env($prefix . 'VISION_MODEL'),
                 ];

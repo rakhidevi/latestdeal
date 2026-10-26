@@ -234,6 +234,24 @@
                 @endauth
             </div>
             
+            @if($deal->guideArticle)
+                <div class="mt-6 p-4 rounded-2xl bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/40 border border-indigo-100 dark:border-indigo-900/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="p-2.5 rounded-xl bg-indigo-600 text-white shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        </span>
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Editorial Analysis Available</span>
+                            <h4 class="text-sm font-bold text-slate-900 dark:text-white leading-tight">Complete Buying Guide & Price History Audit</h4>
+                        </div>
+                    </div>
+                    <a href="{{ route('articles.show', $deal->guideArticle->slug) }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shrink-0">
+                        <span>Read Buying Guide</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            @endif
+
             <div class="mt-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-lg p-3 text-xs text-amber-800 dark:text-amber-400">
                 <strong>Transparency:</strong> LatestDeal is reader-supported. If you buy through our links, we may earn a commission from partners like Amazon. <a href="{{ route('affiliate.disclosure') }}" class="underline hover:text-amber-900 dark:hover:text-amber-300">Read our disclosure</a>.
             </div>
@@ -909,3 +927,4 @@
 </script>
 @endpush
 @endsection
+

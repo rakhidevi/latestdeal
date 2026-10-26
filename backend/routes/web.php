@@ -216,6 +216,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/deals/{deal}/edit', [\App\Http\Controllers\Admin\DealController::class, 'edit'])->name('admin.deals.edit');
     Route::put('/deals/{deal}', [\App\Http\Controllers\Admin\DealController::class, 'update'])->name('admin.deals.update');
     Route::post('/deals/{deal}/duplicate', [\App\Http\Controllers\Admin\DealController::class, 'duplicate'])->name('admin.deals.duplicate');
+    Route::post('/deals/{deal}/generate-guide', [\App\Http\Controllers\Admin\DealController::class, 'generateGuide'])->name('admin.deals.generate-guide');
     Route::put('/deals/{deal}/status', [\App\Http\Controllers\Admin\DealController::class, 'updateStatus'])->name('admin.deals.status');
     Route::delete('/deals/{deal}', [\App\Http\Controllers\Admin\DealController::class, 'destroy'])->name('admin.deals.destroy');
     Route::delete('/deals-purge-illegal', [\App\Http\Controllers\Admin\DealController::class, 'purgeIllegal'])->name('admin.deals.purge-illegal');
