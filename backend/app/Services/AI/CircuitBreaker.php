@@ -2,18 +2,19 @@
 
 namespace App\Services\AI;
 
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
+use Exception;
 
 class CircuitBreaker
 {
-    public const STATE_HEALTHY = 'HEALTHY';
-    public const STATE_OPEN = 'OPEN';
-    public const STATE_RECOVERING = 'RECOVERING';
+    const STATE_HEALTHY = 'HEALTHY';
+    const STATE_OPEN = 'OPEN';
+    const STATE_RECOVERING = 'RECOVERING';
 
-    protected $store;
-    protected $threshold;
-    protected $cooldown;
+    protected string $store;
+    protected int $threshold;
+    protected int $cooldown;
 
     public function __construct()
     {
@@ -30,11 +31,11 @@ class CircuitBreaker
     protected function get(string $key, $default = null)
     {
         try {
-            if ($this->store === 'redis') {
+            if ($this->store === 'redis' && extension_loaded('redis') && class_exists('Redis')) {
                 return Redis::get($key) ?? $default;
             }
             return Cache::get($key, $default);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return Cache::get($key, $default);
         }
     }
@@ -42,7 +43,7 @@ class CircuitBreaker
     protected function set(string $key, $value, $ttl = null): void
     {
         try {
-            if ($this->store === 'redis') {
+            if ($this->store === 'redis' && extension_loaded('redis') && class_exists('Redis')) {
                 if ($ttl) {
                     Redis::setex($key, $ttl, $value);
                 } else {
@@ -55,7 +56,7 @@ class CircuitBreaker
                     Cache::forever($key, $value);
                 }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             if ($ttl) {
                 Cache::put($key, $value, $ttl);
             } else {
@@ -92,9 +93,13 @@ class CircuitBreaker
         $this->set($this->getKey($providerId, 'last_success'), time());
         
         // Clear cooldown
-        if ($this->store === 'redis') {
-            Redis::del($this->getKey($providerId, 'cooldown_until'));
-        } else {
+        try {
+            if ($this->store === 'redis' && extension_loaded('redis') && class_exists('Redis')) {
+                Redis::del($this->getKey($providerId, 'cooldown_until'));
+            } else {
+                Cache::forget($this->getKey($providerId, 'cooldown_until'));
+            }
+        } catch (\Throwable $e) {
             Cache::forget($this->getKey($providerId, 'cooldown_until'));
         }
     }

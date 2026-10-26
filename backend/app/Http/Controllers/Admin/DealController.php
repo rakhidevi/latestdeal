@@ -236,6 +236,19 @@ class DealController extends Controller
         return back()->with('success', 'Deal permanently deleted.');
     }
 
+    public function generateGuide(Request $request, Deal $deal, \App\Services\Editorial\Contracts\GuideArticleGeneratorInterface $generator)
+    {
+        try {
+            $dto = $generator->generateForDeal($deal);
+            $article = $generator->saveArticle($dto, auth()->id());
+
+            return back()->with('success', "Buying Guide '{$article->title}' published! View it at: " . route('articles.show', $article->slug));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to generate guide for deal {$deal->id}: " . $e->getMessage());
+            return back()->with('error', 'Could not generate guide: ' . $e->getMessage());
+        }
+    }
+
     public function purgeIllegal()
     {
         $count = $this->dealAdminService->purgeIllegalDeals();

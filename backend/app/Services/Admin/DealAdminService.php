@@ -11,7 +11,7 @@ class DealAdminService
      */
     public function getDealsCatalogData($status, $search, $sortBy = 'created_at')
     {
-        $query = Deal::where('status', $status);
+        $query = Deal::with(['merchant', 'category', 'guideArticle'])->where('status', $status);
         
         if (!empty($search)) {
             $query->where(function($q) use ($search) {
@@ -133,3 +133,4 @@ class DealAdminService
         ];
     }
 }
+

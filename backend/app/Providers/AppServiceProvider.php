@@ -20,6 +20,11 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\Communications\AssetStorageInterface::class,
             \App\Services\Communications\Storage\LocalStorageProvider::class
         );
+
+        $this->app->bind(
+            \App\Services\Editorial\Contracts\GuideArticleGeneratorInterface::class,
+            \App\Services\Editorial\GuideArticleGeneratorService::class
+        );
     }
 
     /**
@@ -150,3 +155,4 @@ class AppServiceProvider extends ServiceProvider
     }
 
 }
+

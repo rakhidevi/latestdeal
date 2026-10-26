@@ -170,6 +170,11 @@ class Deal extends Model
         return $this->belongsTo(Brand::class, 'brand_id');
     }
 
+    public function guideArticle()
+    {
+        return $this->hasOne(Article::class, 'deal_id');
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -487,3 +492,4 @@ class Deal extends Model
         return $this->isPublishable() && $this->is_editor_pick;
     }
 }
+

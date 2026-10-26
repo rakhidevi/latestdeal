@@ -60,7 +60,7 @@ abstract class BaseOpenAIAdapter implements ProviderAdapterInterface
             $payload['max_tokens'] = $options['max_tokens'];
         }
 
-        $request = Http::timeout($options['timeout'] ?? 30);
+        $request = Http::timeout($options['timeout'] ?? 120);
         
         if (!empty($this->config['api_key'])) {
             $request->withToken($this->config['api_key']);
@@ -127,3 +127,4 @@ abstract class BaseOpenAIAdapter implements ProviderAdapterInterface
         return ['type' => 'FAILOVER', 'message' => 'Unknown error: ' . $e->getMessage()];
     }
 }
+

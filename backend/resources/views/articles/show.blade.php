@@ -4,6 +4,11 @@
     <title>{{ $seoMeta['title'] }}</title>
     <meta name="description" content="{{ $seoMeta['description'] }}">
     <link rel="canonical" href="{{ $seoMeta['canonical'] }}">
+    @if(!empty($seoMeta['schema']))
+        <script type="application/ld+json">
+            {!! json_encode($seoMeta['schema'], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+        </script>
+    @endif
 @endsection
 
 @section('content')
@@ -120,3 +125,4 @@
     </article>
 </div>
 @endsection
+

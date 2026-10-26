@@ -15,9 +15,11 @@ class Article extends Model
     const STATUS_PUBLISHED = 'published';
 
     protected $fillable = [
+        'deal_id',
         'title',
         'slug',
         'summary',
+        'excerpt',
         'content',
         'status',
         'author_id',
@@ -31,6 +33,11 @@ class Article extends Model
         'seo_metadata' => 'array',
         'published_at' => 'datetime'
     ];
+
+    public function deal()
+    {
+        return $this->belongsTo(Deal::class);
+    }
 
     public function author()
     {
