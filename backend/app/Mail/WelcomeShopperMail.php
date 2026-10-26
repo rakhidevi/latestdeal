@@ -11,7 +11,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class WelcomeShopperMail extends Mailable implements ShouldQueue
+class WelcomeShopperMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -22,7 +22,7 @@ class WelcomeShopperMail extends Mailable implements ShouldQueue
     {
         $this->user = $user;
         $this->verificationUrl = $verificationUrl;
-        $this->onQueue('normal'); // Queue priority: normal
+        // Direct delivery unless queued // Queue priority: normal
     }
 
     public function envelope(): Envelope

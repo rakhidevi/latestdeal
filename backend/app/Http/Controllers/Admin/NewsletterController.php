@@ -512,27 +512,34 @@ class NewsletterController extends Controller
                     \Log::warning("Could not record EmailCampaign: " . $dbEx->getMessage());
                 }
 
-                foreach (array_chunk($emails, 50) as $chunk) {
-                    foreach ($chunk as $email) {
-                        try {
-                            $mailable = new PromoDealDigestMail(
-                                $deals, 
-                                $subject, 
-                                $subheadline,
-                                url('/unsubscribe?email=' . urlencode($email))
-                            );
-                            Mail::to($email)->queue($mailable);
-                        } catch (\Throwable $e) {
-                            // Continue to next recipient
-                        }
+                $sentCount = 0;
+                $failedCount = 0;
+                $lastError = null;
+
+                // Send synchronously to ensure real-time SMTP delivery and surface any configuration issues
+                foreach ($emails as $email) {
+                    try {
+                        $mailable = new PromoDealDigestMail(
+                            $deals, 
+                            $subject, 
+                            $subheadline,
+                            url('/unsubscribe?email=' . urlencode($email))
+                        );
+                        Mail::to($email)->send($mailable);
+                        $sentCount++;
+                    } catch (\Throwable $e) {
+                        $failedCount++;
+                        $lastError = $e->getMessage();
+                        \Log::error("Failed to send promo email to {$email}: " . $e->getMessage());
                     }
                 }
 
                 if ($campaign) {
                     try {
                         $campaign->update([
-                            'status' => 'Completed',
-                            'sent_count' => count($emails),
+                            'status' => ($failedCount > 0 && $sentCount === 0) ? 'Failed' : 'Completed',
+                            'sent_count' => $sentCount,
+                            'failed_count' => $failedCount,
                             'completed_at' => now(),
                         ]);
                     } catch (\Throwable $dbEx) {
@@ -540,7 +547,14 @@ class NewsletterController extends Controller
                     }
                 }
 
-                $msg = "Newsletter '{$subject}' queued for " . count($emails) . " custom recipients!";
+                if ($failedCount > 0 && $sentCount === 0) {
+                    return back()->with('error', "Failed to send email via SMTP: {$lastError}. Please check your SMTP settings under System Settings.")->withInput();
+                }
+
+                $msg = "Newsletter '{$subject}' successfully sent to {$sentCount} recipient(s)!";
+                if ($failedCount > 0) {
+                    $msg .= " ({$failedCount} failed to deliver)";
+                }
                 if ($request->boolean('save_as_subscribers')) {
                     $msg .= " Recipients have also been saved to your active subscribers list.";
                 }
@@ -573,9 +587,13 @@ class NewsletterController extends Controller
                 \Log::warning("Could not record EmailCampaign: " . $dbEx->getMessage());
             }
 
-            // Dispatch in chunks or queue
-            foreach ($subscribers->chunk(50) as $chunk) {
-                foreach ($chunk as $email) {
+            $sentCount = 0;
+            $failedCount = 0;
+            $lastError = null;
+
+            if ($subscribers->count() <= 50) {
+                // Direct delivery to ensure delivery on servers without a 24/7 queue daemon
+                foreach ($subscribers as $email) {
                     try {
                         $mailable = new PromoDealDigestMail(
                             $deals, 
@@ -583,18 +601,50 @@ class NewsletterController extends Controller
                             $subheadline,
                             url('/unsubscribe?email=' . urlencode($email))
                         );
-                        Mail::to($email)->queue($mailable);
+                        Mail::to($email)->send($mailable);
+                        $sentCount++;
                     } catch (\Throwable $e) {
-                        // Log failure
+                        $failedCount++;
+                        $lastError = $e->getMessage();
+                        \Log::error("Failed sending promo to subscriber {$email}: " . $e->getMessage());
                     }
                 }
+
+                if ($failedCount > 0 && $sentCount === 0) {
+                    return back()->with('error', "Failed to send to subscribers via SMTP: {$lastError}. Check SMTP settings under System Settings.");
+                }
+
+                $msg = "Newsletter '{$subject}' successfully sent to {$sentCount} active subscribers!";
+                if ($failedCount > 0) {
+                    $msg .= " ({$failedCount} failed)";
+                }
+            } else {
+                // Large lists: Queue in chunks
+                foreach ($subscribers->chunk(50) as $chunk) {
+                    foreach ($chunk as $email) {
+                        try {
+                            $mailable = new PromoDealDigestMail(
+                                $deals, 
+                                $subject, 
+                                $subheadline,
+                                url('/unsubscribe?email=' . urlencode($email))
+                            );
+                            Mail::to($email)->queue($mailable);
+                            $sentCount++;
+                        } catch (\Throwable $e) {
+                            $failedCount++;
+                        }
+                    }
+                }
+                $msg = "Newsletter '{$subject}' queued for {$subscribers->count()} active subscribers!";
             }
 
             if ($campaign) {
                 try {
                     $campaign->update([
                         'status' => 'Completed',
-                        'sent_count' => $subscribers->count(),
+                        'sent_count' => $sentCount,
+                        'failed_count' => $failedCount,
                         'completed_at' => now(),
                     ]);
                 } catch (\Throwable $dbEx) {
@@ -602,7 +652,7 @@ class NewsletterController extends Controller
                 }
             }
 
-            return back()->with('success', "Newsletter '{$subject}' queued for {$subscribers->count()} active subscribers!");
+            return back()->with('success', $msg);
         } catch (\Throwable $e) {
             \Log::error("Campaign Dispatch Error: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return back()->with('error', "Failed to dispatch campaign: " . $e->getMessage())->withInput();
