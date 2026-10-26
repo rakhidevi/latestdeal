@@ -323,6 +323,111 @@ class NewsletterController extends Controller
     /**
      * Trigger campaign broadcast to subscribers.
      */
+    /**
+     * Helper to parse and deduplicate valid emails from freeform text / delimiters.
+     */
+    protected function extractEmailsFromString(?string $raw): array
+    {
+        if (empty($raw)) {
+            return [];
+        }
+
+        $parts = preg_split('/[\s,;]+/', trim($raw), -1, PREG_SPLIT_NO_EMPTY);
+        $validEmails = [];
+        foreach ($parts as $part) {
+            $clean = strtolower(trim($part));
+            if (filter_var($clean, FILTER_VALIDATE_EMAIL)) {
+                $validEmails[$clean] = $clean;
+            }
+        }
+
+        return array_values($validEmails);
+    }
+
+    /**
+     * Add single subscriber manually.
+     */
+    public function storeSubscriber(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email|max:255',
+            'first_name' => 'nullable|string|max:100',
+            'last_name' => 'nullable|string|max:100',
+        ]);
+
+        $email = strtolower(trim($validated['email']));
+        $exists = DB::table('subscribers')->where('email', $email)->first();
+
+        if ($exists) {
+            DB::table('subscribers')->where('email', $email)->update([
+                'first_name' => $validated['first_name'] ?? $exists->first_name,
+                'last_name' => $validated['last_name'] ?? $exists->last_name,
+                'is_active' => 1,
+                'updated_at' => now(),
+            ]);
+            return back()->with('success', "Subscriber {$email} updated and marked active!");
+        }
+
+        DB::table('subscribers')->insert([
+            'email' => $email,
+            'first_name' => $validated['first_name'] ?? null,
+            'last_name' => $validated['last_name'] ?? null,
+            'is_active' => 1,
+            'status' => 'active',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', "Subscriber {$email} added successfully!");
+    }
+
+    /**
+     * Bulk import multiple email addresses.
+     */
+    public function bulkImportSubscribers(Request $request)
+    {
+        $rawText = $request->input('emails_text', '');
+
+        if ($request->hasFile('csv_file')) {
+            $file = $request->file('csv_file');
+            $rawText .= "\n" . file_get_contents($file->getRealPath());
+        }
+
+        $emails = $this->extractEmailsFromString($rawText);
+
+        if (empty($emails)) {
+            return back()->with('error', 'No valid email addresses found in the provided input.');
+        }
+
+        $imported = 0;
+        $updated = 0;
+
+        foreach ($emails as $email) {
+            $exists = DB::table('subscribers')->where('email', $email)->first();
+            if ($exists) {
+                DB::table('subscribers')->where('email', $email)->update([
+                    'is_active' => 1,
+                    'updated_at' => now(),
+                ]);
+                $updated++;
+            } else {
+                DB::table('subscribers')->insert([
+                    'email' => $email,
+                    'is_active' => 1,
+                    'status' => 'active',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $imported++;
+            }
+        }
+
+        return back()->with('success', "Bulk import complete! {$imported} new subscribers added, {$updated} existing subscribers activated.");
+    }
+
+    /**
+     * Trigger campaign broadcast to subscribers or custom bulk recipients.
+     */
     public function triggerCampaign(Request $request)
     {
         $validated = $request->validate([
@@ -330,7 +435,9 @@ class NewsletterController extends Controller
             'subheadline' => 'nullable|string|max:500',
             'deal_ids' => 'nullable|array',
             'deal_ids.*' => 'exists:deals,id',
-            'target_audience' => 'required|in:subscribers,admin_test',
+            'target_audience' => 'required|in:subscribers,admin_test,custom_emails',
+            'custom_emails' => 'nullable|string',
+            'save_as_subscribers' => 'nullable|boolean',
         ]);
 
         $dealIds = $validated['deal_ids'] ?? [];
@@ -341,6 +448,7 @@ class NewsletterController extends Controller
         $subject = $validated['subject'];
         $subheadline = $validated['subheadline'] ?? 'Handpicked savings up to 80% off — verified & live right now.';
 
+        // 1. Send test email to admin
         if ($validated['target_audience'] === 'admin_test') {
             $adminEmail = auth()->user()->email ?? 'admin@latestdeal.in';
             try {
@@ -351,7 +459,72 @@ class NewsletterController extends Controller
             }
         }
 
-        // Audience is active subscribers
+        // 2. Custom or Bulk Email recipients
+        if ($validated['target_audience'] === 'custom_emails') {
+            $emails = $this->extractEmailsFromString($request->input('custom_emails', ''));
+
+            if (empty($emails)) {
+                return back()->with('error', 'Please provide at least one valid email address for custom bulk delivery.')->withInput();
+            }
+
+            // Optionally register them as active subscribers
+            if ($request->boolean('save_as_subscribers')) {
+                foreach ($emails as $email) {
+                    $exists = DB::table('subscribers')->where('email', $email)->first();
+                    if ($exists) {
+                        DB::table('subscribers')->where('email', $email)->update([
+                            'is_active' => 1,
+                            'updated_at' => now(),
+                        ]);
+                    } else {
+                        DB::table('subscribers')->insert([
+                            'email' => $email,
+                            'is_active' => 1,
+                            'status' => 'active',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
+
+            $campaign = EmailCampaign::create([
+                'name' => $subject . ' (Custom List)',
+                'subject' => $subject,
+                'status' => 'Sending',
+                'recipient_count' => count($emails),
+                'sent_count' => 0,
+                'failed_count' => 0,
+                'scheduled_at' => now(),
+            ]);
+
+            foreach (array_chunk($emails, 50) as $chunk) {
+                foreach ($chunk as $email) {
+                    try {
+                        $mailable = new PromoDealDigestMail(
+                            $deals, 
+                            $subject, 
+                            $subheadline,
+                            url('/unsubscribe?email=' . urlencode($email))
+                        );
+                        Mail::to($email)->queue($mailable);
+                    } catch (\Throwable $e) {
+                        // Continue to next recipient
+                    }
+                }
+            }
+
+            $campaign->update(['status' => 'Completed', 'sent_count' => count($emails)]);
+
+            $msg = "Newsletter '{$subject}' queued for " . count($emails) . " custom recipients!";
+            if ($request->boolean('save_as_subscribers')) {
+                $msg .= " Recipients have also been saved to your active subscribers list.";
+            }
+
+            return back()->with('success', $msg);
+        }
+
+        // 3. Broadcast to all active subscribers
         $subscribers = DB::table('subscribers')->where('is_active', 1)->pluck('email');
         if ($subscribers->isEmpty()) {
             return back()->with('error', 'No active subscribers found in database.');

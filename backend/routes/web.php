@@ -248,6 +248,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         Route::get('/templates/render/{templateKey}', [\App\Http\Controllers\Admin\NewsletterController::class, 'renderPreviewHtml'])->name('templates.render');
         Route::post('/templates/test', [\App\Http\Controllers\Admin\NewsletterController::class, 'sendTestEmail'])->name('templates.test');
         Route::get('/subscribers', [\App\Http\Controllers\Admin\NewsletterController::class, 'subscribers'])->name('subscribers');
+        Route::post('/subscribers', [\App\Http\Controllers\Admin\NewsletterController::class, 'storeSubscriber'])->name('subscribers.store');
+        Route::post('/subscribers/bulk-import', [\App\Http\Controllers\Admin\NewsletterController::class, 'bulkImportSubscribers'])->name('subscribers.bulk-import');
         Route::get('/subscribers/export', [\App\Http\Controllers\Admin\NewsletterController::class, 'exportSubscribers'])->name('subscribers.export');
         Route::post('/subscribers/{id}/toggle', [\App\Http\Controllers\Admin\NewsletterController::class, 'toggleSubscriber'])->name('subscribers.toggle');
         Route::delete('/subscribers/{id}', [\App\Http\Controllers\Admin\NewsletterController::class, 'destroySubscriber'])->name('subscribers.destroy');

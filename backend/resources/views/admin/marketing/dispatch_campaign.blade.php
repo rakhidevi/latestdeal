@@ -82,27 +82,71 @@
         </div>
 
         <!-- Audience & Dispatch Mode -->
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+        <div x-data="{
+            audience: '{{ old('target_audience', 'admin_test') }}',
+            customEmails: `{{ old('custom_emails', '') }}`,
+            get count() {
+                if (!this.customEmails) return 0;
+                const matches = this.customEmails.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+                return matches ? (new Set(matches.map(e => e.toLowerCase()))).size : 0;
+            }
+        }" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
             <h3 class="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
                 <i data-lucide="users" class="w-4 h-4 text-purple-500"></i> Target Audience
             </h3>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label class="border border-slate-200 rounded-xl p-4 flex items-start gap-3 hover:border-red-400 hover:bg-red-50/30 transition-all cursor-pointer">
-                    <input type="radio" name="target_audience" value="admin_test" checked class="mt-1 text-red-600 focus:ring-red-500 border-slate-300">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <label :class="audience === 'admin_test' ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500/20' : 'border-slate-200'" class="border rounded-xl p-4 flex items-start gap-3 hover:border-red-400 hover:bg-red-50/30 transition-all cursor-pointer">
+                    <input type="radio" name="target_audience" value="admin_test" x-model="audience" class="mt-1 text-red-600 focus:ring-red-500 border-slate-300">
                     <div>
-                        <div class="font-bold text-slate-800 text-sm">Send Test Broadcast to My Inbox</div>
-                        <p class="text-xs text-slate-500 mt-0.5">Dispatches single email only to {{ auth()->user()->email ?? 'your email' }}. Safe to test anytime.</p>
+                        <div class="font-bold text-slate-800 text-sm">Test to Admin</div>
+                        <p class="text-xs text-slate-500 mt-0.5">Dispatches single test email only to {{ auth()->user()->email ?? 'your email' }}.</p>
                     </div>
                 </label>
 
-                <label class="border border-slate-200 rounded-xl p-4 flex items-start gap-3 hover:border-red-400 hover:bg-red-50/30 transition-all cursor-pointer">
-                    <input type="radio" name="target_audience" value="subscribers" class="mt-1 text-red-600 focus:ring-red-500 border-slate-300">
+                <label :class="audience === 'subscribers' ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500/20' : 'border-slate-200'" class="border rounded-xl p-4 flex items-start gap-3 hover:border-red-400 hover:bg-red-50/30 transition-all cursor-pointer">
+                    <input type="radio" name="target_audience" value="subscribers" x-model="audience" class="mt-1 text-red-600 focus:ring-red-500 border-slate-300">
                     <div>
-                        <div class="font-bold text-slate-800 text-sm">Broadcast to All Active Subscribers</div>
-                        <p class="text-xs text-slate-500 mt-0.5">Will be queued to {{ number_format($subscriberCount) }} subscribers in database.</p>
+                        <div class="font-bold text-slate-800 text-sm">Active Subscribers</div>
+                        <p class="text-xs text-slate-500 mt-0.5">Broadcast to all {{ number_format($subscriberCount) }} subscribers currently in database.</p>
                     </div>
                 </label>
+
+                <label :class="audience === 'custom_emails' ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500/20' : 'border-slate-200'" class="border rounded-xl p-4 flex items-start gap-3 hover:border-red-400 hover:bg-red-50/30 transition-all cursor-pointer">
+                    <input type="radio" name="target_audience" value="custom_emails" x-model="audience" class="mt-1 text-red-600 focus:ring-red-500 border-slate-300">
+                    <div>
+                        <div class="font-bold text-slate-800 text-sm">Custom / Bulk List</div>
+                        <p class="text-xs text-slate-500 mt-0.5">Paste unregistered user emails or an external promotional campaign list.</p>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Custom / Bulk Input Area -->
+            <div x-show="audience === 'custom_emails'" x-cloak x-transition class="mt-4 pt-4 border-t border-slate-100 space-y-3">
+                <div class="flex items-center justify-between">
+                    <label class="block text-sm font-semibold text-slate-800">
+                        Custom Recipient Emails <span class="text-red-500">*</span>
+                    </label>
+                    <div class="text-xs flex items-center gap-1.5">
+                        <span class="text-slate-500">Valid Emails:</span>
+                        <span x-text="count" class="font-mono font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200"></span>
+                    </div>
+                </div>
+
+                <textarea
+                    name="custom_emails"
+                    x-model="customEmails"
+                    rows="4"
+                    placeholder="Paste emails separated by commas, spaces, or newlines...&#10;e.g.&#10;customer1@gmail.com, customer2@yahoo.com&#10;customer3@outlook.com"
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none"></textarea>
+
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+                    <label class="flex items-center gap-2 text-xs text-slate-700 font-medium cursor-pointer select-none">
+                        <input type="checkbox" name="save_as_subscribers" value="1" checked class="rounded text-red-600 focus:ring-red-500 border-slate-300">
+                        <span>Automatically save new emails into Active Subscribers database</span>
+                    </label>
+                    <span class="text-[11px] text-slate-400">Duplicates and invalid formats are automatically cleaned.</span>
+                </div>
             </div>
         </div>
 
