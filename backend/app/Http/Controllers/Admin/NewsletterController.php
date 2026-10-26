@@ -440,65 +440,141 @@ class NewsletterController extends Controller
             'save_as_subscribers' => 'nullable|boolean',
         ]);
 
-        $dealIds = $validated['deal_ids'] ?? [];
-        $deals = !empty($dealIds) 
-            ? Deal::whereIn('id', $dealIds)->get()
-            : Deal::where('status', 'active')->whereNotNull('image_path')->orderByDesc('discount_percentage')->limit(6)->get();
+        try {
+            $dealIds = $validated['deal_ids'] ?? [];
+            $deals = !empty($dealIds) 
+                ? Deal::whereIn('id', $dealIds)->get()
+                : Deal::where('status', 'active')->whereNotNull('image_path')->orderByDesc('discount_percentage')->limit(6)->get();
 
-        $subject = $validated['subject'];
-        $subheadline = $validated['subheadline'] ?? 'Handpicked savings up to 80% off — verified & live right now.';
+            $subject = $validated['subject'];
+            $subheadline = $validated['subheadline'] ?? 'Handpicked savings up to 80% off — verified & live right now.';
 
-        // 1. Send test email to admin
-        if ($validated['target_audience'] === 'admin_test') {
-            $adminEmail = auth()->user()->email ?? 'admin@latestdeal.in';
-            try {
-                Mail::to($adminEmail)->send(new PromoDealDigestMail($deals, $subject, $subheadline));
-                return back()->with('success', "Test broadcast sent directly to your email ({$adminEmail})!");
-            } catch (\Throwable $e) {
-                return back()->with('error', "SMTP error: " . $e->getMessage());
-            }
-        }
-
-        // 2. Custom or Bulk Email recipients
-        if ($validated['target_audience'] === 'custom_emails') {
-            $emails = $this->extractEmailsFromString($request->input('custom_emails', ''));
-
-            if (empty($emails)) {
-                return back()->with('error', 'Please provide at least one valid email address for custom bulk delivery.')->withInput();
-            }
-
-            // Optionally register them as active subscribers
-            if ($request->boolean('save_as_subscribers')) {
-                foreach ($emails as $email) {
-                    $exists = DB::table('subscribers')->where('email', $email)->first();
-                    if ($exists) {
-                        DB::table('subscribers')->where('email', $email)->update([
-                            'is_active' => 1,
-                            'updated_at' => now(),
-                        ]);
-                    } else {
-                        DB::table('subscribers')->insert([
-                            'email' => $email,
-                            'is_active' => 1,
-                            'status' => 'active',
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    }
+            // 1. Send test email to admin
+            if ($validated['target_audience'] === 'admin_test') {
+                $adminEmail = auth()->user()->email ?? 'admin@latestdeal.in';
+                try {
+                    Mail::to($adminEmail)->send(new PromoDealDigestMail($deals, $subject, $subheadline));
+                    return back()->with('success', "Test broadcast sent directly to your email ({$adminEmail})!");
+                } catch (\Throwable $e) {
+                    return back()->with('error', "SMTP error: " . $e->getMessage());
                 }
             }
 
-            $campaign = EmailCampaign::create([
-                'name' => $subject . ' (Custom List)',
-                'subject' => $subject,
-                'status' => 'Sending',
-                'recipient_count' => count($emails),
-                'sent_count' => 0,
-                'failed_count' => 0,
-                'scheduled_at' => now(),
-            ]);
+            // 2. Custom or Bulk Email recipients
+            if ($validated['target_audience'] === 'custom_emails') {
+                $emails = $this->extractEmailsFromString($request->input('custom_emails', ''));
 
-            foreach (array_chunk($emails, 50) as $chunk) {
+                if (empty($emails)) {
+                    return back()->with('error', 'Please provide at least one valid email address for custom bulk delivery.')->withInput();
+                }
+
+                // Optionally register them as active subscribers
+                if ($request->boolean('save_as_subscribers')) {
+                    foreach ($emails as $email) {
+                        try {
+                            $exists = DB::table('subscribers')->where('email', $email)->first();
+                            if ($exists) {
+                                DB::table('subscribers')->where('email', $email)->update([
+                                    'is_active' => 1,
+                                    'updated_at' => now(),
+                                ]);
+                            } else {
+                                DB::table('subscribers')->insert([
+                                    'email' => $email,
+                                    'is_active' => 1,
+                                    'status' => 'active',
+                                    'created_at' => now(),
+                                    'updated_at' => now(),
+                                ]);
+                            }
+                        } catch (\Throwable $ex) {
+                            // Ignore subscriber insert issue and continue
+                        }
+                    }
+                }
+
+                $campaign = null;
+                try {
+                    $campaign = EmailCampaign::create([
+                        'name' => $subject . ' (Custom List)',
+                        'subject' => $subject,
+                        'mailable' => PromoDealDigestMail::class,
+                        'template' => 'emails.promo-deal-digest',
+                        'type' => 'newsletter',
+                        'status' => 'Sending',
+                        'total_recipients' => count($emails),
+                        'queued_count' => count($emails),
+                        'sent_count' => 0,
+                        'failed_count' => 0,
+                        'scheduled_at' => now(),
+                    ]);
+                } catch (\Throwable $dbEx) {
+                    \Log::warning("Could not record EmailCampaign: " . $dbEx->getMessage());
+                }
+
+                foreach (array_chunk($emails, 50) as $chunk) {
+                    foreach ($chunk as $email) {
+                        try {
+                            $mailable = new PromoDealDigestMail(
+                                $deals, 
+                                $subject, 
+                                $subheadline,
+                                url('/unsubscribe?email=' . urlencode($email))
+                            );
+                            Mail::to($email)->queue($mailable);
+                        } catch (\Throwable $e) {
+                            // Continue to next recipient
+                        }
+                    }
+                }
+
+                if ($campaign) {
+                    try {
+                        $campaign->update([
+                            'status' => 'Completed',
+                            'sent_count' => count($emails),
+                            'completed_at' => now(),
+                        ]);
+                    } catch (\Throwable $dbEx) {
+                        // Ignore campaign update error
+                    }
+                }
+
+                $msg = "Newsletter '{$subject}' queued for " . count($emails) . " custom recipients!";
+                if ($request->boolean('save_as_subscribers')) {
+                    $msg .= " Recipients have also been saved to your active subscribers list.";
+                }
+
+                return back()->with('success', $msg);
+            }
+
+            // 3. Broadcast to all active subscribers
+            $subscribers = DB::table('subscribers')->where('is_active', 1)->pluck('email');
+            if ($subscribers->isEmpty()) {
+                return back()->with('error', 'No active subscribers found in database.');
+            }
+
+            $campaign = null;
+            try {
+                $campaign = EmailCampaign::create([
+                    'name' => $subject,
+                    'subject' => $subject,
+                    'mailable' => PromoDealDigestMail::class,
+                    'template' => 'emails.promo-deal-digest',
+                    'type' => 'newsletter',
+                    'status' => 'Sending',
+                    'total_recipients' => $subscribers->count(),
+                    'queued_count' => $subscribers->count(),
+                    'sent_count' => 0,
+                    'failed_count' => 0,
+                    'scheduled_at' => now(),
+                ]);
+            } catch (\Throwable $dbEx) {
+                \Log::warning("Could not record EmailCampaign: " . $dbEx->getMessage());
+            }
+
+            // Dispatch in chunks or queue
+            foreach ($subscribers->chunk(50) as $chunk) {
                 foreach ($chunk as $email) {
                     try {
                         $mailable = new PromoDealDigestMail(
@@ -509,56 +585,27 @@ class NewsletterController extends Controller
                         );
                         Mail::to($email)->queue($mailable);
                     } catch (\Throwable $e) {
-                        // Continue to next recipient
+                        // Log failure
                     }
                 }
             }
 
-            $campaign->update(['status' => 'Completed', 'sent_count' => count($emails)]);
-
-            $msg = "Newsletter '{$subject}' queued for " . count($emails) . " custom recipients!";
-            if ($request->boolean('save_as_subscribers')) {
-                $msg .= " Recipients have also been saved to your active subscribers list.";
-            }
-
-            return back()->with('success', $msg);
-        }
-
-        // 3. Broadcast to all active subscribers
-        $subscribers = DB::table('subscribers')->where('is_active', 1)->pluck('email');
-        if ($subscribers->isEmpty()) {
-            return back()->with('error', 'No active subscribers found in database.');
-        }
-
-        $campaign = EmailCampaign::create([
-            'name' => $subject,
-            'subject' => $subject,
-            'status' => 'Sending',
-            'recipient_count' => $subscribers->count(),
-            'sent_count' => 0,
-            'failed_count' => 0,
-            'scheduled_at' => now(),
-        ]);
-
-        // Dispatch in chunks or queue
-        foreach ($subscribers->chunk(50) as $chunk) {
-            foreach ($chunk as $email) {
+            if ($campaign) {
                 try {
-                    $mailable = new PromoDealDigestMail(
-                        $deals, 
-                        $subject, 
-                        $subheadline,
-                        url('/unsubscribe?email=' . urlencode($email))
-                    );
-                    Mail::to($email)->queue($mailable);
-                } catch (\Throwable $e) {
-                    // Log failure
+                    $campaign->update([
+                        'status' => 'Completed',
+                        'sent_count' => $subscribers->count(),
+                        'completed_at' => now(),
+                    ]);
+                } catch (\Throwable $dbEx) {
+                    // Ignore campaign update error
                 }
             }
+
+            return back()->with('success', "Newsletter '{$subject}' queued for {$subscribers->count()} active subscribers!");
+        } catch (\Throwable $e) {
+            \Log::error("Campaign Dispatch Error: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', "Failed to dispatch campaign: " . $e->getMessage())->withInput();
         }
-
-        $campaign->update(['status' => 'Completed', 'sent_count' => $subscribers->count()]);
-
-        return back()->with('success', "Newsletter '{$subject}' queued for {$subscribers->count()} active subscribers!");
     }
 }
