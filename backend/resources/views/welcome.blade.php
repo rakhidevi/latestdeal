@@ -447,7 +447,7 @@
           $entityType = isset($brand) ? 'Brand' : (isset($category) ? 'Category' : (isset($merchant) ? 'Store' : 'Deals'));
           $avgDiscount = isset($brand) ? ($brand->average_discount ?: 34.9) : (isset($category) ? ($category->average_discount ?: 41.2) : 38.5);
           $popularity = isset($brand) ? ($brand->trending_score ?: 85) : (isset($category) ? ($category->trending_score ?: 92) : 88);
-          $totalDeals = $deals->total() > 0 ? $deals->total() : (isset($category) ? ($category->deal_count ?? 12) : 8);
+          $totalDeals = $deals->total();
       @endphp
       
       <div class="w-full relative overflow-hidden bg-slate-950 text-white shadow-2xl border-b border-slate-800/80">
@@ -477,7 +477,11 @@
                           {{ $entityName }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-400">Deals & Offers</span>
                       </h1>
                       <p class="text-slate-300 text-sm sm:text-base max-w-2xl font-medium">
-                          Real-time AI algorithm tracking {{ number_format($totalDeals) }}+ verified discounts on {{ $entityName }}. Updated continuously.
+                          @if($totalDeals > 0)
+                              Real-time AI algorithm tracking {{ number_format($totalDeals) }}+ verified discounts on {{ $entityName }}. Updated continuously.
+                          @else
+                              Discover verified discounts and price drops on {{ $entityName }}. Updated continuously by our AI deal tracker.
+                          @endif
                       </p>
                   </div>
 

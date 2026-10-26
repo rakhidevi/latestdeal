@@ -17,10 +17,40 @@ class ApplyFilters
             $query->where('title', 'like', '%' . $filters['q'] . '%');
         }
 
-        // Category Filter
+        // Category Filter with partial matching and intelligent keyword fallback
         if (!empty($filters['category_slug']) && $filters['category_slug'] !== 'all') {
-            $query->whereHas('category', function($q) use ($filters) {
-                $q->where('slug', $filters['category_slug']);
+            $catSlug = strtolower(trim($filters['category_slug']));
+            
+            $query->where(function ($sub) use ($catSlug) {
+                $sub->whereHas('category', function ($q) use ($catSlug) {
+                    $q->where('slug', $catSlug)
+                      ->orWhere('slug', 'like', $catSlug . '-%')
+                      ->orWhere('slug', 'like', '%-' . $catSlug);
+                });
+
+                // Intelligent keyword fallback so deals incorrectly classified still surface on relevant category hubs
+                if (in_array($catSlug, ['home', 'home-kitchen', 'kitchen'])) {
+                    $keywords = ['home', 'kitchen', 'faucet', 'tap', 'bedsheet', 'mattress', 'curtain', 'pillow', 'cookware', 'bottle', 'holder', 'furniture', 'mop', 'cleaner', 'towel', 'blanket', 'cushion', 'bedsheet', 'decor'];
+                    $sub->orWhere(function ($kq) use ($keywords) {
+                        foreach ($keywords as $kw) {
+                            $kq->orWhere('title', 'like', '%' . $kw . '%');
+                        }
+                    });
+                } elseif (in_array($catSlug, ['fashion', 'fashion-accessories'])) {
+                    $keywords = ['shoe', 'shirt', 't-shirt', 'jeans', 'jacket', 'sneaker', 'dress', 'pants', 'trousers', 'kurta', 'saree', 'wear', 'cloth', 'wallet', 'belt'];
+                    $sub->orWhere(function ($kq) use ($keywords) {
+                        foreach ($keywords as $kw) {
+                            $kq->orWhere('title', 'like', '%' . $kw . '%');
+                        }
+                    });
+                } elseif (in_array($catSlug, ['beauty', 'beauty-personal-care'])) {
+                    $keywords = ['face wash', 'cream', 'serum', 'shampoo', 'conditioner', 'makeup', 'lipstick', 'lotion', 'sunscreen', 'perfume', 'deodorant', 'skincare'];
+                    $sub->orWhere(function ($kq) use ($keywords) {
+                        foreach ($keywords as $kw) {
+                            $kq->orWhere('title', 'like', '%' . $kw . '%');
+                        }
+                    });
+                }
             });
         }
 

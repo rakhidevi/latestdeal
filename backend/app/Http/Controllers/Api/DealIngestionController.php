@@ -66,17 +66,19 @@ class DealIngestionController
             // Keyword Rule Engine (if no category name provided, or if we want to fallback from AI)
             if (empty($catName) && !empty($validated['title'])) {
                 $titleLower = strtolower($validated['title']);
-                if (preg_match('/\b(cookie|biscuit|chocolate|chips|snack|grocery)\b/', $titleLower)) {
+                if (preg_match('/\b(cookie|biscuit|chocolate|chips|snack|grocery|food|tea|coffee)\b/', $titleLower)) {
                     $catName = 'Food & Grocery';
-                } elseif (preg_match('/\b(phone|mobile|iphone|smartphone|poco|samsung)\b/', $titleLower)) {
+                } elseif (preg_match('/\b(phone|mobile|iphone|smartphone|poco|samsung|oneplus|realme)\b/', $titleLower)) {
                     $catName = 'Mobiles';
-                } elseif (preg_match('/\b(tv|laptop|earbuds|headphones|electronics)\b/', $titleLower)) {
+                } elseif (preg_match('/\b(tv|laptop|earbuds|headphones|electronics|smartwatch|speaker|charger)\b/', $titleLower)) {
                     $catName = 'Electronics';
-                } elseif (preg_match('/\b(shoe|shirt|t-shirt|jeans|fashion|wear)\b/', $titleLower)) {
+                } elseif (preg_match('/\b(shoe|shirt|t-shirt|jeans|fashion|wear|dress|kurta|saree|sneaker)\b/', $titleLower)) {
                     $catName = 'Fashion';
-                } elseif (preg_match('/\b(face wash|cream|beauty|makeup|perfume)\b/', $titleLower)) {
+                } elseif (preg_match('/\b(home|kitchen|faucet|tap|bedsheet|mattress|curtain|pillow|cookware|bottle|holder|furniture|mop|cleaner|towel|blanket|cushion)\b/', $titleLower)) {
+                    $catName = 'Home & Kitchen';
+                } elseif (preg_match('/\b(face wash|cream|beauty|makeup|perfume|serum|shampoo|lotion|skincare)\b/', $titleLower)) {
                     $catName = 'Beauty & Personal Care';
-                } elseif (preg_match('/\b(course|udemy|certification)\b/', $titleLower)) {
+                } elseif (preg_match('/\b(course|udemy|certification|tutorial)\b/', $titleLower)) {
                     $catName = 'Education';
                 }
             }
