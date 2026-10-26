@@ -12,7 +12,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
 
-class PromoDealDigestMail extends Mailable implements ShouldQueue
+class PromoDealDigestMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -45,7 +45,7 @@ class PromoDealDigestMail extends Mailable implements ShouldQueue
         $this->subheadline = $subheadline;
         $this->unsubscribeUrl = $unsubscribeUrl;
         $this->preheaderText = strip_tags($subheadline);
-        $this->onQueue('normal');
+        // Sync/direct delivery by default unless queued explicitly
     }
 
     public function envelope(): Envelope

@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class NewsletterWelcomeMail extends Mailable implements ShouldQueue
+class NewsletterWelcomeMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -19,7 +19,7 @@ class NewsletterWelcomeMail extends Mailable implements ShouldQueue
     public function __construct(?string $unsubscribeUrl = null)
     {
         $this->unsubscribeUrl = $unsubscribeUrl;
-        $this->onQueue('normal'); // Queue priority: normal
+        // Direct delivery unless queued // Queue priority: normal
     }
 
     public function envelope(): Envelope

@@ -27,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureDynamicMail();
+
         // Domain Event Listener Registrations
         \Illuminate\Support\Facades\Event::listen(
             [\App\Events\DealCreated::class, \App\Events\DealUpdated::class],
@@ -102,4 +104,49 @@ class AppServiceProvider extends ServiceProvider
             }
         });
     }
+    /**
+     * Dynamically override mail configuration from database settings if configured by admin.
+     */
+    protected function configureDynamicMail(): void
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+                $mailSettings = \App\Models\Setting::where('category', 'Mail')->pluck('value', 'key')->toArray();
+
+                if (!empty($mailSettings)) {
+                    $driver = !empty($mailSettings['mail_mailer']) ? $mailSettings['mail_mailer'] : 'smtp';
+                    config(['mail.default' => $driver]);
+
+                    if (!empty($mailSettings['mail_host'])) {
+                        config(['mail.mailers.smtp.host' => $mailSettings['mail_host']]);
+                    }
+                    if (!empty($mailSettings['mail_port'])) {
+                        config(['mail.mailers.smtp.port' => (int) $mailSettings['mail_port']]);
+                    }
+                    if (!empty($mailSettings['mail_username'])) {
+                        config(['mail.mailers.smtp.username' => $mailSettings['mail_username']]);
+                    }
+                    if (!empty($mailSettings['mail_password'])) {
+                        config(['mail.mailers.smtp.password' => $mailSettings['mail_password']]);
+                    }
+                    if (!empty($mailSettings['mail_encryption'])) {
+                        $enc = strtolower(trim($mailSettings['mail_encryption']));
+                        config([
+                            'mail.mailers.smtp.scheme' => ($enc === 'ssl') ? 'smtps' : null,
+                            'mail.mailers.smtp.encryption' => ($enc === 'tls') ? 'tls' : (($enc === 'ssl') ? 'ssl' : null),
+                        ]);
+                    }
+                    if (!empty($mailSettings['mail_from_address'])) {
+                        config(['mail.from.address' => $mailSettings['mail_from_address']]);
+                    }
+                    if (!empty($mailSettings['mail_from_name'])) {
+                        config(['mail.from.name' => $mailSettings['mail_from_name']]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fail gracefully during migrations or install
+        }
+    }
+
 }

@@ -64,6 +64,12 @@ jobs:
           upload_file backend/app/Http/Controllers/Admin/BrandController.php app/Http/Controllers/Admin/BrandController.php
           upload_file backend/app/Http/Controllers/Admin/NewsletterController.php app/Http/Controllers/Admin/NewsletterController.php
           upload_file backend/app/Http/Controllers/Admin/SettingController.php app/Http/Controllers/Admin/SettingController.php
+          upload_file backend/app/Providers/AppServiceProvider.php app/Providers/AppServiceProvider.php
+          upload_file backend/app/Mail/PromoDealDigestMail.php app/Mail/PromoDealDigestMail.php
+          upload_file backend/app/Mail/WelcomeShopperMail.php app/Mail/WelcomeShopperMail.php
+          upload_file backend/app/Mail/NewsletterWelcomeMail.php app/Mail/NewsletterWelcomeMail.php
+          upload_file backend/routes/console.php routes/console.php
+
           upload_file backend/app/Services/Admin/SettingService.php app/Services/Admin/SettingService.php
           upload_file backend/app/Services/Admin/DealAdminService.php app/Services/Admin/DealAdminService.php
           upload_file backend/app/Services/SearchPipeline/FilterNormalizer.php app/Services/SearchPipeline/FilterNormalizer.php

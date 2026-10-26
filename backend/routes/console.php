@@ -58,6 +58,6 @@ Artisan::command('images:prune {--hours=72}', function () {
 // Shared Hosting Queue Worker Workaround
 // Runs the queue worker every minute and stops when empty.
 // This requires the standard cPanel cron (* * * * * php artisan schedule:run) to be active.
-Schedule::command('queue:work --stop-when-empty')
+Schedule::command('queue:work --stop-when-empty --queue=default,normal')
     ->everyMinute()
     ->withoutOverlapping();
