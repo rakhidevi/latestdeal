@@ -66,7 +66,7 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                @foreach($activeDeals as $deal)
+                @forelse($activeDeals as $deal)
                 <label class="border border-slate-200 rounded-xl p-3 flex items-start gap-3 hover:bg-slate-50 transition-colors cursor-pointer group">
                     <input type="checkbox" name="deal_ids[]" value="{{ $deal->id }}" checked class="mt-1 rounded text-red-600 focus:ring-red-500 border-slate-300">
                     <div class="flex-1 min-w-0">
@@ -77,7 +77,12 @@
                         </div>
                     </div>
                 </label>
-                @endforeach
+                @empty
+                <div class="col-span-full p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
+                    <span>No active deals found in database. The broadcast will automatically feature curated trending deals.</span>
+                </div>
+                @endforelse
             </div>
         </div>
 
