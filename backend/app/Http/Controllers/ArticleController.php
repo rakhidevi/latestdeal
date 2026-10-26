@@ -27,6 +27,14 @@ class ArticleController extends Controller
 
     public function show($slug)
     {
+        // 301 Permanent Redirect for legacy 2024 slugs to current 2026 edition
+        if (str_contains($slug, '-2024')) {
+            $updatedSlug = str_replace('-2024', '-2026', $slug);
+            if (Article::where('slug', $updatedSlug)->exists()) {
+                return redirect()->route('articles.show', $updatedSlug, 301);
+            }
+        }
+
         $article = Article::with(['author', 'category', 'tags'])
             ->where('slug', $slug)
             ->where('status', Article::STATUS_PUBLISHED)
