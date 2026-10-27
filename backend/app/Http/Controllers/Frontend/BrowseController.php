@@ -238,7 +238,12 @@ class BrowseController extends Controller
             $name = ucwords($normalizedName);
             $merchant = Merchant::firstOrCreate(
                 ['name' => $name],
-                ['domain' => strtolower($slug) . '.in', 'store_id' => strtolower($slug), 'status' => 'active']
+                [
+                    'domain' => strtolower($slug) . '.in',
+                    'store_id' => strtolower($slug),
+                    'affiliate_param_key' => 'tag',
+                    'status' => 'active'
+                ]
             );
         }
         
