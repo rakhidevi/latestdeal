@@ -271,18 +271,18 @@ HTML
             ],
 
             'how-to-spot-fake-discounts-on-amazon' => [
-                'title' => 'How to Spot Fake Discounts & Inflated MRPs on Amazon (2026 Data Audit)',
+                'title' => 'How to Spot Fake Discounts & Inflated MRPs on Amazon India (2026 Price Audit)',
                 'summary' => 'Our proprietary methodology for identifying artificial price inflations, deceptive strike-through tags, and verifying true historical lows across Indian e-commerce.',
                 'excerpt' => 'Don\'t get fooled by 80% off banners. Learn how algorithmic pricing creates artificial bargains and how to verify real all-time lows using price telemetry.',
-                'featured_image' => 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=1200&auto=format&fit=crop&q=80',
+                'featured_image' => 'https://images.unsplash.com/photo-1565514020432-9f4e84f5bf6f?w=1200&auto=format&fit=crop&q=80',
                 'tags' => ['Price Tracking', 'Amazon', 'Fake Discounts', 'Shopping Tips', 'Consumer Rights'],
                 'seo_metadata' => [
-                    'title' => 'How to Spot Fake Discounts & Inflated MRPs on Amazon | LatestDeal',
+                    'title' => 'How to Spot Fake Discounts & Inflated MRPs on Amazon India | LatestDeal',
                     'description' => 'Uncover deceptive strike-through prices and fake discounts on Amazon. Detailed audit on algorithmic pricing, 90-day medians, and consumer verification steps.',
                     'schema' => [
                         '@context' => 'https://schema.org',
                         '@type' => 'Article',
-                        'headline' => 'How to Spot Fake Discounts & Inflated MRPs on Amazon',
+                        'headline' => 'How to Spot Fake Discounts & Inflated MRPs on Amazon India',
                         'author' => ['@type' => 'Organization', 'name' => 'LatestDeal Editorial Team'],
                         'publisher' => ['@type' => 'Organization', 'name' => 'LatestDeal']
                     ]
@@ -442,7 +442,7 @@ HTML
             ],
 
             'best-wireless-noise-cancelling-headphones' => [
-                'title' => 'Best Wireless Noise Cancelling Headphones: Sony, Bose & Apple Value Audit',
+                'title' => 'Best Wireless Noise Cancelling Headphones in India (2026): Sony, Bose & Apple Value Audit',
                 'summary' => 'An objective technical audit and price analysis comparing the Sony WH-1000XM5, Bose QuietComfort Ultra, and Apple AirPods Max. Real ANC testing, battery telemetry, and price drop benchmarks.',
                 'excerpt' => 'Which flagship ANC headphone actually justifies its price? We evaluate active noise cancellation decibel reduction, microphone clarity, and 90-day street pricing.',
                 'featured_image' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200&auto=format&fit=crop&q=80',
@@ -622,7 +622,7 @@ HTML
             ],
 
             'when-is-the-best-time-to-buy-a-tv' => [
-                'title' => 'When is the Best Time to Buy a TV? Seasonal Price Cycles & Panel Guide',
+                'title' => 'When is the Best Time to Buy a TV in India? (2026 Seasonal Price Cycles)',
                 'summary' => 'Analyzing seasonal price drops for major television brands like Sony, LG, Samsung, and TCL. We dissect Diwali sales, Cricket World Cup deals, and model refresh clearance schedules.',
                 'excerpt' => 'Timing your TV purchase can save you 35% on OLED and QLED panels. Learn the exact months when television manufacturers discount flagship models.',
                 'featured_image' => 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=1200&auto=format&fit=crop&q=80',
@@ -752,7 +752,7 @@ HTML
             ],
 
             'the-ultimate-smart-home-starter-kit' => [
-                'title' => 'The Ultimate Smart Home Starter Kit: Ecosystem Comparison & Cost Breakdown',
+                'title' => 'The Ultimate Smart Home Starter Kit in India (2026): What to Buy First',
                 'summary' => 'Which smart home ecosystem actually provides long-term value? We compare Matter, Alexa, Google Home, and Apple HomeKit, auditing real compatibility, response times, and starter kit pricing.',
                 'excerpt' => 'Build a reliable smart home without overspending. Spec breakdown of smart plugs, lighting, security cameras, and Matter-enabled hubs.',
                 'featured_image' => 'https://images.unsplash.com/photo-1558002038-1055907df827?w=1200&auto=format&fit=crop&q=80',
