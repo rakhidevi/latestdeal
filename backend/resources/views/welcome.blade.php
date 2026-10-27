@@ -44,399 +44,148 @@
 @section('hero')
   <style>
     [x-cloak] { display: none !important; }
-    /* Hide scrollbar for Chrome, Safari, Opera, Edge and Firefox */
     .no-scrollbar::-webkit-scrollbar {
         display: none !important;
         width: 0 !important;
         height: 0 !important;
     }
     .no-scrollbar {
-        -ms-overflow-style: none !important;  /* IE and Edge */
-        scrollbar-width: none !important;  /* Firefox */
+        -ms-overflow-style: none !important;
+        scrollbar-width: none !important;
     }
   </style>
 
-@if(request()->is('/') && !request()->filled('search') && !request()->filled('q') && !request()->filled('max_price'))
-  <div x-data="{
-        activeSlide: 0,
-        totalSlides: {{ (isset($heroDeals) && count($heroDeals) > 0) ? min(count($heroDeals), 10) : 10 }},
-        isPaused: false,
-        timer: null,
-        showAlertModal: false,
-        alertEmail: '',
-        slidePresets: [
-            { label: 'Featured deal' },
-            { label: 'Price drop' },
-            { label: 'Best value' },
-            { label: 'Latest offer' },
-            { label: 'Verified discount' },
-            { label: 'Trending pick' },
-            { label: 'New listing' },
-            { label: 'Popular category' },
-            { label: 'Top recommendation' },
-            { label: 'Deal spotlight' }
-        ],
-        init() {
-            this.timer = setInterval(() => {
-                if (!this.isPaused) {
-                    this.activeSlide = (this.activeSlide + 1) % this.totalSlides;
-                }
-            }, 6500);
-        },
-        next() { this.activeSlide = (this.activeSlide + 1) % this.totalSlides; },
-        prev() { this.activeSlide = (this.activeSlide - 1 + this.totalSlides) % this.totalSlides; },
-        setSlide(idx) { this.activeSlide = idx; }
-     }"
-     @mouseenter="isPaused = true"
-     @mouseleave="isPaused = false"
-     class="w-full relative overflow-hidden bg-slate-950 text-white shadow-2xl group border-b border-slate-800/80">
-     
-     <!-- Background Ambient Glow -->
-     <div class="absolute inset-0 bg-gradient-to-br from-red-950/40 via-slate-950 to-slate-900 pointer-events-none"></div>
-     <div class="absolute -top-32 left-1/3 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+@php
+    $categories = $categories ?? \Illuminate\Support\Facades\Cache::remember('popular_categories_home', 300, function() {
+        return \App\Models\Category::whereNotIn('slug', ['general', 'uncategorized', 'all-other-categories', 'c.url', 'item.url', 'b.url', 'd.url', 'm.url'])
+            ->where('slug', 'NOT LIKE', '%.url%')
+            ->where('slug', 'NOT LIKE', '%"%')
+            ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
+            ->get()
+            ->filter(fn($c) => preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $c->slug) && (($c->active_deals_count ?? 0) > 0))
+            ->sortByDesc('active_deals_count')
+            ->values();
+    });
+    $merchants = $merchants ?? \Illuminate\Support\Facades\Cache::remember('popular_merchants_home', 300, function() {
+        return \App\Models\Merchant::whereNotNull('name')
+            ->where('name', '!=', '')
+            ->where('name', 'NOT LIKE', '%.url%')
+            ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
+            ->get()
+            ->filter(fn($m) => !empty($m->name) && (($m->active_deals_count ?? 0) > 0))
+            ->sortByDesc('active_deals_count')
+            ->values();
+    });
+    $brands = $brands ?? \Illuminate\Support\Facades\Cache::remember('popular_brands_home', 300, function() {
+        return \App\Models\Brand::whereNotNull('name')
+            ->where('name', '!=', '')
+            ->where('name', 'NOT LIKE', '%.url%')
+            ->where('name', 'NOT LIKE', '%"%')
+            ->whereNotIn('slug', ['amazon', 'flipkart', 'myntra', 'croma', 'reliance-digital'])
+            ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
+            ->get()
+            ->filter(fn($b) => !empty($b->name) && (($b->active_deals_count ?? 0) > 0))
+            ->sortByDesc('active_deals_count')
+            ->take(15)
+            ->values();
+    });
+@endphp
 
-     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 relative z-10">
+@if(request()->is('/') && !request()->filled('search') && !request()->filled('q') && !request()->filled('max_price') && !request()->filled('category') && !request()->filled('brand'))
+  <div class="w-full relative overflow-hidden bg-slate-950 text-white shadow-xl border-b border-slate-800/80">
+     <!-- Background Ambient Subtle Glow -->
+     <div class="absolute inset-0 bg-gradient-to-br from-red-950/30 via-slate-950 to-slate-900 pointer-events-none"></div>
+     <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-red-600/10 rounded-full blur-[110px] pointer-events-none"></div>
+
+     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 relative z-10 space-y-6">
         
-        <!-- Category Filter Chips (7-8 Visible with Horizontal Scroll) -->
-        <div class="flex items-center justify-between gap-3 mb-6 pb-3 border-b border-white/10">
-            <div class="flex items-center gap-2 flex-shrink-0">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-red-600 text-white uppercase tracking-wider shadow-md">
-                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                    FEATURED DEALS
-                </span>
+        <!-- Answers "What can I find here?" & "Is this deal good?" -->
+        <div class="max-w-3xl mx-auto text-center space-y-3">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-black bg-red-600/20 text-red-400 border border-red-500/30 uppercase tracking-wider shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <span>Verified Deal & Price Intelligence</span>
             </div>
             
-            <div class="flex items-center gap-2 overflow-x-auto py-1 text-xs no-scrollbar scroll-smooth">
-                @php
-                  $categoriesRibbon = [
-                      ['name' => '🔥 Electronics', 'slug' => 'electronics'],
-                      ['name' => '👟 Fashion', 'slug' => 'fashion-accessories'],
-                      ['name' => '🏠 Home & Kitchen', 'slug' => 'home-kitchen'],
-                      ['name' => '💻 Software', 'slug' => 'courses-education'],
-                      ['name' => '🎮 Gaming', 'slug' => 'gaming'],
-                      ['name' => '📚 Free Courses', 'slug' => 'courses-education'],
-                      ['name' => '💄 Beauty', 'slug' => 'beauty-personal-care'],
-                      ['name' => '👶 Baby Products', 'slug' => 'baby-products'],
-                      ['name' => '🍽️ Grocery', 'slug' => 'grocery'],
-                      ['name' => '🧳 Travel Deals', 'slug' => 'travel']
-                  ];
-                @endphp
-                @foreach($categoriesRibbon as $catItem)
-                <a href="/?category={{ $catItem['slug'] }}" class="px-4 py-1.5 rounded-full bg-slate-900/90 hover:bg-red-600 text-slate-200 hover:text-white font-bold transition-all border border-slate-800/80 whitespace-nowrap shadow-sm flex-shrink-0">
-                    {{ $catItem['name'] }}
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+                Find deals that are <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-400 to-amber-300">genuinely good.</span>
+            </h1>
+            
+            <!-- Clear promise beneath search -->
+            <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto font-medium">
+                Compare prices and see whether a deal is genuinely good — backed by 90-day price history, verified stores, and zero inflated MRP tricks.
+            </p>
+        </div>
+
+        <!-- Prominent Search Field with clear prompt -->
+        <div class="max-w-2xl mx-auto">
+            <form action="{{ url('/') }}" method="GET" class="relative group">
+                <div class="relative flex items-center shadow-2xl">
+                    <div class="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-red-500 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" 
+                           name="q" 
+                           value="{{ request('q') }}"
+                           placeholder="Search a product, brand or store (e.g. iPhone, Sony XM5, Laptop under 50k)..." 
+                           class="w-full pl-12 sm:pl-13 pr-28 sm:pr-32 py-3.5 sm:py-4 bg-slate-900 text-white placeholder-slate-400 border border-slate-700 rounded-2xl focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-sm sm:text-base font-medium transition-all" />
+                    <button type="submit" 
+                            class="absolute right-2 sm:right-2.5 px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-md flex items-center gap-1.5">
+                        <span>Search</span>
+                        <svg class="w-4 h-4 hidden sm:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- AI Assistant Entry Point: "Tell us what you need" with tappable examples -->
+        <div class="max-w-3xl mx-auto">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-center gap-2 text-xs">
+                <span class="text-slate-400 font-bold shrink-0 flex items-center gap-1.5">
+                    <span class="text-amber-400">✨ Tell us what you need:</span>
+                </span>
+                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <a href="{{ url('/assistant?q=Find+a+good+phone+under+20000') }}" 
+                       class="px-3 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition font-medium flex items-center gap-1 shadow-sm">
+                        <span>📱 Phone under ₹20k</span>
+                    </a>
+                    <a href="{{ url('/assistant?q=Cheapest+AirPods+today') }}" 
+                       class="px-3 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition font-medium flex items-center gap-1 shadow-sm">
+                        <span>🎧 Cheapest AirPods today</span>
+                    </a>
+                    <a href="{{ url('/assistant?q=Is+this+price+lower+than+usual') }}" 
+                       class="px-3 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition font-medium flex items-center gap-1 shadow-sm">
+                        <span>📉 Is price lower than usual?</span>
+                    </a>
+                    <a href="{{ url('/assistant?q=Compare+these+two+products') }}" 
+                       class="px-3 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition font-medium flex items-center gap-1 shadow-sm">
+                        <span>⚖️ Compare two products</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Small Row of Popular Categories (Accurate counts & Verified taxonomy) -->
+        <div class="max-w-4xl mx-auto pt-4 border-t border-slate-800/80">
+            <div class="flex items-center justify-between gap-2 overflow-x-auto pb-1 no-scrollbar text-xs font-semibold">
+                <span class="text-slate-400 uppercase text-[11px] tracking-wider font-extrabold mr-1 shrink-0">Popular:</span>
+                @foreach($categories->take(7) as $cat)
+                <a href="{{ url('/categories/' . $cat->slug) }}" 
+                   class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-red-600 text-slate-200 hover:text-white border border-slate-800 hover:border-red-500 transition whitespace-nowrap shadow-sm flex items-center gap-1.5 shrink-0">
+                    <span>{{ $cat->icon ?? '📦' }}</span>
+                    <span>{{ $cat->name }}</span>
+                    @if(isset($cat->active_deals_count) && $cat->active_deals_count > 0)
+                        <span class="text-[10px] text-slate-400 px-1.5 py-0.2 bg-slate-800 rounded-full font-mono">{{ $cat->active_deals_count }}</span>
+                    @endif
                 </a>
                 @endforeach
-                <a href="/categories" class="px-4 py-1.5 rounded-full bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white font-bold transition-all border border-red-500/30 whitespace-nowrap flex-shrink-0">
-                    View All →
+                <a href="{{ url('/categories') }}" 
+                   class="px-3.5 py-1.5 rounded-xl bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 transition whitespace-nowrap shadow-sm flex items-center gap-1 shrink-0 font-bold">
+                    <span>View All</span>
+                    <span>→</span>
                 </a>
             </div>
         </div>
 
-        <!-- Carousel Frame -->
-        <div class="relative min-h-[440px] flex flex-col justify-between">
-            @php
-              $heroItems = (isset($heroDeals) && count($heroDeals) > 0) ? $heroDeals : [
-                  (object)['id' => 1, 'title' => 'Apple AirPods Pro (2nd Gen) with MagSafe USB-C Case', 'slug' => 'apple-airpods-pro-2', 'hash_id' => 'hp1', 'discounted_price' => 16499, 'original_price' => 24990, 'discount_percentage' => 34, 'ai_score' => 98, 'image_url' => 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Electronics']],
-                  (object)['id' => 2, 'title' => 'Sony WH-1000XM5 Wireless Noise Cancelling Headphones', 'slug' => 'sony-wh-1000xm5', 'hash_id' => 'hp2', 'discounted_price' => 26990, 'original_price' => 34990, 'discount_percentage' => 23, 'ai_score' => 97, 'image_url' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Electronics']],
-                  (object)['id' => 3, 'title' => 'ASUS ROG Strix G16 (2024) Intel Core i7 14th Gen Gaming Laptop', 'slug' => 'asus-rog-strix-g16', 'hash_id' => 'hp3', 'discounted_price' => 114990, 'original_price' => 159990, 'discount_percentage' => 28, 'ai_score' => 99, 'image_url' => 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Gaming']],
-                  (object)['id' => 4, 'title' => 'Norton 360 Premium 2024 - 10 Devices 1 Year Subscription', 'slug' => 'norton-360-premium', 'hash_id' => 'hp4', 'discounted_price' => 999, 'original_price' => 4999, 'discount_percentage' => 80, 'ai_score' => 96, 'image_url' => 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Software']],
-                  (object)['id' => 5, 'title' => 'Fitkit by Cult Walking Pad Neo BLDC 3.5HP Peak Power Treadmill', 'slug' => 'fitkit-walking-pad-neo', 'hash_id' => 'hp5', 'discounted_price' => 7999, 'original_price' => 79990, 'discount_percentage' => 90, 'ai_score' => 95, 'image_url' => 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Sports & Fitness']],
-                  (object)['id' => 6, 'title' => 'Samsung Galaxy Tab S9 FE+ 12.4 inch WQXGA Display 8GB RAM', 'slug' => 'samsung-galaxy-tab-s9-fe', 'hash_id' => 'hp6', 'discounted_price' => 31999, 'original_price' => 46999, 'discount_percentage' => 32, 'ai_score' => 98, 'image_url' => 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600', 'merchant' => (object)['name' => 'Amazon Prime'], 'category' => (object)['name' => 'Electronics']]
-              ];
-
-              $slidePresets = [
-                  [
-                      'type' => 'FEATURED',
-                      'title_prefix' => '🔥 FEATURED DEAL',
-                      'note' => 'Verified price drop',
-                      'coupon' => null,
-                  ],
-                  [
-                      'type' => 'PRICE DROP',
-                      'title_prefix' => '📉 PRICE DROP',
-                      'note' => 'Price history checked',
-                      'coupon' => null,
-                  ],
-                  [
-                      'type' => 'BEST VALUE',
-                      'title_prefix' => '💎 BEST VALUE',
-                      'note' => 'Strong discount',
-                      'coupon' => null,
-                  ],
-                  [
-                      'type' => 'LATEST OFFER',
-                      'title_prefix' => '🎯 LATEST OFFER',
-                      'note' => 'Fresh deal alert',
-                      'coupon' => null,
-                  ],
-                  [
-                      'type' => 'VERIFIED DEAL',
-                      'title_prefix' => '✅ VERIFIED DEAL',
-                      'note' => 'Merchant and price checked',
-                      'coupon' => null,
-                  ],
-                  [
-                      'type' => 'TRENDING PICK',
-                      'title_prefix' => '📈 TRENDING PICK',
-                      'note' => 'Popular in this category',
-                      'coupon' => null,
-                  ],
-                  [
-                      'type' => 'NEW LISTING',
-                      'title_prefix' => '🆕 NEW LISTING',
-                      'note' => 'Freshly indexed',
-                      'coupon' => null,
-                  ],
-                  [
-                      'type' => 'POPULAR',
-                      'title_prefix' => '⭐ POPULAR DEAL',
-                      'note' => 'Recommended by our editors',
-                      'coupon' => null,
-                  ],
-                  [
-                      'type' => 'TOP RECOMMENDATION',
-                      'title_prefix' => '🤖 TOP RECOMMENDATION',
-                      'note' => 'AI score based on price trend',
-                      'coupon' => null,
-                  ],
-                  [
-                      'type' => 'DEAL SPOTLIGHT',
-                      'title_prefix' => '✨ DEAL SPOTLIGHT',
-                      'note' => 'Curated for value shoppers',
-                      'coupon' => null,
-                  ]
-              ];
-            @endphp
-
-            @if(count($heroItems) > 0)
-              @foreach($heroItems as $index => $deal)
-                @php
-                  $preset = $slidePresets[$index % count($slidePresets)];
-                  $discountPct = $deal->discount_percentage ?: ($deal->original_price > $deal->discounted_price ? round((($deal->original_price - $deal->discounted_price)/$deal->original_price)*100) : 0);
-                  $savedAmount = max(0, $deal->original_price - $deal->discounted_price);
-                @endphp
-                
-                <div x-show="activeSlide === {{ $index }}" 
-                     x-transition:enter="transition ease-out duration-500"
-                     x-transition:enter-start="opacity-0 scale-95"
-                     x-transition:enter-end="opacity-100 scale-100"
-                     x-transition:leave="transition ease-in duration-300 absolute inset-0"
-                     x-transition:leave-start="opacity-100 scale-100"
-                     x-transition:leave-end="opacity-0 scale-95"
-                     class="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-md shadow-2xl">
-
-                    <!-- Left Column: Larger Product Image (~45% width) + Urgency Bar -->
-                    <div class="lg:col-span-5 flex flex-col items-center justify-center relative">
-                        <div class="relative w-full max-w-md aspect-square bg-slate-950/90 border border-slate-800 rounded-3xl p-6 shadow-2xl flex items-center justify-center overflow-hidden group/img">
-                            
-                            <!-- Clean High-Visibility Discount Tag -->
-                            @if($discountPct > 0)
-                            <div class="absolute top-4 left-4 z-20 bg-red-600 text-white text-xs font-black px-3.5 py-1.5 rounded-full shadow-xl">
-                                🔥 {{ $discountPct }}% OFF
-                            </div>
-                            @endif
-
-                            <!-- Merchant Badge -->
-                            <div class="absolute top-4 right-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 text-slate-200 text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                                🏪 {{ $deal->merchant->name ?? 'Amazon' }}
-                            </div>
-
-                            <!-- Large Product Image (Prominent 45% visual weight) -->
-                            <img src="{{ $deal->image_url ?: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600' }}" 
-                                 alt="{{ $deal->title }}" 
-                                 class="max-h-72 max-w-full object-contain drop-shadow-2xl group-hover/img:scale-105 transition-transform duration-500 relative z-10" />
-
-                            <!-- Transparent deal status without fabricated urgency metrics -->
-                            <div class="absolute bottom-4 left-4 right-4 z-20 bg-slate-950/90 border border-slate-800 rounded-2xl p-2.5 shadow-xl">
-                                <div class="flex justify-between items-center text-xs font-bold mb-1.5">
-                                    <span class="text-emerald-400 flex items-center gap-1">✓ Verified value deal</span>
-                                    <span class="text-slate-300 font-extrabold">AI {{ $deal->ai_score ?: 88 }}/100</span>
-                                </div>
-                                <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden flex items-center">
-                                    <div class="bg-gradient-to-r from-emerald-500 to-cyan-500 h-full rounded-full" style="width: {{ min(100, max(35, $discountPct)) }}%"></div>
-                                </div>
-                                <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1 font-semibold">
-                                    <span>Discount: {{ $discountPct }}%</span>
-                                    <span class="text-emerald-300">Price history checked</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column: Deal Details, AI Analysis, Ticket & CTAs -->
-                    <div class="lg:col-span-7 flex flex-col justify-center space-y-3.5">
-                        
-                        <!-- Badges Header -->
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30">
-                                {{ $preset['title_prefix'] ?? '🔥 HOT DEAL' }}
-                            </span>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700/60">
-                                🏷️ {{ $deal->category->name ?? 'Electronics' }}
-                            </span>
-                        </div>
-
-                        <!-- Product Title -->
-                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white leading-tight line-clamp-2">
-                            <a href="{{ route('deals.show', $deal->slug) }}" class="hover:text-red-400 transition-colors">{{ $deal->title }}</a>
-                        </h2>
-
-                        <!-- Price Block + Item 6: Mini Price Trend Sparkline -->
-                        <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-950/80 border border-slate-800/80 rounded-2xl p-3 px-4">
-                            <div class="flex flex-wrap items-baseline gap-3">
-                                <span class="text-3xl sm:text-4xl font-black text-white tracking-tight">₹{{ number_format($deal->discounted_price) }}</span>
-                                @if($deal->original_price > $deal->discounted_price)
-                                <span class="text-lg text-slate-400 line-through font-semibold">M.R.P. ₹{{ number_format($deal->original_price) }}</span>
-                                <span class="text-xs font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2.5 py-1 rounded-lg">
-                                    Save ₹{{ number_format($savedAmount) }}
-                                </span>
-                                @endif
-                            </div>
-
-                            <!-- Mini Price Trend Sparkline SVG -->
-                            <div class="flex items-center gap-3">
-                                <div class="text-[10px] font-bold text-slate-400 flex flex-col justify-between h-7">
-                                    <span class="text-slate-400">₹{{ number_format($deal->original_price > 0 ? $deal->original_price : $deal->discounted_price * 1.4) }}</span>
-                                    <span class="text-emerald-400 font-black">₹{{ number_format($deal->discounted_price) }}</span>
-                                </div>
-                                <div class="w-24 h-7 flex items-center">
-                                    <svg class="w-full h-6 text-emerald-400 overflow-visible" viewBox="0 0 200 30" fill="none" stroke="currentColor" stroke-width="2.5">
-                                        <path d="M 0 5 L 40 10 L 80 8 L 120 22 L 160 18 L 200 28" stroke-linecap="round" stroke-linejoin="round" />
-                                        <circle cx="200" cy="28" r="3.5" fill="#34d399" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Transparent deal metadata without fabricated engagement claims -->
-                        <div class="flex flex-wrap items-center gap-2.5 text-xs text-slate-200">
-                            <span class="px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-800/80 text-emerald-300 font-bold flex items-center gap-1.5">
-                                ✓ {{ $preset['note'] ?? 'Verified deal' }}
-                            </span>
-                            <span class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-medium flex items-center gap-1.5">
-                                🏪 {{ $deal->merchant->name ?? 'Marketplace' }}
-                            </span>
-                            <span class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-medium flex items-center gap-1.5">
-                                📂 {{ $deal->category->name ?? 'Deals' }}
-                            </span>
-                        </div>
-
-                        <!-- Genuine Editorial review tags -->
-                        <div class="bg-slate-950/90 border border-slate-800/90 rounded-2xl p-3.5 space-y-2 shadow-inner">
-                            <div class="flex items-center justify-between text-xs border-b border-slate-800/80 pb-1.5">
-                                <span class="font-black text-amber-400 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-                                    <span>📝 Editorial Review Highlights</span>
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1.5 text-xs text-slate-300 font-medium">
-                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Price history available</span>
-                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Merchant details checked</span>
-                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Discount compared against list price</span>
-                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Product details reviewed</span>
-                                <span class="flex items-center gap-1.5 text-emerald-400">✓ Affiliate disclosure shown</span>
-                            </div>
-                        </div>
-
-                        <!-- Transparent deal note box -->
-                        @if(!empty($preset['coupon']))
-                        <div class="relative bg-slate-900 border-2 border-dashed border-cyan-500/60 rounded-2xl p-3 px-4 flex items-center justify-between shadow-lg overflow-hidden group/ticket">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2 h-4 bg-slate-950 rounded-r-full -ml-4"></div>
-                                <div>
-                                    <div class="text-[10px] font-black uppercase text-cyan-400 tracking-wider flex items-center gap-1">
-                                        <span>✓ Verified offer</span>
-                                    </div>
-                                    <div class="font-mono font-black text-lg text-white tracking-widest">{{ $preset['coupon'] }}</div>
-                                </div>
-                            </div>
-                            <a href="{{ route('deals.show', $deal->slug) }}" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xs transition-all shadow-md shadow-cyan-600/30 flex items-center gap-1">
-                                <span>View</span>
-                                <span>→</span>
-                            </a>
-                        </div>
-                        @endif
-
-                        <!-- Action Buttons -->
-                        <div class="flex flex-wrap items-center gap-3 pt-1">
-                            <a href="{{ route('deal.redirect', $deal->hash_id) }}" 
-                               target="_blank" 
-                               rel="noopener noreferrer" 
-                               class="px-8 py-3 rounded-xl bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-black text-sm transition-all shadow-xl shadow-red-600/30 flex items-center justify-center gap-2">
-                                <span>⚡ GRAB DEAL NOW</span>
-                                <span>→</span>
-                            </a>
-
-                            <a href="{{ route('deals.show', $deal->slug) }}" 
-                               class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm transition-all">
-                                📊 Price History
-                            </a>
-
-                            <button @click="showAlertModal = true" 
-                                    class="px-5 py-3 rounded-xl bg-slate-800/60 hover:bg-slate-700 border border-slate-700 text-amber-300 hover:text-white font-bold text-sm transition-all">
-                                🔔 Watch Price
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-              @endforeach
-            @endif
-
-            <!-- Item 7: Auto-Rotation Status & Slide Indicator (Slide X of Y, Next Preview & Controls) -->
-            <div class="flex items-center justify-between pt-4 border-t border-slate-800/80 mt-4 relative z-20">
-                <!-- Slide Dots -->
-                <div class="flex items-center gap-2">
-                    @for($i = 0; $i < ((isset($heroDeals) && count($heroDeals) > 0) ? min(count($heroDeals), 10) : 10); $i++)
-                    <button @click="setSlide({{ $i }})" 
-                            class="h-2 rounded-full transition-all duration-300"
-                            :class="activeSlide === {{ $i }} ? 'w-8 bg-red-500' : 'w-2 bg-slate-700 hover:bg-slate-600'">
-                    </button>
-                    @endfor
-                </div>
-
-                <!-- Slide Counter & Next Preview -->
-                <div class="flex items-center gap-3 text-xs font-semibold">
-                    <span class="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-white font-black">
-                        Slide <span x-text="activeSlide + 1"></span> of <span x-text="totalSlides"></span>
-                    </span>
-                    <div class="hidden sm:flex items-center gap-2 text-slate-400">
-                        <span class="w-2 h-2 rounded-full" :class="isPaused ? 'bg-amber-400' : 'bg-emerald-400 animate-ping'"></span>
-                        <span>Next: <strong class="text-slate-200" x-text="slidePresets[(activeSlide + 1) % totalSlides].label"></strong></span>
-                    </div>
-                </div>
-
-                <!-- Prev / Next Controls -->
-                <div class="flex items-center gap-2">
-                    <button @click="prev()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center justify-center transition-colors">
-                        ←
-                    </button>
-                    <button @click="next()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center justify-center transition-colors">
-                        →
-                    </button>
-                </div>
-            </div>
-
-        </div>
-
-     </div>
-
-     <!-- Price Alert Modal -->
-     <div x-cloak x-show="showAlertModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-         <div @click.away="showAlertModal = false" class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 text-white">
-             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                 <h3 class="text-lg font-black flex items-center gap-2 text-amber-400">
-                     <span>🔔 Set Instant Price Alert</span>
-                 </h3>
-                 <button @click="showAlertModal = false" class="text-slate-400 hover:text-white font-bold">✕</button>
-             </div>
-             <p class="text-xs text-slate-300">Enter your email address to receive immediate notifications when this item drops to your target price.</p>
-             <input type="email" x-model="alertEmail" placeholder="Enter your email address..." class="w-full bg-slate-800 border border-slate-700 rounded-p-3 text-sm text-white focus:outline-none focus:border-red-500" />
-             <div class="flex items-center gap-2 pt-2">
-                 <button @click="if(alertEmail){ alert('✓ Price Alert set! We will email you when the price drops.'); showAlertModal = false; alertEmail = ''; }" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl transition">
-                     Activate Price Alert
-                 </button>
-             </div>
-         </div>
      </div>
   </div>
 @else
@@ -451,13 +200,10 @@
       @endphp
       
       <div class="w-full relative overflow-hidden bg-slate-950 text-white shadow-2xl border-b border-slate-800/80">
-          <!-- Ambient Glow Effects -->
           <div class="absolute inset-0 bg-gradient-to-br from-red-950/40 via-slate-950 to-slate-900 pointer-events-none"></div>
           <div class="absolute -top-32 left-1/3 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-          <div class="absolute -bottom-32 right-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
           <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 relative z-10 space-y-6">
-              <!-- Top Row: Badge, Title & Metrics -->
               <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   <div class="space-y-2">
                       <div class="flex flex-wrap items-center gap-2 text-xs">
@@ -466,10 +212,10 @@
                           </span>
                           <span class="px-3 py-1 rounded-full font-bold bg-slate-900 border border-slate-800 text-emerald-400 flex items-center gap-1.5">
                               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                              Live Crawler Sync Active
+                              Live Sync Active
                           </span>
                           <span class="px-3 py-1 rounded-full font-bold bg-slate-900 border border-slate-800 text-amber-300">
-                              🤖 AI Trust Verified
+                              🛡️ Verified Price History
                           </span>
                       </div>
 
@@ -478,14 +224,13 @@
                       </h1>
                       <p class="text-slate-300 text-sm sm:text-base max-w-2xl font-medium">
                           @if($totalDeals > 0)
-                              Real-time AI algorithm tracking {{ number_format($totalDeals) }}+ verified discounts on {{ $entityName }}. Updated continuously.
+                              Tracking {{ number_format($totalDeals) }}+ verified discounts on {{ $entityName }}. Updated continuously.
                           @else
-                              Discover verified discounts and price drops on {{ $entityName }}. Updated continuously by our AI deal tracker.
+                              Discover verified discounts and price drops on {{ $entityName }}. Updated continuously.
                           @endif
                       </p>
                   </div>
 
-                  <!-- Right Metrics Cards -->
                   <div class="grid grid-cols-3 gap-3 shrink-0">
                       <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 text-center shadow-lg">
                           <div class="text-2xl sm:text-3xl font-black text-red-500 tracking-tight">{{ number_format($avgDiscount, 1) }}%</div>
@@ -502,7 +247,6 @@
                   </div>
               </div>
 
-              <!-- Interactive Filter Tabs & Quick Action Bar -->
               <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800/80">
                   <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
                       <span class="text-slate-400 mr-1 text-[11px] uppercase tracking-wider font-extrabold">Quick Sort:</span>
@@ -549,12 +293,11 @@
 @endsection
 
 @section('content')
-<section class="space-y-6">
+<section class="space-y-6" x-data="{ mobileFiltersOpen: false }">
 
   <x-ad-banner slot="home-top" />
 
   <div class="space-y-4">
-
 
     @if(isset($breadcrumbs))
         <nav class="flex text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
@@ -577,163 +320,431 @@
         </nav>
     @endif
 
-
-
-
-    @if(request()->is('/'))
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+    <!-- Section Heading & Secondary Tools -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-            <h2 class="section-title">{{ $pageTitle ?? "Know whether it's actually a good deal." }}</h2>
-            <p class="text-sm text-gray-500 mt-1">Found {{ $deals->total() }} matching deals</p>
+            <h2 class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                {{ $pageTitle ?? "Today's Verified Deals" }}
+            </h2>
+            <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Found {{ number_format($deals->total()) }} matching verified deals</p>
         </div>
         <div class="flex items-center gap-2 self-start sm:self-auto">
-            <a href="/assistant" class="btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center px-3 py-1.5 text-sm sm:px-4 sm:py-2">
-                <i data-lucide="sparkles" class="w-4 h-4 mr-1.5"></i> AI Assistant
+            <a href="/assistant" class="btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl transition">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                AI Assistant
             </a>
-            <button x-data @click="$dispatch('open-alert-modal')" class="btn-secondary px-3 py-1.5 text-sm sm:px-4 sm:py-2 text-red-600 border-red-200 bg-red-50 hover:bg-red-100 flex items-center dark:bg-red-900/30 dark:text-red-400 dark:border-red-800">
+            <button x-data @click="$dispatch('open-alert-modal')" class="btn-secondary px-3.5 py-2 text-xs sm:text-sm font-bold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 flex items-center rounded-xl dark:bg-red-900/30 dark:text-red-400 dark:border-red-800 transition">
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                 Price Alert
             </button>
-            <a href="/?category=all" class="btn-secondary px-3 py-1.5 text-sm sm:px-4 sm:py-2 hidden sm:inline-block">View all</a>
         </div>
     </div>
-    @endif
+
+    <!-- Priority 5: Concise Filter Bar Directly Above Deals -->
+    <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm space-y-3">
+        
+        <!-- Desktop Filter Form -->
+        <form action="{{ url()->current() }}" method="GET" id="filter-form" class="hidden md:grid md:grid-cols-6 gap-2.5">
+            @if(request('q'))
+                <input type="hidden" name="q" value="{{ request('q') }}">
+            @endif
+
+            <!-- 1. Category -->
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">Category</label>
+                <select name="category" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                    <option value="">All Categories</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->slug }}" {{ (request('category') == $cat->slug || request('category_slug') == $cat->slug) ? 'selected' : '' }}>
+                            {{ $cat->name }} ({{ $cat->active_deals_count ?? 0 }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- 2. Budget -->
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">Budget</label>
+                <select name="max_price" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                    <option value="">Any Budget</option>
+                    <option value="500" {{ request('max_price') == '500' ? 'selected' : '' }}>Under ₹500</option>
+                    <option value="1000" {{ request('max_price') == '1000' ? 'selected' : '' }}>Under ₹1,000</option>
+                    <option value="5000" {{ request('max_price') == '5000' ? 'selected' : '' }}>Under ₹5,000</option>
+                    <option value="20000" {{ request('max_price') == '20000' ? 'selected' : '' }}>Under ₹20,000</option>
+                    <option value="50000" {{ request('max_price') == '50000' ? 'selected' : '' }}>Under ₹50,000</option>
+                </select>
+            </div>
+
+            <!-- 3. Store -->
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">Store</label>
+                <select name="merchant" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                    <option value="">All Stores</option>
+                    @foreach($merchants as $m)
+                        <option value="{{ $m->name }}" {{ (request('merchant') == $m->name || request('merchant_slug') == $m->slug) ? 'selected' : '' }}>
+                            {{ $m->name }} ({{ $m->active_deals_count ?? 0 }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- 4. Brand -->
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">Brand</label>
+                <select name="brand" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                    <option value="">All Brands</option>
+                    @foreach($brands as $b)
+                        <option value="{{ $b->slug }}" {{ (request('brand') == $b->slug || request('brand_slug') == $b->slug) ? 'selected' : '' }}>
+                            {{ $b->name }} ({{ $b->active_deals_count ?? 0 }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- 5. Discount Band -->
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">Discount</label>
+                <select name="discount_range" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                    <option value="">Any Discount</option>
+                    <option value="30-49" {{ request('discount_range') == '30-49' ? 'selected' : '' }}>30% – 49% OFF</option>
+                    <option value="50-69" {{ request('discount_range') == '50-69' ? 'selected' : '' }}>50% – 69% OFF</option>
+                    <option value="70-89" {{ request('discount_range') == '70-89' ? 'selected' : '' }}>70% – 89% OFF</option>
+                    <option value="90+" {{ request('discount_range') == '90+' ? 'selected' : '' }}>90%+ OFF</option>
+                </select>
+            </div>
+
+            <!-- 6. Sort By -->
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">Sort By</label>
+                <select name="sort" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
+                    <option value="featured" {{ (request('sort') == 'featured' || !request('sort')) ? 'selected' : '' }}>⭐ Best Value</option>
+                    <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>💵 Lowest Price</option>
+                    <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>⚡ Newest</option>
+                    <option value="discount" {{ request('sort') == 'discount' ? 'selected' : '' }}>📉 Biggest Discount</option>
+                </select>
+            </div>
+        </form>
+
+        <!-- Mobile Filter Bar Header: Compact Trigger Button + Quick Sort -->
+        <div class="md:hidden flex items-center justify-between gap-2">
+            @php
+                $activeCount = 0;
+                if(request()->filled('q')) $activeCount++;
+                if(request()->filled('category')) $activeCount++;
+                if(request()->filled('max_price')) $activeCount++;
+                if(request()->filled('merchant')) $activeCount++;
+                if(request()->filled('brand')) $activeCount++;
+                if(request()->filled('discount_range')) $activeCount++;
+                if(request()->filled('sort') && request('sort') !== 'featured') $activeCount++;
+            @endphp
+            <button type="button" 
+                    @click="mobileFiltersOpen = true" 
+                    class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-900 dark:text-white rounded-xl text-xs font-bold transition">
+                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                <span>Filter Deals</span>
+                @if($activeCount > 0)
+                    <span class="px-2 py-0.5 bg-red-600 text-white rounded-full text-[10px] font-black">{{ $activeCount }}</span>
+                @endif
+            </button>
+            <div class="flex-1">
+                <select onchange="document.querySelector('#filter-form select[name=\'sort\']').value = this.value; document.getElementById('filter-form').dispatchEvent(new Event('submit'));" 
+                        class="w-full bg-gray-100 dark:bg-slate-800 border border-transparent rounded-xl py-2.5 px-2.5 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <option value="featured" {{ (request('sort') == 'featured' || !request('sort')) ? 'selected' : '' }}>⭐ Best Value</option>
+                    <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>💵 Lowest Price</option>
+                    <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>⚡ Newest</option>
+                    <option value="discount" {{ request('sort') == 'discount' ? 'selected' : '' }}>📉 Biggest Discount</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Removable Active Filter Chips -->
+        @php
+            $activeChips = [];
+            if (request()->filled('q')) $activeChips[] = ['key' => 'q', 'label' => 'Search: "' . request('q') . '"'];
+            if (request()->filled('category')) $activeChips[] = ['key' => 'category', 'label' => 'Category: ' . ucfirst(str_replace('-', ' ', request('category')))];
+            if (request()->filled('max_price')) $activeChips[] = ['key' => 'max_price', 'label' => 'Under ₹' . number_format(request('max_price'))];
+            if (request()->filled('merchant')) $activeChips[] = ['key' => 'merchant', 'label' => 'Store: ' . request('merchant')];
+            if (request()->filled('brand')) $activeChips[] = ['key' => 'brand', 'label' => 'Brand: ' . ucfirst(request('brand'))];
+            if (request()->filled('discount_range')) $activeChips[] = ['key' => 'discount_range', 'label' => request('discount_range') . '% Off'];
+            if (request()->filled('sort') && request('sort') !== 'featured') $activeChips[] = ['key' => 'sort', 'label' => 'Sort: ' . ucfirst(str_replace('_', ' ', request('sort')))];
+        @endphp
+        @if(count($activeChips) > 0)
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100 dark:border-slate-800 text-xs">
+            <span class="font-bold text-gray-500 dark:text-slate-400">Active filters:</span>
+            @foreach($activeChips as $chip)
+                @php
+                    $removeUrl = url()->current() . '?' . http_build_query(request()->except($chip['key']));
+                @endphp
+                <a href="{{ $removeUrl }}" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 hover:bg-red-100 transition shadow-sm">
+                    <span>{{ $chip['label'] }}</span>
+                    <span class="font-black text-xs">✕</span>
+                </a>
+            @endforeach
+            <a href="{{ url()->current() }}" class="text-gray-500 dark:text-slate-400 hover:text-red-600 underline font-semibold ml-1">
+                Clear all
+            </a>
+        </div>
+        @endif
+
+    </div>
+
+    <!-- Mobile Filter Slide-over Drawer / Bottom Sheet -->
+    <div x-cloak x-show="mobileFiltersOpen" class="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
+        <div @click="mobileFiltersOpen = false" class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl border-t border-gray-200 dark:border-slate-800 p-6 max-h-[85vh] overflow-y-auto space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
+                <h3 class="font-black text-gray-900 dark:text-white text-base flex items-center gap-2">
+                    <span>Filter Deals</span>
+                    @if(count($activeChips) > 0)
+                        <span class="text-xs font-semibold text-red-500">({{ count($activeChips) }} active)</span>
+                    @endif
+                </h3>
+                <button @click="mobileFiltersOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-white font-black text-lg p-1">✕</button>
+            </div>
+
+            <div class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Category</label>
+                    <select onchange="document.querySelector('#filter-form select[name=\'category\']').value = this.value" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 dark:text-slate-200">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->slug }}" {{ (request('category') == $cat->slug || request('category_slug') == $cat->slug) ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Budget</label>
+                    <select onchange="document.querySelector('#filter-form select[name=\'max_price\']').value = this.value" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 dark:text-slate-200">
+                        <option value="">Any Budget</option>
+                        <option value="500" {{ request('max_price') == '500' ? 'selected' : '' }}>Under ₹500</option>
+                        <option value="1000" {{ request('max_price') == '1000' ? 'selected' : '' }}>Under ₹1,000</option>
+                        <option value="5000" {{ request('max_price') == '5000' ? 'selected' : '' }}>Under ₹5,000</option>
+                        <option value="20000" {{ request('max_price') == '20000' ? 'selected' : '' }}>Under ₹20,000</option>
+                        <option value="50000" {{ request('max_price') == '50000' ? 'selected' : '' }}>Under ₹50,000</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Store</label>
+                    <select onchange="document.querySelector('#filter-form select[name=\'merchant\']').value = this.value" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 dark:text-slate-200">
+                        <option value="">All Stores</option>
+                        @foreach($merchants as $m)
+                            <option value="{{ $m->name }}" {{ (request('merchant') == $m->name || request('merchant_slug') == $m->slug) ? 'selected' : '' }}>{{ $m->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Brand</label>
+                    <select onchange="document.querySelector('#filter-form select[name=\'brand\']').value = this.value" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 dark:text-slate-200">
+                        <option value="">All Brands</option>
+                        @foreach($brands as $b)
+                            <option value="{{ $b->slug }}" {{ (request('brand') == $b->slug || request('brand_slug') == $b->slug) ? 'selected' : '' }}>{{ $b->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Discount</label>
+                    <select onchange="document.querySelector('#filter-form select[name=\'discount_range\']').value = this.value" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 dark:text-slate-200">
+                        <option value="">Any Discount</option>
+                        <option value="30-49" {{ request('discount_range') == '30-49' ? 'selected' : '' }}>30% – 49% OFF</option>
+                        <option value="50-69" {{ request('discount_range') == '50-69' ? 'selected' : '' }}>50% – 69% OFF</option>
+                        <option value="70-89" {{ request('discount_range') == '70-89' ? 'selected' : '' }}>70% – 89% OFF</option>
+                        <option value="90+" {{ request('discount_range') == '90+' ? 'selected' : '' }}>90%+ OFF</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 pt-3">
+                <button type="button" 
+                        @click="document.getElementById('filter-form').dispatchEvent(new Event('submit')); mobileFiltersOpen = false;" 
+                        class="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-black text-sm rounded-xl transition shadow-md text-center">
+                    Apply Filters
+                </button>
+                <a href="{{ url()->current() }}" 
+                   class="px-5 py-3 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold text-sm rounded-xl text-center">
+                    Reset
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deals Grid (Visible Immediately on First Screen) -->
+    <div class="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5" id="deals-grid">
+      @include('partials.deals_grid')
+    </div>
     
-    <!-- Editorial Guides Section -->
-    @if(request()->is('/'))
-    <div class="mb-10 mt-6 bg-indigo-50 dark:bg-indigo-900/10 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-900/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+    <div class="mt-12 flex justify-center hidden" id="loading-spinner">
+      <svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+    </div>
+
+    <div class="mt-8 flex justify-center h-10" id="pagination-container">
+      @if($deals->hasMorePages())
+        <div id="load-more-trigger" data-url="{{ $deals->nextPageUrl() }}"></div>
+      @endif
+    </div>
+
+    <!-- Priority 1: Popular Stores & Brands (Moved Below First Deal Row) -->
+    <div class="mt-14 pt-8 border-t border-gray-100 dark:border-slate-800 space-y-8">
+        
+        <!-- Top Verified Stores -->
+        <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                        <span>🏪 Verified Partner Stores</span>
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-slate-400">Track and compare deals across trusted retail platforms</p>
+                </div>
+                <a href="{{ url('/merchants') }}" class="text-xs font-bold text-red-600 dark:text-red-400 hover:underline">
+                    View all stores &rarr;
+                </a>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                @foreach($merchants->take(6) as $merchantItem)
+                <a href="{{ url('/merchants/' . $merchantItem->slug) }}" 
+                   class="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 hover:border-red-500/50 rounded-2xl p-3.5 flex flex-col items-center justify-center text-center group hover:shadow-md transition">
+                    <span class="text-sm font-black text-gray-800 dark:text-white group-hover:text-red-500 transition line-clamp-1">{{ $merchantItem->name }}</span>
+                    <span class="text-[11px] text-gray-400 dark:text-slate-500 mt-1 font-semibold">{{ $merchantItem->active_deals_count ?? 0 }} active deals</span>
+                </a>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Popular Brands -->
+        <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                        <span>🏷️ Popular Brands</span>
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-slate-400">Browse live discounts by manufacturer</p>
+                </div>
+                <a href="{{ url('/brands') }}" class="text-xs font-bold text-red-600 dark:text-red-400 hover:underline">
+                    View all brands &rarr;
+                </a>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                @foreach($brands->take(12) as $brandItem)
+                <a href="{{ url('/brands/' . $brandItem->slug) }}" 
+                   class="px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 hover:border-red-500/50 rounded-xl text-xs font-bold text-gray-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 transition shadow-sm flex items-center gap-1.5">
+                    <span>{{ $brandItem->name }}</span>
+                    @if(isset($brandItem->active_deals_count) && $brandItem->active_deals_count > 0)
+                        <span class="text-[10px] text-gray-400 dark:text-slate-500 font-mono">({{ $brandItem->active_deals_count }})</span>
+                    @endif
+                </a>
+                @endforeach
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Priority 1: Expert Buying Guides (Moved Below First Deal Row) -->
+    <div class="mt-8 bg-indigo-50 dark:bg-indigo-900/10 rounded-3xl p-6 sm:p-8 border border-indigo-100 dark:border-indigo-900/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
         <div class="flex items-center gap-4">
-            <div class="bg-indigo-600 text-white p-3 rounded-2xl shadow-md">
+            <div class="bg-indigo-600 text-white p-3 rounded-2xl shadow-md shrink-0">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
             </div>
             <div>
                 <h2 class="text-xl font-black text-gray-900 dark:text-white">Expert Buying Guides</h2>
-                <p class="text-gray-600 dark:text-indigo-200 text-sm mt-1">Data-driven analysis on when to buy and what to avoid.</p>
+                <p class="text-gray-600 dark:text-indigo-200 text-sm mt-1">Data-driven analysis on when to buy, price trends, and genuine savings.</p>
             </div>
         </div>
         <a href="{{ route('articles.index') }}" class="shrink-0 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-md">
             Read Our Guides &rarr;
         </a>
     </div>
-    @endif
-
-    @if(isset($trendingDeals) && $trendingDeals->isNotEmpty())
-        <div class="mb-10">
-            <div class="flex items-center gap-2 mb-4">
-                <div class="bg-red-100 text-red-600 p-2 rounded-full dark:bg-red-900/30 dark:text-red-400">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+    
+    <!-- SEO Search Hub Editorial Content -->
+    @if(isset($hubData) && $hubData)
+        <div class="mt-12 mb-8 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm">
+            <h1 class="text-3xl font-black text-gray-900 dark:text-white mb-4">{{ $hubData['title'] }}</h1>
+            <p class="text-gray-600 dark:text-slate-300 text-lg leading-relaxed mb-8">
+                {{ $hubData['intro'] }}
+            </p>
+            
+            @if(isset($hubData['faqs']) && count($hubData['faqs']) > 0)
+            <div class="mt-8 border-t border-gray-100 dark:border-slate-800 pt-8">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
+                <div class="space-y-4">
+                    @foreach($hubData['faqs'] as $faq)
+                    <div class="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-2">{{ $faq['question'] }}</h3>
+                        <p class="text-gray-600 dark:text-slate-300 text-sm">{{ $faq['answer'] }}</p>
+                    </div>
+                    @endforeach
                 </div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Trending Deals Right Now</h2>
             </div>
-            <div class="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-                @foreach($trendingDeals as $deal)
-                    <x-deal-card :deal="$deal" />
+            
+            <script type="application/ld+json">
+            {
+              "@@context": "https://schema.org",
+              "@@type": "FAQPage",
+              "mainEntity": [
+                @foreach($hubData['faqs'] as $faq)
+                {
+                  "@@type": "Question",
+                  "name": "{{ addslashes($faq['question']) }}",
+                  "acceptedAnswer": {
+                    "@@type": "Answer",
+                    "text": "{{ addslashes($faq['answer']) }}"
+                  }
+                }{{ !$loop->last ? ',' : '' }}
                 @endforeach
-            </div>
+              ]
+            }
+            </script>
+            @endif
         </div>
     @endif
 
-      <div class="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-5" id="deals-grid">
-        @include('partials.deals_grid')
-      </div>
-      
-      <div class="mt-12 flex justify-center hidden" id="loading-spinner">
-        <svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-      </div>
-
-      <div class="mt-8 flex justify-center h-10" id="pagination-container">
-        @if($deals->hasMorePages())
-          <div id="load-more-trigger" data-url="{{ $deals->nextPageUrl() }}"></div>
-        @endif
-      </div>
-      
-      <!-- SEO Search Hub Editorial Content -->
-      @if(isset($hubData) && $hubData)
-          <div class="mt-12 mb-8 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm">
-              <h1 class="text-3xl font-black text-gray-900 dark:text-white mb-4">{{ $hubData['title'] }}</h1>
-              <p class="text-gray-600 dark:text-slate-300 text-lg leading-relaxed mb-8">
-                  {{ $hubData['intro'] }}
-              </p>
-              
-              @if(isset($hubData['faqs']) && count($hubData['faqs']) > 0)
-              <div class="mt-8 border-t border-gray-100 dark:border-slate-800 pt-8">
-                  <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
-                  <div class="space-y-4">
-                      @foreach($hubData['faqs'] as $faq)
-                      <div class="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-4">
-                          <h3 class="font-bold text-gray-900 dark:text-white mb-2">{{ $faq['question'] }}</h3>
-                          <p class="text-gray-600 dark:text-slate-300 text-sm">{{ $faq['answer'] }}</p>
-                      </div>
-                      @endforeach
-                  </div>
-              </div>
-              
-              <script type="application/ld+json">
-              {
-                "@@context": "https://schema.org",
-                "@@type": "FAQPage",
-                "mainEntity": [
-                  @foreach($hubData['faqs'] as $faq)
-                  {
-                    "@@type": "Question",
-                    "name": "{{ addslashes($faq['question']) }}",
-                    "acceptedAnswer": {
-                      "@@type": "Answer",
-                      "text": "{{ addslashes($faq['answer']) }}"
-                    }
-                  }{{ !$loop->last ? ',' : '' }}
-                  @endforeach
-                ]
-              }
-              </script>
-              @endif
-          </div>
-      @endif
-
-      <x-ad-banner slot="home-bottom" />
-      
-      <!-- Newsletter Banner -->
-      <div class="mt-16 bg-gradient-to-r from-gray-900 to-black rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden border border-gray-800">
-          <div class="absolute top-0 right-0 w-64 h-64 bg-red-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-          <div class="relative z-10 grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                  <h3 class="text-3xl font-black text-white tracking-tight mb-3">Get weekly deal alerts</h3>
-                  <p class="text-gray-400 text-sm sm:text-base">Subscribe for a concise digest of fresh price drops, verified coupons, and curated picks.</p>
-              </div>
-              <div x-data="{ email: '', loading: false, success: false, error: '' }" class="w-full max-w-md ml-auto">
-                  <form @submit.prevent="
-                      if(!email) return;
-                      loading = true; error = ''; success = false;
-                      fetch('/api/subscribe', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                          body: JSON.stringify({ email: email })
-                      })
-                      .then(res => res.json())
-                      .then(data => {
-                          loading = false;
-                          if(data.error || data.errors) {
-                              error = data.message || 'Error subscribing.';
-                          } else {
-                              success = true;
-                              email = '';
-                          }
-                      })
-                      .catch(() => { loading = false; error = 'Network error.'; });
-                  " class="relative">
-                      <div class="flex flex-col sm:flex-row gap-3">
-                          <input type="email" x-model="email" required placeholder="Enter your email address" class="flex-1 bg-white/10 border border-gray-700 text-white placeholder-gray-500 px-5 py-3.5 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition-all">
-                          <button type="submit" :disabled="loading" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center min-w-[120px]">
-                              <span x-show="!loading">Subscribe</span>
-                              <svg x-show="loading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                          </button>
-                      </div>
-                      <p x-show="success" x-transition class="text-emerald-400 text-sm mt-3 font-medium flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Success! You're on the list.</p>
-                      <p x-show="error" x-transition class="text-red-400 text-sm mt-3 font-medium" x-text="error"></p>
-                  </form>
-              </div>
-          </div>
-      </div>
+    <x-ad-banner slot="home-bottom" />
+    
+    <!-- Newsletter Banner -->
+    <div class="mt-16 bg-gradient-to-r from-gray-900 to-black rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden border border-gray-800">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-red-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+        <div class="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h3 class="text-3xl font-black text-white tracking-tight mb-3">Get weekly deal alerts</h3>
+                <p class="text-gray-400 text-sm sm:text-base">Subscribe for a concise digest of fresh price drops, verified coupons, and curated picks.</p>
+            </div>
+            <div x-data="{ email: '', loading: false, success: false, error: '' }" class="w-full max-w-md ml-auto">
+                <form @submit.prevent="
+                    if(!email) return;
+                    loading = true; error = ''; success = false;
+                    fetch('/api/subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({ email: email })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        loading = false;
+                        if(data.error || data.errors) {
+                            error = data.message || 'Error subscribing.';
+                        } else {
+                            success = true;
+                            email = '';
+                        }
+                    })
+                    .catch(() => { loading = false; error = 'Network error.'; });
+                " class="relative">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="email" x-model="email" required placeholder="Enter your email address" class="flex-1 bg-white/10 border border-gray-700 text-white placeholder-gray-500 px-5 py-3.5 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition-all">
+                        <button type="submit" :disabled="loading" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center min-w-[120px]">
+                            <span x-show="!loading">Subscribe</span>
+                            <svg x-show="loading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </button>
+                    </div>
+                    <p x-show="success" x-transition class="text-emerald-400 text-sm mt-3 font-medium flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Success! You're on the list.</p>
+                    <p x-show="error" x-transition class="text-red-400 text-sm mt-3 font-medium" x-text="error"></p>
+                </form>
+            </div>
+        </div>
+    </div>
   </div>
 </section>
 
@@ -768,12 +779,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 dealsGrid.innerHTML = data.html;
                 dealsGrid.style.opacity = '1';
-                
-                // Update URL without reloading
                 window.history.pushState({}, '', url);
             }
 
-            // Update Pagination Trigger
             if (data.has_more && data.next_page) {
                 paginationContainer.innerHTML = `<div id="load-more-trigger" data-url="${data.next_page}"></div>`;
                 bindAutoLoad();
@@ -787,21 +795,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Handle Form Submit (Filters)
     if (filterForm) {
         filterForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(filterForm);
-            const params = new URLSearchParams(formData);
+            const params = new URLSearchParams();
             
-            // Preserve current path context (e.g. /deals/70-89-off, /categories/electronics)
+            for (const [key, val] of formData.entries()) {
+                if (val && val !== 'all' && val !== '') {
+                    params.set(key, val);
+                }
+            }
+            
             const basePath = window.location.pathname || '/';
             const queryString = params.toString();
             const url = basePath + (queryString ? '?' + queryString : '');
             fetchDeals(url, false);
         });
 
-        // Also trigger on select change
         const selects = filterForm.querySelectorAll('select');
         selects.forEach(select => {
             select.addEventListener('change', () => {
@@ -810,7 +821,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Handle Auto Load (Infinite Scroll)
     function bindAutoLoad() {
         const trigger = document.getElementById('load-more-trigger');
         if (!trigger) return;
@@ -831,7 +841,6 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(trigger);
     }
     
-    // Initialize auto load on page load
     bindAutoLoad();
 });
 </script>
