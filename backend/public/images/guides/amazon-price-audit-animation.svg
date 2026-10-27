@@ -1,0 +1,293 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" style="background:#090d16; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#090d16" />
+      <stop offset="100%" stop-color="#1e1b4b" />
+    </linearGradient>
+
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.98" />
+    </linearGradient>
+
+    <linearGradient id="laserGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0" />
+      <stop offset="20%" stop-color="#ef4444" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#f87171" stop-opacity="1" />
+      <stop offset="80%" stop-color="#ef4444" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0" />
+    </linearGradient>
+
+    <linearGradient id="laserGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0" />
+    </linearGradient>
+
+    <linearGradient id="chartAreaGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+    </linearGradient>
+
+    <linearGradient id="pumpAreaGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Tech Grid Pattern -->
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#334155" stroke-width="0.5" stroke-opacity="0.35" />
+    </pattern>
+
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes scanMove {
+      0% { transform: translateY(0px); opacity: 0.9; }
+      50% { transform: translateY(180px); opacity: 1; }
+      100% { transform: translateY(0px); opacity: 0.9; }
+    }
+    @keyframes pulseDot {
+      0% { r: 5; opacity: 1; }
+      50% { r: 7; opacity: 0.5; }
+      100% { r: 5; opacity: 1; }
+    }
+    @keyframes pulseRing {
+      0% { r: 6; opacity: 0.9; stroke-width: 2; }
+      100% { r: 24; opacity: 0; stroke-width: 0.5; }
+    }
+    @keyframes alertGlow {
+      0% { stroke-opacity: 0.4; fill-opacity: 0.15; }
+      50% { stroke-opacity: 0.9; fill-opacity: 0.3; }
+      100% { stroke-opacity: 0.4; fill-opacity: 0.15; }
+    }
+    .scanner-beam {
+      animation: scanMove 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .live-dot {
+      animation: pulseDot 1.8s ease-in-out infinite;
+    }
+    .pulse-ring-anim {
+      animation: pulseRing 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    }
+    .alert-box {
+      animation: alertGlow 2.4s ease-in-out infinite;
+    }
+  </style>
+
+  <!-- Background Base -->
+  <rect width="1200" height="630" fill="url(#bgGrad)" />
+  <rect width="1200" height="630" fill="url(#grid)" />
+
+  <!-- Ambient Glow Behind Panels -->
+  <circle cx="300" cy="250" r="220" fill="#ef4444" opacity="0.08" />
+  <circle cx="900" cy="280" r="240" fill="#3b82f6" opacity="0.07" />
+
+  <!-- ================= TOP HEADER BAR ================= -->
+  <g transform="translate(40, 24)">
+    <!-- Amazon & LatestDeal Badge -->
+    <rect x="0" y="0" width="1120" height="56" rx="16" fill="#1e293b" fill-opacity="0.8" stroke="#334155" stroke-width="1" />
+    
+    <!-- Amazon Logo text simulation -->
+    <text x="24" y="34" fill="#FFFFFF" font-size="20" font-weight="900" letter-spacing="-0.5">amazon<tspan fill="#FF9900">.in</tspan></text>
+    <!-- Smile curve -->
+    <path d="M 24 40 Q 60 50 100 40" fill="none" stroke="#FF9900" stroke-width="2.5" stroke-linecap="round" />
+    
+    <text x="130" y="34" fill="#64748b" font-size="14" font-weight="600">|</text>
+    
+    <!-- Title / Scope -->
+    <text x="150" y="34" fill="#e2e8f0" font-size="14" font-weight="700">Rufus AI Price Verification Telemetry</text>
+    <rect x="420" y="16" width="160" height="24" rx="12" fill="#3b82f6" fill-opacity="0.15" stroke="#3b82f6" stroke-width="1" />
+    <text x="500" y="32" fill="#60a5fa" font-size="11" font-weight="800" text-anchor="middle">FESTIVE AUDIT 2026</text>
+
+    <!-- Live Telemetry Status Pill -->
+    <rect x="940" y="14" width="160" height="28" rx="14" fill="#ef4444" fill-opacity="0.15" stroke="#ef4444" stroke-width="1" />
+    <circle cx="960" cy="28" r="5" fill="#ef4444" class="live-dot" filter="url(#glow)" />
+    <text x="975" y="33" fill="#fca5a5" font-size="11" font-weight="800" letter-spacing="0.5">SCANNER ACTIVE</text>
+  </g>
+
+  <!-- ================= LEFT PANEL: SIMULATED AMAZON DEAL CARD WITH LASER SCANNER ================= -->
+  <g transform="translate(40, 100)">
+    <!-- Card Frame -->
+    <rect x="0" y="0" width="540" height="430" rx="24" fill="url(#cardGrad)" stroke="#334155" stroke-width="1.2" />
+
+    <!-- Card Header Tag -->
+    <path d="M 0 24 Q 0 0 24 0 L 516 0 Q 540 0 540 24 L 540 48 L 0 48 Z" fill="#0f172a" fill-opacity="0.7" />
+    <text x="24" y="30" fill="#94a3b8" font-size="12" font-weight="800" letter-spacing="1">DEAL INSPECTOR: TARGET PRODUCT</text>
+    <rect x="410" y="12" width="105" height="22" rx="6" fill="#e11d48" />
+    <text x="462" y="27" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">#1 BEST SELLER</text>
+
+    <!-- Simulated Product Info Area -->
+    <g transform="translate(24, 70)">
+      <!-- Prime Badge -->
+      <rect x="0" y="0" width="60" height="20" rx="4" fill="#00a8e1" />
+      <text x="30" y="14" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle" font-style="italic">prime</text>
+      <text x="70" y="14" fill="#f59e0b" font-size="12" font-weight="700">★★★★☆ <tspan fill="#94a3b8" font-size="11">(42,810 reviews)</tspan></text>
+
+      <!-- Product Title -->
+      <text x="0" y="44" fill="#ffffff" font-size="18" font-weight="800">Sony WH-1000XM5 Wireless ANC Headphones</text>
+      <text x="0" y="64" fill="#94a3b8" font-size="12">Festival Super Deal • Stated Launch M.R.P. Baseline</text>
+
+      <!-- Deal Price Tag -->
+      <g transform="translate(0, 85)">
+        <rect x="0" y="0" width="90" height="30" rx="8" fill="#dc2626" />
+        <text x="45" y="20" fill="#ffffff" font-size="14" font-weight="900" text-anchor="middle">-38% OFF</text>
+
+        <text x="105" y="26" fill="#ffffff" font-size="32" font-weight="900" letter-spacing="-0.5">₹24,990</text>
+        <text x="260" y="26" fill="#64748b" font-size="16" font-weight="600" text-decoration="line-through">₹39,990</text>
+      </g>
+    </g>
+
+    <!-- ================= ANIMATED LASER SCANNER OVERLAY ================= -->
+    <g transform="translate(16, 60)">
+      <!-- Scan Beam Container clipped inside panel -->
+      <g class="scanner-beam">
+        <!-- Laser glow cone -->
+        <rect x="8" y="0" width="492" height="40" fill="url(#laserGlow)" />
+        <!-- Sharp laser line -->
+        <rect x="8" y="40" width="492" height="2.5" fill="url(#laserGrad)" filter="url(#glow)" />
+        <!-- Target tracking reticles on laser ends -->
+        <circle cx="20" cy="41" r="4" fill="#ef4444" />
+        <circle cx="488" cy="41" r="4" fill="#ef4444" />
+      </g>
+    </g>
+
+    <!-- ================= AUDIT VERDICT CALLOUT BOX ================= -->
+    <g transform="translate(24, 260)">
+      <rect x="0" y="0" width="492" height="142" rx="16" fill="#7f1d1d" stroke="#ef4444" stroke-width="1.5" class="alert-box" />
+
+      <!-- Alert Header -->
+      <g transform="translate(18, 20)">
+        <circle cx="10" cy="8" r="10" fill="#ef4444" />
+        <text x="10" y="12" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">!</text>
+        <text x="30" y="13" fill="#fca5a5" font-size="13" font-weight="900" letter-spacing="0.5">AUDIT DETECTED: ARTIFICIAL STRIKE-THROUGH</text>
+      </g>
+
+      <!-- Forensic Details Table -->
+      <g transform="translate(20, 52)" font-size="12">
+        <text x="0" y="16" fill="#cbd5e1">Claimed Launch M.R.P.:</text>
+        <text x="230" y="16" fill="#f87171" font-weight="800">₹39,990 <tspan fill="#94a3b8" font-size="11 font-weight-normal">(Never sold at this rate)</tspan></text>
+
+        <text x="0" y="38" fill="#cbd5e1">Rufus 90-Day Real Median:</text>
+        <text x="230" y="38" fill="#34d399" font-weight="800">₹23,990 <tspan fill="#94a3b8" font-size="11 font-weight-normal">(Regular street price)</tspan></text>
+
+        <line x1="0" y1="50" x2="452" y2="50" stroke="#991b1b" stroke-width="1" />
+
+        <text x="0" y="68" fill="#fef08a" font-weight="800">True Consumer Savings:</text>
+        <text x="230" y="68" fill="#ef4444" font-weight="900">₹0 <tspan fill="#fca5a5">(Paying ₹1,000 ABOVE pre-sale rate!)</tspan></text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= RIGHT PANEL: 90-DAY PRICE HISTORY TELEMETRY CHART ================= -->
+  <g transform="translate(620, 100)">
+    <!-- Card Frame -->
+    <rect x="0" y="0" width="540" height="430" rx="24" fill="url(#cardGrad)" stroke="#334155" stroke-width="1.2" />
+
+    <!-- Header Tag -->
+    <path d="M 0 24 Q 0 0 24 0 L 516 0 Q 540 0 540 24 L 540 48 L 0 48 Z" fill="#0f172a" fill-opacity="0.7" />
+    <text x="24" y="30" fill="#94a3b8" font-size="12" font-weight="800" letter-spacing="1">PRICE TELEMETRY: 90-DAY TIMELINE</text>
+    <rect x="385" y="12" width="130" height="22" rx="6" fill="#065f46" />
+    <text x="450" y="27" fill="#34d399" font-size="10" font-weight="900" text-anchor="middle">VERIFIED DATA</text>
+
+    <!-- Chart Grid Canvas -->
+    <g transform="translate(30, 80)">
+      <!-- Y-Axis Labels -->
+      <g font-size="10" fill="#64748b" text-anchor="end" font-weight="600">
+        <text x="45" y="25">₹40,000</text>
+        <text x="45" y="75">₹32,000</text>
+        <text x="45" y="125">₹24,000</text>
+        <text x="45" y="175">₹16,000</text>
+      </g>
+
+      <!-- Grid Horizontal Lines -->
+      <g stroke="#334155" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.6">
+        <line x1="55" y1="20" x2="480" y2="20" />
+        <line x1="55" y1="70" x2="480" y2="70" />
+        <line x1="55" y1="120" x2="480" y2="120" />
+        <line x1="55" y1="170" x2="480" y2="170" />
+      </g>
+
+      <!-- Fake MRP Spiked Line (Red Dashed) -->
+      <path d="M 55 125 L 260 125 L 340 120 L 380 25 L 480 25" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="6,4" />
+      
+      <!-- Actual Historical Street Price Line (Green Steady) -->
+      <path d="M 55 130 L 150 125 L 250 128 L 340 125 L 380 100 L 440 115 L 480 115" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round" />
+      
+      <!-- Filled gradient area under street price -->
+      <path d="M 55 130 L 150 125 L 250 128 L 340 125 L 380 100 L 440 115 L 480 115 L 480 190 L 55 190 Z" fill="url(#chartAreaGrad)" />
+
+      <!-- Pre-Sale Pump Shaded Warning Area -->
+      <rect x="340" y="20" width="100" height="170" fill="url(#pumpAreaGrad)" rx="8" />
+      <rect x="340" y="20" width="100" height="20" fill="#dc2626" rx="4" />
+      <text x="390" y="34" fill="#ffffff" font-size="9" font-weight="900" text-anchor="middle">PRE-SALE PUMP</text>
+
+      <!-- Key Data Nodes on Graph -->
+      <!-- Node 1: Normal street price -->
+      <circle cx="200" cy="126" r="4.5" fill="#10b981" />
+      <text x="200" y="148" fill="#94a3b8" font-size="10" text-anchor="middle">₹23,990</text>
+
+      <!-- Node 2: Fake MRP Spiked Peak -->
+      <circle cx="380" cy="25" r="5" fill="#ef4444" />
+      <circle cx="380" cy="25" r="8" fill="none" stroke="#ef4444" class="pulse-ring-anim" />
+      <text x="380" y="15" fill="#fca5a5" font-size="11" font-weight="900" text-anchor="middle">₹39,990 FAKE MRP</text>
+
+      <!-- Node 3: Advertised Sale Deal Today -->
+      <circle cx="460" cy="115" r="6" fill="#f59e0b" stroke="#ffffff" stroke-width="2" />
+      <circle cx="460" cy="115" r="10" fill="none" stroke="#f59e0b" class="pulse-ring-anim" />
+      <text x="460" y="100" fill="#fef08a" font-size="11" font-weight="900" text-anchor="middle">₹24,990 "DEAL"</text>
+
+      <!-- X-Axis Labels -->
+      <g font-size="10" fill="#64748b" text-anchor="middle" font-weight="600" transform="translate(0, 205)">
+        <text x="70">90 Days Ago</text>
+        <text x="180">60 Days Ago</text>
+        <text x="290">30 Days Ago</text>
+        <text x="390" fill="#fca5a5">7 Days (Pump)</text>
+        <text x="470" fill="#fef08a">Sale Day</text>
+      </g>
+    </g>
+
+    <!-- Legend & Telemetry Readout -->
+    <g transform="translate(30, 340)">
+      <rect x="0" y="0" width="480" height="65" rx="12" fill="#0f172a" fill-opacity="0.8" stroke="#334155" stroke-width="1" />
+      
+      <g transform="translate(18, 22)">
+        <line x1="0" y1="0" x2="20" y2="0" stroke="#10b981" stroke-width="3" />
+        <text x="28" y="4" fill="#e2e8f0" font-size="11" font-weight="700">True 90-Day Baseline (₹23,990)</text>
+      </g>
+
+      <g transform="translate(18, 44)">
+        <line x1="0" y1="0" x2="20" y2="0" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="4,3" />
+        <text x="28" y="4" fill="#fca5a5" font-size="11" font-weight="700">Artificially Inflated MRP (₹39,990)</text>
+      </g>
+
+      <g transform="translate(300, 32)">
+        <rect x="0" y="-14" width="160" height="28" rx="8" fill="#1e1b4b" stroke="#6366f1" stroke-width="1" />
+        <text x="80" y="4" fill="#a5b4fc" font-size="11" font-weight="800" text-anchor="middle">RUFUS AI VERIFIED</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= BOTTOM STRIP: EDITORIAL TELEMETRY STATS ================= -->
+  <g transform="translate(40, 550)">
+    <rect x="0" y="0" width="1120" height="56" rx="16" fill="#1e293b" fill-opacity="0.7" stroke="#334155" stroke-width="1" />
+    
+    <g transform="translate(30, 34)" font-size="12">
+      <text x="0" y="0" fill="#94a3b8">Audited by:</text>
+      <text x="75" y="0" fill="#ffffff" font-weight="800">LatestDeal.in Intelligence Lab</text>
+
+      <text x="320" y="0" fill="#94a3b8">Market Sample:</text>
+      <text x="420" y="0" fill="#60a5fa" font-weight="800">54,200+ Amazon India ASINs</text>
+
+      <text x="660" y="0" fill="#94a3b8">Deceptive MRP Rate:</text>
+      <text x="800" y="0" fill="#f87171" font-weight="900">48.2% of "Mega Deals"</text>
+
+      <text x="960" y="0" fill="#34d399" font-weight="800">✓ CCPA Verified</text>
+    </g>
+  </g>
+</svg>

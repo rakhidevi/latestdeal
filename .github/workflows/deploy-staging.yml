@@ -41,7 +41,7 @@ jobs:
             local src="$1"
             local dest="$2"
             echo "Uploading $src -> ftp://$FTP_SERVER/$dest"
-            curl -s --retry 5 --max-time 60 -T "$src" \
+            curl -s --retry 5 --max-time 60 --ftp-create-dirs -T "$src" \
               "ftp://$FTP_SERVER/$dest" \
               --user "$FTP_USER:$FTP_PASS" && echo "OK" || echo "FAILED"
           }
@@ -49,6 +49,7 @@ jobs:
           # Critical entry points
           upload_file backend/public/unzip.php           public/unzip.php
           upload_file backend/public/index.php           public/index.php
+          upload_file backend/public/images/guides/amazon-price-audit-animation.svg public/images/guides/amazon-price-audit-animation.svg
 
           # Routes
           upload_file backend/routes/web.php             routes/web.php
@@ -92,6 +93,7 @@ jobs:
           upload_file backend/database/migrations/2026_10_26_000003_update_guide_articles_to_2026.php database/migrations/2026_10_26_000003_update_guide_articles_to_2026.php
           upload_file backend/database/migrations/2026_10_27_000001_fix_guide_article_button_visibility.php database/migrations/2026_10_27_000001_fix_guide_article_button_visibility.php
           upload_file backend/database/migrations/2026_10_27_000002_localize_guides_for_india.php database/migrations/2026_10_27_000002_localize_guides_for_india.php
+          upload_file backend/database/migrations/2026_10_27_000003_update_guide_featured_image_to_animation.php database/migrations/2026_10_27_000003_update_guide_featured_image_to_animation.php
           upload_file backend/app/Http/Controllers/ArticleController.php app/Http/Controllers/ArticleController.php
           upload_file backend/database/seeders/ArticleSeeder.php database/seeders/ArticleSeeder.php
           upload_file backend/resources/views/articles/show.blade.php resources/views/articles/show.blade.php

@@ -274,7 +274,7 @@ HTML
                 'title' => 'How to Spot Fake Discounts & Inflated MRPs on Amazon India (2026 Price Audit)',
                 'summary' => 'Our proprietary methodology for identifying artificial price inflations, deceptive strike-through tags, and verifying true historical lows across Indian e-commerce.',
                 'excerpt' => 'Don\'t get fooled by 80% off banners. Learn how algorithmic pricing creates artificial bargains and how to verify real all-time lows using price telemetry.',
-                'featured_image' => 'https://images.unsplash.com/photo-1565514020432-9f4e84f5bf6f?w=1200&auto=format&fit=crop&q=80',
+                'featured_image' => '/images/guides/amazon-price-audit-animation.svg',
                 'tags' => ['Price Tracking', 'Amazon', 'Fake Discounts', 'Shopping Tips', 'Consumer Rights'],
                 'seo_metadata' => [
                     'title' => 'How to Spot Fake Discounts & Inflated MRPs on Amazon India | LatestDeal',
