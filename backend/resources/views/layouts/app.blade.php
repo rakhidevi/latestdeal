@@ -485,7 +485,7 @@
                                     <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1.5">Brands</div>
                                     <div class="grid grid-cols-2 gap-2">
                                         <template x-for="b in suggestions.brands" :key="b.name">
-                                            <a :href="b.url" class="flex items-center justify-between p-2 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 transition">
+                                            <a href="#" :href="b.url" class="flex items-center justify-between p-2 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 transition">
                                                 <span class="font-bold text-gray-800 dark:text-slate-200 text-xs" x-text="b.name"></span>
                                                 <span class="text-[10px] text-red-600 dark:text-red-400 font-semibold" x-text="b.count"></span>
                                             </a>
@@ -500,7 +500,7 @@
                                     <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1.5">Categories</div>
                                     <div class="grid grid-cols-2 gap-2">
                                         <template x-for="c in suggestions.categories" :key="c.name">
-                                            <a :href="c.url" class="flex items-center justify-between p-2 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 transition">
+                                            <a href="#" :href="c.url" class="flex items-center justify-between p-2 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 transition">
                                                 <span class="font-bold text-gray-800 dark:text-slate-200 text-xs flex items-center gap-1.5">
                                                     <span x-text="c.icon"></span>
                                                     <span x-text="c.name"></span>
@@ -518,7 +518,7 @@
                                     <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1.5">Merchants & Stores</div>
                                     <div class="grid grid-cols-2 gap-2">
                                         <template x-for="m in suggestions.merchants" :key="m.name">
-                                            <a :href="m.url" class="flex items-center justify-between p-2 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 transition">
+                                            <a href="#" :href="m.url" class="flex items-center justify-between p-2 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 transition">
                                                 <span class="font-bold text-gray-800 dark:text-slate-200 text-xs flex items-center gap-1.5">
                                                     <span x-text="m.icon"></span>
                                                     <span x-text="m.name"></span>
@@ -536,7 +536,7 @@
                                     <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1.5">Deals</div>
                                     <div class="space-y-1">
                                         <template x-for="d in suggestions.deals" :key="d.name">
-                                            <a :href="d.url" class="flex items-center justify-between p-2 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 transition text-xs">
+                                            <a href="#" :href="d.url" class="flex items-center justify-between p-2 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 transition text-xs">
                                                 <span class="font-medium text-gray-800 dark:text-slate-200 truncate pr-2" x-text="d.name"></span>
                                                 <span class="font-extrabold text-red-600 dark:text-red-400 text-xs whitespace-nowrap" x-text="d.count"></span>
                                             </a>
@@ -610,7 +610,7 @@
                                 <template x-if="brandQuery.length >= 2 && searchResults.length > 0">
                                     <template x-for="item in searchResults.slice(0, 6)" :key="item.id">
                                         <li>
-                                            <a :href="item.url" class="flex items-center justify-between text-[13px] font-medium text-gray-600 dark:text-slate-300 hover:text-red-600 transition py-1 px-1.5">
+                                            <a href="#" :href="item.url" class="flex items-center justify-between text-[13px] font-medium text-gray-600 dark:text-slate-300 hover:text-red-600 transition py-1 px-1.5">
                                                 <span class="truncate pr-1.5" x-text="item.name"></span>
                                                 <span class="text-[11px] text-gray-400 bg-gray-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full" x-text="item.deal_count"></span>
                                             </a>
@@ -784,7 +784,7 @@
                         <div class="text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Brands</div>
                         <div class="space-y-1">
                             <template x-for="b in mobileSuggestions.brands" :key="b.name">
-                                <a :href="b.url" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 text-xs">
+                                <a href="#" :href="b.url" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 text-xs">
                                     <span class="font-bold text-gray-800 dark:text-slate-200" x-text="b.name"></span>
                                     <span class="text-[10px] text-red-600 font-semibold" x-text="b.count"></span>
                                 </a>
@@ -797,7 +797,7 @@
                         <div class="text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Categories</div>
                         <div class="space-y-1">
                             <template x-for="c in mobileSuggestions.categories" :key="c.name">
-                                <a :href="c.url" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 text-xs">
+                                <a href="#" :href="c.url" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 text-xs">
                                     <span class="font-bold text-gray-800 dark:text-slate-200 flex items-center gap-1">
                                         <span x-text="c.icon"></span>
                                         <span x-text="c.name"></span>
@@ -813,7 +813,7 @@
                         <div class="text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Stores</div>
                         <div class="space-y-1">
                             <template x-for="m in mobileSuggestions.merchants" :key="m.name">
-                                <a :href="m.url" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 text-xs">
+                                <a href="#" :href="m.url" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 text-xs">
                                     <span class="font-bold text-gray-800 dark:text-slate-200 flex items-center gap-1">
                                         <span x-text="m.icon"></span>
                                         <span x-text="m.name"></span>
@@ -829,7 +829,7 @@
                         <div class="text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Deals</div>
                         <div class="space-y-1">
                             <template x-for="d in mobileSuggestions.deals" :key="d.name">
-                                <a :href="d.url" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 text-xs">
+                                <a href="#" :href="d.url" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-slate-800 text-xs">
                                     <span class="font-medium text-gray-800 dark:text-slate-200 truncate pr-2" x-text="d.name"></span>
                                     <span class="font-bold text-red-600 text-[10px] whitespace-nowrap" x-text="d.count"></span>
                                 </a>

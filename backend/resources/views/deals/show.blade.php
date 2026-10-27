@@ -426,7 +426,7 @@
                                     <div class="text-right">
                                         <div class="text-sm font-black text-slate-900 dark:text-white" x-text="store.price ? '₹' + Number(store.price).toLocaleString('en-IN') : 'Check Store'"></div>
                                         <template x-if="store.url">
-                                            <a :href="store.url" target="_blank" rel="noopener noreferrer nofollow" class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline">View Deal →</a>
+                                            <a href="#" :href="store.url" target="_blank" rel="noopener noreferrer nofollow" class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline">View Deal →</a>
                                         </template>
                                     </div>
                                 </div>

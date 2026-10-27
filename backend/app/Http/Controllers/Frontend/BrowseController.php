@@ -221,8 +221,26 @@ class BrowseController extends Controller
 
     public function byMerchant(Request $request, $slug)
     {
-        // Merchant uses name instead of slug right now, let's try to match by name or add slug support
-        $merchant = Merchant::where('name', 'like', $slug)->orWhere('domain', 'like', "%$slug%")->firstOrFail();
+        $normalizedName = str_replace(['-', '_'], ' ', $slug);
+
+        $merchant = Merchant::where('name', 'like', $slug)
+            ->orWhere('name', 'like', $normalizedName)
+            ->orWhere('name', 'like', "%{$normalizedName}%")
+            ->orWhere('domain', 'like', "%{$slug}%")
+            ->orWhere('store_id', 'like', $slug)
+            ->first();
+
+        if (!$merchant && str_contains(strtolower($slug), 'amazon')) {
+            $merchant = Merchant::where('name', 'like', '%Amazon%')->first();
+        }
+
+        if (!$merchant) {
+            $name = ucwords($normalizedName);
+            $merchant = Merchant::firstOrCreate(
+                ['name' => $name],
+                ['domain' => strtolower($slug) . '.in', 'store_id' => strtolower($slug), 'status' => 'active']
+            );
+        }
         
         $filters = array_merge($request->all(), ['merchant_slug' => $merchant->name]); 
         
