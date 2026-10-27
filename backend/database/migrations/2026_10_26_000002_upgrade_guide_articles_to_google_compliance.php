@@ -12,7 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         $author = User::where('role', 'admin')->first() ?? User::where('role', 'editor')->first() ?? User::first();
-        $authorId = $author ? $author->id : 1;
+        if (!$author) {
+            $author = User::create([
+                'name' => 'Editorial Team',
+                'email' => 'editorial@latestdeal.in',
+                'password' => bcrypt('password_secret_123'),
+                'role' => 'editor',
+            ]);
+        }
+        $authorId = $author->id;
 
         $guides = ProductionGuidesContent::getGuides();
 

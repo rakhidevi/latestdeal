@@ -58,6 +58,39 @@ class BrandResolver
     }
 
     /**
+     * Resolve brand name from arbitrary string/query
+     */
+    public static function resolveFromText(string $text): ?string
+    {
+        $patterns = [
+            'Apple' => ['/\bapple\b/i', '/iphone/i', '/ipad/i', '/macbook/i', '/airpods/i'],
+            'Sony' => ['/\bsony\b/i', '/playstation/i', '/ps5/i'],
+            'Samsung' => ['/\bsamsung\b/i', '/galaxy/i'],
+            'OnePlus' => ['/\boneplus\b/i', '/nord\s+buds/i'],
+            'Bose' => ['/\bbose\b/i', '/quietcomfort/i'],
+            'ASUS' => ['/\basus\b/i', '/tuf\s+gaming/i', '/\brog\b/i'],
+            'Acer' => ['/\bacer\b/i'],
+            'HP' => ['/\bhp\b/i'],
+            'Dell' => ['/\bdell\b/i'],
+            'Lenovo' => ['/lenovo/i'],
+            'boAt' => ['/\bboat\b/i'],
+            'Xiaomi' => ['/xiaomi/i', '/redmi/i'],
+            'Zebronics' => ['/\bzebronics\b/i'],
+            'Noise' => ['/\bnoise\b(?!\s+(cancelling|cancellation|reduction|canceling))/i'],
+        ];
+
+        foreach ($patterns as $brandName => $regexList) {
+            foreach ($regexList as $regex) {
+                if (preg_match($regex, $text)) {
+                    return $brandName;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Resolve brand using priority chain:
      * 1. AI Extracted Brand
      * 2. Structured Merchant Data

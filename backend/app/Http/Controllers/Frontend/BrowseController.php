@@ -260,19 +260,61 @@ class BrowseController extends Controller
     public function byDiscount(Request $request, $range)
     {
         $filters = array_merge($request->all(), []);
+        $cleanRange = strtolower(trim($range));
         
-        // Handle routes like 90-off, 50-69-off, under-500, under-1000
-        if (preg_match('/^(\d+)-off$/', $range, $matches)) {
-            $filters['discount_range'] = $matches[1] . '+';
-            $pageTitle = $matches[1] . '%+ Off Deals';
-        } elseif (preg_match('/^(\d+)-(\d+)-off$/', $range, $matches)) {
+        // 1. Handle "all", "latest", "today", "explore"
+        if (in_array($cleanRange, ['all', 'latest', 'today', 'explore', 'popular', 'featured'])) {
+            if ($cleanRange === 'popular') {
+                $filters['sort'] = 'popular';
+            } elseif ($cleanRange === 'featured') {
+                $filters['sort'] = 'featured';
+            }
+            $deals = $this->pipeline->search($filters);
+            $pageTitle = 'All Deals';
+            $breadcrumbs = $this->breadcrumbService->generate([
+                ['title' => 'Home', 'url' => '/'],
+                ['title' => 'All Deals', 'url' => ''],
+            ]);
+            $seoMeta = $this->seoService->generateMeta(
+                'All Deals | LatestDeal',
+                'Browse our entire curated collection of active deals, discounts, and price drops.',
+                url('/deals/' . $range)
+            );
+            $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
+
+            return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema'));
+        }
+
+        // 2. Range regex: handles 40-to-50-percent, 40-to-50, 40-50-percent, 40-50-off, 40-50
+        if (preg_match('/^(\d+)-(?:to-)?(\d+)(?:-percent|-off)?$/i', $cleanRange, $matches)) {
             $filters['discount_range'] = $matches[1] . '-' . $matches[2];
             $pageTitle = $matches[1] . '% - ' . $matches[2] . '% Off Deals';
-        } elseif (preg_match('/^under-(\d+)$/', $range, $matches)) {
+        }
+        // 3. Single threshold: handles 50-off, 50-percent, 50-percent-or-more, 50-percent-plus, 50-plus
+        elseif (preg_match('/^(\d+)(?:-percent-or-more|-percent-plus|-percent|-off|-plus)$/i', $cleanRange, $matches)) {
+            $filters['discount_range'] = $matches[1] . '+';
+            $pageTitle = $matches[1] . '%+ Off Deals';
+        }
+        // 4. Budget cap: handles under-500, under-1000, under-50000
+        elseif (preg_match('/^under-(\d+)$/i', $cleanRange, $matches)) {
             $filters['max_price'] = (float) $matches[1];
             $pageTitle = 'Deals Under ₹' . number_format($matches[1]);
-        } else {
-            abort(404);
+        }
+        // 5. Intelligent fallback: check if $range is a category or brand alias
+        else {
+            $category = Category::where('slug', $cleanRange)->first();
+            if ($category) {
+                return redirect()->route('deals.category', array_merge($request->query(), ['slug' => $cleanRange]), 301);
+            }
+            $brand = Brand::where('slug', $cleanRange)->first();
+            if ($brand) {
+                return redirect()->route('deals.brand', array_merge($request->query(), ['slug' => $cleanRange]), 301);
+            }
+
+            // Keyword fallback instead of 404
+            $searchTerm = str_replace('-', ' ', $cleanRange);
+            $filters['q'] = $searchTerm;
+            $pageTitle = 'Deals: "' . ucwords($searchTerm) . '"';
         }
 
         $deals = $this->pipeline->search($filters);

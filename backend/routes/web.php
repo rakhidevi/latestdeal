@@ -78,8 +78,22 @@ Route::get('/deal/{slug}', [BrowseController::class, 'show'])->name('deals.show'
 Route::get('/categories/{slug}', [BrowseController::class, 'byCategory'])->name('deals.category');
 Route::get('/brands/{slug}', [BrowseController::class, 'byBrand'])->name('deals.brand');
 Route::get('/merchants/{slug}', [BrowseController::class, 'byMerchant'])->name('deals.merchant');
+Route::get('/deals', [BrowseController::class, 'index'])->name('deals.index');
 Route::get('/deals/{range}', [BrowseController::class, 'byDiscount'])->name('deals.discount');
 Route::get('/author/{slug}', [\App\Http\Controllers\Frontend\AuthorController::class, 'show'])->name('author.show');
+
+// Asset & Storage Fallback Route to prevent 404s on missing deal images
+Route::get('/storage/deals/{filename}', function ($filename) {
+    $path = storage_path('app/public/deals/' . $filename);
+    if (file_exists($path) && is_file($path)) {
+        return response()->file($path);
+    }
+    $publicPath = public_path('deals/' . $filename);
+    if (file_exists($publicPath) && is_file($publicPath)) {
+        return response()->file($publicPath);
+    }
+    return response()->file(public_path('images/logo.png'));
+})->where('filename', '.*');
 
 // --- SEO & Static Pages ---
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index']);

@@ -350,11 +350,10 @@ document.addEventListener('alpine:init', () => {
                 
                 this.comparisonInterval = setInterval(async () => {
                     attempts++;
-                    if (attempts > 30) { // 60s timeout
+                    if (attempts > 15) { // 30s timeout
                         clearInterval(this.comparisonInterval);
                         clearInterval(stageInterval);
                         this.isComparing = false;
-                        alert("Comparison timed out.");
                         return;
                     }
                     
@@ -371,7 +370,6 @@ document.addEventListener('alpine:init', () => {
                         clearInterval(this.comparisonInterval);
                         clearInterval(stageInterval);
                         this.isComparing = false;
-                        alert("Failed to retrieve live prices.");
                     }
                 }, 2000);
                 

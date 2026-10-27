@@ -328,7 +328,11 @@ class Deal extends Model
             return asset('storage/' . $cleanPath);
         }
 
-        // Last resort — return the asset URL anyway (may 404 but won't break)
+        // Default or missing asset fallback — avoid returning broken 404 links
+        if (str_contains(strtolower($cleanPath), 'default') || !file_exists(public_path('storage/' . $cleanPath))) {
+            return asset('images/logo.png');
+        }
+
         return asset('storage/' . $cleanPath);
     }
 
