@@ -85,14 +85,16 @@ class ShopperAssistantController extends Controller
             elseif (preg_match('/best|recommend|top|under|budget/i', $userMessage)) $intent = 'Recommendation';
             elseif (preg_match('/coupon|discount|code|deal/i', $userMessage)) $intent = 'Coupon';
 
-            \App\Models\UIC\UicAiConversation::create([
-                'session_id' => $sessionId,
-                'visitor_uuid' => $visitorUuid,
-                'question' => $userMessage,
-                'intent' => $intent,
-                'brand_detected' => \App\Services\Catalog\BrandResolver::resolveFromText($userMessage),
-            ]);
-        } catch (\Exception $e) {
+            if (class_exists(\App\Models\UIC\UicAiConversation::class)) {
+                \App\Models\UIC\UicAiConversation::create([
+                    'session_id' => $sessionId,
+                    'visitor_uuid' => $visitorUuid,
+                    'question' => $userMessage,
+                    'intent' => $intent,
+                    'brand_detected' => \App\Services\Catalog\BrandResolver::resolveFromText($userMessage),
+                ]);
+            }
+        } catch (\Throwable $e) {
             // Ignore logging error
         }
 
@@ -114,16 +116,30 @@ class ShopperAssistantController extends Controller
                 'source' => $response['provider'],
             ]);
 
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Shopper Assistant Failed: " . $e->getMessage());
-            
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Shopper Assistant AI fallback engaged: " . $e->getMessage());
+
+            if ($deals->isEmpty()) {
+                $fallbackReply = "I couldn't find any active deals matching **\"" . e($userMessage) . "\"** right now.\n\n" .
+                    "💡 **Suggestions:**\n" .
+                    "- Try searching for broad categories like **Laptops**, **Smartphones**, or **Headphones**\n" .
+                    "- Broaden your budget or check our [All Deals](/deals/all) section for the latest discounts!";
+            } else {
+                $topDeals = $deals->take(3);
+                $fallbackReply = "Here are the top recommended deals matching your request:\n\n";
+                foreach ($topDeals as $d) {
+                    $origStr = $d['original_price'] > $d['price'] ? " (MRP ~~₹" . number_format($d['original_price']) . "~~)" : "";
+                    $discountBadge = $d['discount_pct'] > 0 ? " — **{$d['discount_pct']}% OFF**" : "";
+                    $fallbackReply .= "• **[{$d['title']}]({$d['url']})**\n";
+                    $fallbackReply .= "  ₹" . number_format($d['price']) . "{$origStr}{$discountBadge} on *{$d['merchant']}*\n\n";
+                }
+                $fallbackReply .= "👉 *Click any deal card below to view detailed specifications, price history, and live store comparisons!*";
+            }
+
             return response()->json([
-                'reply' => "I'm currently experiencing high traffic and couldn't process your request right now. Please try again in a few moments!"
-            ], 500);
+                'reply'  => $fallbackReply,
+                'source' => 'smart_assistant_fallback',
+            ], 200);
         }
-        
-        return response()->json([
-            'reply' => "I'm currently experiencing high traffic and couldn't process your request right now. Please try again in a few moments!"
-        ], 500);
     }
 }
