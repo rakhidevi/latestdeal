@@ -85,6 +85,9 @@ jobs:
           upload_file backend/app/Http/Controllers/Api/SmartSearchController.php app/Http/Controllers/Api/SmartSearchController.php
           upload_file backend/app/Http/Controllers/Api/ShopperAssistantController.php app/Http/Controllers/Api/ShopperAssistantController.php
           upload_file backend/app/Services/Catalog/BrandResolver.php app/Services/Catalog/BrandResolver.php
+          upload_file backend/app/Http/Controllers/SitemapController.php app/Http/Controllers/SitemapController.php
+          upload_file backend/app/Http/Controllers/DirectoryController.php app/Http/Controllers/DirectoryController.php
+          upload_file backend/app/Console/Commands/ReclassifyCatalogCommand.php app/Console/Commands/ReclassifyCatalogCommand.php
           upload_file backend/resources/views/shopper/assistant.blade.php resources/views/shopper/assistant.blade.php
 
           # Editorial & Guides Engine
@@ -140,6 +143,7 @@ jobs:
           upload_file backend/resources/views/emails/promo-deal-digest.blade.php resources/views/emails/promo-deal-digest.blade.php
           upload_file backend/resources/views/emails/promo-deal-digest-plain.blade.php resources/views/emails/promo-deal-digest-plain.blade.php
           upload_file backend/resources/views/livewire/admin/studio/admin-center.blade.php resources/views/livewire/admin/studio/admin-center.blade.php
+          upload_file backend/resources/views/directory/categories.blade.php resources/views/directory/categories.blade.php
 
           echo "Direct file uploads complete."
 
@@ -170,6 +174,9 @@ jobs:
 
           echo "--- Refreshing OPcache and permissions ---"
           curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://latestdeal.in/unzip.php?fix_perms=1&token=$DEPLOY_TOKEN"
+
+          echo "--- Reclassifying catalog and cleaning bogus categories ---"
+          curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://latestdeal.in/unzip.php?reclassify_catalog=1&token=$DEPLOY_TOKEN"
 
           echo "--- Done ---"
 
