@@ -358,6 +358,39 @@ if (isset($_GET['fix_perms'])) {
         $results[] = 'OPcache reset: OK';
     }
     
+    // Self-healing schema synchronization
+    try {
+        require_once __DIR__ . '/../vendor/autoload.php';
+        $app = require_once __DIR__ . '/../bootstrap/app.php';
+        $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+        
+        $schema = \Illuminate\Support\Facades\Schema::connection(null);
+        if ($schema->hasTable('deals')) {
+            if (!$schema->hasColumn('deals', 'ai_score')) {
+                $schema->table('deals', function ($t) {
+                    $t->integer('ai_score')->nullable()->default(85);
+                });
+                $results[] = 'Added missing ai_score column to deals';
+            }
+            if (!$schema->hasColumn('deals', 'clicks_count')) {
+                $schema->table('deals', function ($t) {
+                    $t->unsignedBigInteger('clicks_count')->default(0);
+                });
+                $results[] = 'Added missing clicks_count column to deals';
+            }
+        }
+        if ($schema->hasTable('merchants')) {
+            if (!$schema->hasColumn('merchants', 'status')) {
+                $schema->table('merchants', function ($t) {
+                    $t->boolean('status')->default(true);
+                });
+                $results[] = 'Added missing status column to merchants';
+            }
+        }
+    } catch (\Throwable $e) {
+        $results[] = 'Schema sync note: ' . $e->getMessage();
+    }
+
     // Now run artisan commands
     $phpBin = getPhpBinary();
     exec(escapeshellarg($phpBin) . ' ' . escapeshellarg($artisan) . ' config:clear 2>&1', $o1);
@@ -379,6 +412,72 @@ if (isset($_GET['fix_perms'])) {
     
     header('Content-Type: application/json');
     echo json_encode(['status' => 'done', 'results' => $results]);
+    exit;
+}
+
+if (isset($_GET['reclassify_catalog'])) {
+    header('Content-Type: text/plain; charset=utf-8');
+    try {
+        require_once __DIR__ . '/../vendor/autoload.php';
+        $app = require_once __DIR__ . '/../bootstrap/app.php';
+        $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+        // 1. Purge bogus categories
+        $bogusSlugs = ['c.url', 'item.url', 'b.url', 'd.url', 'm.url', '"', "'", 'general', 'uncategorized', 'all-other-categories'];
+        $deletedCats = \App\Models\Category::whereIn('slug', $bogusSlugs)
+            ->orWhere('slug', 'LIKE', '%.url%')
+            ->orWhere('slug', 'LIKE', '%"%')
+            ->delete();
+        echo "Purged {$deletedCats} bogus category entries.\n";
+
+        // 2. Run catalog:reclassify artisan command
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('catalog:reclassify');
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        echo "Catalog reclassify output:\n" . $output . "\n";
+
+        // 3. Clean and fix brand entries on deals
+        $merchantNames = ['amazon', 'amazon india', 'flipkart', 'croma', 'reliance digital', 'myntra', 'ajio', 'meesho', 'tatacliq', 'tata cliq'];
+        $badBrandDeals = \App\Models\Deal::whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(brand)'), $merchantNames)
+            ->orWhereNull('brand')
+            ->get();
+        $fixedBrands = 0;
+        foreach ($badBrandDeals as $deal) {
+            $resolved = \App\Services\Catalog\BrandResolver::resolveFromText($deal->title);
+            if ($resolved) {
+                $deal->brand = $resolved;
+                $deal->saveQuietly();
+                $fixedBrands++;
+            }
+        }
+        echo "Fixed {$fixedBrands} deals with merchant-polluted or missing brand names.\n";
+
+        // 4. Sanitize implausible comparison results in price_intelligence
+        $allDeals = \App\Models\Deal::whereNotNull('price_intelligence')->get();
+        $fixedComparisons = 0;
+        foreach ($allDeals as $deal) {
+            $pi = is_array($deal->price_intelligence) ? $deal->price_intelligence : json_decode($deal->price_intelligence, true);
+            if (!empty($pi['comparison_results'])) {
+                $baseP = (float)$deal->discounted_price;
+                $maxP = 2.2 * max($baseP, (float)($deal->original_price ?: $baseP));
+                $minP = 0.25 * $baseP;
+                $valid = array_values(array_filter($pi['comparison_results'], function($c) use ($minP, $maxP) {
+                    $p = isset($c['price']) ? (float)$c['price'] : null;
+                    return $p !== null && $p >= $minP && $p <= $maxP;
+                }));
+                if (count($valid) !== count($pi['comparison_results'])) {
+                    $pi['comparison_results'] = $valid;
+                    $deal->price_intelligence = $pi;
+                    $deal->saveQuietly();
+                    $fixedComparisons++;
+                }
+            }
+        }
+        echo "Sanitized {$fixedComparisons} deals with out-of-range comparison records.\n";
+
+        echo "\nSUCCESS: Catalog reclassification & data hygiene completed!\n";
+    } catch (\Throwable $e) {
+        echo "FAIL: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n";
+    }
     exit;
 }
 

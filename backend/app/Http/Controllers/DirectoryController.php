@@ -12,25 +12,34 @@ class DirectoryController extends Controller
 {
     public function categories(Request $request)
     {
-        $categories = Category::whereNotIn('slug', ['general', 'uncategorized', 'all-other-categories'])
+        $bogusCategorySlugs = [
+            'c.url', 'item.url', 'b.url', 'd.url', 'm.url', '"', "'",
+            'general', 'uncategorized', 'all-other-categories'
+        ];
+
+        $categories = Category::whereNotIn('slug', $bogusCategorySlugs)
+            ->where('slug', 'NOT LIKE', '%.url%')
+            ->where('slug', 'NOT LIKE', '%"%')
             ->whereNotIn('name', ['General', 'Uncategorized', 'uncategorized', 'All Other Categories'])
             ->withCount(['deals as active_deals_count' => function ($q) {
                 $q->where('status', 'active');
             }])
             ->get()
             ->filter(function ($cat) {
-                return ($cat->active_deals_count ?? 0) > 0;
+                return preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $cat->slug) && (($cat->active_deals_count ?? 0) > 0);
             })
             ->map(function ($cat) {
                 $cat->deal_count = $cat->active_deals_count ?? $cat->deal_count ?? 0;
                 if (empty($cat->icon) || $cat->icon === '📦') {
                     $icons = [
+                        'mobiles' => '📱',
+                        'mobile-phones' => '📱',
                         'electronics' => '💻',
                         'home-kitchen' => '🏡',
                         'sports-fitness' => '🏋️',
                         'fashion-accessories' => '👗',
                         'beauty-personal-care' => '💄',
-                        'mobile-phones' => '📱',
+                        'software' => '🛡️',
                         'data-storage-devices' => '💾',
                         'televisions' => '📺',
                         'smart-watches' => '⌚',

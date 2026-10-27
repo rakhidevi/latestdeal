@@ -30,25 +30,32 @@ class LiveComparisonController extends Controller
         // 1. Check Cache (60 min TTL)
         $cachedResult = Cache::get($cacheKey);
         if ($cachedResult && !empty($cachedResult['results'])) {
-            return response()->json([
-                'status' => 'cache_hit',
-                'data' => $cachedResult
-            ]);
+            $sanitized = $this->sanitizeCompetitorResults($cachedResult['results'], $dealPrice ?? 1000, $deal ? $deal->original_price : null);
+            if (!empty($sanitized)) {
+                $cachedResult['results'] = $sanitized;
+                return response()->json([
+                    'status' => 'cache_hit',
+                    'data' => $cachedResult
+                ]);
+            }
         }
 
         // 2. Check if Deal already has persisted comparison results
         if ($deal) {
             $pi = is_array($deal->price_intelligence) ? $deal->price_intelligence : (json_decode($deal->price_intelligence ?? '', true) ?? []);
             if (!empty($pi['comparison_results'])) {
-                $payload = [
-                    'results' => $pi['comparison_results'],
-                    'ai_score' => $pi['ai_score'] ?? $deal->ai_score ?? 85,
-                ];
-                Cache::put($cacheKey, $payload, now()->addMinutes(60));
-                return response()->json([
-                    'status' => 'cache_hit',
-                    'data' => $payload
-                ]);
+                $sanitized = $this->sanitizeCompetitorResults($pi['comparison_results'], (float)$deal->discounted_price, (float)$deal->original_price);
+                if (!empty($sanitized)) {
+                    $payload = [
+                        'results' => $sanitized,
+                        'ai_score' => $pi['ai_score'] ?? $deal->ai_score ?? 85,
+                    ];
+                    Cache::put($cacheKey, $payload, now()->addMinutes(60));
+                    return response()->json([
+                        'status' => 'cache_hit',
+                        'data' => $payload
+                    ]);
+                }
             }
         }
 
@@ -141,6 +148,35 @@ class LiveComparisonController extends Controller
     }
 
     /**
+     * Defensive price bound check: filter out wildly mismatched products (e.g. 15,999 TV on a 49 bulb)
+     */
+    protected function sanitizeCompetitorResults(array $results, float $dealPrice, ?float $mrp = null): array
+    {
+        if ($dealPrice <= 0) {
+            return [];
+        }
+
+        $ceiling = 2.2 * max($dealPrice, $mrp ?? $dealPrice);
+        $floor = 0.25 * $dealPrice;
+
+        $sanitized = [];
+        foreach ($results as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            if (isset($item['price'])) {
+                $price = (float)$item['price'];
+                if ($price > $ceiling || $price < $floor) {
+                    continue; // Skip out-of-range mismatched competitor product
+                }
+            }
+            $sanitized[] = $item;
+        }
+
+        return $sanitized;
+    }
+
+    /**
      * Called by Shopper Assistant to poll job status
      */
     public function checkStatus($jobId)
@@ -153,15 +189,26 @@ class LiveComparisonController extends Controller
 
         if ($job->status === 'success') {
             $payload = json_decode($job->payload, true);
-            $results = $payload['results'] ?? [];
-            $aiScore = $payload['ai_score'] ?? null;
+            $dealId = $payload['deal_id'] ?? null;
+            $deal = $dealId ? Deal::find($dealId) : null;
+            $rawResults = $payload['results'] ?? [];
+            $results = $this->sanitizeCompetitorResults(
+                $rawResults,
+                (float)($payload['deal_price'] ?? ($deal ? $deal->discounted_price : 1000)),
+                $deal ? (float)$deal->original_price : null
+            );
+            if (empty($results)) {
+                $results = $this->generateCompetitorPrices($deal, $payload['title'] ?? 'Deal', $payload['deal_price'] ?? null);
+            }
+            $aiScore = $payload['ai_score'] ?? ($deal ? $deal->ai_score : 85);
             
             // Cache the result for next time
-            $dealId = $payload['deal_id'];
-            Cache::put("compare_prices_{$dealId}", [
-                'results' => $results,
-                'ai_score' => $aiScore
-            ], now()->addMinutes(60));
+            if ($dealId) {
+                Cache::put("compare_prices_{$dealId}", [
+                    'results' => $results,
+                    'ai_score' => $aiScore
+                ], now()->addMinutes(60));
+            }
 
             return response()->json([
                 'status' => 'completed',
@@ -245,10 +292,22 @@ class LiveComparisonController extends Controller
             return response()->json(['error' => 'Job not found'], 404);
         }
 
-        $results = $request->input('results', []);
+        $rawResults = $request->input('results', []);
         $aiScore = $request->input('ai_score', 85);
 
         $payload = json_decode($job->payload, true) ?? [];
+        $dealId = $payload['deal_id'] ?? null;
+        $deal = $dealId ? Deal::find($dealId) : null;
+
+        $results = $this->sanitizeCompetitorResults(
+            $rawResults,
+            (float)($payload['deal_price'] ?? ($deal ? $deal->discounted_price : 1000)),
+            $deal ? (float)$deal->original_price : null
+        );
+        if (empty($results)) {
+            $results = $this->generateCompetitorPrices($deal, $payload['title'] ?? 'Deal', $payload['deal_price'] ?? null);
+        }
+
         $payload['results'] = $results;
         $payload['ai_score'] = $aiScore;
 

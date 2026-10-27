@@ -73,8 +73,10 @@ def enrich_deal(deal: Deal, ollama_url: str = "http://localhost:11434", preserve
         
         comp_min = deal.price_intelligence.competitor_min_price
         comp_info = ""
-        if comp_min:
-            diff = comp_min - (deal.price or 0.0)
+        base_price = deal.price or 0.0
+        mrp_bound = deal.original_price or (base_price * 1.35)
+        if comp_min and (comp_min <= 2.2 * max(base_price, mrp_bound)) and (comp_min >= 0.25 * base_price):
+            diff = comp_min - base_price
             if diff > 0:
                 comp_info = f"- Market Intelligence: Rs.{diff:,.0f} CHEAPER than lowest major competitor (Competitor: Rs.{comp_min:,.0f})"
             else:

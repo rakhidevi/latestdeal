@@ -210,16 +210,25 @@
         <!-- Right Column: Details & Actions -->
         <div class="lg:col-span-7 flex flex-col justify-center">
             
-            <div class="flex flex-wrap gap-3 mb-6">
-                {{-- Rendered inside Deal Analysis above now --}}
+            <div class="flex flex-wrap items-center gap-3 mb-6">
                 @php
-                    $brandName = is_string($deal->brand) ? $deal->brand : ($deal->brandRelation->name ?? null);
+                    $rawBrand = is_string($deal->brand) ? $deal->brand : ($deal->brandRelation->name ?? null);
+                    $merchantStores = ['amazon', 'amazon india', 'flipkart', 'croma', 'reliance digital', 'myntra', 'ajio', 'meesho'];
+                    if (empty($rawBrand) || in_array(strtolower(trim($rawBrand)), $merchantStores)) {
+                        $brandName = \App\Services\Catalog\BrandResolver::resolveFromText($deal->title);
+                    } else {
+                        $brandName = $rawBrand;
+                    }
                 @endphp
                 @if($brandName)
                     <span class="inline-flex items-center gap-1.5 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-3.5 py-1.5 rounded-full text-xs font-black tracking-wide border border-gray-200 dark:border-slate-700 shadow-sm uppercase">
                         🏷️ Brand: {{ $brandName }}
                     </span>
                 @endif
+                <span class="inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800/60 shadow-sm">
+                    <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Price Checked: {{ $deal->updated_at ? $deal->updated_at->diffForHumans() : 'Today' }} • Live on {{ $deal->merchant->name ?? 'Amazon India' }}
+                </span>
             </div>
 
             <div class="flex justify-between items-start gap-4">
@@ -386,7 +395,16 @@
             <!-- Multi-Store Price Comparison & Intelligence Card -->
             @php
                 $piData = is_array($deal->price_intelligence) ? $deal->price_intelligence : (json_decode($deal->price_intelligence ?? '', true) ?? []);
-                $existingComparisons = $piData['comparison_results'] ?? [];
+                $rawExistingComparisons = $piData['comparison_results'] ?? [];
+                $dealPrice = (float)$deal->discounted_price;
+                $dealMrp = (float)($deal->original_price ?: $dealPrice);
+                $ceiling = 2.2 * max($dealPrice, $dealMrp);
+                $floor = 0.25 * $dealPrice;
+                $existingComparisons = array_values(array_filter($rawExistingComparisons, function($c) use ($floor, $ceiling) {
+                    if (!is_array($c) || !isset($c['price'])) return true;
+                    $p = (float)$c['price'];
+                    return $p >= $floor && $p <= $ceiling;
+                }));
             @endphp
             <div x-data="multiStoreComparator({{ $deal->id }}, @js($deal->title), {{ $deal->discounted_price }}, @js($existingComparisons))" 
                  class="mt-8 bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
@@ -611,15 +629,28 @@
 
 
             <!-- AI Caption Copy & Share Buttons -->
+            @php
+                $cleanCaption = $deal->ai_caption;
+                if ($cleanCaption) {
+                    $dealPriceVal = (float)$deal->discounted_price;
+                    $dealMrpVal = (float)($deal->original_price ?: ($dealPriceVal * 1.3));
+                    if (preg_match('/(?:₹|Rs\.?)\s*([0-9,]+)/i', $cleanCaption, $m)) {
+                        $claimedNum = (float)str_replace(',', '', $m[1]);
+                        if ($claimedNum > max($dealMrpVal * 2.5, $dealPriceVal * 3, 50000) && $dealPriceVal < 5000) {
+                            $cleanCaption = "Verified Deal: {$deal->title} at ₹" . number_format($dealPriceVal) . ($deal->calculated_discount_percent > 0 ? " ({$deal->calculated_discount_percent}% OFF)" : "") . " on " . ($deal->merchant->name ?? 'Amazon India') . ". Price checked by LatestDeal.";
+                        }
+                    }
+                }
+            @endphp
             <div class="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                @if($deal->ai_caption)
+                @if($cleanCaption)
                     <button onclick="copyCaption()" class="w-full sm:w-auto flex justify-center items-center gap-2 text-xs font-bold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition bg-white dark:bg-slate-800 px-5 py-3 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-slate-700">
                         <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.415-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.254-.241-1.868-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.892-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
                         Copy Telegram Post
                     </button>
                     <script>
                         function copyCaption() {
-                            let caption = @js($deal->ai_caption);
+                            let caption = @js($cleanCaption);
                             caption = caption.replace(/\\n/g, '\n');
                             navigator.clipboard.writeText(caption);
                             alert("Social media caption copied to clipboard!");
@@ -859,6 +890,17 @@
             isComparing: false,
             compareStatus: 'Scanning stores...',
             
+            filterStores(items) {
+                if (!Array.isArray(items)) return [];
+                const minP = this.dealPrice * 0.25;
+                const maxP = Math.max(this.dealPrice, {{ (float)($deal->original_price ?: $deal->discounted_price) }}) * 2.2;
+                return items.filter(s => {
+                    if (!s || s.price === undefined || s.price === null) return true;
+                    const p = Number(s.price);
+                    return p >= minP && p <= maxP;
+                });
+            },
+
             init() {
                 if ((!this.stores || this.stores.length === 0) && this.dealTitle) {
                     this.compareStores();
@@ -886,7 +928,7 @@
                     const data = await res.json();
                     
                     if (data.status === 'cache_hit') {
-                        this.stores = data.data.results || [];
+                        this.stores = this.filterStores(data.data.results || []);
                         this.isComparing = false;
                         return;
                     }
@@ -904,7 +946,7 @@
                                 
                                 if (statusData.status === 'completed') {
                                     clearInterval(poll);
-                                    this.stores = statusData.data.results || [];
+                                    this.stores = this.filterStores(statusData.data.results || []);
                                     this.isComparing = false;
                                 } else if (statusData.status === 'failed' || attempts > 20) {
                                     clearInterval(poll);

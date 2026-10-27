@@ -63,6 +63,7 @@ class BrandResolver
     public static function resolveFromText(string $text): ?string
     {
         $patterns = [
+            'realme' => ['/\brealme\b/i'],
             'Apple' => ['/\bapple\b/i', '/iphone/i', '/ipad/i', '/macbook/i', '/airpods/i'],
             'Sony' => ['/\bsony\b/i', '/playstation/i', '/ps5/i'],
             'Samsung' => ['/\bsamsung\b/i', '/galaxy/i'],
@@ -74,9 +75,28 @@ class BrandResolver
             'Dell' => ['/\bdell\b/i'],
             'Lenovo' => ['/lenovo/i'],
             'boAt' => ['/\bboat\b/i'],
-            'Xiaomi' => ['/xiaomi/i', '/redmi/i'],
-            'Zebronics' => ['/\bzebronics\b/i'],
+            'Xiaomi' => ['/xiaomi/i', '/redmi/i', '/\bpoco\b/i'],
+            'Zebronics' => ['/\bzebronics\b/i', '/juke\s+bar/i'],
             'Noise' => ['/\bnoise\b(?!\s+(cancelling|cancellation|reduction|canceling))/i'],
+            'Halonix' => ['/\bhalonix\b/i'],
+            'Philips' => ['/\bphilips\b/i'],
+            'Syska' => ['/\bsyska\b/i'],
+            'Wipro' => ['/\bwipro\b/i'],
+            'Havells' => ['/\bhavells\b/i'],
+            'Bajaj' => ['/\bbajaj\b/i'],
+            'Crompton' => ['/\bcrompton\b/i'],
+            'Pigeon' => ['/\bpigeon\b/i'],
+            'Prestige' => ['/\bprestige\b/i'],
+            'Milton' => ['/\bmilton\b/i'],
+            'JBL' => ['/\bjbl\b/i'],
+            'Sennheiser' => ['/sennheiser/i'],
+            'SanDisk' => ['/sandisk/i'],
+            'Logitech' => ['/\blogitech\b/i'],
+            'Portronics' => ['/\bportronics\b/i'],
+            'Boult' => ['/\bboult\b/i'],
+            'Fire-Boltt' => ['/\bfire-?boltt\b/i'],
+            'Fastrack' => ['/\bfastrack\b/i'],
+            'Titan' => ['/\btitan\b/i'],
         ];
 
         foreach ($patterns as $brandName => $regexList) {
@@ -102,15 +122,22 @@ class BrandResolver
     public function resolveAndAssign(Deal $deal): ?Brand
     {
         $detectedName = null;
+        $merchantNames = ['amazon', 'amazon india', 'flipkart', 'croma', 'reliance digital', 'myntra', 'ajio', 'meesho', 'tatacliq', 'tata cliq'];
 
-        // 1. AI Extracted Metadata
+        // 1. AI Extracted Metadata (Filter out merchant stores)
         if (!empty($deal->ai_metadata) && is_array($deal->ai_metadata) && !empty($deal->ai_metadata['brand'])) {
-            $detectedName = trim($deal->ai_metadata['brand']);
+            $candidate = trim($deal->ai_metadata['brand']);
+            if (!in_array(strtolower($candidate), $merchantNames)) {
+                $detectedName = $candidate;
+            }
         }
         
-        // 1.5. Existing Brand String from Ingestion
+        // 1.5. Existing Brand String from Ingestion (Filter out merchant stores)
         if (!$detectedName && !empty($deal->brand)) {
-            $detectedName = trim($deal->brand);
+            $candidate = trim($deal->brand);
+            if (!in_array(strtolower($candidate), $merchantNames)) {
+                $detectedName = $candidate;
+            }
         }
 
         // 2. Title Pattern Matching (Highest Precision NLP Regex Rules)

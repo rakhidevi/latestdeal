@@ -31,11 +31,20 @@ class ApplyRanking
 
         // Apply specialized AI / Trending rules
         if (!empty($filters['tag'])) {
+            $hasAiScore = Schema::hasColumn('deals', 'ai_score');
             if ($filters['tag'] === 'ai-picks') {
-                $query->where('ai_score', '>=', 85)->orderByRaw('(original_price - discounted_price) DESC');
+                if ($hasAiScore) {
+                    $query->where('ai_score', '>=', 85);
+                }
+                $query->orderByRaw('(original_price - discounted_price) DESC');
                 return $next($payload);
             } elseif ($filters['tag'] === 'trending') {
-                $query->where('ai_score', '>=', 80)->orderBy('created_at', 'desc');
+                if ($hasAiScore) {
+                    $query->where(function ($q) {
+                        $q->where('ai_score', '>=', 80)->orWhereNull('ai_score');
+                    });
+                }
+                $query->orderBy('created_at', 'desc');
                 return $next($payload);
             }
         }
@@ -92,7 +101,9 @@ class ApplyRanking
             }
         }
 
-        $rankFormula = "({$discountExpr} * 0.35 + IFNULL(ai_score, 50) * 0.25 + {$freshness} * 0.20 + {$newArrivalBoost} + ({$priceBumpBoost}))";
+        $hasAiScore = Schema::hasColumn('deals', 'ai_score');
+        $aiScoreExpr = $hasAiScore ? "IFNULL(ai_score, 50)" : "50";
+        $rankFormula = "({$discountExpr} * 0.35 + {$aiScoreExpr} * 0.25 + {$freshness} * 0.20 + {$newArrivalBoost} + ({$priceBumpBoost}))";
 
         $query->orderByRaw("{$rankFormula} DESC, created_at DESC, id DESC");
 
