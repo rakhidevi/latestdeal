@@ -90,6 +90,7 @@ jobs:
           upload_file backend/database/migrations/2026_10_26_000001_add_deal_id_to_articles_table.php database/migrations/2026_10_26_000001_add_deal_id_to_articles_table.php
           upload_file backend/database/migrations/2026_10_26_000002_upgrade_guide_articles_to_google_compliance.php database/migrations/2026_10_26_000002_upgrade_guide_articles_to_google_compliance.php
           upload_file backend/database/migrations/2026_10_26_000003_update_guide_articles_to_2026.php database/migrations/2026_10_26_000003_update_guide_articles_to_2026.php
+          upload_file backend/database/migrations/2026_10_27_000001_fix_guide_article_button_visibility.php database/migrations/2026_10_27_000001_fix_guide_article_button_visibility.php
           upload_file backend/app/Http/Controllers/ArticleController.php app/Http/Controllers/ArticleController.php
           upload_file backend/database/seeders/ArticleSeeder.php database/seeders/ArticleSeeder.php
           upload_file backend/resources/views/articles/show.blade.php resources/views/articles/show.blade.php
