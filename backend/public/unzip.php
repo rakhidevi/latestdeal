@@ -430,10 +430,58 @@ if (isset($_GET['reclassify_catalog'])) {
             ->delete();
         echo "Purged {$deletedCats} bogus category entries.\n";
 
-        // 2. Run catalog:reclassify artisan command
-        $exitCode = \Illuminate\Support\Facades\Artisan::call('catalog:reclassify');
-        $output = \Illuminate\Support\Facades\Artisan::output();
-        echo "Catalog reclassify output:\n" . $output . "\n";
+        // 2. Direct catalog reclassification (resilient without command boot)
+        $categoryDefinitions = [
+            'mobiles' => ['name' => 'Mobiles', 'icon' => '📱'],
+            'electronics' => ['name' => 'Electronics', 'icon' => '💻'],
+            'home-kitchen' => ['name' => 'Home & Kitchen', 'icon' => '🏡'],
+            'fashion-accessories' => ['name' => 'Fashion & Accessories', 'icon' => '👗'],
+            'beauty-personal-care' => ['name' => 'Beauty & Personal Care', 'icon' => '💄'],
+            'sports-fitness' => ['name' => 'Sports & Fitness', 'icon' => '🏋️'],
+            'software' => ['name' => 'Software & Antivirus', 'icon' => '🛡️'],
+        ];
+
+        $categories = [];
+        foreach ($categoryDefinitions as $slug => $meta) {
+            $categories[$slug] = \App\Models\Category::firstOrCreate(
+                ['slug' => $slug],
+                ['name' => $meta['name'], 'icon' => $meta['icon']]
+            );
+        }
+
+        $deals = \App\Models\Deal::all();
+        $reclassifiedCount = 0;
+
+        foreach ($deals as $deal) {
+            $titleLower = strtolower($deal->title);
+            $targetSlug = null;
+
+            if (preg_match('/\b(norton|antivirus|vpn|software|microsoft 365|office 2024)\b/i', $titleLower)) {
+                $targetSlug = 'software';
+            } elseif (preg_match('/\b(treadmill|walking pad|dumbbell|gym|yoga mat|exercise bike|protein|shaker)\b/i', $titleLower)) {
+                $targetSlug = 'sports-fitness';
+            } elseif (preg_match('/\b(face wash|cream|serum|shampoo|conditioner|lotion|sunscreen|lipstick|perfume|deodorant|skincare|hair dryer|trimmer|shaver|soap)\b/i', $titleLower)) {
+                $targetSlug = 'beauty-personal-care';
+            } elseif (preg_match('/\b(shirt|t-shirt|jeans|shoes|sneaker|jacket|dress|saree|kurta|wallet|belt|backpack|trousers|sunglasses|sandal|clog)\b/i', $titleLower)) {
+                $targetSlug = 'fashion-accessories';
+            } elseif (preg_match('/\b(holder|faucet|filter|tap|bulb|led|light|lamp|kitchen|cookware|curtain|bedsheet|mattress|pillow|furniture|bottle|mop|decor|towel|pan|pot|clock|storage rack|knife|spoon|basin|purifier|geyser|vacuum|fan|heater|cleaner kit|cleaning kit)\b/i', $titleLower)) {
+                $targetSlug = 'home-kitchen';
+            } elseif (preg_match('/\b(smartphone|smartphones|mobile|mobiles|iphone|galaxy s\d+|galaxy a\d+|galaxy m\d+|galaxy z|realme|oneplus|redmi|poco|pixel \d+|motorola|iqoo)\b/i', $titleLower) && !preg_match('/\b(charger|charging cable|case|cover)\b/i', $titleLower)) {
+                $targetSlug = 'mobiles';
+            } elseif (preg_match('/\b(laptop|macbook|notebook|tv|television|soundbar|speaker|headphone|headphones|earbud|earbuds|earphone|airpod|airpods|smartwatch|camera|monitor|tablet|ipad|printer|keyboard|mouse|power bank|charger|cable)\b/i', $titleLower)) {
+                $targetSlug = 'electronics';
+            }
+
+            if ($targetSlug && isset($categories[$targetSlug])) {
+                $newCatId = $categories[$targetSlug]->id;
+                if ($deal->category_id !== $newCatId) {
+                    $deal->category_id = $newCatId;
+                    $deal->saveQuietly();
+                    $reclassifiedCount++;
+                }
+            }
+        }
+        echo "Directly reclassified {$reclassifiedCount} deals into verified taxonomy.\n";
 
         // 3. Clean and fix brand entries on deals
         $merchantNames = ['amazon', 'amazon india', 'flipkart', 'croma', 'reliance digital', 'myntra', 'ajio', 'meesho', 'tatacliq', 'tata cliq'];
