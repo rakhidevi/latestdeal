@@ -430,6 +430,26 @@ if (isset($_GET['reclassify_catalog'])) {
             ->delete();
         echo "Purged {$deletedCats} bogus category entries.\n";
 
+        $totalDeals = \App\Models\Deal::count();
+        $activeDeals = \App\Models\Deal::where('status', 'active')->count();
+        $publishedDeals = \App\Models\Deal::where('editorial_status', 'published')->count();
+        echo "Deals DB Diagnostic: Total={$totalDeals}, Active={$activeDeals}, Published={$publishedDeals}\n";
+
+        if ($totalDeals === 0) {
+            echo "Seeding initial realistic deals...\n";
+            require_once __DIR__ . '/../database/seeders/RealDealSeeder.php';
+            $seeder = new \Database\Seeders\RealDealSeeder();
+            $seeder->run();
+            $totalDeals = \App\Models\Deal::count();
+            echo "Seeded {$totalDeals} deals.\n";
+        }
+
+        if ($totalDeals > 0) {
+            \App\Models\Deal::query()->update(['editorial_status' => 'published', 'status' => 'active']);
+            $publishedDeals = \App\Models\Deal::where('editorial_status', 'published')->count();
+            echo "Aligned all {$publishedDeals} deals to editorial_status=published & status=active.\n";
+        }
+
         // 2. Direct catalog reclassification (resilient without command boot)
         $categoryDefinitions = [
             'mobiles' => ['name' => 'Mobiles', 'icon' => '📱'],
