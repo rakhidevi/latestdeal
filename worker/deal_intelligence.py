@@ -26,9 +26,12 @@ class DealIntelligenceEngine:
         mrp_discount = round(((mrp - current_price) / mrp) * 100, 2) if mrp > 0 else 0.0
 
         # Cross-Store Competitor Intelligence Analysis
+        # Bound competitor prices within plausible bounds (not 2.2x higher or 0.25x lower due to search mismatch)
+        max_valid_comp_p = 2.2 * max(current_price, mrp)
+        min_valid_comp_p = 0.25 * current_price
         competitor_prices = [
             float(c['price']) for c in (competitors or [])
-            if isinstance(c, dict) and c.get('price') and float(c['price']) > 0 and c.get('in_stock', True)
+            if isinstance(c, dict) and c.get('price') and (min_valid_comp_p <= float(c['price']) <= max_valid_comp_p) and c.get('in_stock', True)
         ]
         competitor_min = min(competitor_prices) if competitor_prices else None
         competitor_spread_pct = (

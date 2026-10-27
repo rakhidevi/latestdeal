@@ -403,6 +403,17 @@
           <img src="/images/logo-white.png" alt="LatestDeal" class="theme-logo h-8 md:h-10 w-auto hidden dark:block" />
         </a>
 
+        <!-- Header Quick Search Bar (Prominently visible directly on Desktop) -->
+        <div class="hidden md:flex flex-1 max-w-xs lg:max-w-sm mx-2 relative z-30">
+            <form action="/" method="GET" class="w-full relative">
+                <input type="text" name="search" placeholder="Search deals, smartphones, laptops..." 
+                       class="w-full bg-slate-100 dark:bg-slate-800/80 text-gray-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-full pl-9 pr-4 py-2 text-xs font-medium outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition shadow-inner">
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+            </form>
+        </div>
+
         <!-- Center: Desktop Navigation -->
         <div class="hidden lg:flex ml-auto items-center text-[14px] font-medium text-gray-700 dark:text-slate-200 z-30 gap-6">
             
