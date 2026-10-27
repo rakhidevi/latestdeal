@@ -41,13 +41,14 @@ jobs:
             local src="$1"
             local dest="$2"
             echo "Uploading $src -> ftp://$FTP_SERVER/$dest"
-            curl -s --retry 5 --max-time 60 -T "$src" \
+            curl -s --retry 5 --max-time 60 --ftp-create-dirs -T "$src" \
               "ftp://$FTP_SERVER/$dest" \
               --user "$FTP_USER:$FTP_PASS" && echo "OK" || echo "FAILED"
           }
 
           # Critical entry point
           upload_file backend/public/index.php           public/index.php
+          upload_file backend/public/images/guides/amazon-price-audit-animation.svg public/images/guides/amazon-price-audit-animation.svg
           upload_file backend/public/unzip.php           public/unzip.php
 
           # Routes
@@ -79,6 +80,23 @@ jobs:
           upload_file backend/app/Services/RecommendationService.php app/Services/RecommendationService.php
           upload_file backend/app/Services/Admin/DashboardService.php app/Services/Admin/DashboardService.php
           upload_file backend/app/Http/Controllers/Api/PriceUpdateController.php app/Http/Controllers/Api/PriceUpdateController.php
+
+          # Editorial & Guides Engine
+          upload_file backend/app/DTOs/Editorial/GuideArticleDTO.php app/DTOs/Editorial/GuideArticleDTO.php
+          upload_file backend/app/Services/Editorial/Contracts/GuideArticleGeneratorInterface.php app/Services/Editorial/Contracts/GuideArticleGeneratorInterface.php
+          upload_file backend/app/Services/Editorial/GuideArticleGeneratorService.php app/Services/Editorial/GuideArticleGeneratorService.php
+          upload_file backend/app/Services/Editorial/ProductionGuidesContent.php app/Services/Editorial/ProductionGuidesContent.php
+          upload_file backend/app/Console/Commands/GenerateGuideArticleCommand.php app/Console/Commands/GenerateGuideArticleCommand.php
+          upload_file backend/app/Models/Article.php app/Models/Article.php
+          upload_file backend/database/migrations/2026_10_26_000001_add_deal_id_to_articles_table.php database/migrations/2026_10_26_000001_add_deal_id_to_articles_table.php
+          upload_file backend/database/migrations/2026_10_26_000002_upgrade_guide_articles_to_google_compliance.php database/migrations/2026_10_26_000002_upgrade_guide_articles_to_google_compliance.php
+          upload_file backend/database/migrations/2026_10_26_000003_update_guide_articles_to_2026.php database/migrations/2026_10_26_000003_update_guide_articles_to_2026.php
+          upload_file backend/database/migrations/2026_10_27_000001_fix_guide_article_button_visibility.php database/migrations/2026_10_27_000001_fix_guide_article_button_visibility.php
+          upload_file backend/database/migrations/2026_10_27_000002_localize_guides_for_india.php database/migrations/2026_10_27_000002_localize_guides_for_india.php
+          upload_file backend/database/migrations/2026_10_27_000003_update_guide_featured_image_to_animation.php database/migrations/2026_10_27_000003_update_guide_featured_image_to_animation.php
+          upload_file backend/app/Http/Controllers/ArticleController.php app/Http/Controllers/ArticleController.php
+          upload_file backend/database/seeders/ArticleSeeder.php database/seeders/ArticleSeeder.php
+          upload_file backend/resources/views/articles/show.blade.php resources/views/articles/show.blade.php
 
           # Layouts & Public Pages
           upload_file "backend/resources/views/layouts/app.blade.php" "resources/views/layouts/app.blade.php"
