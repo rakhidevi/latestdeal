@@ -321,6 +321,15 @@ if (isset($_GET['fix_perms'])) {
     $purged = purgeDeprecatedFiles();
     $results[] = 'Purged ' . count($purged) . ' deprecated files: ' . implode(', ', $purged);
 
+    // If public/deals directory exists, remove it so Apache does not intercept /deals route
+    if (is_dir(__DIR__ . '/deals')) {
+        foreach (glob(__DIR__ . '/deals/*') as $f) {
+            @unlink($f);
+        }
+        @rmdir(__DIR__ . '/deals');
+        $results[] = 'public/deals directory removed (prevents Apache 403 on /deals)';
+    }
+
     // Ensure worker API keys exist in .env
     ensureWorkerEnv();
     $results[] = 'Worker API keys verified in .env';

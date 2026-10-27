@@ -85,7 +85,6 @@ jobs:
           upload_file backend/app/Http/Controllers/Api/ShopperAssistantController.php app/Http/Controllers/Api/ShopperAssistantController.php
           upload_file backend/app/Services/Catalog/BrandResolver.php app/Services/Catalog/BrandResolver.php
           upload_file backend/resources/views/shopper/assistant.blade.php resources/views/shopper/assistant.blade.php
-          upload_file backend/public/deals/default.png public/deals/default.png
 
           # Editorial & Guides Engine
           upload_file backend/app/DTOs/Editorial/GuideArticleDTO.php app/DTOs/Editorial/GuideArticleDTO.php
