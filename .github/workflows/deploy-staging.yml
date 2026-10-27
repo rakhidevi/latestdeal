@@ -82,6 +82,7 @@ jobs:
           upload_file backend/app/Http/Controllers/Api/PriceUpdateController.php app/Http/Controllers/Api/PriceUpdateController.php
           upload_file backend/app/Http/Controllers/Api/LiveComparisonController.php app/Http/Controllers/Api/LiveComparisonController.php
           upload_file backend/app/Http/Controllers/Api/PricePredictionController.php app/Http/Controllers/Api/PricePredictionController.php
+          upload_file backend/app/Http/Controllers/Api/SmartSearchController.php app/Http/Controllers/Api/SmartSearchController.php
           upload_file backend/app/Http/Controllers/Api/ShopperAssistantController.php app/Http/Controllers/Api/ShopperAssistantController.php
           upload_file backend/app/Services/Catalog/BrandResolver.php app/Services/Catalog/BrandResolver.php
           upload_file backend/resources/views/shopper/assistant.blade.php resources/views/shopper/assistant.blade.php
