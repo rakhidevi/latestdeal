@@ -215,6 +215,8 @@ class RealDealSeeder extends Seeder
             unset($data['expires_at']);
             
             $data['promo_code'] = $promo;
+            $data['editorial_status'] = Deal::STATUS_PUBLISHED;
+            $data['ai_score'] = 92;
 
             $deal = Deal::updateOrCreate(
                 ['url' => $data['url']],
