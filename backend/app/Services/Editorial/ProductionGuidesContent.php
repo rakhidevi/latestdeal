@@ -55,18 +55,22 @@ class ProductionGuidesContent
     </div>
 
     <!-- High-Converting Deal Action Card -->
-    <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+    <div class="not-prose p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
         <div class="space-y-1 text-center sm:text-left">
-            <span class="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">Verified Pricing Audit</span>
-            <div class="flex items-baseline gap-3">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/50">
+                <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                Verified Pricing Audit
+            </span>
+            <div class="flex items-baseline gap-3 flex-wrap justify-center sm:justify-start">
                 <span class="text-3xl font-black text-slate-900 dark:text-white">₹48,990 – ₹84,990</span>
                 <span class="text-sm line-through text-slate-400 font-semibold">M.R.P. ₹69,990+</span>
                 <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/60">Verified Fair Value Tier</span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400">Tracked across Amazon, Flipkart, Croma & Reliance Digital</p>
         </div>
-        <a href="/deals/40-to-50-percent" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-sm font-bold shadow-md hover:shadow-lg transition-all shrink-0 w-full sm:w-auto">
-            <span>Explore Audited Laptop Deals →</span>
+        <a href="/deals/40-to-50-percent" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white !text-white rounded-2xl text-sm font-black shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 shrink-0 w-full sm:w-auto no-underline !no-underline group">
+            <span class="text-white !text-white font-black">Explore Audited Laptop Deals</span>
+            <svg class="w-4 h-4 text-white !text-white transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
     </div>
 
@@ -77,7 +81,7 @@ class ProductionGuidesContent
             When evaluating laptop specifications, hardware bottlenecks frequently hide behind impressive marketing headlines. For example, a laptop featuring a high-end Intel i7 processor paired with a sluggish 250-nit 45% NTSC display and soldered 8GB RAM will deliver a frustrating real-world experience despite its premium CPU moniker.
         </p>
         
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
+        <div class="not-prose overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
             <table class="min-w-full text-left text-sm">
                 <thead class="bg-slate-100 dark:bg-slate-800/80 text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider">
                     <tr>
@@ -250,14 +254,15 @@ class ProductionGuidesContent
     </div>
 
     <!-- Final Call to Action -->
-    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
+    <div class="not-prose p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
         <div>
-            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2">Live Price Monitor</span>
-            <h3 class="text-xl sm:text-2xl font-black leading-tight">Find Verified Laptop Deals on LatestDeal</h3>
+            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2 text-white">Live Price Monitor</span>
+            <h3 class="text-xl sm:text-2xl font-black leading-tight text-white">Find Verified Laptop Deals on LatestDeal</h3>
             <p class="text-xs sm:text-sm text-red-100 mt-1">Our autonomous scraper verifies discounts against historical 90-day pricing medians.</p>
         </div>
-        <a href="/deals/all" class="px-8 py-4 bg-white text-red-600 hover:bg-red-50 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto">
-            Browse Active Tech Deals →
+        <a href="/deals/all" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-red-50 text-red-600 !text-red-600 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto no-underline !no-underline group">
+            <span class="text-red-600 !text-red-600 font-black">Browse Active Tech Deals</span>
+            <svg class="w-4 h-4 text-red-600 !text-red-600 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
     </div>
 
@@ -314,7 +319,7 @@ HTML
             To identify fake bargains, you must understand how merchant algorithms manipulate price perception. We have codified the four primary vectors utilized in e-commerce stores:
         </p>
         
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
+        <div class="not-prose overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
             <table class="min-w-full text-left text-sm">
                 <thead class="bg-slate-100 dark:bg-slate-800/80 text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider">
                     <tr>
@@ -420,14 +425,15 @@ HTML
     </div>
 
     <!-- Final Buying Advice & Call to Action -->
-    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
+    <div class="not-prose p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
         <div>
-            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2">Automated Protection</span>
-            <h3 class="text-xl sm:text-2xl font-black leading-tight">LatestDeal Auto-Filters Price Illusions</h3>
+            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2 text-white">Automated Protection</span>
+            <h3 class="text-xl sm:text-2xl font-black leading-tight text-white">LatestDeal Auto-Filters Price Illusions</h3>
             <p class="text-xs sm:text-sm text-red-100 mt-1">Our scraping pipeline automatically drops deals that fail historical price verification.</p>
         </div>
-        <a href="/deals/all" class="px-8 py-4 bg-white text-red-600 hover:bg-red-50 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto">
-            View Verified Real Deals →
+        <a href="/deals/all" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-red-50 text-red-600 !text-red-600 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto no-underline !no-underline group">
+            <span class="text-red-600 !text-red-600 font-black">View Verified Real Deals</span>
+            <svg class="w-4 h-4 text-red-600 !text-red-600 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
     </div>
 
@@ -485,7 +491,7 @@ HTML
     <div>
         <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">2. Technical Specifications Breakdown & Comparison Table</h2>
         
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
+        <div class="not-prose overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
             <table class="min-w-full text-left text-sm">
                 <thead class="bg-slate-100 dark:bg-slate-800/80 text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider">
                     <tr>
@@ -599,14 +605,15 @@ HTML
     </div>
 
     <!-- Final Buying Advice & Call to Action -->
-    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
+    <div class="not-prose p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
         <div>
-            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2">Deal Alert Service</span>
-            <h3 class="text-xl sm:text-2xl font-black leading-tight">Track Premium Audio Price Drops</h3>
+            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2 text-white">Deal Alert Service</span>
+            <h3 class="text-xl sm:text-2xl font-black leading-tight text-white">Track Premium Audio Price Drops</h3>
             <p class="text-xs sm:text-sm text-red-100 mt-1">We alert you the second Sony, Bose, or Sennheiser cross our historical value thresholds.</p>
         </div>
-        <a href="/deals/all" class="px-8 py-4 bg-white text-red-600 hover:bg-red-50 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto">
-            View Live Audio Deals →
+        <a href="/deals/all" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-red-50 text-red-600 !text-red-600 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto no-underline !no-underline group">
+            <span class="text-red-600 !text-red-600 font-black">View Live Audio Deals</span>
+            <svg class="w-4 h-4 text-red-600 !text-red-600 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
     </div>
 
@@ -659,7 +666,7 @@ HTML
     <div>
         <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">2. The Four Major Buying Windows in India</h2>
         
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
+        <div class="not-prose overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
             <table class="min-w-full text-left text-sm">
                 <thead class="bg-slate-100 dark:bg-slate-800/80 text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider">
                     <tr>
@@ -728,14 +735,15 @@ HTML
     </div>
 
     <!-- Final Buying Advice & Action -->
-    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
+    <div class="not-prose p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
         <div>
-            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2">Smart TV Tracker</span>
-            <h3 class="text-xl sm:text-2xl font-black leading-tight">Explore Verified Television Offers</h3>
+            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2 text-white">Smart TV Tracker</span>
+            <h3 class="text-xl sm:text-2xl font-black leading-tight text-white">Explore Verified Television Offers</h3>
             <p class="text-xs sm:text-sm text-red-100 mt-1">Cross-checked against 90-day price medians on Amazon and major retail electronics chains.</p>
         </div>
-        <a href="/deals/all" class="px-8 py-4 bg-white text-red-600 hover:bg-red-50 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto">
-            Check Active TV Deals →
+        <a href="/deals/all" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-red-50 text-red-600 !text-red-600 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto no-underline !no-underline group">
+            <span class="text-red-600 !text-red-600 font-black">Check Active TV Deals</span>
+            <svg class="w-4 h-4 text-red-600 !text-red-600 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
     </div>
 
@@ -788,7 +796,7 @@ HTML
     <div>
         <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">2. Ecosystem Comparison & Technical Audit</h2>
         
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
+        <div class="not-prose overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
             <table class="min-w-full text-left text-sm">
                 <thead class="bg-slate-100 dark:bg-slate-800/80 text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider">
                     <tr>
@@ -858,14 +866,15 @@ HTML
     </div>
 
     <!-- Final CTA -->
-    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
+    <div class="not-prose p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
         <div>
-            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2">Smart Home Deals</span>
-            <h3 class="text-xl sm:text-2xl font-black leading-tight">Explore Live Smart Home Bundles</h3>
+            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2 text-white">Smart Home Deals</span>
+            <h3 class="text-xl sm:text-2xl font-black leading-tight text-white">Explore Live Smart Home Bundles</h3>
             <p class="text-xs sm:text-sm text-red-100 mt-1">Verified deals on smart plugs, security cams, and Matter hubs.</p>
         </div>
-        <a href="/deals/all" class="px-8 py-4 bg-white text-red-600 hover:bg-red-50 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto">
-            Browse IoT Deals →
+        <a href="/deals/all" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-red-50 text-red-600 !text-red-600 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto no-underline !no-underline group">
+            <span class="text-red-600 !text-red-600 font-black">Browse IoT Deals</span>
+            <svg class="w-4 h-4 text-red-600 !text-red-600 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
     </div>
 

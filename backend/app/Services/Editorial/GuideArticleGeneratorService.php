@@ -403,19 +403,22 @@ PROMPT;
     </div>
 
     <!-- Verified Deal Highlights Box -->
-    <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-6">
+    <div class="not-prose p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
         <div class="space-y-1 text-center sm:text-left">
-            <span class="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">Verified Pricing Check</span>
-            <div class="flex items-baseline gap-3">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/50">
+                <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                Verified Pricing Check
+            </span>
+            <div class="flex items-baseline gap-3 flex-wrap justify-center sm:justify-start">
                 <span class="text-3xl font-black text-slate-900 dark:text-white">₹{$currPrice}</span>
                 <span class="text-sm line-through text-slate-400 font-semibold">₹{$origPrice}</span>
                 <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800/60">Save {$pct}% (₹{$saved})</span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400">Sold via {$merchant} with genuine manufacturer warranty</p>
         </div>
-        <a href="{$affiliateUrl}" target="_blank" rel="nofollow noopener sponsored" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-sm font-bold shadow-md hover:shadow-lg transition-all shrink-0 w-full sm:w-auto">
-            <span>Check Current Price on {$merchant}</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        <a href="{$affiliateUrl}" target="_blank" rel="nofollow noopener sponsored" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white !text-white rounded-2xl text-sm font-black shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 shrink-0 w-full sm:w-auto no-underline !no-underline group">
+            <span class="text-white !text-white font-black">Check Current Price on {$merchant}</span>
+            <svg class="w-4 h-4 text-white !text-white transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
     </div>
 
@@ -426,7 +429,7 @@ PROMPT;
             A discounted price means little if the underlying hardware or materials fail to meet everyday durability standards. Our technical assessment of the <strong>{$brand}</strong> offering centers on user comfort, materials integrity, and build reliability.
         </p>
         
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
+        <div class="not-prose overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 my-6">
             <table class="min-w-full text-left text-sm">
                 <thead class="bg-slate-100 dark:bg-slate-800/80 text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider">
                     <tr>
@@ -516,14 +519,15 @@ PROMPT;
     </div>
 
     <!-- Bottom Action Card -->
-    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
+    <div class="not-prose p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
         <div>
-            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2">Editor Recommended</span>
-            <h3 class="text-xl sm:text-2xl font-black leading-tight">Secure This Deal on {$merchant}</h3>
+            <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-2 text-white">Editor Recommended</span>
+            <h3 class="text-xl sm:text-2xl font-black leading-tight text-white">Secure This Deal on {$merchant}</h3>
             <p class="text-xs sm:text-sm text-red-100 mt-1">Current verified price: ₹{$currPrice} (List Price: ₹{$origPrice})</p>
         </div>
-        <a href="{$affiliateUrl}" target="_blank" rel="nofollow noopener sponsored" class="px-8 py-4 bg-white text-red-600 hover:bg-red-50 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto">
-            View Live Deal & Pricing →
+        <a href="{$affiliateUrl}" target="_blank" rel="nofollow noopener sponsored" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-red-50 text-red-600 !text-red-600 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto no-underline !no-underline group">
+            <span class="text-red-600 !text-red-600 font-black">View Live Deal & Pricing</span>
+            <svg class="w-4 h-4 text-red-600 !text-red-600 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
     </div>
 
@@ -617,14 +621,15 @@ HTML;
             $origPrice = number_format($facts['original_price'], 2);
             $merchant = htmlspecialchars($facts['merchant'], ENT_QUOTES, 'UTF-8');
             $cta = <<<HTML
-<div class="p-6 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
+<div class="not-prose p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-red-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 my-8">
     <div>
-        <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-1.5">Verified Retail Offer</span>
-        <h3 class="text-xl font-black">Check Live Price on {$merchant}</h3>
+        <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-1.5 text-white">Verified Retail Offer</span>
+        <h3 class="text-xl font-black text-white">Check Live Price on {$merchant}</h3>
         <p class="text-xs text-red-100">Verified at ₹{$currPrice} (Stated M.R.P.: ₹{$origPrice})</p>
     </div>
-    <a href="{$facts['affiliate_url']}" target="_blank" rel="nofollow noopener sponsored" class="px-7 py-3.5 bg-white text-red-600 hover:bg-red-50 rounded-2xl font-black text-sm shadow-md transition-all shrink-0 text-center w-full sm:w-auto">
-        View Deal on {$merchant} →
+    <a href="{$facts['affiliate_url']}" target="_blank" rel="nofollow noopener sponsored" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white hover:bg-red-50 text-red-600 !text-red-600 rounded-2xl font-black text-sm shadow-md hover:shadow-xl transition-all shrink-0 text-center w-full sm:w-auto no-underline !no-underline group">
+        <span class="text-red-600 !text-red-600 font-black">View Deal on {$merchant}</span>
+        <svg class="w-4 h-4 text-red-600 !text-red-600 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
     </a>
 </div>
 HTML;

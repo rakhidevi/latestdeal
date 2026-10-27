@@ -12,6 +12,53 @@
 @endsection
 
 @section('content')
+<style>
+    /* Prevent Tailwind prose from overriding button colors, text contrast, and link decorations */
+    .prose a.btn,
+    .prose a[class*="bg-red-"],
+    .prose a[class*="bg-rose-"],
+    .prose a[class*="bg-indigo-"],
+    .prose a[class*="bg-emerald-"],
+    .prose a[class*="from-red-"],
+    .prose a[class*="bg-slate-900"],
+    .prose a[class*="bg-slate-800"] {
+        color: #ffffff !important;
+        text-decoration: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .prose a[class*="bg-red-"] *,
+    .prose a[class*="from-red-"] * {
+        color: #ffffff !important;
+        text-decoration: none !important;
+    }
+    .prose a[class*="bg-white"] {
+        color: #dc2626 !important;
+        text-decoration: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .prose a[class*="bg-white"] * {
+        color: #dc2626 !important;
+        text-decoration: none !important;
+    }
+    .prose a.no-underline,
+    .prose a.no-underline * {
+        text-decoration: none !important;
+    }
+    /* Standard prose text links */
+    .prose p a, .prose li a {
+        color: #dc2626;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+    .dark .prose p a, .dark .prose li a {
+        color: #f87171;
+    }
+</style>
+
 <div class="py-6 sm:py-10 font-sans">
     <article class="max-w-4xl mx-auto px-4 sm:px-6">
         
@@ -68,7 +115,7 @@
 
         <!-- Card Container with Content Body -->
         <div class="bg-white dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 sm:p-10 md:p-12 shadow-xl shadow-slate-200/40 dark:shadow-none mb-10">
-            <div class="prose prose-slate dark:prose-invert max-w-none prose-headings:font-black prose-headings:text-slate-900 dark:prose-headings:text-white prose-headings:tracking-tight prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-li:text-slate-600 dark:prose-li:text-slate-300 prose-strong:text-slate-900 dark:prose-strong:text-white prose-a:text-red-600 dark:prose-a:text-red-400 hover:prose-a:underline">
+            <div class="prose prose-slate dark:prose-invert max-w-none prose-headings:font-black prose-headings:text-slate-900 dark:prose-headings:text-white prose-headings:tracking-tight prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-li:text-slate-600 dark:prose-li:text-slate-300 prose-strong:text-slate-900 dark:prose-strong:text-white">
                 {!! $article->content !!}
             </div>
         </div>
@@ -125,4 +172,3 @@
     </article>
 </div>
 @endsection
-
