@@ -242,7 +242,7 @@ class BrowseController extends Controller
                     'domain' => strtolower($slug) . '.in',
                     'store_id' => strtolower($slug),
                     'affiliate_param_key' => 'tag',
-                    'status' => 'active'
+                    'status' => 1
                 ]
             );
         }
