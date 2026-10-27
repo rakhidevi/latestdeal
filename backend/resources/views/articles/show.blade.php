@@ -108,46 +108,9 @@
         </header>
 
         @if($article->featured_image)
-            @if($article->slug === 'how-to-spot-fake-discounts-on-amazon')
-                <!-- Interactive Audit Visualizer with Animation & Real Photo View -->
-                <div x-data="{ mode: 'animation' }" class="mb-10">
-                    <div class="flex flex-wrap items-center justify-between gap-3 mb-3 px-1 sm:px-2">
-                        <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                            Visual Telemetry & Audit Evidence
-                        </span>
-                        <div class="inline-flex rounded-2xl p-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-sm">
-                            <button type="button" @click="mode = 'animation'" :class="mode === 'animation' ? 'bg-white dark:bg-slate-900 text-red-600 dark:text-red-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                <span>Radar Animation</span>
-                            </button>
-                            <button type="button" @click="mode = 'realistic'" :class="mode === 'realistic' ? 'bg-white dark:bg-slate-900 text-red-600 dark:text-red-400 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                <span>Realistic Package Photo</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-950 relative">
-                        <!-- Animation Mode -->
-                        <div x-show="mode === 'animation'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-                            <img src="{{ $article->featured_image }}" alt="{{ $article->title }} - Live Telemetry Animation" class="w-full h-auto block select-none">
-                        </div>
-                        
-                        <!-- Realistic Image Mode -->
-                        <div x-show="mode === 'realistic'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-                            <img src="https://images.unsplash.com/photo-1633174524778-61a18ee54490?w=1200&auto=format&fit=crop&q=80" alt="Authentic Amazon Package Delivery" class="w-full h-auto max-h-[550px] object-cover block">
-                            <div class="p-3 bg-slate-900/95 border-t border-slate-800 text-center text-xs text-slate-400">
-                                Authentic Amazon Prime parcel shipment audit • Verified delivery packaging across Indian metros
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @else
-                <div class="mb-10 rounded-3xl overflow-hidden shadow-lg border border-slate-200/80 dark:border-slate-800">
-                    <img src="{{ $article->featured_image }}" alt="{{ $article->title }}" class="w-full h-auto object-cover max-h-[500px]">
-                </div>
-            @endif
+            <div class="mb-10 rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-950">
+                <img src="{{ $article->featured_image }}" alt="{{ $article->title }}" class="w-full h-auto object-cover max-h-[560px] block select-none">
+            </div>
         @endif
 
         <!-- Card Container with Content Body -->
