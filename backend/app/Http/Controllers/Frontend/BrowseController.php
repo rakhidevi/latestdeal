@@ -86,7 +86,57 @@ class BrowseController extends Controller
             }
         }
 
-        return view('welcome', compact('deals', 'pageTitle', 'filters', 'seoMeta', 'trendingDeals', 'heroDeals'));
+        $categories = \Illuminate\Support\Facades\Cache::remember('popular_categories_home', 300, function () {
+            return \App\Models\Category::whereNotIn('slug', ['general', 'uncategorized', 'all-other-categories', 'c.url', 'item.url', 'b.url', 'd.url', 'm.url'])
+                ->where('slug', 'NOT LIKE', '%.url%')
+                ->where('slug', 'NOT LIKE', '%"%')
+                ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
+                ->get()
+                ->filter(fn($c) => preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $c->slug) && (($c->active_deals_count ?? 0) > 0))
+                ->map(function ($cat) {
+                    $icons = [
+                        'mobiles' => '📱',
+                        'mobile-phones' => '📱',
+                        'electronics' => '💻',
+                        'home-kitchen' => '🏡',
+                        'sports-fitness' => '🏋️',
+                        'fashion-accessories' => '👗',
+                        'beauty-personal-care' => '💄',
+                        'software' => '🛡️',
+                    ];
+                    $cat->icon = $icons[$cat->slug] ?? ($cat->icon ?: '📦');
+                    return $cat;
+                })
+                ->sortByDesc('active_deals_count')
+                ->values();
+        });
+
+        $merchants = \Illuminate\Support\Facades\Cache::remember('popular_merchants_home', 300, function () {
+            return \App\Models\Merchant::whereNotNull('name')
+                ->where('name', '!=', '')
+                ->where('name', 'NOT LIKE', '%.url%')
+                ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
+                ->get()
+                ->filter(fn($m) => !empty($m->name) && (($m->active_deals_count ?? 0) > 0))
+                ->sortByDesc('active_deals_count')
+                ->values();
+        });
+
+        $brands = \Illuminate\Support\Facades\Cache::remember('popular_brands_home', 300, function () {
+            return \App\Models\Brand::whereNotNull('name')
+                ->where('name', '!=', '')
+                ->where('name', 'NOT LIKE', '%.url%')
+                ->where('name', 'NOT LIKE', '%"%')
+                ->whereNotIn('slug', ['amazon', 'flipkart', 'myntra', 'croma', 'reliance-digital'])
+                ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
+                ->get()
+                ->filter(fn($b) => !empty($b->name) && (($b->active_deals_count ?? 0) > 0))
+                ->sortByDesc('active_deals_count')
+                ->take(15)
+                ->values();
+        });
+
+        return view('welcome', compact('deals', 'pageTitle', 'filters', 'seoMeta', 'trendingDeals', 'heroDeals', 'categories', 'merchants', 'brands'));
     }
 
     public function byCategory(Request $request, $slug)
