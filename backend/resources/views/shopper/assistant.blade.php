@@ -147,7 +147,7 @@
                                         </div>
                                         <div class="flex flex-col items-end">
                                             <span class="font-bold text-emerald-600 dark:text-emerald-400">₹<span x-text="comp.price.toLocaleString('en-IN')"></span></span>
-                                            <a :href="comp.url" target="_blank" class="text-[10px] text-blue-500 hover:underline">View</a>
+                                            <a href="#" :href="comp.url" target="_blank" class="text-[10px] text-blue-500 hover:underline">View</a>
                                         </div>
                                     </div>
                                 </template>

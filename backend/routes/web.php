@@ -95,6 +95,10 @@ Route::get('/storage/deals/{filename}', function ($filename) {
     return response()->file(public_path('images/logo.png'));
 })->where('filename', '.*');
 
+// Prevent bot/crawler 404s on unhydrated Alpine.js template bindings (e.g. b.url, m.url)
+Route::get('/{any}.url', fn() => redirect('/', 301))->where('any', '.*');
+Route::get('/guides/{any}.url', fn() => redirect('/guides', 301))->where('any', '.*');
+
 // --- SEO & Static Pages ---
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index']);
 
