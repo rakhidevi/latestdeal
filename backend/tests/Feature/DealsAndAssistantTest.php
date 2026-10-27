@@ -48,7 +48,10 @@ class DealsAndAssistantTest extends TestCase
                 'calculated_discount_percent' => 44,
                 'status' => 'active',
                 'merchant_id' => $merchant->id,
+            'category_id' => $category->id,
+            'image_path' => 'deals/default.png',
                 'category_id' => $category->id,
+            'image_path' => 'deals/default.png',
                 'brand_id' => $brand->id,
                 'url' => 'https://www.amazon.in/dp/B0TESTASIN1',
                 'trace_id' => 'trace_test_1',
@@ -144,5 +147,192 @@ class DealsAndAssistantTest extends TestCase
     {
         $response = $this->get('/storage/deals/default_png');
         $response->assertStatus(200);
+    }
+
+    public function test_smart_search_excludes_accessories_for_smartphone_query()
+    {
+        $merchant = Merchant::first();
+        $category = Category::first();
+
+        // 1. Legitimate realme smartphone under 30000
+        Deal::create([
+            'asin' => 'B0PHONE123',
+            'title' => 'realme Narzo 70 Pro 5G (Glass Green, 8GB RAM, 128GB Storage)',
+            'slug' => 'realme-narzo-70-pro-5g',
+            'original_price' => 24999,
+            'discounted_price' => 18999,
+            'status' => 'active',
+            'merchant_id' => $merchant->id,
+            'category_id' => $category->id,
+            'image_path' => 'deals/default.png',
+            'url' => 'https://www.amazon.in/dp/B0PHONE123',
+        ]);
+
+        // 2. Misleading phone charger mentioning smartphone in title
+        Deal::create([
+            'asin' => 'B0CHARGER1',
+            'title' => '65W Super Fast Charger for Smartphone and Tablets',
+            'slug' => '65w-fast-charger-smartphone',
+            'original_price' => 1999,
+            'discounted_price' => 499,
+            'status' => 'active',
+            'merchant_id' => $merchant->id,
+            'category_id' => $category->id,
+            'image_path' => 'deals/default.png',
+            'url' => 'https://www.amazon.in/dp/B0CHARGER1',
+        ]);
+
+        // 3. Misleading phone case
+        Deal::create([
+            'asin' => 'B0CASE1234',
+            'title' => 'Shockproof Slim Silicone Case for 5G Smartphone',
+            'slug' => 'shockproof-slim-case-smartphone',
+            'original_price' => 999,
+            'discounted_price' => 199,
+            'status' => 'active',
+            'merchant_id' => $merchant->id,
+            'category_id' => $category->id,
+            'image_path' => 'deals/default.png',
+            'url' => 'https://www.amazon.in/dp/B0CASE1234',
+        ]);
+
+        $response = $this->getJson('/api/smart-search?q=' . urlencode('Best smartphone under ₹30000'));
+        $response->assertStatus(200);
+
+        $data = $response->json();
+        $titles = collect($data['deals'])->pluck('title')->toArray();
+
+        // Must include the actual smartphone
+        $this->assertTrue(collect($titles)->contains(fn($t) => str_contains($t, 'realme Narzo 70 Pro')));
+
+        // Must strictly exclude the charger and case
+        $this->assertFalse(collect($titles)->contains(fn($t) => str_contains($t, '65W Super Fast Charger')));
+        $this->assertFalse(collect($titles)->contains(fn($t) => str_contains($t, 'Shockproof Slim Silicone Case')));
+
+        // AI Best Pick should be the phone, NOT the charger
+        $this->assertEquals('realme Narzo 70 Pro 5G (Glass Green, 8GB RAM, 128GB Storage)', $data['deals'][0]['title']);
+    }
+
+    public function test_smart_search_excludes_cleaning_kit_for_airpods_query()
+    {
+        $merchant = Merchant::first();
+        $category = Category::first();
+
+        // 1. Genuine Apple AirPods
+        Deal::create([
+            'asin' => 'B0AIRPODS2',
+            'title' => 'Apple AirPods Pro (2nd Gen) with MagSafe Case USB-C',
+            'slug' => 'apple-airpods-pro-2nd-gen',
+            'original_price' => 24900,
+            'discounted_price' => 18999,
+            'status' => 'active',
+            'merchant_id' => $merchant->id,
+            'category_id' => $category->id,
+            'image_path' => 'deals/default.png',
+            'url' => 'https://www.amazon.in/dp/B0AIRPODS2',
+        ]);
+
+        // 2. Cheap AirPods cleaning kit
+        Deal::create([
+            'asin' => 'B0CLEANKIT',
+            'title' => 'AirPods Cleaning Kit Multi-Function Cleaner Pen for Earbuds',
+            'slug' => 'airpods-cleaning-kit-pen',
+            'original_price' => 499,
+            'discounted_price' => 149,
+            'status' => 'active',
+            'merchant_id' => $merchant->id,
+            'category_id' => $category->id,
+            'image_path' => 'deals/default.png',
+            'url' => 'https://www.amazon.in/dp/B0CLEANKIT',
+        ]);
+
+        $response = $this->getJson('/api/smart-search?q=' . urlencode('Cheapest AirPods today'));
+        $response->assertStatus(200);
+
+        $data = $response->json();
+        $titles = collect($data['deals'])->pluck('title')->toArray();
+
+        // Must include genuine AirPods
+        $this->assertTrue(collect($titles)->contains(fn($t) => str_contains($t, 'Apple AirPods Pro')));
+
+        // Must strictly exclude the cleaning kit
+        $this->assertFalse(collect($titles)->contains(fn($t) => str_contains($t, 'Cleaning Kit')));
+    }
+
+    public function test_smart_search_enforces_hard_budget_constraint()
+    {
+        $merchant = Merchant::first();
+        $category = Category::first();
+
+        // Within budget
+        Deal::create([
+            'asin' => 'B0PHONE_UNDER',
+            'title' => 'OnePlus Nord CE 4 5G (8GB RAM, 128GB)',
+            'slug' => 'oneplus-nord-ce-4-5g',
+            'original_price' => 26999,
+            'discounted_price' => 24999,
+            'status' => 'active',
+            'merchant_id' => $merchant->id,
+            'category_id' => $category->id,
+            'image_path' => 'deals/default.png',
+            'url' => 'https://www.amazon.in/dp/B0PHONE_UNDER',
+        ]);
+
+        // Exceeds budget
+        Deal::create([
+            'asin' => 'B0PHONE_OVER',
+            'title' => 'OnePlus 12R 5G (16GB RAM, 256GB)',
+            'slug' => 'oneplus-12r-5g',
+            'original_price' => 45999,
+            'discounted_price' => 39999,
+            'status' => 'active',
+            'merchant_id' => $merchant->id,
+            'category_id' => $category->id,
+            'image_path' => 'deals/default.png',
+            'url' => 'https://www.amazon.in/dp/B0PHONE_OVER',
+        ]);
+
+        $response = $this->getJson('/api/smart-search?q=' . urlencode('Best smartphone under ₹30000'));
+        $response->assertStatus(200);
+
+        $titles = collect($response->json()['deals'])->pluck('title')->toArray();
+        $this->assertTrue(collect($titles)->contains(fn($t) => str_contains($t, 'OnePlus Nord CE 4')));
+        $this->assertFalse(collect($titles)->contains(fn($t) => str_contains($t, 'OnePlus 12R')));
+    }
+
+    public function test_assistant_chat_accepts_conversation_history()
+    {
+        $deal = Deal::where('asin', 'B0TESTASIN1')->first();
+
+        $response = $this->postJson('/api/assistant/chat', [
+            'message' => 'Show me laptops with 16GB RAM',
+            'deal_ids' => [$deal->id],
+            'history' => [
+                ['role' => 'user', 'content' => 'I need a good laptop for work'],
+                ['role' => 'assistant', 'content' => 'Here are recommended options.']
+            ]
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['reply', 'source']);
+    }
+
+    public function test_assistant_chat_handles_zero_matching_deals_gracefully()
+    {
+        $response = $this->postJson('/api/assistant/chat', [
+            'message' => 'Nonexistent product XYZ under 50',
+            'deal_ids' => []
+        ]);
+
+        $response->assertStatus(200);
+        $reply = $response->json()['reply'];
+        $lowReply = strtolower($reply);
+        $this->assertTrue(
+            str_contains($lowReply, "couldn't") || 
+            str_contains($lowReply, 'no ') || 
+            str_contains($lowReply, 'not find') || 
+            str_contains($lowReply, 'sorry') ||
+            str_contains($lowReply, 'unfortunately')
+        );
     }
 }

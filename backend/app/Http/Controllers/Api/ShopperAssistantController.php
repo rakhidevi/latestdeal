@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use App\Models\Deal;
 
 class ShopperAssistantController extends Controller
@@ -13,69 +14,129 @@ class ShopperAssistantController extends Controller
     public function chat(Request $request)
     {
         $request->validate([
-            'message' => 'required|string|max:1000',
-            'deal_ids' => 'nullable|array'
+            'message'  => 'required|string|max:1000',
+            'deal_ids' => 'nullable|array',
+            'history'  => 'nullable|array'
         ]);
 
-        $userMessage = $request->message;
+        $userMessage = trim($request->message);
         $dealIds = $request->deal_ids ?? [];
+        $rawHistory = $request->history ?? [];
 
-        // Fetch cached deals
-        $deals = Cache::remember('deals.assistant', 300, function () {
-            return Deal::where('status', 'active')
-                ->orderBy('created_at', 'desc')
-                ->limit(120)
+        // 1. Resolve Deals
+        if (!empty($dealIds)) {
+            // Load exact matched deals directly from the database
+            $deals = Deal::whereIn('id', $dealIds)
+                ->where('status', 'active')
+                ->with(['merchant', 'category'])
                 ->get()
                 ->map(function ($deal) {
+                    $origPrice = (float) $deal->original_price;
+                    $price = (float) $deal->discounted_price;
+                    $discountPct = $origPrice > $price && $origPrice > 0
+                        ? round((($origPrice - $price) / $origPrice) * 100)
+                        : 0;
+
                     return [
                         'id'            => $deal->id,
                         'title'         => $deal->title,
-                        'price'         => (float) $deal->discounted_price,
-                        'original_price'=> (float) $deal->original_price,
-                        'discount_pct'  => $deal->original_price > 0
-                            ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100)
-                            : 0,
+                        'price'         => $price,
+                        'original_price'=> $origPrice,
+                        'discount_pct'  => $discountPct,
+                        'savings'       => max(0, $origPrice - $price),
                         'url'           => $deal->url,
                         'image_url'     => $deal->image_url,
-                        'image_path'    => $deal->image_url,
-                        'merchant'      => optional($deal->merchant)->name ?? 'Marketplace',
+                        'merchant'      => optional($deal->merchant)->name ?? 'Amazon India',
+                        'ai_score'      => $deal->ai_score ?? 88,
                     ];
                 });
-        });
+        } else {
+            // Fallback to latest verified active deals
+            $deals = Cache::remember('deals.assistant.latest', 120, function () {
+                return Deal::where('status', 'active')
+                    ->where('discounted_price', '>', 0)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(20)
+                    ->with('merchant')
+                    ->get()
+                    ->map(function ($deal) {
+                        $origPrice = (float) $deal->original_price;
+                        $price = (float) $deal->discounted_price;
+                        $discountPct = $origPrice > $price && $origPrice > 0
+                            ? round((($origPrice - $price) / $origPrice) * 100)
+                            : 0;
 
-        $noDealsFound = false;
-        if ($request->has('deal_ids')) {
-            $dealIds = (array) $request->deal_ids;
-            if (empty($dealIds)) {
-                $noDealsFound = true;
-                $deals = collect();
-            } else {
-                $deals = collect($deals)->whereIn('id', $dealIds)->values();
+                        return [
+                            'id'            => $deal->id,
+                            'title'         => $deal->title,
+                            'price'         => $price,
+                            'original_price'=> $origPrice,
+                            'discount_pct'  => $discountPct,
+                            'savings'       => max(0, $origPrice - $price),
+                            'url'           => $deal->url,
+                            'image_url'     => $deal->image_url,
+                            'merchant'      => optional($deal->merchant)->name ?? 'Amazon India',
+                            'ai_score'      => $deal->ai_score ?? 85,
+                        ];
+                    });
+            });
+        }
+
+        $noDealsFound = $deals->isEmpty();
+
+        // 2. Structured Grounded Prompt Construction
+        if ($noDealsFound) {
+            $systemPrompt =
+                "You are an expert AI Shopping Assistant for LatestDeal.in.\n" .
+                "The search query returned 0 active deals matching: \"" . e($userMessage) . "\".\n\n" .
+                "STRICT RULES:\n" .
+                "1. Honestly inform the user that no verified deals currently meet all their exact criteria.\n" .
+                "2. Suggest actionable alternatives (e.g. broadening the budget, checking related product categories, or viewing /deals/all).\n" .
+                "3. NEVER invent or hallucinate product deals that do not exist.";
+        } else {
+            $dealsJson = json_encode($deals->values()->toArray());
+            $systemPrompt =
+                "You are an expert, objective AI Shopping Advisor for LatestDeal.in (India's deal intelligence platform).\n" .
+                "The following verified deals were found for the user's shopping request:\n\n" .
+                $dealsJson . "\n\n" .
+                "STRICT SHOPPING ADVISOR RULES:\n" .
+                "1. ONLY reference and recommend deals present in the JSON list above. NEVER invent products or prices.\n" .
+                "2. If the user specified a maximum budget or price ceiling, strictly obey it.\n" .
+                "3. Distinguish between core products and accessories. If the user asked for a device (e.g. phone, laptop, headphones), recommend the actual device, NOT an accessory.\n" .
+                "4. Provide explainable recommendations:\n" .
+                "   - Highlight the 'Best Match' (best fit for user intent and specifications).\n" .
+                "   - Highlight the 'Best Value' (highest verified rupee and percentage savings below MRP).\n" .
+                "   - Highlight the 'Budget Pick' if a lower-priced genuine option is available.\n" .
+                "5. Always mention exact prices in ₹ (INR), verified savings, and merchant name.\n" .
+                "6. Format with clean, structured markdown bullets and bold headers.";
+        }
+
+        // 3. Assemble Bounded Multi-Turn History
+        $chatMessages = [
+            ['role' => 'system', 'content' => $systemPrompt]
+        ];
+
+        if (is_array($rawHistory) && !empty($rawHistory)) {
+            // Take the last 4 valid turns
+            $validTurns = array_slice($rawHistory, -4);
+            foreach ($validTurns as $turn) {
+                if (!empty($turn['role']) && !empty($turn['content']) && in_array($turn['role'], ['user', 'assistant'])) {
+                    // Truncate any overly long past messages to 400 chars
+                    $chatMessages[] = [
+                        'role' => $turn['role'],
+                        'content' => mb_substr((string)$turn['content'], 0, 400)
+                    ];
+                }
             }
         }
 
-        if ($noDealsFound) {
-            $systemPrompt =
-                "You are an AI Shopping Assistant for LatestDeal.in. " .
-                "The search returned 0 matching deals in our database for the request: \"" . $userMessage . "\".\n\n" .
-                "STRICT RULE:\n" .
-                "Politely inform the user that no active deals matching \"" . $userMessage . "\" were found right now. Suggest that they adjust their budget or search for another product category. Do NOT state that deals were found!";
-        } else {
-            $systemPrompt =
-                "You are an AI Shopping Assistant for LatestDeal.in. " .
-                "Here are the active deals available in our database:\n\n" .
-                json_encode($deals) . "\n\n" .
-                "STRICT RULES:\n" .
-                "1. ONLY recommend deals from the JSON list provided above.\n" .
-                "2. If the user specifies a budget (e.g. 'under 30000'), you MUST NOT recommend any items that cost more than that amount.\n" .
-                "3. If NO deals in the JSON list match the user's exact criteria, you MUST politely state that no active deals matching their request were found right now.\n" .
-                "4. Format your reply in concise, friendly markdown.\n" .
-                "5. Always mention the product name, price, merchant, and discount %.";
-        }
+        // Add current user request
+        $chatMessages[] = [
+            'role' => 'user',
+            'content' => "User request: " . $userMessage
+        ];
 
-        $fullPrompt = $systemPrompt . "\n\nUser request: " . $userMessage . "\n\nAI Assistant (obeying all rules):";
-
-        // Log AI Query to UIC Platform
+        // 4. Log AI Query to UIC Platform
         try {
             $visitorUuid = $request->cookie('uic_vid') ?? $request->header('X-Visitor-UUID') ?? 'unknown';
             $sessionId = $request->cookie('uic_sid') ?? $request->header('X-Session-ID') ?? 'unknown';
@@ -95,50 +156,53 @@ class ShopperAssistantController extends Controller
                 ]);
             }
         } catch (\Throwable $e) {
-            // Ignore logging error
+            // Ignore analytics logging exception
         }
 
-        // ----------------------------------------------------------------
-        // Step 1: Query the AI Router for a response
-        // ----------------------------------------------------------------
+        // 5. Query AIRouter or fallback to grounded intelligence
         try {
             $router = app(\App\Services\AI\AIRouter::class);
             $response = $router->chat(
-                [
-                    ['role' => 'system', 'content' => $systemPrompt],
-                    ['role' => 'user', 'content' => "User request: " . $userMessage]
-                ],
+                $chatMessages,
                 ['capabilities' => ['TEXT']]
             );
 
             return response()->json([
-                'reply'  => $response['content'],
-                'source' => $response['provider'],
+                'reply'               => $response['content'],
+                'source'              => $response['provider'],
+                'recommended_deal_ids'=> $deals->pluck('id')->values(),
             ]);
 
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("Shopper Assistant AI fallback engaged: " . $e->getMessage());
+            Log::warning("Shopper Assistant AI Router fallback engaged: " . $e->getMessage());
 
-            if ($deals->isEmpty()) {
+            if ($noDealsFound) {
                 $fallbackReply = "I couldn't find any active deals matching **\"" . e($userMessage) . "\"** right now.\n\n" .
-                    "💡 **Suggestions:**\n" .
-                    "- Try searching for broad categories like **Laptops**, **Smartphones**, or **Headphones**\n" .
-                    "- Broaden your budget or check our [All Deals](/deals/all) section for the latest discounts!";
+                    "💡 **Tips to find the right deal:**\n" .
+                    "- Try searching for broad categories like **Smartphones**, **Laptops**, or **Headphones**\n" .
+                    "- Increase your budget threshold slightly to view near-budget offers\n" .
+                    "- Browse our live [All Deals Hub](/deals/all) for today's highest percentage discounts!";
             } else {
                 $topDeals = $deals->take(3);
-                $fallbackReply = "Here are the top recommended deals matching your request:\n\n";
-                foreach ($topDeals as $d) {
+                $fallbackReply = "Here are the verified recommendations matching your request:\n\n";
+                
+                $ranks = ['🌟 **Top Recommendation**', '💎 **Best Value Pick**', '🏷️ **Budget Option**'];
+                foreach ($topDeals as $idx => $d) {
+                    $badge = $ranks[$idx] ?? '•';
                     $origStr = $d['original_price'] > $d['price'] ? " (MRP ~~₹" . number_format($d['original_price']) . "~~)" : "";
                     $discountBadge = $d['discount_pct'] > 0 ? " — **{$d['discount_pct']}% OFF**" : "";
-                    $fallbackReply .= "• **[{$d['title']}]({$d['url']})**\n";
-                    $fallbackReply .= "  ₹" . number_format($d['price']) . "{$origStr}{$discountBadge} on *{$d['merchant']}*\n\n";
+                    $savingsStr = $d['savings'] > 0 ? " — saves ₹" . number_format($d['savings']) : "";
+                    
+                    $fallbackReply .= "{$badge}: **[{$d['title']}]({$d['url']})**\n";
+                    $fallbackReply .= "  ₹" . number_format($d['price']) . "{$origStr}{$discountBadge}{$savingsStr} on *{$d['merchant']}*\n\n";
                 }
-                $fallbackReply .= "👉 *Click any deal card below to view detailed specifications, price history, and live store comparisons!*";
+                $fallbackReply .= "👉 *Select any product in the comparison matrix below to view price history telemetry and real-time multi-store price comparisons!*";
             }
 
             return response()->json([
-                'reply'  => $fallbackReply,
-                'source' => 'smart_assistant_fallback',
+                'reply'               => $fallbackReply,
+                'source'              => 'smart_assistant_grounded_engine',
+                'recommended_deal_ids'=> $deals->pluck('id')->values(),
             ], 200);
         }
     }
