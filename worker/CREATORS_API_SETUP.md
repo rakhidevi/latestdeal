@@ -44,7 +44,9 @@ that the intended retention and use are permitted.
 ## Current state
 
 The API client is prepared, but it is not yet wired into the production deal
-publishing pipeline. No credentials were found in the worker's environment, so
-live API eligibility and API calls could not be confirmed. Keep the existing
-ingestion flow unchanged until access is granted and a shadow-mode comparison
-confirms the response mapping and approval rules.
+publishing pipeline. A read-only SearchItems request was made using the local
+worker credentials. OAuth authentication succeeded, but Amazon returned
+`AssociateNotEligible` for the catalog call, so live product discovery is not
+currently authorized for this account. Do not switch production ingestion until
+Amazon grants access and a shadow-mode comparison confirms the response mapping
+and approval rules.

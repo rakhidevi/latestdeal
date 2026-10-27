@@ -96,7 +96,19 @@ class AmazonCreatorsAPI:
                 response.raise_for_status()
                 body = response.json()
             except (requests.RequestException, ValueError) as exc:
-                raise CreatorsAPIError(f"Could not obtain Creators API token: {exc}") from exc
+                status = getattr(getattr(exc, "response", None), "status_code", None)
+                error_code = ""
+                response = getattr(exc, "response", None)
+                if response is not None:
+                    try:
+                        body = response.json()
+                        error_code = str(body.get("error", ""))
+                    except (ValueError, AttributeError):
+                        pass
+                safe_detail = ", ".join(part for part in (f"HTTP {status}" if status else "", error_code) if part)
+                raise CreatorsAPIError(
+                    "Could not obtain Creators API token" + (f" ({safe_detail})" if safe_detail else ".")
+                ) from exc
 
             token = body.get("access_token")
             if not token:
@@ -139,10 +151,27 @@ class AmazonCreatorsAPI:
                             delay = 2 ** attempt
                         time.sleep(delay)
                         continue
-                response.raise_for_status()
+                if not response.ok:
+                    reason = ""
+                    try:
+                        body = response.json()
+                        reason = str(body.get("reason") or body.get("type") or body.get("__type") or "")
+                    except ValueError:
+                        pass
+                    safe_detail = f"HTTP {response.status_code}"
+                    if reason:
+                        safe_detail += f" ({reason})"
+                    raise CreatorsAPIError(f"Creators API request denied: {safe_detail}.")
                 result = response.json()
                 if result.get("errors"):
-                    raise CreatorsAPIError(f"Amazon returned item/query errors: {result['errors']}")
+                    error_codes = []
+                    for error in result["errors"]:
+                        if isinstance(error, dict):
+                            code = error.get("reason") or error.get("code") or error.get("type")
+                            if code:
+                                error_codes.append(str(code))
+                    detail = ", ".join(dict.fromkeys(error_codes)) or "item/query errors"
+                    raise CreatorsAPIError(f"Amazon returned item/query errors ({detail}).")
                 return result
             except CreatorsAPIError:
                 raise
