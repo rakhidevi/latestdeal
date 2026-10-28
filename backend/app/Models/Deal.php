@@ -293,7 +293,7 @@ class Deal extends Model
     {
         $path = $this->attributes['image_path'] ?? '';
         if (empty($path)) {
-            return asset('images/logo.png');
+            return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop';
         }
 
         // Already a full HTTP/HTTPS URL — upgrade to https and return as-is
@@ -303,37 +303,31 @@ class Deal extends Model
 
         $cleanPath = ltrim($path, '/');
 
-        // If path already starts with "storage/", don't double-prefix it
+        // Check if file exists in public/ or storage/
         if (Str::startsWith($cleanPath, 'storage/')) {
-            // Check if file exists at public_path (via symlink)
             if (file_exists(public_path($cleanPath))) {
                 return asset($cleanPath);
             }
-            // Try the actual storage location
             $storageSub = Str::after($cleanPath, 'storage/');
             if (file_exists(storage_path('app/public/' . $storageSub))) {
                 return asset($cleanPath);
             }
-            // File doesn't exist — use the route-based fallback
-            return asset($cleanPath);
+        } else {
+            if (file_exists(public_path($cleanPath))) {
+                return asset($cleanPath);
+            }
+            if (file_exists(storage_path('app/public/' . $cleanPath))) {
+                return asset('storage/' . $cleanPath);
+            }
         }
 
-        // Non-storage paths (e.g. "deals/uuid.jpeg" in public/)
-        if (file_exists(public_path($cleanPath))) {
-            return asset($cleanPath);
+        // If on staging or local, fallback to production storage where real deal images live
+        if (str_contains(config('app.url'), 'staging') || !app()->isProduction()) {
+            return 'https://www.latestdeal.in/' . (Str::startsWith($cleanPath, 'storage/') ? $cleanPath : 'storage/' . $cleanPath);
         }
 
-        // Fallback: try storage path
-        if (file_exists(storage_path('app/public/' . $cleanPath))) {
-            return asset('storage/' . $cleanPath);
-        }
-
-        // Default or missing asset fallback — avoid returning broken 404 links
-        if (str_contains(strtolower($cleanPath), 'default') || !file_exists(public_path('storage/' . $cleanPath))) {
-            return asset('images/logo.png');
-        }
-
-        return asset('storage/' . $cleanPath);
+        // Realistic product placeholder rather than brand text logo
+        return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop';
     }
 
     /**

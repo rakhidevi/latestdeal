@@ -63,7 +63,7 @@
                  alt="{{ Str::limit($deal->title, 40) }}" 
                  class="max-h-full max-w-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-300" 
                  loading="lazy" 
-                 onerror="this.onerror=null;this.src='{{ asset('images/logo.png') }}';" />
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop';" />
         </a>
 
         @if($deal->status === 'expired')
