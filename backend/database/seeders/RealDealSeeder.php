@@ -19,19 +19,20 @@ class RealDealSeeder extends Seeder
             ['domain' => 'amazon.in', 'affiliate_param_key' => 'tag', 'store_id' => 'latestdeal-21']
         );
 
-        $electronicsCat = Category::firstOrCreate(['slug' => 'electronics'], ['name' => 'Electronics']);
-        $homeCat = Category::firstOrCreate(['slug' => 'home-kitchen'], ['name' => 'Home & Kitchen']);
-        $fitnessCat = Category::firstOrCreate(['slug' => 'sports-fitness'], ['name' => 'Sports & Fitness']);
-        $fashionCat = Category::firstOrCreate(['slug' => 'fashion-accessories'], ['name' => 'Fashion & Accessories']);
-        $beautyCat = Category::firstOrCreate(['slug' => 'beauty-personal-care'], ['name' => 'Beauty & Personal Care']);
-        $courseCat = Category::firstOrCreate(['slug' => 'courses-education'], ['name' => 'Courses & Education']);
-        $gamingCat = Category::firstOrCreate(['slug' => 'gaming'], ['name' => 'Gaming']);
+        $mobilesCat = Category::firstOrCreate(['slug' => 'mobiles'], ['name' => 'Mobiles', 'icon' => '📱']);
+        $electronicsCat = Category::firstOrCreate(['slug' => 'electronics'], ['name' => 'Electronics', 'icon' => '💻']);
+        $homeCat = Category::firstOrCreate(['slug' => 'home-kitchen'], ['name' => 'Home & Kitchen', 'icon' => '🏡']);
+        $fitnessCat = Category::firstOrCreate(['slug' => 'sports-fitness'], ['name' => 'Sports & Fitness', 'icon' => '🏋️']);
+        $fashionCat = Category::firstOrCreate(['slug' => 'fashion-accessories'], ['name' => 'Fashion & Accessories', 'icon' => '👗']);
+        $beautyCat = Category::firstOrCreate(['slug' => 'beauty-personal-care'], ['name' => 'Beauty & Personal Care', 'icon' => '💄']);
+        $courseCat = Category::firstOrCreate(['slug' => 'courses-education'], ['name' => 'Courses & Education', 'icon' => '📚']);
+        $gamingCat = Category::firstOrCreate(['slug' => 'gaming'], ['name' => 'Gaming', 'icon' => '🎮']);
 
         $dealsData = [
             [
                 'title' => 'EF ECOFLOW DELTA 2 Portable Power Station | 1024Wh LiFePO4 Battery',
                 'description' => 'Fast Charging 0-80% in 50 Mins, Solar Generator for Outdoor Camping, Home Backup Power Station.',
-                'original_price' => 659900,
+                'original_price' => 105000,
                 'discounted_price' => 65990,
                 'category_id' => $homeCat->id,
                 'merchant_id' => $merchant->id,
@@ -40,12 +41,12 @@ class RealDealSeeder extends Seeder
                 'status' => 'active',
                 'expires_at' => now()->addDays(10),
                 'tags' => ['Home & Kitchen', 'Power Station', 'EF ECOFLOW'],
-                'promo' => 'ECOFLOW90'
+                'promo' => null
             ],
             [
                 'title' => 'Fitkit by Cult Walking Pad Neo (BLDC 3.5HP Peak Power) Compact Under-desk Treadmill',
                 'description' => 'Compact Smart Motorized Under Desk Walking Treadmill with LED Display, Remote Control, Free Dietitian Consult.',
-                'original_price' => 79990,
+                'original_price' => 19990,
                 'discounted_price' => 7999,
                 'category_id' => $fitnessCat->id,
                 'merchant_id' => $merchant->id,
@@ -54,12 +55,12 @@ class RealDealSeeder extends Seeder
                 'status' => 'active',
                 'expires_at' => now()->addDays(5),
                 'tags' => ['Sports & Fitness', 'Treadmill', 'Fitkit'],
-                'promo' => 'FITKIT90'
+                'promo' => null
             ],
             [
                 'title' => 'ZEBRONICS Juke BAR 9510WS PRO Dolby 5.1 Soundbar',
                 'description' => '5.1 Channel Soundbar with Wireless Subwoofer & Rear Speakers, Dolby Audio, 525W RMS Output, Bluetooth 5.0.',
-                'original_price' => 54999,
+                'original_price' => 24999,
                 'discounted_price' => 9499,
                 'category_id' => $electronicsCat->id,
                 'merchant_id' => $merchant->id,
@@ -73,7 +74,7 @@ class RealDealSeeder extends Seeder
             [
                 'title' => 'Bniture 3 Door Wardrobe for Bedroom with Lockable Door & Hanging Rod',
                 'description' => 'Spacious 3 Door Engineered Wood Armoire Closet with Shelves and Lockable Drawers for Bedroom Storage.',
-                'original_price' => 99199,
+                'original_price' => 34999,
                 'discounted_price' => 24148,
                 'category_id' => $homeCat->id,
                 'merchant_id' => $merchant->id,
@@ -89,28 +90,70 @@ class RealDealSeeder extends Seeder
                 'description' => 'Dynamic Island bubbles up alerts and Live Activities. INNOVATIVE DESIGN — iPhone 15 features a durable color-infused glass and aluminum design.',
                 'original_price' => 79900,
                 'discounted_price' => 69900,
-                'category_id' => $electronicsCat->id,
+                'category_id' => $mobilesCat->id,
                 'merchant_id' => $merchant->id,
                 'url' => 'https://www.amazon.in/dp/B0CHX1W1XY',
                 'image_path' => 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&auto=format&fit=crop',
                 'status' => 'active',
                 'expires_at' => now()->addDays(7),
-                'tags' => ['Electronics', 'Smartphone', 'Apple'],
+                'tags' => ['Mobiles', 'Smartphone', 'Apple'],
+                'promo' => null
+            ],
+            [
+                'title' => 'OnePlus Nord CE4 5G (8GB RAM, 128GB Storage, Celadon Marble)',
+                'description' => 'Qualcomm Snapdragon 7 Gen 3, 100W SUPERVOOC Fast Charging, 5500mAh Battery, 50MP Sony LYT-600 Camera with OIS.',
+                'original_price' => 24999,
+                'discounted_price' => 19998,
+                'category_id' => $mobilesCat->id,
+                'merchant_id' => $merchant->id,
+                'url' => 'https://www.amazon.in/dp/B0CX24J1G1',
+                'image_path' => 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&auto=format&fit=crop',
+                'status' => 'active',
+                'expires_at' => now()->addDays(15),
+                'tags' => ['Mobiles', 'Smartphone', 'OnePlus'],
+                'promo' => null
+            ],
+            [
+                'title' => 'Realme Narzo 70 Pro 5G (8GB RAM, 128GB Storage, Glass Green)',
+                'description' => 'Dimensity 7050 5G Chipset, Flagship Sony IMX890 OIS Camera, Horizon Glass Design, 67W SUPERVOOC Charge.',
+                'original_price' => 24999,
+                'discounted_price' => 17999,
+                'category_id' => $mobilesCat->id,
+                'merchant_id' => $merchant->id,
+                'url' => 'https://www.amazon.in/dp/B0CY5JDF3V',
+                'image_path' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop',
+                'status' => 'active',
+                'expires_at' => now()->addDays(12),
+                'tags' => ['Mobiles', 'Smartphone', 'Realme'],
+                'promo' => null
+            ],
+            [
+                'title' => 'Samsung Galaxy M35 5G (6GB RAM, 128GB Storage, Daybreak Blue)',
+                'description' => 'Corning Gorilla Glass Victus+, 6000mAh Battery, 50MP OIS Triple Camera, Vapor Cooling Chamber, Super AMOLED 120Hz Display.',
+                'original_price' => 24499,
+                'discounted_price' => 16999,
+                'category_id' => $mobilesCat->id,
+                'merchant_id' => $merchant->id,
+                'url' => 'https://www.amazon.in/dp/B0D7D76B1Y',
+                'image_path' => 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600&auto=format&fit=crop',
+                'status' => 'active',
+                'expires_at' => now()->addDays(10),
+                'tags' => ['Mobiles', 'Smartphone', 'Samsung'],
                 'promo' => null
             ],
             [
                 'title' => 'Sony WH-1000XM5 Wireless Noise Cancelling Headphones',
-                'description' => 'Industry Leading Noise Cancellation. Up to 30-hour battery life with quick charging. Ultra-comfortable lightweight design.',
+                'description' => 'Industry Leading Noise Cancellation. Up to 30-hour battery life with quick charging. Ultra-comfortable lightweight design. Note: Stock status verified.',
                 'original_price' => 34990,
                 'discounted_price' => 26990,
                 'category_id' => $electronicsCat->id,
                 'merchant_id' => $merchant->id,
                 'url' => 'https://www.amazon.in/dp/B09Y2MYL5C',
                 'image_path' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop',
-                'status' => 'active',
+                'status' => 'out_of_stock',
                 'expires_at' => now()->addDays(3),
                 'tags' => ['Electronics', 'Audio', 'Headphones'],
-                'promo' => 'SONY10'
+                'promo' => null
             ],
             [
                 'title' => 'Noise ColorFit Pulse 2 Max 1.85" Display Bluetooth Calling Smart Watch',
@@ -191,7 +234,6 @@ class RealDealSeeder extends Seeder
             ['name' => 'Data Storage Devices', 'commission_rate' => 2.0],
             ['name' => 'Mobile Phones', 'commission_rate' => 1.0],
             ['name' => 'Bill Payment & Recharges', 'commission_rate' => 0.0], // Flat max up to INR 3, handling this as 0% for now or special logic later
-            ['name' => 'All Other Categories', 'commission_rate' => 5.0],
         ];
 
         foreach ($categoriesData as $cat) {

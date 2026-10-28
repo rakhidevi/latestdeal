@@ -79,7 +79,7 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex justify-between items-center">
                         Password
-                        <a href="#" class="text-xs text-red-600 hover:text-red-700 font-bold transition-colors">Forgot Password?</a>
+                        <a href="{{ route('password.request') }}" class="text-xs text-red-600 hover:text-red-700 font-bold transition-colors">Forgot Password?</a>
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">

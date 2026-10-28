@@ -82,15 +82,30 @@ class SmartSearchController extends Controller
 
         // Category / Product Type Filtering
         if ($intent['product_type'] === 'smartphone') {
+            // Hard exclude audio, headphones, soundbars, accessories, and cleaning products
+            $query->where(function ($q) {
+                $q->where('title', 'NOT LIKE', '%headphone%')
+                  ->where('title', 'NOT LIKE', '%earphone%')
+                  ->where('title', 'NOT LIKE', '%earbud%')
+                  ->where('title', 'NOT LIKE', '%audio%')
+                  ->where('title', 'NOT LIKE', '%soundbar%')
+                  ->where('title', 'NOT LIKE', '%speaker%')
+                  ->where('title', 'NOT LIKE', '%cleaner%')
+                  ->where('title', 'NOT LIKE', '%cleaning%')
+                  ->where('title', 'NOT LIKE', '%treadmill%')
+                  ->where('title', 'NOT LIKE', '%walking pad%')
+                  ->where('title', 'NOT LIKE', '%power station%')
+                  ->where('title', 'NOT LIKE', '%wardrobe%');
+            });
             $query->where(function ($q) {
                 $q->whereHas('category', function ($cq) {
-                    $cq->where('name', 'like', '%mobile%')
-                      ->orWhere('name', 'like', '%smart%')
-                      ->orWhere('name', 'like', '%phone%');
+                    $cq->where('slug', 'mobiles')
+                      ->orWhere('name', 'like', '%mobile%')
+                      ->orWhere('name', 'like', '%smartphone%');
                 })
-                ->orWhere('title', 'like', '%phone%')
                 ->orWhere('title', 'like', '%smartphone%')
-                ->orWhere('title', 'like', '%5G%')
+                ->orWhere('title', 'like', '%smart phone%')
+                ->orWhere('title', 'like', '%mobile phone%')
                 ->orWhere('title', 'like', '%iPhone%')
                 ->orWhere('title', 'like', '%Galaxy%')
                 ->orWhere('title', 'like', '%Realme%')
@@ -98,9 +113,10 @@ class SmartSearchController extends Controller
                 ->orWhere('title', 'like', '%Redmi%')
                 ->orWhere('title', 'like', '%Xiaomi%')
                 ->orWhere('title', 'like', '%Motorola%')
-                ->orWhere('title', 'like', '%Pixel%')
-                ->orWhere('title', 'like', '%Vivo%')
-                ->orWhere('title', 'like', '%Oppo%');
+                ->orWhere('title', 'like', '%Pixel %')
+                ->orWhere('title', 'like', '%Vivo %')
+                ->orWhere('title', 'like', '%iQOO%')
+                ->orWhere('title', 'like', '%Poco%');
             });
         } elseif ($intent['product_type'] === 'airpods') {
             $query->where(function ($q) {
@@ -360,6 +376,8 @@ class SmartSearchController extends Controller
                 'discount_pct'  => $item['discount_pct'],
                 'savings'       => $item['savings'],
                 'url'           => $deal->url,
+                'slug'          => $deal->slug,
+                'deal_url'      => route('deals.show', $deal->slug),
                 'merchant'      => $merchantName,
                 'image_url'     => $deal->image_url,
                 'image_path'    => $deal->image_url,

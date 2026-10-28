@@ -397,7 +397,7 @@ class Deal extends Model
      */
     public function scopePublishable($query)
     {
-        return $query->where('editorial_status', self::STATUS_PUBLISHED);
+        return $query->whereIn(\Illuminate\Support\Facades\DB::raw('UPPER(editorial_status)'), [self::STATUS_PUBLISHED, 'PUBLISHED']);
     }
 
     /**
@@ -405,12 +405,12 @@ class Deal extends Model
      */
     public function scopeIndexable($query)
     {
-        return $query->where('editorial_status', self::STATUS_PUBLISHED)
+        return $query->whereIn(\Illuminate\Support\Facades\DB::raw('UPPER(editorial_status)'), [self::STATUS_PUBLISHED, 'PUBLISHED'])
             ->where(function ($q) {
                 $q->where(function ($subActive) {
-                    $subActive->where('status', 'active');
+                    $subActive->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['active', 'out_of_stock']);
                 })->orWhere(function ($subExpired) {
-                    $subExpired->whereIn('status', ['expired', self::STATUS_EXPIRED])
+                    $subExpired->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['expired', 'archived'])
                         ->where(function ($hist) {
                             $hist->where('is_editor_pick', true)
                                  ->orWhereRaw('LENGTH(editorial_summary) > 200');
@@ -425,10 +425,14 @@ class Deal extends Model
      */
     public function isPublishable(bool $allowExpired = false): bool
     {
-        $isExpired = strtolower($this->status) === 'expired' || $this->status === self::STATUS_EXPIRED;
-        if (!$allowExpired && $this->status !== 'active') return false;
-        if ($allowExpired && !$isExpired && $this->status !== 'active') return false;
-        if ($this->editorial_status !== self::STATUS_PUBLISHED) return false;
+        $statusLower = strtolower($this->status ?? '');
+        $isExpired = $statusLower === 'expired' || $this->status === self::STATUS_EXPIRED;
+        $isActive = in_array($statusLower, ['active', 'out_of_stock']);
+        if (!$allowExpired && !$isActive) return false;
+        if ($allowExpired && !$isExpired && !$isActive) return false;
+        
+        $editorialStatusUpper = strtoupper($this->editorial_status ?? '');
+        if ($editorialStatusUpper !== self::STATUS_PUBLISHED && $editorialStatusUpper !== 'PUBLISHED') return false;
         return true;
     }
 

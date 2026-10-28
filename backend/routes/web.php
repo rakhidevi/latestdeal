@@ -26,8 +26,12 @@ Route::get('/go/{id}', function (\Illuminate\Http\Request $request, $id) {
 })->where('id', '[0-9]+');
 
 Route::get('/deal/{id}', function ($id) {
-    $deal = \App\Models\Deal::findOrFail($id);
-    return redirect()->to(route('deals.show', $deal->slug), 301);
+    $deal = \App\Models\Deal::find($id);
+    if (!$deal) {
+        abort(404);
+    }
+    $slug = $deal->slug ?: \Illuminate\Support\Str::slug($deal->title) . '-' . $deal->id;
+    return redirect()->to(route('deals.show', $slug), 301);
 })->where('id', '[0-9]+');
 
 // The Redirect Engine Endpoint
@@ -57,6 +61,8 @@ Route::get('/assistant', function () {
                     'image_path' => $deal->image_url,
                     'merchant' => $deal->merchant->name ?? 'Marketplace',
                     'category' => $deal->category->name ?? 'General',
+                    'slug' => $deal->slug,
+                    'deal_url' => route('deals.show', $deal->slug),
                 ];
             });
     });
@@ -181,6 +187,8 @@ Route::post('/publisher/register', [\App\Http\Controllers\PublisherAuthControlle
 // Shopper Auth Module
 Route::get('/login', [\App\Http\Controllers\ShopperAuthController::class, 'loginView'])->name('shopper.login');
 Route::post('/login', [\App\Http\Controllers\ShopperAuthController::class, 'login']);
+Route::get('/forgot-password', [\App\Http\Controllers\ShopperAuthController::class, 'forgotPasswordView'])->name('password.request');
+Route::post('/forgot-password', [\App\Http\Controllers\ShopperAuthController::class, 'sendResetLink'])->name('password.email');
 Route::get('/register', [\App\Http\Controllers\ShopperAuthController::class, 'registerView'])->name('shopper.register');
 Route::post('/register', [\App\Http\Controllers\ShopperAuthController::class, 'register']);
 

@@ -72,6 +72,12 @@
                     Expired
                 </span>
             </div>
+        @elseif($deal->status === 'out_of_stock')
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] flex items-center justify-center z-10">
+                <span class="bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-lg text-xs uppercase tracking-wider border border-amber-400/40">
+                    Out of Stock
+                </span>
+            </div>
         @elseif($discountPct > 0)
             <div class="absolute top-3 left-3 z-10 bg-red-600 text-white text-[11px] font-black px-2.5 py-1 rounded-full shadow-md tracking-tight">
                 {{ $discountPct }}% OFF
@@ -127,19 +133,19 @@
         <!-- 4. Merchant & Last Checked Time -->
         <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-0.5">
             <div class="flex items-center gap-1.5 font-medium truncate">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span class="w-1.5 h-1.5 rounded-full {{ $deal->status === 'out_of_stock' ? 'bg-amber-500' : 'bg-emerald-500' }}"></span>
                 <span class="truncate font-semibold text-slate-700 dark:text-slate-300">{{ $merchantName }}</span>
             </div>
-            <span class="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                Checked {{ $timeChecked }}
+            <span class="text-[11px] {{ $deal->status === 'out_of_stock' ? 'text-amber-500 font-bold' : 'text-slate-400 dark:text-slate-500' }} whitespace-nowrap">
+                {{ $deal->status === 'out_of_stock' ? 'Currently Unavailable' : 'Checked ' . $timeChecked }}
             </span>
         </div>
 
         <!-- 5. Primary Action Button: Check Deal -->
         <div class="pt-1">
             <a href="{{ $dealUrl }}" 
-               class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm text-center flex items-center justify-center gap-1.5 transition-all shadow-sm hover:shadow-md">
-                <span>Check Deal</span>
+               class="w-full {{ $deal->status === 'out_of_stock' ? 'bg-slate-700 hover:bg-slate-800' : 'bg-red-600 hover:bg-red-700' }} text-white font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm text-center flex items-center justify-center gap-1.5 transition-all shadow-sm hover:shadow-md">
+                <span>{{ $deal->status === 'out_of_stock' ? 'View Details' : 'Check Deal' }}</span>
                 <svg class="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
             </a>
         </div>

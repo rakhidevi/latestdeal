@@ -40,6 +40,8 @@ class ShopperAssistantController extends Controller
                     return [
                         'id'            => $deal->id,
                         'title'         => $deal->title,
+                        'slug'          => $deal->slug,
+                        'deal_url'      => route('deals.show', $deal->slug),
                         'price'         => $price,
                         'original_price'=> $origPrice,
                         'discount_pct'  => $discountPct,
@@ -69,6 +71,8 @@ class ShopperAssistantController extends Controller
                         return [
                             'id'            => $deal->id,
                             'title'         => $deal->title,
+                            'slug'          => $deal->slug,
+                            'deal_url'      => route('deals.show', $deal->slug),
                             'price'         => $price,
                             'original_price'=> $origPrice,
                             'discount_pct'  => $discountPct,
@@ -193,7 +197,8 @@ class ShopperAssistantController extends Controller
                     $discountBadge = $d['discount_pct'] > 0 ? " — **{$d['discount_pct']}% OFF**" : "";
                     $savingsStr = $d['savings'] > 0 ? " — saves ₹" . number_format($d['savings']) : "";
                     
-                    $fallbackReply .= "{$badge}: **[{$d['title']}]({$d['url']})**\n";
+                    $targetLink = !empty($d['slug']) ? route('deals.show', $d['slug']) : ($d['deal_url'] ?? $d['url']);
+                    $fallbackReply .= "{$badge}: **[{$d['title']}]({$targetLink})**\n";
                     $fallbackReply .= "  ₹" . number_format($d['price']) . "{$origStr}{$discountBadge}{$savingsStr} on *{$d['merchant']}*\n\n";
                 }
                 $fallbackReply .= "👉 *Select any product in the comparison matrix below to view price history telemetry and real-time multi-store price comparisons!*";

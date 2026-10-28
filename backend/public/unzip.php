@@ -435,20 +435,28 @@ if (isset($_GET['reclassify_catalog'])) {
         $publishedDeals = \App\Models\Deal::where('editorial_status', 'published')->count();
         echo "Deals DB Diagnostic: Total={$totalDeals}, Active={$activeDeals}, Published={$publishedDeals}\n";
 
-        if ($totalDeals === 0) {
-            echo "Seeding initial realistic deals...\n";
-            require_once __DIR__ . '/../database/seeders/RealDealSeeder.php';
-            $seeder = new \Database\Seeders\RealDealSeeder();
-            $seeder->run();
-            $totalDeals = \App\Models\Deal::count();
-            echo "Seeded {$totalDeals} deals.\n";
-        }
+        echo "Seeding / syncing verified deals, realistic MRPs, and smartphone catalog...\n";
+        require_once __DIR__ . '/../database/seeders/RealDealSeeder.php';
+        $seeder = new \Database\Seeders\RealDealSeeder();
+        $seeder->run();
+        $totalDeals = \App\Models\Deal::count();
+        echo "Catalog deals now: {$totalDeals}.\n";
 
-        if ($totalDeals > 0) {
-            \App\Models\Deal::query()->update(['editorial_status' => 'published', 'status' => 'active']);
-            $publishedDeals = \App\Models\Deal::where('editorial_status', 'published')->count();
-            echo "Aligned all {$publishedDeals} deals to editorial_status=published & status=active.\n";
+        // Align editorial_status to uppercase PUBLISHED
+        \App\Models\Deal::query()->update(['editorial_status' => \App\Models\Deal::STATUS_PUBLISHED]);
+
+        // Explicitly set Sony headphones to out_of_stock based on live Amazon status
+        \App\Models\Deal::where('title', 'like', '%Sony WH-1000XM5%')
+            ->update(['status' => 'out_of_stock']);
+
+        // Ensure every deal has a valid non-empty slug
+        foreach (\App\Models\Deal::all() as $d) {
+            if (empty($d->slug)) {
+                $d->slug = \Illuminate\Support\Str::slug($d->title) . '-' . $d->id;
+                $d->saveQuietly();
+            }
         }
+        echo "Aligned all deals to editorial_status=PUBLISHED, updated stock states and slugs.\n";
 
         // 2. Direct catalog reclassification (resilient without command boot)
         $categoryDefinitions = [
@@ -616,6 +624,9 @@ if (isset($_GET['reclassify_catalog'])) {
             }
         }
         echo "Updated {$updatedImages} deals with realistic product photos.\n";
+
+        \Illuminate\Support\Facades\Cache::flush();
+        echo "Flushed application cache.\n";
 
         echo "\nSUCCESS: Catalog reclassification & data hygiene completed!\n";
     } catch (\Throwable $e) {

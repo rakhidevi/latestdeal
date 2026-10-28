@@ -72,6 +72,36 @@ class ShopperAuthController extends Controller
         ])->onlyInput('email');
     }
 
+    public function forgotPasswordView()
+    {
+        if (Auth::check()) {
+            return redirect('/');
+        }
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $user = \App\Models\User::where('email', $request->email)->first();
+        if ($user) {
+            $token = \Illuminate\Support\Str::random(64);
+            if (\Illuminate\Support\Facades\Schema::hasTable('password_reset_tokens')) {
+                \Illuminate\Support\Facades\DB::table('password_reset_tokens')->updateOrInsert(
+                    ['email' => $user->email],
+                    ['token' => \Illuminate\Support\Facades\Hash::make($token), 'created_at' => now()]
+                );
+            }
+            $resetUrl = url('/reset-password/' . $token . '?email=' . urlencode($user->email));
+            \Illuminate\Support\Facades\Mail::to($user->email)->queue(new \App\Mail\ResetPasswordMail($resetUrl));
+        }
+
+        return back()->with('status', 'If an account matches that email, a password recovery link has been queued.');
+    }
+
     public function registerView()
     {
         if (Auth::check()) {

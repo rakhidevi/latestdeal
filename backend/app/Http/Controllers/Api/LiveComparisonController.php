@@ -59,13 +59,14 @@ class LiveComparisonController extends Controller
             }
         }
 
-        // 3. Synthesize realistic multi-store competitor comparison
+        // 3. Return verified primary retailer offer and honest competitor status (no fabricated percentage math)
         $results = $this->generateCompetitorPrices($deal, $title, $dealPrice);
-        $aiScore = $deal && $deal->ai_score ? $deal->ai_score : min(96, max(78, 72 + (int)(($deal ? $deal->calculated_discount_percent : 25) * 0.4)));
+        $aiScore = $deal && $deal->ai_score ? $deal->ai_score : 82;
 
         $payload = [
             'results' => $results,
             'ai_score' => $aiScore,
+            'verification_note' => 'Only primary retailer pricing is verified. Third-party prices require confirmed SKU match.',
         ];
 
         Cache::put($cacheKey, $payload, now()->addMinutes(60));
@@ -80,69 +81,57 @@ class LiveComparisonController extends Controller
         }
 
         return response()->json([
-            'status' => 'cache_hit',
+            'status' => 'verified_primary_store',
             'data' => $payload
         ]);
     }
 
     /**
-     * Helper to generate verified competitor comparison stores
+     * Return verified primary store offer and honest unverified competitor status
      */
     protected function generateCompetitorPrices(?Deal $deal, string $title, ?float $dealPrice): array
     {
         $basePrice = $dealPrice ?? ($deal ? (float)$deal->discounted_price : 1999);
-        $mrp = $deal && $deal->original_price > $basePrice ? (float)$deal->original_price : round($basePrice * 1.35);
         $currentMerchant = $deal && $deal->merchant ? $deal->merchant->name : 'Amazon India';
+        $isOutOfStock = $deal && in_array(strtolower($deal->status ?? ''), ['out_of_stock', 'expired']);
+        $checkedAt = ($deal && $deal->updated_at) ? $deal->updated_at->diffForHumans() : 'Recently verified';
 
-        $isAmazonCurrent = str_contains(strtolower($currentMerchant), 'amazon');
-
-        // Store 1: Current Store (Best deal verified)
+        // Store 1: Current Store (Verified Offer)
         $stores = [
             [
                 'store' => $currentMerchant,
-                'price' => $basePrice,
-                'delivery' => 'Fastest Delivery',
+                'price' => $isOutOfStock ? null : $basePrice,
+                'delivery' => $isOutOfStock ? 'Currently Unavailable' : 'Standard Delivery',
                 'rating' => '4.4',
                 'url' => $deal ? $deal->url : 'https://latestdeal.in',
-                'badge' => 'Lowest Price',
+                'badge' => $isOutOfStock ? 'Out of Stock' : 'Verified Offer',
+                'availability' => $isOutOfStock ? 'Currently Unavailable' : 'In Stock',
+                'checked_at' => $checkedAt,
+                'is_verified' => true,
             ]
         ];
 
-        // Store 2: Flipkart or Amazon India
-        $comp2Store = $isAmazonCurrent ? 'Flipkart' : 'Amazon India';
-        $comp2Price = min($mrp, round(($basePrice * 1.05) / 10) * 10 - 1);
-        $stores[] = [
-            'store' => $comp2Store,
-            'price' => $comp2Price,
-            'delivery' => 'Standard Delivery (2-3 Days)',
-            'rating' => '4.3',
-            'url' => $isAmazonCurrent 
-                ? 'https://www.flipkart.com/search?q=' . urlencode($title)
-                : 'https://www.amazon.in/s?k=' . urlencode($title),
-            'badge' => null,
+        // Competitors: Honest representation without invented prices
+        $isAmazonCurrent = str_contains(strtolower($currentMerchant), 'amazon');
+        $competitors = [
+            ['name' => $isAmazonCurrent ? 'Flipkart' : 'Amazon India', 'rating' => '4.3'],
+            ['name' => 'Croma', 'rating' => '4.2'],
+            ['name' => 'Reliance Digital', 'rating' => '4.1'],
         ];
 
-        // Store 3: Croma
-        $comp3Price = min($mrp, round(($basePrice * 1.08) / 10) * 10);
-        $stores[] = [
-            'store' => 'Croma',
-            'price' => $comp3Price,
-            'delivery' => 'Store Pickup Available',
-            'rating' => '4.2',
-            'url' => 'https://www.croma.com/searchB?q=' . urlencode($title),
-            'badge' => null,
-        ];
-
-        // Store 4: Reliance Digital
-        $comp4Price = min($mrp, round(($basePrice * 1.10) / 10) * 10);
-        $stores[] = [
-            'store' => 'Reliance Digital',
-            'price' => $comp4Price,
-            'delivery' => 'Standard Delivery',
-            'rating' => '4.1',
-            'url' => 'https://www.reliancedigital.in/search?q=' . urlencode($title),
-            'badge' => null,
-        ];
+        foreach ($competitors as $comp) {
+            $stores[] = [
+                'store' => $comp['name'],
+                'price' => null,
+                'delivery' => 'Retailer verification pending',
+                'rating' => $comp['rating'],
+                'url' => null,
+                'badge' => null,
+                'availability' => 'Unverified for this SKU',
+                'checked_at' => null,
+                'is_verified' => false,
+            ];
+        }
 
         return $stores;
     }
