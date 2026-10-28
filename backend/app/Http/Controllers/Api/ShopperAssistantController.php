@@ -24,42 +24,13 @@ class ShopperAssistantController extends Controller
         $rawHistory = $request->history ?? [];
 
         // 1. Resolve Deals
-        if (!empty($dealIds)) {
-            // Load exact matched deals directly from the database
-            $deals = Deal::whereIn('id', $dealIds)
-                ->where('status', 'active')
-                ->with(['merchant', 'category'])
-                ->get()
-                ->map(function ($deal) {
-                    $origPrice = (float) $deal->original_price;
-                    $price = (float) $deal->discounted_price;
-                    $discountPct = $origPrice > $price && $origPrice > 0
-                        ? round((($origPrice - $price) / $origPrice) * 100)
-                        : 0;
-
-                    return [
-                        'id'            => $deal->id,
-                        'title'         => $deal->title,
-                        'slug'          => $deal->slug,
-                        'deal_url'      => route('deals.show', $deal->slug),
-                        'price'         => $price,
-                        'original_price'=> $origPrice,
-                        'discount_pct'  => $discountPct,
-                        'savings'       => max(0, $origPrice - $price),
-                        'url'           => $deal->url,
-                        'image_url'     => $deal->image_url,
-                        'merchant'      => optional($deal->merchant)->name ?? 'Amazon India',
-                        'ai_score'      => $deal->ai_score ?? 88,
-                    ];
-                });
-        } else {
-            // Fallback to latest verified active deals
-            $deals = Cache::remember('deals.assistant.latest', 120, function () {
-                return Deal::where('status', 'active')
-                    ->where('discounted_price', '>', 0)
-                    ->orderBy('created_at', 'desc')
-                    ->limit(20)
-                    ->with('merchant')
+        if ($request->has('deal_ids')) {
+            $dealIds = $request->deal_ids ?? [];
+            if (!empty($dealIds)) {
+                // Load exact matched deals directly from the database
+                $deals = Deal::whereIn('id', $dealIds)
+                    ->where('status', 'active')
+                    ->with(['merchant', 'category'])
                     ->get()
                     ->map(function ($deal) {
                         $origPrice = (float) $deal->original_price;
@@ -80,10 +51,54 @@ class ShopperAssistantController extends Controller
                             'url'           => $deal->url,
                             'image_url'     => $deal->image_url,
                             'merchant'      => optional($deal->merchant)->name ?? 'Amazon India',
-                            'ai_score'      => $deal->ai_score ?? 85,
+                            'ai_score'      => $deal->ai_score ?? 88,
                         ];
                     });
-            });
+            } else {
+                // Caller passed deal_ids as an empty array, meaning 0 deals matched criteria
+                $deals = collect([]);
+            }
+        } else {
+            // No deal_ids provided: run query through SmartSearchController to extract constraints
+            $isGreeting = preg_match('/^(hi|hello|hey|help|greetings|start)(\s.*)?$/i', $userMessage);
+            if ($isGreeting) {
+                $deals = Cache::remember('deals.assistant.latest', 120, function () {
+                    return Deal::where('status', 'active')
+                        ->where('discounted_price', '>', 0)
+                        ->orderBy('created_at', 'desc')
+                        ->limit(6)
+                        ->with('merchant')
+                        ->get()
+                        ->map(function ($deal) {
+                            $origPrice = (float) $deal->original_price;
+                            $price = (float) $deal->discounted_price;
+                            $discountPct = $origPrice > $price && $origPrice > 0
+                                ? round((($origPrice - $price) / $origPrice) * 100)
+                                : 0;
+
+                            return [
+                                'id'            => $deal->id,
+                                'title'         => $deal->title,
+                                'slug'          => $deal->slug,
+                                'deal_url'      => route('deals.show', $deal->slug),
+                                'price'         => $price,
+                                'original_price'=> $origPrice,
+                                'discount_pct'  => $discountPct,
+                                'savings'       => max(0, $origPrice - $price),
+                                'url'           => $deal->url,
+                                'image_url'     => $deal->image_url,
+                                'merchant'      => optional($deal->merchant)->name ?? 'Amazon India',
+                                'ai_score'      => $deal->ai_score ?? 85,
+                            ];
+                        });
+                });
+            } else {
+                $smartSearch = app(SmartSearchController::class);
+                $searchRequest = new Request(['q' => $userMessage]);
+                $searchResponse = $smartSearch->search($searchRequest);
+                $searchData = $searchResponse->getData(true);
+                $deals = collect($searchData['deals'] ?? []);
+            }
         }
 
         $noDealsFound = $deals->isEmpty();
