@@ -321,6 +321,16 @@
                 <!-- Decorative glow -->
                 <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-[50px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
+                @if($deal->status === 'out_of_stock')
+                    <div class="mb-6 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-2xl p-4 flex items-center gap-3 text-amber-900 dark:text-amber-200 text-sm font-semibold">
+                        <svg class="w-6 h-6 flex-shrink-0 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <div>
+                            <div class="font-bold">Currently Unavailable on Amazon India</div>
+                            <div class="text-xs text-amber-700 dark:text-amber-300 font-normal mt-0.5">This item is currently out of stock or unavailable from the primary retailer. The price displayed reflects the last verified historical observation.</div>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 relative z-10">
                     <div>
                         <p class="text-[11px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-2">Deal Price</p>
@@ -356,9 +366,14 @@
 
                 <hr class="my-8 border-gray-100 dark:border-slate-800">
 
-                <!-- Copy Code & Go -->
+                <!-- Copy Code & Go / CTA -->
                 <div>
-                    @if($deal->promo_code || $deal->coupon_code)
+                    @if($deal->status === 'out_of_stock')
+                        <div class="inline-flex justify-center items-center w-full sm:w-auto bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-500 dark:text-slate-400 px-8 py-3.5 rounded-xl font-bold text-base cursor-not-allowed">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                            Currently Unavailable
+                        </div>
+                    @elseif($deal->promo_code || $deal->coupon_code)
                         <div class="bg-gray-900 dark:bg-black rounded-2xl p-2 pl-6 flex flex-col sm:flex-row sm:items-center justify-between shadow-2xl gap-4 border border-gray-800">
                             <div class="pt-2 sm:pt-0">
                                 <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Use Code at Checkout</p>
