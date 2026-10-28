@@ -403,6 +403,7 @@
           <img src="/images/logo-white.png" alt="LatestDeal" class="theme-logo h-8 md:h-10 w-auto hidden dark:block" />
         </a>
 
+@if(!request()->is('/') || request()->filled('search') || request()->filled('q'))
         <!-- Header Quick Search Bar (Prominently visible directly on Desktop) -->
         <div class="hidden md:flex flex-1 max-w-xs lg:max-w-sm mx-2 relative z-30">
             <form action="/" method="GET" class="w-full relative">
@@ -414,6 +415,7 @@
             </form>
         </div>
 
+@endif
         <!-- Center: Desktop Navigation -->
         <div class="hidden lg:flex ml-auto items-center text-[14px] font-medium text-gray-700 dark:text-slate-200 z-30 gap-6">
             

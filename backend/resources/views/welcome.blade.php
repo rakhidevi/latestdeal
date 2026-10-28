@@ -92,84 +92,99 @@
 @endphp
 
 @if(request()->is('/') && !request()->filled('search') && !request()->filled('q') && !request()->filled('max_price') && !request()->filled('category') && !request()->filled('brand'))
-  <div class="w-full relative overflow-hidden bg-slate-950 text-white shadow-lg border-b border-slate-800/80">
-     <!-- Background Ambient Subtle Glow -->
-     <div class="absolute inset-0 bg-gradient-to-br from-red-950/20 via-slate-950 to-slate-900 pointer-events-none"></div>
-     <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[600px] h-[250px] bg-red-600/10 rounded-full blur-[90px] pointer-events-none"></div>
+  <div class="w-full relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50/60 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-b border-slate-200/80 dark:border-slate-800">
+     <!-- Subtle ambient glow -->
+     <div class="absolute inset-0 bg-[radial-gradient(#ef44440a_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none opacity-60"></div>
+     <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[720px] h-[220px] bg-gradient-to-r from-red-500/10 via-amber-500/10 to-rose-500/10 rounded-full blur-[80px] pointer-events-none"></div>
 
-     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 relative z-10 space-y-2.5">
+     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-7 sm:py-9 relative z-10 space-y-4">
         
         <!-- Compact Headline & Promise -->
-        <div class="max-w-3xl mx-auto text-center space-y-1">
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-red-600/20 text-red-400 border border-red-500/30 uppercase tracking-wider">
-                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                <span>Verified Deal Intelligence</span>
+        <div class="max-w-3xl mx-auto text-center space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 border border-red-200/70 dark:border-red-800/60 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <span>India's Verified Deal & Price Intelligence</span>
             </div>
             
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight leading-snug">
-                Find deals that are <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-400 to-amber-300">genuinely good.</span>
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+                Find deals that are <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-rose-600 to-amber-500">genuinely good.</span>
             </h1>
             
-            <p class="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto font-medium hidden sm:block">
-                Compare prices and see whether a deal is genuinely good — backed by 90-day price history & zero fake discounts.
+            <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-xl mx-auto font-medium">
+                Real 90-day price history, verified store benchmarks, and zero fake discounts.
             </p>
         </div>
 
-        <!-- Sleek Search Bar -->
+        <!-- Hero Search Bar -->
         <div class="max-w-2xl mx-auto">
             <form action="{{ url('/') }}" method="GET" class="relative group">
-                <div class="relative flex items-center shadow-lg">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 sm:pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-red-500 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <div class="relative flex items-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-md shadow-slate-200/50 dark:shadow-none hover:border-slate-400 focus-within:border-red-500 focus-within:ring-4 focus-within:ring-red-500/15 transition-all">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-red-500 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
                     <input type="text" 
                            name="q" 
                            value="{{ request('q') }}"
-                           placeholder="Search a product, brand or store (e.g. iPhone, Sony XM5, Laptop)..." 
-                           class="w-full pl-10 sm:pl-11 pr-24 sm:pr-28 py-2.5 sm:py-3 bg-slate-900 text-white placeholder-slate-400 border border-slate-700 rounded-xl focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500/30 text-xs sm:text-sm font-medium transition-all" />
+                           placeholder="Search smartphones, laptops, electronics, brands..." 
+                           class="w-full pl-12 pr-28 py-3.5 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 text-sm font-medium outline-none" />
                     <button type="submit" 
-                            class="absolute right-1.5 sm:right-2 px-3.5 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-bold text-xs rounded-lg transition shadow-sm flex items-center gap-1">
+                            class="absolute right-2 px-5 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-xs rounded-xl transition shadow-md shadow-red-500/20 flex items-center gap-1.5">
                         <span>Search</span>
-                        <svg class="w-3.5 h-3.5 hidden sm:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        <svg class="w-3.5 h-3.5 hidden sm:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- Single Streamlined Strip: AI Prompts + Popular Categories Combined -->
-        <div class="max-w-4xl mx-auto flex items-center justify-between gap-3 overflow-x-auto no-scrollbar py-0.5 text-xs font-semibold">
-            <!-- Left: Tappable AI prompts -->
-            <div class="flex items-center gap-1.5 shrink-0">
-                <span class="text-amber-400 font-bold flex items-center gap-1 text-[11px] shrink-0">✨ AI:</span>
-                <a href="{{ url('/assistant?q=Find+a+good+phone+under+20000') }}" 
-                   class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 text-[11px] font-medium whitespace-nowrap transition">📱 Phone &lt; ₹20k</a>
-                <a href="{{ url('/assistant?q=Cheapest+AirPods+today') }}" 
-                   class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 text-[11px] font-medium whitespace-nowrap transition">🎧 AirPods</a>
-                <a href="{{ url('/assistant?q=Is+this+price+lower+than+usual') }}" 
-                   class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 text-[11px] font-medium whitespace-nowrap transition">📉 Price Drop?</a>
-            </div>
+        <!-- Clean Tags: AI Prompts & Categories -->
+        <div class="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
+            <span class="text-slate-500 dark:text-slate-400 font-bold text-[11px] uppercase tracking-wider mr-1">Trending:</span>
+            
+            <a href="{{ url('/assistant?q=Best+smartphone+under+30000') }}" 
+               class="px-3 py-1 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-red-300 hover:bg-red-50/50 transition-all font-semibold flex items-center gap-1">
+                <span>🤖</span> Phone &lt; &#8377;30k
+            </a>
+            
+            <a href="{{ url('/categories/mobiles') }}" 
+               class="px-3 py-1 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-red-300 hover:bg-red-50/50 transition-all font-semibold flex items-center gap-1">
+                <span>📱</span> Mobiles
+            </a>
 
-            <!-- Divider -->
-            <div class="w-px h-4 bg-slate-800 shrink-0 hidden md:block"></div>
+            <a href="{{ url('/categories/electronics') }}" 
+               class="px-3 py-1 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-red-300 hover:bg-red-50/50 transition-all font-semibold flex items-center gap-1">
+                <span>💻</span> Electronics
+            </a>
 
-            <!-- Right: Popular Categories -->
-            <div class="flex items-center gap-1.5 shrink-0">
-                <span class="text-slate-400 uppercase text-[10px] tracking-wider font-extrabold shrink-0">Popular:</span>
-                @foreach($categories->take(5) as $cat)
-                <a href="{{ url('/categories/' . $cat->slug) }}" 
-                   class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-red-600 text-slate-200 hover:text-white border border-slate-800 hover:border-red-500 transition whitespace-nowrap text-[11px] flex items-center gap-1 shrink-0">
-                    <span>{{ $cat->icon ?? '📦' }}</span>
-                    <span>{{ $cat->name }}</span>
-                    @if(isset($cat->active_deals_count) && $cat->active_deals_count > 0)
-                        <span class="text-[9px] text-slate-400 px-1 py-0.1 bg-slate-800 rounded font-mono">{{ $cat->active_deals_count }}</span>
-                    @endif
-                </a>
-                @endforeach
-                <a href="{{ url('/categories') }}" 
-                   class="px-2.5 py-1 rounded-lg bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 transition whitespace-nowrap text-[11px] font-bold shrink-0">
-                    All &rarr;
-                </a>
-            </div>
+            <a href="{{ url('/categories/home-kitchen') }}" 
+               class="px-3 py-1 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-red-300 hover:bg-red-50/50 transition-all font-semibold flex items-center gap-1">
+                <span>🏡</span> Home & Kitchen
+            </a>
+
+            <a href="{{ url('/categories/sports-fitness') }}" 
+               class="px-3 py-1 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 shadow-sm hover:border-red-300 hover:bg-red-50/50 transition-all font-semibold flex items-center gap-1">
+                <span>🏋️</span> Fitness
+            </a>
+
+            <a href="{{ url('/deals/all') }}" 
+               class="px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white border border-red-200/80 dark:border-red-800/60 transition-all font-bold">
+                All Deals &rarr;
+            </a>
+        </div>
+
+        <!-- 3 Pillars of Trust -->
+        <div class="flex items-center justify-center gap-6 pt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                90-Day Price Audit
+            </span>
+            <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Zero Inflated MRPs
+            </span>
+            <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Verified Retailer Prices
+            </span>
         </div>
 
      </div>
