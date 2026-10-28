@@ -445,6 +445,12 @@ if (isset($_GET['reclassify_catalog'])) {
         // Align editorial_status to uppercase PUBLISHED
         \App\Models\Deal::query()->update(['editorial_status' => \App\Models\Deal::STATUS_PUBLISHED]);
 
+        // Explicitly set authentic MRPs and prices for known catalog items
+        \App\Models\Deal::where('title', 'like', '%Fitkit%')->update(['original_price' => 19990.00, 'discounted_price' => 7999.00]);
+        \App\Models\Deal::where('title', 'like', '%ECOFLOW%')->update(['original_price' => 105000.00, 'discounted_price' => 65990.00]);
+        \App\Models\Deal::where('title', 'like', '%ZEBRONICS%')->update(['original_price' => 24999.00, 'discounted_price' => 9499.00]);
+        \App\Models\Deal::where('title', 'like', '%Bniture%')->update(['original_price' => 34999.00, 'discounted_price' => 24148.00]);
+
         // Explicitly set Sony headphones to out_of_stock based on live Amazon status
         \App\Models\Deal::where('title', 'like', '%Sony WH-1000XM5%')
             ->update(['status' => 'out_of_stock']);
@@ -473,7 +479,7 @@ if (isset($_GET['reclassify_catalog'])) {
         foreach ($categoryDefinitions as $slug => $meta) {
             $categories[$slug] = \App\Models\Category::firstOrCreate(
                 ['slug' => $slug],
-                ['name' => $meta['name'], 'icon' => $meta['icon']]
+                ['name' => $meta['name']]
             );
         }
 
@@ -700,6 +706,7 @@ if (isset($_GET['inspect_deal'])) {
             echo json_encode([
                 'id' => $deal->id,
                 'title' => $deal->title,
+                'url' => $deal->url,
                 'slug' => $deal->slug,
                 'raw_slug_attr' => $deal->getAttributes()['slug'] ?? null,
                 'status' => $deal->status,
