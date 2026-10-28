@@ -342,7 +342,7 @@
                     <option value="">All Categories</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->slug }}" {{ (request('category') == $cat->slug || request('category_slug') == $cat->slug) ? 'selected' : '' }}>
-                            {{ $cat->name }} ({{ $cat->active_deals_count ?? 0 }})
+                            {{ $cat->name }}@if(($cat->active_deals_count ?? 0) > 0) ({{ $cat->active_deals_count }})@endif
                         </option>
                     @endforeach
                 </select>

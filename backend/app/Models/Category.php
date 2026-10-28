@@ -97,4 +97,12 @@ class Category extends Model
     {
         return $this->hasMany(Deal::class);
     }
+
+    public function getActiveDealsCountAttribute(): int
+    {
+        if (array_key_exists('active_deals_count', $this->attributes)) {
+            return (int) $this->attributes['active_deals_count'];
+        }
+        return (int) $this->deals()->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['active', 'out_of_stock'])->count();
+    }
 }

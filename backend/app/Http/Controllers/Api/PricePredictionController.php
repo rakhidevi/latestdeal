@@ -78,13 +78,20 @@ class PricePredictionController extends Controller
         $brandText = !empty($deal->brand) ? " for {$deal->brand}" : "";
         $formattedPrice = "₹" . number_format($deal->discounted_price);
 
-        if ($discountPct >= 50) {
-            $fallbackPrediction = "Exceptional discount at {$discountPct}% off MRP ({$formattedPrice}){$brandText}. Pricing is in the highest historical savings tier — strong buy recommendation.";
-            $confidence = 94;
+        // Defensive check: If discount is suspiciously high (>75% or MRP > 4x price), flag potential inflated MRP
+        $isSuspiciousMrp = ($discountPct > 75) || ($deal->original_price > 0 && ($deal->original_price / max(1, $deal->discounted_price)) > 4.0);
+
+        if ($isSuspiciousMrp) {
+            $fallbackPrediction = "High savings claim ({$discountPct}% off listed MRP of ₹" . number_format($deal->original_price) . "). Listed MRP may be inflated by seller. Recommended: verify current market pricing before purchase.";
+            $confidence = 62;
+            $buyNow = false;
+        } elseif ($discountPct >= 50) {
+            $fallbackPrediction = "Deep discount at {$discountPct}% off MRP ({$formattedPrice}){$brandText}. Pricing is currently well below manufacturer listed baseline.";
+            $confidence = 84;
             $buyNow = true;
         } elseif ($discountPct >= 30) {
-            $fallbackPrediction = "Attractive value with {$discountPct}% savings ({$formattedPrice}). Substantially cheaper than regular market pricing; excellent time to purchase.";
-            $confidence = 86;
+            $fallbackPrediction = "Solid value with {$discountPct}% savings ({$formattedPrice}){$brandText}. Significantly below standard catalog pricing.";
+            $confidence = 82;
             $buyNow = true;
         } elseif ($discountPct >= 15) {
             $fallbackPrediction = "Fair offer at {$discountPct}% off ({$formattedPrice}). Price is stable and competitive; good time to buy if you need this item today.";

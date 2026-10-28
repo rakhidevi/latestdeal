@@ -423,9 +423,13 @@ class BrowseController extends Controller
 
         if (!$deal && preg_match('/-(\d+)$/', $slug, $matches)) {
             $deal = Deal::with(['merchant', 'category', 'brandRelation', 'priceHistories', 'tags'])->find($matches[1]);
-            if ($deal && empty($deal->getAttributes()['slug'])) {
-                $deal->slug = $slug;
-                $deal->saveQuietly();
+            if ($deal) {
+                if (empty($deal->getAttributes()['slug'])) {
+                    $deal->slug = $slug;
+                    $deal->saveQuietly();
+                } elseif ($deal->slug !== $slug) {
+                    return redirect()->route('deals.show', $deal->slug, 301);
+                }
             }
         }
 

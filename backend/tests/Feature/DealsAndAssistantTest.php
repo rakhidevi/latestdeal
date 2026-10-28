@@ -131,12 +131,12 @@ class DealsAndAssistantTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'status' => 'cache_hit'
+            'status' => 'verified_primary_store'
         ]);
         $response->assertJsonStructure([
             'data' => [
                 'results' => [
-                    '*' => ['store', 'price', 'delivery', 'rating', 'url']
+                    '*' => ['store', 'delivery', 'rating']
                 ],
                 'ai_score'
             ]
@@ -196,6 +196,20 @@ class DealsAndAssistantTest extends TestCase
             'url' => 'https://www.amazon.in/dp/B0CASE1234',
         ]);
 
+        // 4. Headphones mentioning 'headphones' which contain the word 'phone'
+        Deal::create([
+            'asin' => 'B0SONYXM5T',
+            'title' => 'Sony WH-1000XM5 Wireless Noise Cancelling Headphones',
+            'slug' => 'sony-wh-1000xm5-test',
+            'original_price' => 34990,
+            'discounted_price' => 26990,
+            'status' => 'active',
+            'merchant_id' => $merchant->id,
+            'category_id' => $category->id,
+            'image_path' => 'deals/default.png',
+            'url' => 'https://www.amazon.in/dp/B0SONYXM5T',
+        ]);
+
         $response = $this->getJson('/api/smart-search?q=' . urlencode('Best smartphone under ₹30000'));
         $response->assertStatus(200);
 
@@ -205,11 +219,12 @@ class DealsAndAssistantTest extends TestCase
         // Must include the actual smartphone
         $this->assertTrue(collect($titles)->contains(fn($t) => str_contains($t, 'realme Narzo 70 Pro')));
 
-        // Must strictly exclude the charger and case
+        // Must strictly exclude the charger, case, and headphones
         $this->assertFalse(collect($titles)->contains(fn($t) => str_contains($t, '65W Super Fast Charger')));
         $this->assertFalse(collect($titles)->contains(fn($t) => str_contains($t, 'Shockproof Slim Silicone Case')));
+        $this->assertFalse(collect($titles)->contains(fn($t) => str_contains($t, 'Sony WH-1000XM5')));
 
-        // AI Best Pick should be the phone, NOT the charger
+        // AI Best Pick should be the phone, NOT the charger or headphones
         $this->assertEquals('realme Narzo 70 Pro 5G (Glass Green, 8GB RAM, 128GB Storage)', $data['deals'][0]['title']);
     }
 

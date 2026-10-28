@@ -57,6 +57,7 @@ jobs:
 
           # Core Models, Controllers & Services
           upload_file backend/app/Models/Deal.php         app/Models/Deal.php
+          upload_file backend/app/Models/Category.php     app/Models/Category.php
           upload_file backend/app/Http/Controllers/Frontend/BrowseController.php app/Http/Controllers/Frontend/BrowseController.php
           upload_file backend/app/Http/Controllers/ShopperAuthController.php app/Http/Controllers/ShopperAuthController.php
           upload_file backend/app/Http/Controllers/PublisherAuthController.php app/Http/Controllers/PublisherAuthController.php
@@ -130,6 +131,8 @@ jobs:
           upload_file backend/resources/views/pages/privacy.blade.php resources/views/pages/privacy.blade.php
           upload_file backend/resources/views/pages/terms.blade.php resources/views/pages/terms.blade.php
           upload_file backend/resources/views/pages/disclosure.blade.php resources/views/pages/disclosure.blade.php
+          upload_file backend/resources/views/auth/shopper-login.blade.php resources/views/auth/shopper-login.blade.php
+          upload_file backend/resources/views/auth/forgot-password.blade.php resources/views/auth/forgot-password.blade.php
 
           # Admin Views
           upload_file backend/resources/views/admin/layout.blade.php resources/views/admin/layout.blade.php

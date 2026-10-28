@@ -8,16 +8,16 @@
         <div>
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300">
-                    AI Deal Expert
+                    Deal Intelligence
                 </span>
-                <span class="text-xs text-gray-500">Grounded in verified live marketplace telemetry</span>
+                <span class="text-xs text-gray-500">Tracked retail price telemetry & catalog search</span>
             </div>
             <h1 class="text-2xl font-black tracking-tight text-gray-900 dark:text-white mt-1">AI Shopping Assistant</h1>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Specify what you need and your budget. We isolate genuine products, exclude misleading accessories, and audit price drops.</p>
         </div>
         <div class="flex items-center gap-2 text-xs">
             <span class="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1.5 font-medium text-slate-700 dark:text-slate-300">
-                Live • Verified Deals: <span x-text="filteredDeals.length"></span>
+                Catalog Deals: <span x-text="filteredDeals.length"></span>
             </span>
             <button type="button" @click="resetSearch()" class="btn-secondary px-3 py-1.5">Reset</button>
         </div>
@@ -167,7 +167,7 @@
                                 <svg class="w-4 h-4 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span x-text="bestDeal.recommendation_type === 'best_match' ? 'AI Recommended Pick' : (bestDeal.recommendation_type === 'best_value' ? 'Highest Value Savings' : 'Selected Product')"></span>
                             </span>
-                            <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">Price Verified Today</span>
+                            <span class="text-[10px] font-semibold" :class="bestDeal.status === 'out_of_stock' ? 'text-amber-500' : 'text-emerald-700 dark:text-emerald-400'" x-text="bestDeal.status === 'out_of_stock' ? 'Out of Stock' : 'Tracked Offer'"></span>
                         </div>
                         <p class="text-xs font-bold text-gray-900 dark:text-white line-clamp-2 leading-relaxed" x-text="bestDeal.title"></p>
                         
@@ -192,7 +192,7 @@
                                 <svg x-show="isComparing" class="animate-spin w-3.5 h-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                 <span x-text="isComparing ? compareStageText : 'Compare Prices Live'"></span>
                             </button>
-                            <a :href="'/deal/' + bestDeal.id" class="rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-2 text-xs transition-colors flex items-center justify-center">
+                            <a :href="bestDeal.deal_url || ('/deal/' + (bestDeal.slug || bestDeal.id))" class="rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-2 text-xs transition-colors flex items-center justify-center">
                                 View Deal
                             </a>
                         </div>
@@ -201,28 +201,39 @@
                         <div x-show="comparisonResults" class="mt-4 border-t border-emerald-200/50 dark:border-emerald-800/50 pt-3" x-transition>
                             <div class="flex items-center justify-between mb-2">
                                 <h4 class="text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-widest">Multi-Store Live Prices</h4>
-                                <span class="text-[10px] text-gray-500">Instant retail benchmark</span>
+                                <span class="text-[10px] text-gray-500">Verified retail offers</span>
                             </div>
                             <div class="space-y-2">
                                 <template x-for="comp in comparisonResults" :key="comp.store">
                                     <div class="flex items-center justify-between p-2 rounded-lg bg-white/70 dark:bg-slate-900/70 border border-emerald-100 dark:border-emerald-800/30 text-xs">
                                         <div class="flex flex-col">
-                                            <span class="font-bold text-gray-900 dark:text-white" x-text="comp.store"></span>
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[10px] text-gray-500" x-text="comp.delivery || 'Standard Delivery'"></span>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-bold text-gray-900 dark:text-white" x-text="comp.store"></span>
+                                                <span x-show="comp.is_verified" class="px-1.5 py-0.2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold rounded">Verified</span>
+                                            </div>
+                                            <div class="flex items-center gap-2 mt-0.5">
+                                                <span class="text-[10px] text-gray-500" x-text="comp.checked_at || comp.delivery || 'Standard Delivery'"></span>
                                                 <span class="text-[10px] text-amber-500 font-bold" x-show="comp.rating" x-text="'⭐ ' + comp.rating"></span>
                                             </div>
                                         </div>
-                                        <div class="flex flex-col items-end">
-                                            <span class="font-extrabold text-emerald-600 dark:text-emerald-400">₹<span x-text="Math.round(comp.price).toLocaleString('en-IN')"></span></span>
-                                            <a href="#" :href="comp.url" target="_blank" class="text-[10px] text-blue-500 hover:underline">Check Store</a>
-                                        </div>
+                                        <template x-if="comp.price">
+                                            <div class="flex flex-col items-end">
+                                                <span class="font-extrabold text-emerald-600 dark:text-emerald-400">₹<span x-text="Math.round(comp.price).toLocaleString('en-IN')"></span></span>
+                                                <a :href="comp.url || '#'" target="_blank" class="text-[10px] text-blue-500 hover:underline">Check Store</a>
+                                            </div>
+                                        </template>
+                                        <template x-if="!comp.price">
+                                            <div class="flex flex-col items-end text-right">
+                                                <span class="text-[10px] text-slate-400 italic" x-text="comp.availability || 'Unverified'"></span>
+                                                <span class="text-[9px] text-slate-500">No confirmed SKU match</span>
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
                             </div>
                             <template x-if="aiValueScore">
                                 <div class="mt-2.5 bg-emerald-100/70 dark:bg-emerald-950/60 p-1.5 rounded-lg text-center">
-                                    <span class="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">Marketplace Value Score: <span x-text="aiValueScore + '/100'"></span></span>
+                                    <span class="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">Catalog Value Score: <span x-text="aiValueScore + '/100'"></span></span>
                                 </div>
                             </template>
                         </div>
@@ -236,7 +247,7 @@
     <div class="mt-8">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h2 class="text-xl font-bold text-slate-900 dark:text-white">Verified Matches</h2>
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">Catalog Matches</h2>
                 <p class="text-xs text-slate-500 mt-0.5">Ranked by relevance, genuine price drop, and buyer trust</p>
             </div>
             <p class="text-sm text-slate-500"><span x-text="filteredDeals.length"></span> genuine deals</p>
@@ -286,7 +297,7 @@
                                     <span class="text-xs font-medium text-slate-400 line-through">₹<span x-text="Math.round(deal.original_price).toLocaleString('en-IN')"></span></span>
                                 </template>
                             </div>
-                            <a :href="'/deal/' + deal.id" class="mt-3 block w-full rounded-xl bg-slate-900 dark:bg-slate-800 py-2 text-center text-xs font-bold text-white transition-all hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30">
+                            <a :href="deal.deal_url || ('/deal/' + (deal.slug || deal.id))" class="mt-3 block w-full rounded-xl bg-slate-900 dark:bg-slate-800 py-2 text-center text-xs font-bold text-white transition-all hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30">
                                 View Deal
                             </a>
                         </div>
@@ -334,6 +345,15 @@ document.addEventListener('alpine:init', () => {
             });
             if (this.bestDeal) {
                 this.fetchPrediction(this.bestDeal.id);
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const qParam = urlParams.get('q');
+            if (qParam && qParam.trim()) {
+                this.query = qParam.trim();
+                this.$nextTick(() => {
+                    this.onAsk();
+                });
             }
         },
 
@@ -406,6 +426,9 @@ document.addEventListener('alpine:init', () => {
         },
         
         get bestDeal() {
+            if (this.filteredDeals.length === 0) {
+                return null;
+            }
             return this.selectedDeal || this.comparisonDeals[0] || null;
         },
 
@@ -484,39 +507,51 @@ document.addEventListener('alpine:init', () => {
         synthesizeClientComparison(deal) {
             const basePrice = deal.price || 1999;
             const currentMerchant = deal.merchant || 'Amazon India';
-            const isAmazon = currentMerchant.toLowerCase().includes('amazon');
+            const isOutOfStock = deal.status === 'out_of_stock';
 
             this.comparisonResults = [
                 {
                     store: currentMerchant,
-                    price: basePrice,
-                    delivery: 'Fastest Delivery',
+                    price: isOutOfStock ? null : basePrice,
+                    delivery: isOutOfStock ? 'Currently Unavailable' : 'Standard Delivery',
                     rating: '4.4',
-                    url: deal.url || '#'
+                    url: deal.url || '#',
+                    availability: isOutOfStock ? 'Currently Unavailable' : 'In Stock',
+                    checked_at: 'Verified in Catalog',
+                    is_verified: true
                 },
                 {
-                    store: isAmazon ? 'Flipkart' : 'Amazon India',
-                    price: Math.round(basePrice * 1.05),
-                    delivery: '2-4 Days',
-                    rating: '4.2',
-                    url: '#'
+                    store: currentMerchant.toLowerCase().includes('amazon') ? 'Flipkart' : 'Amazon India',
+                    price: null,
+                    delivery: 'Retailer verification pending',
+                    rating: '4.3',
+                    url: null,
+                    availability: 'Unverified for this SKU',
+                    checked_at: null,
+                    is_verified: false
                 },
                 {
                     store: 'Croma',
-                    price: Math.round(basePrice * 1.09),
-                    delivery: 'In-store & Online',
-                    rating: '4.1',
-                    url: '#'
+                    price: null,
+                    delivery: 'Retailer verification pending',
+                    rating: '4.2',
+                    url: null,
+                    availability: 'Unverified for this SKU',
+                    checked_at: null,
+                    is_verified: false
                 },
                 {
                     store: 'Reliance Digital',
-                    price: Math.round(basePrice * 1.12),
-                    delivery: 'Standard Delivery',
-                    rating: '4.0',
-                    url: '#'
+                    price: null,
+                    delivery: 'Retailer verification pending',
+                    rating: '4.1',
+                    url: null,
+                    availability: 'Unverified for this SKU',
+                    checked_at: null,
+                    is_verified: false
                 }
             ];
-            this.aiValueScore = Math.min(96, Math.max(78, 70 + Math.round((deal.discount_pct || 20) * 0.4)));
+            this.aiValueScore = Math.min(88, Math.max(72, 70 + Math.round((deal.discount_pct || 15) * 0.25)));
         },
 
         onAsk() {
