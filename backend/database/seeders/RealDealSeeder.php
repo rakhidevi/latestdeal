@@ -19,14 +19,14 @@ class RealDealSeeder extends Seeder
             ['domain' => 'amazon.in', 'affiliate_param_key' => 'tag', 'store_id' => 'latestdeal-21']
         );
 
-        $mobilesCat = Category::firstOrCreate(['slug' => 'mobiles'], ['name' => 'Mobiles', 'icon' => '📱']);
-        $electronicsCat = Category::firstOrCreate(['slug' => 'electronics'], ['name' => 'Electronics', 'icon' => '💻']);
-        $homeCat = Category::firstOrCreate(['slug' => 'home-kitchen'], ['name' => 'Home & Kitchen', 'icon' => '🏡']);
-        $fitnessCat = Category::firstOrCreate(['slug' => 'sports-fitness'], ['name' => 'Sports & Fitness', 'icon' => '🏋️']);
-        $fashionCat = Category::firstOrCreate(['slug' => 'fashion-accessories'], ['name' => 'Fashion & Accessories', 'icon' => '👗']);
-        $beautyCat = Category::firstOrCreate(['slug' => 'beauty-personal-care'], ['name' => 'Beauty & Personal Care', 'icon' => '💄']);
-        $courseCat = Category::firstOrCreate(['slug' => 'courses-education'], ['name' => 'Courses & Education', 'icon' => '📚']);
-        $gamingCat = Category::firstOrCreate(['slug' => 'gaming'], ['name' => 'Gaming', 'icon' => '🎮']);
+        $mobilesCat = Category::firstOrCreate(['slug' => 'mobiles'], ['name' => 'Mobiles']);
+        $electronicsCat = Category::firstOrCreate(['slug' => 'electronics'], ['name' => 'Electronics']);
+        $homeCat = Category::firstOrCreate(['slug' => 'home-kitchen'], ['name' => 'Home & Kitchen']);
+        $fitnessCat = Category::firstOrCreate(['slug' => 'sports-fitness'], ['name' => 'Sports & Fitness']);
+        $fashionCat = Category::firstOrCreate(['slug' => 'fashion-accessories'], ['name' => 'Fashion & Accessories']);
+        $beautyCat = Category::firstOrCreate(['slug' => 'beauty-personal-care'], ['name' => 'Beauty & Personal Care']);
+        $courseCat = Category::firstOrCreate(['slug' => 'courses-education'], ['name' => 'Courses & Education']);
+        $gamingCat = Category::firstOrCreate(['slug' => 'gaming'], ['name' => 'Gaming']);
 
         $dealsData = [
             [
@@ -237,20 +237,21 @@ class RealDealSeeder extends Seeder
         ];
 
         foreach ($categoriesData as $cat) {
+            $catAttrs = ['name' => $cat['name']];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'commission_rate')) {
+                $catAttrs['commission_rate'] = $cat['commission_rate'];
+            }
             Category::updateOrCreate(
                 ['slug' => Str::slug($cat['name'])],
-                [
-                    'name' => $cat['name'],
-                    'commission_rate' => $cat['commission_rate']
-                ]
+                $catAttrs
             );
         }
 
         foreach ($dealsData as $data) {
-            $tags = $data['tags'];
+            $tags = $data['tags'] ?? [];
             unset($data['tags']);
             
-            $promo = $data['promo'];
+            $promo = $data['promo'] ?? null;
             unset($data['promo']);
 
             unset($data['description']);
@@ -258,12 +259,28 @@ class RealDealSeeder extends Seeder
             
             $data['promo_code'] = $promo;
             $data['editorial_status'] = Deal::STATUS_PUBLISHED;
-            $data['ai_score'] = 92;
+            if (\Illuminate\Support\Facades\Schema::hasColumn('deals', 'ai_score')) {
+                $data['ai_score'] = 92;
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('deals', 'confidence_score')) {
+                $data['confidence_score'] = 92;
+            }
 
-            $deal = Deal::updateOrCreate(
-                ['url' => $data['url']],
-                $data
-            );
+            $deal = Deal::where('url', $data['url'])->first();
+            if (!$deal) {
+                $deal = Deal::where('title', $data['title'])->first();
+            }
+
+            if ($deal) {
+                $deal->update($data);
+            } else {
+                $data['slug'] = Str::slug($data['title']);
+                $deal = Deal::create($data);
+                if (!str_ends_with($deal->slug, '-' . $deal->id)) {
+                    $deal->slug = $deal->slug . '-' . $deal->id;
+                    $deal->saveQuietly();
+                }
+            }
 
             // Attach tags
             $tagIds = [];
@@ -277,22 +294,24 @@ class RealDealSeeder extends Seeder
             }
             $deal->tags()->sync($tagIds);
 
-            // Create some fake price history
-            PriceHistory::create([
-                'deal_id' => $deal->id,
-                'price' => $data['original_price'],
-                'recorded_at' => now()->subDays(15)
-            ]);
-            PriceHistory::create([
-                'deal_id' => $deal->id,
-                'price' => $data['original_price'] - 2000,
-                'recorded_at' => now()->subDays(5)
-            ]);
-            PriceHistory::create([
-                'deal_id' => $deal->id,
-                'price' => $data['discounted_price'],
-                'recorded_at' => now()
-            ]);
+            // Record initial price history if not present
+            if ($deal->priceHistories()->count() === 0) {
+                PriceHistory::create([
+                    'deal_id' => $deal->id,
+                    'price' => $data['original_price'],
+                    'recorded_at' => now()->subDays(15)
+                ]);
+                PriceHistory::create([
+                    'deal_id' => $deal->id,
+                    'price' => $data['original_price'] - 2000,
+                    'recorded_at' => now()->subDays(5)
+                ]);
+                PriceHistory::create([
+                    'deal_id' => $deal->id,
+                    'price' => $data['discounted_price'],
+                    'recorded_at' => now()
+                ]);
+            }
         }
     }
 }
