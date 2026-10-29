@@ -503,14 +503,26 @@ if (isset($_GET['reclassify_catalog'])) {
         \App\Models\Deal::query()->update(['editorial_status' => \App\Models\Deal::STATUS_PUBLISHED]);
 
         // Explicitly set authentic MRPs and prices for known catalog items
-        \App\Models\Deal::where('title', 'like', '%Fitkit%')->update(['original_price' => 19990.00, 'discounted_price' => 7999.00]);
-        \App\Models\Deal::where('title', 'like', '%ECOFLOW%')->update(['original_price' => 105000.00, 'discounted_price' => 65990.00]);
+        \App\Models\Deal::where('title', 'like', '%Samsung Galaxy M15%')->update([
+            'original_price' => 16999.00,
+            'discounted_price' => 15999.00,
+            'status' => 'active'
+        ]);
+        \App\Models\Deal::where('title', 'like', '%Motorola Edge 50 Fusion%')->update([
+            'original_price' => 25999.00,
+            'discounted_price' => 18999.00,
+            'status' => 'active'
+        ]);
+        \App\Models\Deal::where('title', 'like', '%Fitkit%')->update(['original_price' => 19990.00, 'discounted_price' => 8499.00]);
+        \App\Models\Deal::where('title', 'like', '%ECOFLOW%')->update(['original_price' => 105000.00, 'discounted_price' => 65990.00, 'status' => 'out_of_stock']);
         \App\Models\Deal::where('title', 'like', '%ZEBRONICS%')->update(['original_price' => 24999.00, 'discounted_price' => 9499.00]);
         \App\Models\Deal::where('title', 'like', '%Bniture%')->update(['original_price' => 34999.00, 'discounted_price' => 24148.00]);
 
-        // Explicitly set Sony headphones to out_of_stock based on live Amazon status
-        \App\Models\Deal::where('title', 'like', '%Sony WH-1000XM5%')
-            ->update(['status' => 'out_of_stock']);
+        // Explicitly set unavailable phones and Sony headphones to out_of_stock
+        \App\Models\Deal::where('title', 'like', '%Sony WH-1000XM5%')->update(['status' => 'out_of_stock']);
+        \App\Models\Deal::where('title', 'like', '%OnePlus Nord CE4%')->update(['status' => 'out_of_stock']);
+        \App\Models\Deal::where('title', 'like', '%Samsung Galaxy M35%')->update(['status' => 'out_of_stock']);
+        \App\Models\Deal::where('title', 'like', '%Realme Narzo 70 Pro%')->update(['status' => 'out_of_stock']);
 
         // Ensure every deal has a valid non-empty slug
         foreach (\App\Models\Deal::all() as $d) {
@@ -638,7 +650,7 @@ if (isset($_GET['reclassify_catalog'])) {
                     $deal->editorial_status = \App\Models\Deal::STATUS_PUBLISHED;
                     $deal->is_editor_pick = true;
                     $deal->reviewed_at = now();
-                    if (isset($dData['ai_score'])) {
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('deals', 'ai_score') && isset($dData['ai_score'])) {
                         $deal->ai_score = $dData['ai_score'];
                     }
                     if (isset($dData['trust_metrics'])) {
@@ -692,7 +704,7 @@ if (isset($_GET['reclassify_catalog'])) {
                     $newDeal->reviewed_at = now();
                     $newDeal->saveQuietly();
                     $newDeal->slug = $newDeal->slug . '-' . $newDeal->id;
-                    if (isset($dData['ai_score'])) {
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('deals', 'ai_score') && isset($dData['ai_score'])) {
                         $newDeal->ai_score = $dData['ai_score'];
                     }
                     if (isset($dData['trust_metrics'])) {
