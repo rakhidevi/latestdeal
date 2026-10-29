@@ -83,6 +83,11 @@ class FilterNormalizer
             }
         }
 
+        // 10. Pagination
+        if (!empty($rawFilters['per_page']) && is_numeric($rawFilters['per_page'])) {
+            $normalized['per_page'] = min(100, max(1, (int)$rawFilters['per_page']));
+        }
+
         return $normalized;
     }
 }
