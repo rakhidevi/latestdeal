@@ -342,6 +342,7 @@ class BrowseController extends Controller
             } elseif ($cleanRange === 'featured') {
                 $filters['sort'] = 'featured';
             }
+            $filters['per_page'] = (int) $request->input('per_page', 24);
             $deals = $this->pipeline->search($filters);
             $pageTitle = 'All Deals';
             $breadcrumbs = $this->breadcrumbService->generate([

@@ -234,7 +234,7 @@
                 @else
                     <span class="inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800/60 shadow-sm">
                         <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Price Checked: {{ $deal->updated_at ? $deal->updated_at->diffForHumans() : 'Today' }} • Live on {{ $deal->merchant->name ?? 'Amazon India' }}
+                        Catalog Synced: {{ $deal->updated_at ? $deal->updated_at->diffForHumans() : 'Recently' }} • Listed on {{ $deal->merchant->name ?? 'Amazon India' }}
                     </span>
                 @endif
             </div>
@@ -413,6 +413,10 @@
                 <p class="mt-4 text-center text-[11px] text-gray-400 dark:text-slate-500">
                     As an affiliate, we may earn a small commission from qualifying purchases at no extra cost to you. <a href="{{ route('affiliate.disclosure') }}" class="underline hover:text-gray-600 dark:hover:text-slate-300">Learn more</a>.
                 </p>
+                <p class="mt-2 text-center text-[11px] text-gray-400 dark:text-slate-500 flex items-center justify-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Price and stock status reflect the latest verified catalog sync. Real-time availability is confirmed on the merchant site.</span>
+                </p>
             </div>
 
             <!-- Multi-Store Price Comparison & Intelligence Card -->
@@ -483,7 +487,7 @@
                                             <template x-if="store.is_verified && store.in_stock === true">
                                                 <div class="flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
                                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                    <span>In Stock</span>
+                                                    <span x-text="store.availability || 'In Stock (Last Catalog Sync)'"></span>
                                                 </div>
                                             </template>
                                             <template x-if="store.is_verified && store.in_stock === false">

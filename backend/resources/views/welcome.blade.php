@@ -354,9 +354,9 @@
             <div>
                 <label class="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">Category</label>
                 <select name="category" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
-                    <option value="">All Categories</option>
+                    <option value="" {{ (!request()->filled('category') && !request()->filled('category_slug')) ? 'selected' : '' }}>All Categories</option>
                     @foreach($categories as $cat)
-                        <option value="{{ $cat->slug }}" {{ (request('category') == $cat->slug || request('category_slug') == $cat->slug) ? 'selected' : '' }}>
+                        <option value="{{ $cat->slug }}" {{ ((request()->filled('category') && request('category') == $cat->slug) || (request()->filled('category_slug') && request('category_slug') == $cat->slug)) ? 'selected' : '' }}>
                             {{ $cat->name }}@if(($cat->active_deals_count ?? 0) > 0) ({{ $cat->active_deals_count }})@endif
                         </option>
                     @endforeach
@@ -380,9 +380,9 @@
             <div>
                 <label class="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">Store</label>
                 <select name="merchant" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
-                    <option value="">All Stores</option>
+                    <option value="" {{ (!request()->filled('merchant') && !request()->filled('merchant_slug')) ? 'selected' : '' }}>All Stores</option>
                     @foreach($merchants as $m)
-                        <option value="{{ $m->name }}" {{ (request('merchant') == $m->name || request('merchant_slug') == $m->slug) ? 'selected' : '' }}>
+                        <option value="{{ $m->name }}" {{ ((request()->filled('merchant') && request('merchant') == $m->name) || (request()->filled('merchant_slug') && !empty($m->slug) && request('merchant_slug') == $m->slug)) ? 'selected' : '' }}>
                             {{ $m->name }} ({{ $m->active_deals_count ?? 0 }})
                         </option>
                     @endforeach
@@ -393,9 +393,9 @@
             <div>
                 <label class="block text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">Brand</label>
                 <select name="brand" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-gray-800 dark:text-slate-200 focus:ring-2 focus:ring-red-500 outline-none">
-                    <option value="">All Brands</option>
+                    <option value="" {{ (!request()->filled('brand') && !request()->filled('brand_slug')) ? 'selected' : '' }}>All Brands</option>
                     @foreach($brands as $b)
-                        <option value="{{ $b->slug }}" {{ (request('brand') == $b->slug || request('brand_slug') == $b->slug) ? 'selected' : '' }}>
+                        <option value="{{ $b->slug }}" {{ ((request()->filled('brand') && request('brand') == $b->slug) || (request()->filled('brand_slug') && request('brand_slug') == $b->slug)) ? 'selected' : '' }}>
                             {{ $b->name }} ({{ $b->active_deals_count ?? 0 }})
                         </option>
                     @endforeach
@@ -508,9 +508,9 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Category</label>
                     <select onchange="document.querySelector('#filter-form select[name=\'category\']').value = this.value" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 dark:text-slate-200">
-                        <option value="">All Categories</option>
+                        <option value="" {{ (!request()->filled('category') && !request()->filled('category_slug')) ? 'selected' : '' }}>All Categories</option>
                         @foreach($categories as $cat)
-                            <option value="{{ $cat->slug }}" {{ (request('category') == $cat->slug || request('category_slug') == $cat->slug) ? 'selected' : '' }}>{{ $cat->name }}</option>
+                            <option value="{{ $cat->slug }}" {{ ((request()->filled('category') && request('category') == $cat->slug) || (request()->filled('category_slug') && request('category_slug') == $cat->slug)) ? 'selected' : '' }}>{{ $cat->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -530,9 +530,9 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Store</label>
                     <select onchange="document.querySelector('#filter-form select[name=\'merchant\']').value = this.value" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 dark:text-slate-200">
-                        <option value="">All Stores</option>
+                        <option value="" {{ (!request()->filled('merchant') && !request()->filled('merchant_slug')) ? 'selected' : '' }}>All Stores</option>
                         @foreach($merchants as $m)
-                            <option value="{{ $m->name }}" {{ (request('merchant') == $m->name || request('merchant_slug') == $m->slug) ? 'selected' : '' }}>{{ $m->name }}</option>
+                            <option value="{{ $m->name }}" {{ ((request()->filled('merchant') && request('merchant') == $m->name) || (request()->filled('merchant_slug') && !empty($m->slug) && request('merchant_slug') == $m->slug)) ? 'selected' : '' }}>{{ $m->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -540,9 +540,9 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Brand</label>
                     <select onchange="document.querySelector('#filter-form select[name=\'brand\']').value = this.value" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-800 dark:text-slate-200">
-                        <option value="">All Brands</option>
+                        <option value="" {{ (!request()->filled('brand') && !request()->filled('brand_slug')) ? 'selected' : '' }}>All Brands</option>
                         @foreach($brands as $b)
-                            <option value="{{ $b->slug }}" {{ (request('brand') == $b->slug || request('brand_slug') == $b->slug) ? 'selected' : '' }}>{{ $b->name }}</option>
+                            <option value="{{ $b->slug }}" {{ ((request()->filled('brand') && request('brand') == $b->slug) || (request()->filled('brand_slug') && request('brand_slug') == $b->slug)) ? 'selected' : '' }}>{{ $b->name }}</option>
                         @endforeach
                     </select>
                 </div>
