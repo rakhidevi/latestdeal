@@ -924,6 +924,26 @@ if (isset($_GET['fix_perms'])) {
 
     $results[] = 'storage:link: ' . implode(' ', $o5);
 
+    // Clean synthetic price histories from all deals
+    try {
+        foreach (\App\Models\Deal::all() as $d) {
+            $orig = (float)$d->original_price;
+            $disc = (float)$d->discounted_price;
+            if ($orig > 0) {
+                $d->priceHistories()->where('price', '>=', $orig)->delete();
+                $mid = (int) round($disc + ($orig - $disc) * 0.4);
+                $d->priceHistories()->where('price', $mid)->delete();
+            }
+            if (str_contains(strtolower($d->title), 'm15')) {
+                $d->priceHistories()->where('price', '>', 16000)->delete();
+                $d->priceHistories()->where('price', 15799)->delete();
+            }
+        }
+        $results[] = 'Price histories cleaned of synthetic artifacts';
+    } catch (\Throwable $e) {
+        $results[] = 'Price history cleanup note: ' . $e->getMessage();
+    }
+
     
 
     // Reset OPcache again after artisan
