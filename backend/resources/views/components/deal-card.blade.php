@@ -18,7 +18,7 @@
     $dealEvidence = null;
 
     if (!empty($pi['historical_status'])) {
-        if ($pi['historical_status'] === 'ALL_TIME_LOW') {
+        if ($pi['historical_status'] === 'ALL_TIME_LOW' && (!isset($pi['lowest_price']) || (float)$deal->discounted_price <= (float)$pi['lowest_price'] + 0.01)) {
             $dealEvidence = 'Lowest price in 180 days';
         } elseif ($pi['historical_status'] === 'LOWEST_90D') {
             $dealEvidence = 'Lowest observed price in 90 days';
@@ -37,7 +37,7 @@
         } elseif ($savingsAmt > 0) {
             $dealEvidence = 'Save ₹' . number_format($savingsAmt) . ' below list price';
         } else {
-            $dealEvidence = 'Verified authentic deal';
+            $dealEvidence = 'Audited catalog deal';
         }
     }
 

@@ -254,7 +254,7 @@
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-900 dark:text-white">Catalog Matches</h2>
-                <p class="text-xs text-slate-500 mt-0.5">Ranked by relevance, genuine price drop, and buyer trust</p>
+                <p class="text-xs text-slate-500 mt-0.5">Ranked by relevance, price drop against MRP, and merchant reliability score</p>
             </div>
             <p class="text-sm text-slate-500"><span x-text="filteredDeals.length"></span> genuine deals</p>
         </div>
