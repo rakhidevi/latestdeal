@@ -926,17 +926,18 @@ class BrowseController extends Controller
 
         $rawPriceHistory = $deal->priceHistories()->orderBy('recorded_at', 'asc')->get();
 
-        
+        // Defense against synthetic intermediate artifacts from earlier test builds:
+        // Exclude synthetic MRP points and interpolated 40% midPrice points
+        $syntheticMidPrice = (int) round($currentPrice + ($mrpCeiling - $currentPrice) * 0.4);
 
-        $priceHistory = $rawPriceHistory->filter(function($h) use ($mrpCeiling) {
-
-            return (float)$h->price <= $mrpCeiling * 1.05;
-
+        $priceHistory = $rawPriceHistory->filter(function($h) use ($mrpCeiling, $syntheticMidPrice) {
+            $p = (float)$h->price;
+            if ($p >= $mrpCeiling) return false;
+            if (abs($p - $syntheticMidPrice) < 2) return false;
+            return true;
         })->values();
 
-
-
-        // Ensure genuine observed price point is represented if history table is empty
+        // Ensure genuine observed price point is represented if history table is empty or had only synthetic points
         if ($priceHistory->isEmpty()) {
             $priceHistory->push((object)[
                 'recorded_at' => ($deal->updated_at ?: now())->toDateTimeString(),
