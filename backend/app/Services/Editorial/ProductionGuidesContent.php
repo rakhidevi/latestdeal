@@ -305,7 +305,7 @@ HTML
     <div>
         <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">1. Executive Summary: The Anatomy of a Price Illusion</h2>
         <p class="leading-relaxed mb-4">
-            During major e-commerce sales, consumers are flooded with badges proclaiming "Mega Price Drop," "Deal of the Day," and "70% Off." However, empirical analysis of over 50,000 product listings across Amazon India demonstrates that nearly <strong>48% of advertised discounts are illusions</strong> created by calculating price cuts from artificially inflated Maximum Retail Prices (M.R.P.) rather than standard street transaction rates.
+            During major e-commerce sales, consumers are flooded with badges proclaiming "Mega Price Drop," "Deal of the Day," and "70% Off." However, systematic price tracking and consumer advocacy audits across major marketplaces reveal that advertised discounts can often be illusory when calculated against older manufacturer launch Maximum Retail Prices (M.R.P.) rather than recent median street prices.
         </p>
         <p class="leading-relaxed mb-4">
             Under Indian consumer protection guidelines (Consumer Protection E-Commerce Rules), misleading discount claims and deceptive pricing practices are strictly forbidden. Yet automated algorithmic repricers exploit legal ambiguities by listing high manufacturer launch M.R.P.s that were never charged in actual commerce. In this comprehensive guide, we open up our price intelligence toolkit to demonstrate how you can systematically detect artificial markups and guarantee authentic savings.

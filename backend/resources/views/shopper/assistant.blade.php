@@ -82,7 +82,7 @@
         <!-- Prediction & Comparison Panel -->
         <div class="space-y-6">
             <!-- Price Intelligence & Buy Signal Card -->
-            <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-7 shadow-2xl text-white border border-slate-700 relative overflow-hidden">
+            <div x-show="bestDeal && bestDeal.price > 0" class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-7 shadow-2xl text-white border border-slate-700 relative overflow-hidden" style="display: none;">
                 <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 1px, transparent 10px);"></div>
                 
                 <div class="relative z-10">
@@ -135,7 +135,7 @@
                 <div class="space-y-2.5">
                     <template x-for="(row, idx) in comparisonDeals" :key="row.id">
                         <div class="rounded-2xl border p-3.5 hover:bg-gray-50 dark:hover:bg-slate-800/80 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md" 
-                             @click="selectedDeal = row" 
+                             @click="selectedDeal = row; fetchPrediction(row.id);" 
                              :class="selectedDeal && selectedDeal.id === row.id ? 'ring-2 ring-red-500 border-red-200 bg-red-50/20 dark:bg-red-500/10' : 'border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900'">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="line-clamp-1 font-bold text-gray-900 dark:text-white text-xs flex-1">
@@ -621,8 +621,17 @@ document.addEventListener('alpine:init', () => {
             .then(searchData => {
                 if (searchData.deals && searchData.deals.length > 0) {
                     this.aiSearchResults = searchData.deals;
+                    this.selectedDeal = searchData.deals[0];
+                    if (this.selectedDeal && this.selectedDeal.id) {
+                        this.fetchPrediction(this.selectedDeal.id);
+                    }
                 } else {
                     this.aiSearchResults = [];
+                    this.selectedDeal = null;
+                    this.predictionText = '';
+                    this.predictionBuyNow = null;
+                    this.predictionConfidence = null;
+                    this.predictionSource = '';
                 }
                 this.isSearching = false;
 
