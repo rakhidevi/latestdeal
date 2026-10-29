@@ -14,9 +14,29 @@ class RealDealSeeder extends Seeder
 {
     public function run(): void
     {
-        $merchant = Merchant::firstOrCreate(
+        $amazon = Merchant::updateOrCreate(
             ['name' => 'Amazon India'],
-            ['domain' => 'amazon.in', 'affiliate_param_key' => 'tag', 'store_id' => 'latestdeal-21']
+            ['domain' => 'amazon.in', 'affiliate_param_key' => 'tag', 'store_id' => 'latestdeal-21', 'status' => 1]
+        );
+
+        $flipkart = Merchant::updateOrCreate(
+            ['name' => 'Flipkart'],
+            ['domain' => 'flipkart.com', 'affiliate_param_key' => 'affid', 'store_id' => 'latestdeal', 'status' => 1]
+        );
+
+        $croma = Merchant::updateOrCreate(
+            ['name' => 'Croma'],
+            ['domain' => 'croma.com', 'affiliate_param_key' => 'affid', 'store_id' => 'latestdeal', 'status' => 1]
+        );
+
+        $reliance = Merchant::updateOrCreate(
+            ['name' => 'Reliance Digital'],
+            ['domain' => 'reliancedigital.in', 'affiliate_param_key' => 'affid', 'store_id' => 'latestdeal', 'status' => 1]
+        );
+
+        $myntra = Merchant::updateOrCreate(
+            ['name' => 'Myntra'],
+            ['domain' => 'myntra.com', 'affiliate_param_key' => 'affid', 'store_id' => 'latestdeal', 'status' => 1]
         );
 
         $mobilesCat = Category::firstOrCreate(['slug' => 'mobiles'], ['name' => 'Mobiles']);
@@ -35,7 +55,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 105000,
                 'discounted_price' => 65990,
                 'category_id' => $homeCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B0BP9RR1E6',
                 'image_path' => 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=600&auto=format&fit=crop',
                 'status' => 'active',
@@ -49,7 +69,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 19990,
                 'discounted_price' => 7999,
                 'category_id' => $fitnessCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B0CGXB345Y',
                 'image_path' => 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=600&auto=format&fit=crop',
                 'status' => 'active',
@@ -63,7 +83,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 24999,
                 'discounted_price' => 9499,
                 'category_id' => $electronicsCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B0C39RKQW7',
                 'image_path' => 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&auto=format&fit=crop',
                 'status' => 'active',
@@ -77,7 +97,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 34999,
                 'discounted_price' => 24148,
                 'category_id' => $homeCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B0BHQ49X3K',
                 'image_path' => 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600&auto=format&fit=crop',
                 'status' => 'active',
@@ -91,7 +111,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 79900,
                 'discounted_price' => 69900,
                 'category_id' => $mobilesCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B0CHX1W1XY',
                 'image_path' => 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&auto=format&fit=crop',
                 'status' => 'active',
@@ -105,7 +125,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 24999,
                 'discounted_price' => 19998,
                 'category_id' => $mobilesCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B0CX24J1G1',
                 'image_path' => 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&auto=format&fit=crop',
                 'status' => 'active',
@@ -119,7 +139,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 24999,
                 'discounted_price' => 17999,
                 'category_id' => $mobilesCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B0CY5JDF3V',
                 'image_path' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop',
                 'status' => 'active',
@@ -133,7 +153,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 24499,
                 'discounted_price' => 16999,
                 'category_id' => $mobilesCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B0D7D76B1Y',
                 'image_path' => 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600&auto=format&fit=crop',
                 'status' => 'active',
@@ -147,7 +167,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 34990,
                 'discounted_price' => 26990,
                 'category_id' => $electronicsCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B09Y2MYL5C',
                 'image_path' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop',
                 'status' => 'out_of_stock',
@@ -161,7 +181,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 5999,
                 'discounted_price' => 1499,
                 'category_id' => $electronicsCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B0B5L2B56Y',
                 'image_path' => 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop',
                 'status' => 'active',
@@ -175,7 +195,7 @@ class RealDealSeeder extends Seeder
                 'original_price' => 3499,
                 'discounted_price' => 999,
                 'category_id' => $electronicsCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B09CGCB8LL',
                 'image_path' => 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop',
                 'status' => 'active',
@@ -189,13 +209,84 @@ class RealDealSeeder extends Seeder
                 'original_price' => 74990,
                 'discounted_price' => 54990,
                 'category_id' => $gamingCat->id,
-                'merchant_id' => $merchant->id,
+                'merchant_id' => $amazon->id,
                 'url' => 'https://www.amazon.in/dp/B09CCW5XW8',
                 'image_path' => 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600&auto=format&fit=crop',
                 'status' => 'active',
                 'expires_at' => now()->addDays(14),
                 'tags' => ['Gaming', 'Laptops', 'ASUS'],
                 'promo' => null
+            ],
+            // Non-Amazon Multi-Merchant Real Deals
+            [
+                'title' => 'Motorola Edge 50 Fusion 5G (8GB RAM, 128GB Storage, Marshmallow Blue)',
+                'description' => 'Snapdragon 7s Gen 2 Processor, 50MP Sony LYT-700C OIS Camera, 144Hz 3D Curved pOLED Display, IP68 Underwater Protection, 68W TurboPower.',
+                'original_price' => 25999,
+                'discounted_price' => 21999,
+                'category_id' => $mobilesCat->id,
+                'merchant_id' => $flipkart->id,
+                'url' => 'https://www.flipkart.com/motorola-edge-50-fusion-marshmallow-blue-128-gb/p/itme74431e679a95',
+                'image_path' => 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&auto=format&fit=crop',
+                'status' => 'active',
+                'expires_at' => now()->addDays(14),
+                'tags' => ['Mobiles', 'Smartphone', 'Motorola'],
+                'promo' => null
+            ],
+            [
+                'title' => 'Nothing Phone (2a) 5G (8GB RAM, 128GB Storage, Black)',
+                'description' => 'Custom Dimensity 7200 Pro Processor, 50MP Dual Camera with OIS, Iconic Transparent Design with Glyph Interface, 120Hz Flexible AMOLED.',
+                'original_price' => 25999,
+                'discounted_price' => 23999,
+                'category_id' => $mobilesCat->id,
+                'merchant_id' => $flipkart->id,
+                'url' => 'https://www.flipkart.com/nothing-phone-2a-5g-black-128-gb/p/itm5a4847e11f1ae',
+                'image_path' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop',
+                'status' => 'active',
+                'expires_at' => now()->addDays(10),
+                'tags' => ['Mobiles', 'Smartphone', 'Nothing'],
+                'promo' => null
+            ],
+            [
+                'title' => 'Apple iPad 10th Gen (10.9 Inch, Wi-Fi, 64GB, Silver)',
+                'description' => '10.9-inch Liquid Retina Display with True Tone, A14 Bionic Chip with 6-core CPU and 4-core GPU, 12MP Wide back camera, Touch ID.',
+                'original_price' => 34900,
+                'discounted_price' => 30990,
+                'category_id' => $electronicsCat->id,
+                'merchant_id' => $croma->id,
+                'url' => 'https://www.croma.com/apple-ipad-10th-generation-wi-fi-64gb-silver/p/264263',
+                'image_path' => 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&auto=format&fit=crop',
+                'status' => 'active',
+                'expires_at' => now()->addDays(12),
+                'tags' => ['Electronics', 'Tablets', 'Apple'],
+                'promo' => null
+            ],
+            [
+                'title' => 'Sony WH-CH720N Wireless Over-Ear Active Noise Cancelling Headphones',
+                'description' => 'Integrated Processor V1 for Noise Cancellation, Lightweight comfortable design, Up to 35 hours battery life with quick charging.',
+                'original_price' => 14990,
+                'discounted_price' => 9990,
+                'category_id' => $electronicsCat->id,
+                'merchant_id' => $reliance->id,
+                'url' => 'https://www.reliancedigital.in/sony-wh-ch720n-active-noise-cancelling-wireless-headphones/p/493666244',
+                'image_path' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop',
+                'status' => 'active',
+                'expires_at' => now()->addDays(8),
+                'tags' => ['Electronics', 'Audio', 'Sony'],
+                'promo' => null
+            ],
+            [
+                'title' => 'Puma Men Softride Rift Tech Running Shoes',
+                'description' => 'SOFTRIDE midsole for extreme cushioning and all-day comfort, SoftFoam+ sockliner, breathable knit upper, durable rubber traction outsole.',
+                'original_price' => 6499,
+                'discounted_price' => 2924,
+                'category_id' => $fashionCat->id,
+                'merchant_id' => $myntra->id,
+                'url' => 'https://www.myntra.com/sports-shoes/puma/puma-men-softride-rift-tech-running-shoes/24681324/buy',
+                'image_path' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop',
+                'status' => 'active',
+                'expires_at' => now()->addDays(15),
+                'tags' => ['Fashion & Accessories', 'Shoes', 'Puma'],
+                'promo' => 'MYNTRA20'
             ]
         ];
 
@@ -233,7 +324,7 @@ class RealDealSeeder extends Seeder
             ['name' => 'Tyres & Rims', 'commission_rate' => 2.5],
             ['name' => 'Data Storage Devices', 'commission_rate' => 2.0],
             ['name' => 'Mobile Phones', 'commission_rate' => 1.0],
-            ['name' => 'Bill Payment & Recharges', 'commission_rate' => 0.0], // Flat max up to INR 3, handling this as 0% for now or special logic later
+            ['name' => 'Bill Payment & Recharges', 'commission_rate' => 0.0],
         ];
 
         foreach ($categoriesData as $cat) {
@@ -273,6 +364,10 @@ class RealDealSeeder extends Seeder
 
             if ($deal) {
                 $deal->update($data);
+                if (!str_ends_with($deal->slug, '-' . $deal->id)) {
+                    $deal->slug = Str::slug($deal->title) . '-' . $deal->id;
+                    $deal->saveQuietly();
+                }
             } else {
                 $data['slug'] = Str::slug($data['title']);
                 $deal = Deal::create($data);
@@ -294,8 +389,15 @@ class RealDealSeeder extends Seeder
             }
             $deal->tags()->sync($tagIds);
 
-            // Record initial price history if not present
-            if ($deal->priceHistories()->count() === 0) {
+            // Clean up any historical price points that are invalid (e.g. exceeding original price * 1.05)
+            $deal->priceHistories()->where('price', '>', $data['original_price'] * 1.05)->delete();
+
+            // Record initial or refreshed clean price history if fewer than 2 valid points exist
+            if ($deal->priceHistories()->count() < 2) {
+                $deal->priceHistories()->delete();
+
+                $midPrice = (int) round($data['discounted_price'] + ($data['original_price'] - $data['discounted_price']) * 0.4);
+
                 PriceHistory::create([
                     'deal_id' => $deal->id,
                     'price' => $data['original_price'],
@@ -303,7 +405,7 @@ class RealDealSeeder extends Seeder
                 ]);
                 PriceHistory::create([
                     'deal_id' => $deal->id,
-                    'price' => $data['original_price'] - 2000,
+                    'price' => $midPrice,
                     'recorded_at' => now()->subDays(5)
                 ]);
                 PriceHistory::create([
@@ -312,6 +414,16 @@ class RealDealSeeder extends Seeder
                     'recorded_at' => now()
                 ]);
             }
+
+            // Reset stale price_intelligence cache if column exists
+            if (\Illuminate\Support\Facades\Schema::hasColumn('deals', 'price_intelligence')) {
+                $deal->update(['price_intelligence' => null]);
+            }
+        }
+
+        // Recount all categories, brands, and merchants
+        if (class_exists(\App\Services\Catalog\BrandCounter::class)) {
+            app(\App\Services\Catalog\BrandCounter::class)->recountAll();
         }
     }
 }

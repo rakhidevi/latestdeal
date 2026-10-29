@@ -27,12 +27,18 @@ class ShopperAssistantController extends Controller
         if ($request->has('deal_ids')) {
             $dealIds = $request->deal_ids ?? [];
             if (!empty($dealIds)) {
-                // Load exact matched deals directly from the database
-                $deals = Deal::whereIn('id', $dealIds)
+                // Load exact matched deals directly from the database and strictly preserve ranked order
+                $dealsById = Deal::whereIn('id', $dealIds)
                     ->where('status', 'active')
                     ->with(['merchant', 'category'])
                     ->get()
-                    ->map(function ($deal) {
+                    ->keyBy('id');
+
+                $deals = collect($dealIds)
+                    ->map(function ($id) use ($dealsById) {
+                        $deal = $dealsById->get($id);
+                        if (!$deal) return null;
+
                         $origPrice = (float) $deal->original_price;
                         $price = (float) $deal->discounted_price;
                         $discountPct = $origPrice > $price && $origPrice > 0
@@ -53,7 +59,9 @@ class ShopperAssistantController extends Controller
                             'merchant'      => optional($deal->merchant)->name ?? 'Amazon India',
                             'ai_score'      => $deal->ai_score ?? 88,
                         ];
-                    });
+                    })
+                    ->filter()
+                    ->values();
             } else {
                 // Caller passed deal_ids as an empty array, meaning 0 deals matched criteria
                 $deals = collect([]);
@@ -116,18 +124,19 @@ class ShopperAssistantController extends Controller
             $dealsJson = json_encode($deals->values()->toArray());
             $systemPrompt =
                 "You are an expert, objective AI Shopping Advisor for LatestDeal.in (India's deal intelligence platform).\n" .
-                "The following verified deals were found for the user's shopping request:\n\n" .
+                "The following verified deals were found for the user's shopping request in prioritized algorithmic ranking order:\n\n" .
                 $dealsJson . "\n\n" .
                 "STRICT SHOPPING ADVISOR RULES:\n" .
                 "1. ONLY reference and recommend deals present in the JSON list above. NEVER invent products or prices.\n" .
-                "2. If the user specified a maximum budget or price ceiling, strictly obey it.\n" .
-                "3. Distinguish between core products and accessories. If the user asked for a device (e.g. phone, laptop, headphones), recommend the actual device, NOT an accessory.\n" .
-                "4. Provide explainable recommendations:\n" .
-                "   - Highlight the 'Best Match' (best fit for user intent and specifications).\n" .
-                "   - Highlight the 'Best Value' (highest verified rupee and percentage savings below MRP).\n" .
-                "   - Highlight the 'Budget Pick' if a lower-priced genuine option is available.\n" .
-                "5. Always mention exact prices in ₹ (INR), verified savings, and merchant name.\n" .
-                "6. Format with clean, structured markdown bullets and bold headers.";
+                "2. The FIRST deal in the list is the primary 'Top Recommendation (AI Best Match)'. Always designate it as your top recommendation to remain 100% consistent with the on-screen UI.\n" .
+                "3. Highlight why recommendations differ:\n" .
+                "   - 'Top Recommendation (AI Best Match)': The best overall balance of performance, brand trust, and discount.\n" .
+                "   - 'Best Value Pick': The option with the largest rupee or percentage price drop below listed MRP.\n" .
+                "   - 'Budget Option': The lowest entry price among verified genuine models.\n" .
+                "4. If the user specified a maximum budget or price ceiling, strictly obey it.\n" .
+                "5. Distinguish between core products and accessories. Recommend the device itself.\n" .
+                "6. Always mention exact prices in ₹ (INR), verified savings, and merchant name.\n" .
+                "7. Format with clean, structured markdown bullets and bold headers.";
         }
 
         // 3. Assemble Bounded Multi-Turn History
@@ -205,9 +214,13 @@ class ShopperAssistantController extends Controller
                 $topDeals = $deals->take(3);
                 $fallbackReply = "Here are the verified recommendations matching your request:\n\n";
                 
-                $ranks = ['🌟 **Top Recommendation**', '💎 **Best Value Pick**', '🏷️ **Budget Option**'];
+                $ranks = [
+                    0 => '🌟 **Top Recommendation (AI Best Match)**',
+                    1 => '💎 **Best Value Pick (Highest Verified Savings)**',
+                    2 => '🏷️ **Budget Option (Lowest Entry Price)**'
+                ];
                 foreach ($topDeals as $idx => $d) {
-                    $badge = $ranks[$idx] ?? '•';
+                    $badge = $ranks[$idx] ?? '• **Verified Recommendation**';
                     $origStr = $d['original_price'] > $d['price'] ? " (MRP ~~₹" . number_format($d['original_price']) . "~~)" : "";
                     $discountBadge = $d['discount_pct'] > 0 ? " — **{$d['discount_pct']}% OFF**" : "";
                     $savingsStr = $d['savings'] > 0 ? " — saves ₹" . number_format($d['savings']) : "";
@@ -216,7 +229,7 @@ class ShopperAssistantController extends Controller
                     $fallbackReply .= "{$badge}: **[{$d['title']}]({$targetLink})**\n";
                     $fallbackReply .= "  ₹" . number_format($d['price']) . "{$origStr}{$discountBadge}{$savingsStr} on *{$d['merchant']}*\n\n";
                 }
-                $fallbackReply .= "👉 *Select any product in the comparison matrix below to view price history telemetry and real-time multi-store price comparisons!*";
+                $fallbackReply .= "👉 *Check retailer stock availability and price history telemetry for each recommendation below!*";
             }
 
             return response()->json([
