@@ -154,6 +154,7 @@ jobs:
           upload_file backend/app/Http/Controllers/ArticleController.php app/Http/Controllers/ArticleController.php
           upload_file backend/database/seeders/ArticleSeeder.php database/seeders/ArticleSeeder.php
           upload_file backend/database/seeders/RealDealSeeder.php database/seeders/RealDealSeeder.php
+          upload_file backend/database/seeders/deals_seed_data.json database/seeders/deals_seed_data.json
           upload_file backend/resources/views/articles/show.blade.php resources/views/articles/show.blade.php
 
           # Layouts & Public Pages

@@ -111,7 +111,7 @@
                     <div class="mt-3 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/10">
                         <span class="flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                            <span x-text="predictionConfidence ? predictionConfidence + '% Confidence' : 'Telemetry Verified'"></span>
+                            <span x-text="predictionConfidence ? 'Deal Rating: ' + predictionConfidence + '/100' : 'Audited Deal'"></span>
                         </span>
                         <span x-text="predictionSource"></span>
                     </div>
@@ -326,7 +326,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('assistantApp', () => ({
         rawDeals: @json($deals),
         messages: [
-            { id: 1, role: 'assistant', text: '👋 Hi! I am your Deal Intelligence Assistant. Tell me what product you need and your target budget — for example: **"Best smartphone under ₹30000"** or **"Cheapest AirPods today"**. I filter out misleading accessories and audit price drops in real time.' }
+            { id: 1, role: 'assistant', text: '👋 Hi! I am your Deal Intelligence Assistant. Tell me what product you need and your target budget — for example: **"Best smartphone under ₹30000"** or **"Cheapest AirPods today"**. I filter out accessories and evaluate catalog price drops.' }
         ],
         query: '',
         selectedDeal: null,
