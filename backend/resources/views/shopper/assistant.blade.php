@@ -167,7 +167,7 @@
                                 <svg class="w-4 h-4 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span x-text="bestDeal.recommendation_type === 'best_match' ? 'AI Recommended Pick (Best Match)' : (bestDeal.recommendation_type === 'best_value' ? 'Best Value Pick (Highest Savings)' : (bestDeal.recommendation_type === 'lowest_price' ? 'Budget Pick (Lowest Price)' : 'Selected Product'))"></span>
                             </span>
-                            <span class="text-[10px] font-semibold" :class="bestDeal.status === 'out_of_stock' ? 'text-amber-500' : 'text-emerald-700 dark:text-emerald-400'" x-text="bestDeal.status === 'out_of_stock' ? 'Out of Stock' : 'Tracked Offer'"></span>
+                            <span class="text-[10px] font-semibold" :class="bestDeal.status === 'out_of_stock' ? 'text-amber-500' : 'text-emerald-700 dark:text-emerald-400'" x-text="bestDeal.status === 'out_of_stock' ? 'Out of Stock' : 'Catalog Tracked'"></span>
                         </div>
                         <p class="text-xs font-bold text-gray-900 dark:text-white line-clamp-2 leading-relaxed" x-text="bestDeal.title"></p>
                         
@@ -201,7 +201,7 @@
                         <div x-show="comparisonResults" class="mt-4 border-t border-emerald-200/50 dark:border-emerald-800/50 pt-3" x-transition>
                             <div class="flex items-center justify-between mb-2">
                                 <h4 class="text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-widest">Retailer Availability Check</h4>
-                                <span class="text-[10px] text-gray-500">Multi-store SKU matching</span>
+                                <span class="text-[10px] text-gray-500">Catalog sync & SKU matching</span>
                             </div>
                             <div class="space-y-2">
                                 <template x-for="comp in comparisonResults" :key="comp.store">
@@ -209,7 +209,7 @@
                                         <div class="flex flex-col">
                                             <div class="flex items-center gap-1.5">
                                                 <span class="font-bold text-gray-900 dark:text-white" x-text="comp.store"></span>
-                                                <span x-show="comp.is_verified" class="px-1.5 py-0.2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold rounded">Verified</span>
+                                                <span x-show="comp.is_verified" class="px-1.5 py-0.2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold rounded">Catalog Verified</span>
                                             </div>
                                             <div class="flex items-center gap-2 mt-0.5">
                                                 <span class="text-[10px] text-gray-500" x-text="comp.checked_at || comp.delivery || 'Standard Delivery'"></span>

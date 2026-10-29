@@ -111,6 +111,47 @@ class ShopperAssistantController extends Controller
 
         $noDealsFound = $deals->isEmpty();
 
+        // Compute verified mathematical attributes for honest recommendation labeling
+        $annotatedDeals = collect([]);
+        if (!$noDealsFound) {
+            $minPrice = (float) $deals->min(fn($d) => (float)($d['price'] ?? PHP_INT_MAX));
+            $maxSavings = (float) $deals->max(fn($d) => (float)($d['savings'] ?? 0));
+
+            $annotatedDeals = $deals->map(function ($deal, $index) use ($minPrice, $maxSavings) {
+                $price = (float)($deal['price'] ?? 0);
+                $savings = (float)($deal['savings'] ?? 0);
+                $isLowest = ($price <= $minPrice && $price > 0);
+                $isHighestSavings = ($savings >= $maxSavings && $savings > 0);
+
+                if ($index === 0) {
+                    if ($isLowest && $isHighestSavings) {
+                        $badge = '🌟 **Top Recommendation (AI Best Match — Lowest Price & Highest Savings)**';
+                    } elseif ($isLowest) {
+                        $badge = '🌟 **Top Recommendation (AI Best Match & Lowest Price)**';
+                    } elseif ($isHighestSavings) {
+                        $badge = '🌟 **Top Recommendation (AI Best Match & Highest Savings)**';
+                    } else {
+                        $badge = '🌟 **Top Recommendation (AI Best Match)**';
+                    }
+                } else {
+                    if ($isLowest) {
+                        $badge = '🏷️ **Budget Pick (Lowest Entry Price)**';
+                    } elseif ($isHighestSavings) {
+                        $badge = '💎 **Best Value Pick (Highest Verified Savings)**';
+                    } elseif (($deal['discount_pct'] ?? 0) >= 25) {
+                        $badge = '💎 **Value Runner-Up (Strong Discount)**';
+                    } else {
+                        $badge = '⚡ **Alternative Option**';
+                    }
+                }
+
+                $deal['is_lowest_price'] = $isLowest;
+                $deal['is_highest_savings'] = $isHighestSavings;
+                $deal['ai_computed_badge'] = $badge;
+                return $deal;
+            });
+        }
+
         // 2. Structured Grounded Prompt Construction
         if ($noDealsFound) {
             $systemPrompt =
@@ -121,7 +162,7 @@ class ShopperAssistantController extends Controller
                 "2. Suggest actionable alternatives (e.g. broadening the budget, checking related product categories, or viewing /deals/all).\n" .
                 "3. NEVER invent or hallucinate product deals that do not exist.";
         } else {
-            $dealsJson = json_encode($deals->values()->toArray());
+            $dealsJson = json_encode($annotatedDeals->values()->toArray());
             $systemPrompt =
                 "You are an expert, objective AI Shopping Advisor for LatestDeal.in (India's deal intelligence platform).\n" .
                 "The following verified deals were found for the user's shopping request in prioritized algorithmic ranking order:\n\n" .
@@ -129,10 +170,11 @@ class ShopperAssistantController extends Controller
                 "STRICT SHOPPING ADVISOR RULES:\n" .
                 "1. ONLY reference and recommend deals present in the JSON list above. NEVER invent products or prices.\n" .
                 "2. The FIRST deal in the list is the primary 'Top Recommendation (AI Best Match)'. Always designate it as your top recommendation to remain 100% consistent with the on-screen UI.\n" .
-                "3. Highlight why recommendations differ:\n" .
-                "   - 'Top Recommendation (AI Best Match)': The best overall balance of performance, brand trust, and discount.\n" .
-                "   - 'Best Value Pick': The option with the largest rupee or percentage price drop below listed MRP.\n" .
-                "   - 'Budget Option': The lowest entry price among verified genuine models.\n" .
+                "3. HONEST LABELS BASED STRICTLY ON ACTUAL DATA:\n" .
+                "   - Use the 'ai_computed_badge' specified for each deal in the JSON data.\n" .
+                "   - NEVER label a deal as 'Budget Option (Lowest Entry Price)' unless its 'is_lowest_price' is true.\n" .
+                "   - NEVER label a deal as 'Best Value Pick (Highest Verified Savings)' unless its 'is_highest_savings' is true.\n" .
+                "   - If the Top Recommendation already has both the lowest price and the highest savings, state that clearly, and label subsequent deals as 'Value Runner-Up' or 'Alternative Option'. NEVER call a higher priced deal with lower savings the 'Budget Option'.\n" .
                 "4. If the user specified a maximum budget or price ceiling, strictly obey it.\n" .
                 "5. Distinguish between core products and accessories. Recommend the device itself.\n" .
                 "6. Always mention exact prices in ₹ (INR), verified savings, and merchant name.\n" .
@@ -211,19 +253,14 @@ class ShopperAssistantController extends Controller
                     "- Increase your budget threshold slightly to view near-budget offers\n" .
                     "- Browse our live [All Deals Hub](/deals/all) for today's highest percentage discounts!";
             } else {
-                $topDeals = $deals->take(3);
+                $topDeals = ($annotatedDeals->isNotEmpty() ? $annotatedDeals : $deals)->take(3);
                 $fallbackReply = "Here are the verified recommendations matching your request:\n\n";
-                
-                $ranks = [
-                    0 => '🌟 **Top Recommendation (AI Best Match)**',
-                    1 => '💎 **Best Value Pick (Highest Verified Savings)**',
-                    2 => '🏷️ **Budget Option (Lowest Entry Price)**'
-                ];
-                foreach ($topDeals as $idx => $d) {
-                    $badge = $ranks[$idx] ?? '• **Verified Recommendation**';
+
+                foreach ($topDeals as $d) {
+                    $badge = $d['ai_computed_badge'] ?? '• **Verified Recommendation**';
                     $origStr = $d['original_price'] > $d['price'] ? " (MRP ~~₹" . number_format($d['original_price']) . "~~)" : "";
-                    $discountBadge = $d['discount_pct'] > 0 ? " — **{$d['discount_pct']}% OFF**" : "";
-                    $savingsStr = $d['savings'] > 0 ? " — saves ₹" . number_format($d['savings']) : "";
+                    $discountBadge = ($d['discount_pct'] ?? 0) > 0 ? " — **{$d['discount_pct']}% OFF**" : "";
+                    $savingsStr = ($d['savings'] ?? 0) > 0 ? " — saves ₹" . number_format($d['savings']) : "";
                     
                     $targetLink = !empty($d['slug']) ? route('deals.show', $d['slug']) : ($d['deal_url'] ?? $d['url']);
                     $fallbackReply .= "{$badge}: **[{$d['title']}]({$targetLink})**\n";

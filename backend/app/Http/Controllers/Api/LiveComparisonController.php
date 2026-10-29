@@ -66,7 +66,7 @@ class LiveComparisonController extends Controller
         $payload = [
             'results' => $results,
             'ai_score' => $aiScore,
-            'verification_note' => 'Only primary retailer pricing is verified. Third-party prices require confirmed SKU match.',
+            'verification_note' => 'Primary retailer pricing and stock reflect our latest catalog synchronization. Third-party prices require confirmed SKU match.',
         ];
 
         Cache::put($cacheKey, $payload, now()->addMinutes(60));
@@ -94,19 +94,19 @@ class LiveComparisonController extends Controller
         $basePrice = $dealPrice ?? ($deal ? (float)$deal->discounted_price : 1999);
         $currentMerchant = $deal && $deal->merchant ? $deal->merchant->name : 'Amazon India';
         $isOutOfStock = $deal && in_array(strtolower($deal->status ?? ''), ['out_of_stock', 'expired']);
-        $checkedAt = ($deal && $deal->updated_at) ? $deal->updated_at->diffForHumans() : 'Recently verified';
+        $checkedAt = ($deal && $deal->updated_at) ? $deal->updated_at->diffForHumans() : 'Recently';
 
-        // Store 1: Current Store (Verified Offer)
+        // Store 1: Current Store (Verified Offer from Catalog Synchronization)
         $stores = [
             [
                 'store' => $currentMerchant,
                 'price' => $isOutOfStock ? null : $basePrice,
-                'delivery' => $isOutOfStock ? 'Currently Unavailable' : 'Standard Delivery',
+                'delivery' => $isOutOfStock ? 'Currently Unavailable' : 'Standard Delivery (Merchant Verified)',
                 'rating' => '4.4',
                 'url' => $isOutOfStock ? null : ($deal ? $deal->url : 'https://latestdeal.in'),
-                'badge' => $isOutOfStock ? 'Out of Stock' : 'Verified Offer',
-                'availability' => $isOutOfStock ? 'Currently Unavailable' : 'In Stock',
-                'checked_at' => $checkedAt,
+                'badge' => $isOutOfStock ? 'Out of Stock' : 'Catalog Verified Offer',
+                'availability' => $isOutOfStock ? 'Unavailable (Catalog Record)' : 'In Stock (Last Catalog Sync)',
+                'checked_at' => 'Catalog synced: ' . $checkedAt,
                 'is_verified' => true,
                 'in_stock' => !$isOutOfStock,
             ]
