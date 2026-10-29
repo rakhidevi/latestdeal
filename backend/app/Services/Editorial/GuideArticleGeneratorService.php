@@ -130,6 +130,7 @@ class GuideArticleGeneratorService implements GuideArticleGeneratorInterface
             'discount_percentage' => $percent,
             'amount_saved' => $savings,
             'image_url' => $deal->image_path ?: $deal->image_url,
+            'is_in_stock' => strtolower($deal->status ?? '') === 'active',
             'affiliate_url' => $deal->short_url ?: $deal->url,
             'features' => $features,
             'pros' => $pros,
@@ -200,7 +201,7 @@ class GuideArticleGeneratorService implements GuideArticleGeneratorInterface
                     '@type' => 'Offer',
                     'price' => $facts['discounted_price'],
                     'priceCurrency' => 'INR',
-                    'availability' => 'https://schema.org/InStock',
+                    'availability' => ($facts['is_in_stock'] ?? true) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
                     'url' => $facts['affiliate_url']
                 ]
             ],
@@ -548,7 +549,7 @@ HTML;
                     '@type' => 'Offer',
                     'price' => $facts['discounted_price'],
                     'priceCurrency' => 'INR',
-                    'availability' => 'https://schema.org/InStock',
+                    'availability' => ($facts['is_in_stock'] ?? true) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
                     'url' => $facts['affiliate_url']
                 ]
             ],

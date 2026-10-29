@@ -6,6 +6,7 @@
         if ($deal->original_price > 0 && $deal->original_price > $deal->discounted_price) {
             $discountPercent = round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100);
         }
+        $isDealInStock = ($deal->status === 'active');
     @endphp
     <title>{{ $deal->title }} | {{ $discountPercent > 0 ? "Save {$discountPercent}%" : 'Best Price' }} | LatestDeal.in</title>
     <meta name="description" content="Get {{ $deal->title }} for just ₹{{ number_format($deal->discounted_price) }}. Original price: ₹{{ number_format($deal->original_price) }}.">
@@ -41,7 +42,7 @@
         "priceCurrency": "INR",
         "price": "{{ $deal->discounted_price }}",
         "itemCondition": "https://schema.org/NewCondition",
-        "availability": "{{ $deal->status === 'active' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}"
+        "availability": "{{ $isDealInStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}"
       },
       @php
         $trustMetrics = is_array($deal->trust_metrics) ? $deal->trust_metrics : (json_decode($deal->trust_metrics ?? '', true) ?? []);
@@ -225,7 +226,7 @@
                         🏷️ Brand: {{ $brandName }}
                     </span>
                 @endif
-                @if($deal->status === 'out_of_stock')
+                @if(!$isDealInStock)
                     <span class="inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-200 dark:border-amber-800/60 shadow-sm">
                         <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         Stock Status: Currently Unavailable on {{ $deal->merchant->name ?? 'Amazon India' }}
@@ -328,11 +329,11 @@
                 <!-- Decorative glow -->
                 <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-[50px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
-                @if($deal->status === 'out_of_stock')
+                @if(!$isDealInStock)
                     <div class="mb-6 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-2xl p-4 flex items-center gap-3 text-amber-900 dark:text-amber-200 text-sm font-semibold">
                         <svg class="w-6 h-6 flex-shrink-0 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         <div>
-                            <div class="font-bold">Currently Unavailable on Amazon India</div>
+                            <div class="font-bold">Currently Unavailable on {{ $deal->merchant->name ?? 'Amazon India' }}</div>
                             <div class="text-xs text-amber-700 dark:text-amber-300 font-normal mt-0.5">This item is currently out of stock or unavailable from the primary retailer. The price displayed reflects the last verified historical observation.</div>
                         </div>
                     </div>
@@ -340,7 +341,7 @@
 
                 <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 relative z-10">
                     <div>
-                        <p class="text-[11px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-2">{{ $deal->status === 'out_of_stock' ? 'Last Verified Historical Price' : 'Deal Price' }}</p>
+                        <p class="text-[11px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-2">{{ !$isDealInStock ? 'Last Verified Historical Price' : 'Deal Price' }}</p>
                         <div class="flex flex-wrap items-baseline gap-3">
                             <span class="text-4xl sm:text-5xl font-black text-red-600 dark:text-red-500 tracking-tighter" id="deal-price-display" x-text="'₹' + Number(currentPrice).toLocaleString('en-IN')">
                                 ₹{{ number_format($deal->discounted_price) }}
@@ -375,7 +376,7 @@
 
                 <!-- Copy Code & Go / CTA -->
                 <div>
-                    @if($deal->status === 'out_of_stock')
+                    @if(!$isDealInStock)
                         <div class="inline-flex justify-center items-center w-full sm:w-auto bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-500 dark:text-slate-400 px-8 py-3.5 rounded-xl font-bold text-base cursor-not-allowed">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                             Currently Unavailable
@@ -454,9 +455,9 @@
                             <span class="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
                             </span>
-                            <h3 class="text-lg font-black text-slate-900 dark:text-white">Multi-Store Retail Benchmarks</h3>
+                            <h3 class="text-lg font-black text-slate-900 dark:text-white">Multi-Store Retailer Availability Check</h3>
                         </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Verified primary retailer offer with multi-store SKU matching for Amazon, Flipkart, Croma & Reliance Digital</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Verified primary offer with SKU availability check across Flipkart, Croma & Reliance Digital</p>
                     </div>
 
                     <button @click="compareStores" 
@@ -464,7 +465,7 @@
                             class="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors disabled:opacity-50">
                         <svg x-show="isComparing" class="animate-spin h-3.5 w-3.5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <svg x-show="!isComparing" class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                        <span x-text="isComparing ? compareStatus : 'Refresh Comparison'"></span>
+                        <span x-text="isComparing ? compareStatus : 'Re-check Availability'"></span>
                     </button>
                 </div>
 
@@ -520,9 +521,9 @@
 
                     <template x-if="stores.length === 0 && !isComparing">
                         <div class="text-center py-6 px-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700">
-                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Click below to search & compare live prices on Amazon, Flipkart, Croma, and Reliance Digital.</p>
+                            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Click below to check SKU availability across Amazon, Flipkart, Croma, and Reliance Digital.</p>
                             <button @click="compareStores" class="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-sm">
-                                🔍 Compare 4 Stores Now
+                                🔍 Check 4 Retailers Now
                             </button>
                         </div>
                     </template>
@@ -757,15 +758,25 @@
                 <h4 class="text-sm font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-4">Price Volatility</h4>
                 
                 @php
-                    $lowestPrice = $priceHistory->min('price');
-                    $highestPrice = $priceHistory->max('price');
-                    $avgPrice = $priceHistory->avg('price');
+                    $lowestPrice = $priceHistory->min('price') ?: (float)$deal->discounted_price;
+                    $highestPrice = $priceHistory->max('price') ?: (float)($deal->original_price ?: $deal->discounted_price);
+                    $avgPrice = $priceHistory->avg('price') ?: (float)$deal->discounted_price;
                     
-                    // Simple logic for Buy Indicator
-                    $buyIndicator = ($deal->discounted_price <= $lowestPrice * 1.05) ? 'STRONG BUY' : 
-                                   (($deal->discounted_price <= $avgPrice) ? 'GOOD DEAL' : 'WAIT');
-                    $indicatorColor = $buyIndicator == 'STRONG BUY' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
-                                      ($buyIndicator == 'GOOD DEAL' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400');
+                    // Authentic Buy Indicator based on verified discount and price history
+                    $discountPct = ($deal->original_price > $deal->discounted_price && $deal->original_price > 0)
+                        ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100)
+                        : 0;
+
+                    if ($discountPct >= 40) {
+                        $buyIndicator = 'STRONG BUY';
+                        $indicatorColor = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400';
+                    } elseif ($discountPct >= 15) {
+                        $buyIndicator = 'GOOD DEAL';
+                        $indicatorColor = 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400';
+                    } else {
+                        $buyIndicator = 'FAIR VALUE';
+                        $indicatorColor = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+                    }
                 @endphp
                 
                 <div class="space-y-4 mb-6">
@@ -954,7 +965,7 @@
             dealPrice: dealPrice,
             stores: initialStores || [],
             isComparing: false,
-            compareStatus: 'Scanning stores...',
+            compareStatus: 'Checking retailer stock...',
             
             filterStores(items) {
                 if (!Array.isArray(items)) return [];
@@ -975,7 +986,7 @@
             
             async compareStores() {
                 this.isComparing = true;
-                this.compareStatus = 'Searching stores...';
+                this.compareStatus = 'Checking retailer stock...';
                 
                 try {
                     const res = await fetch('/api/compare-prices', {
@@ -1004,7 +1015,7 @@
                         let attempts = 0;
                         const poll = setInterval(async () => {
                             attempts++;
-                            this.compareStatus = `Scanning stores (${attempts}s)...`;
+                            this.compareStatus = `Checking stores (${attempts}s)...`;
                             
                             try {
                                 const statusRes = await fetch(`/api/compare-prices/${jobId}`);
