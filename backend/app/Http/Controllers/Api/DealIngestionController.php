@@ -169,13 +169,27 @@ class DealIngestionController
         $dealScore = $validated['ai_score'] ?? ($priceIntel['deal_score'] ?? 0);
         $verdictCode = $validated['verdict_code'] ?? ($priceIntel['verdict_code'] ?? null);
 
+        // Availability & Stock gate: Out of stock offers cannot be published
+        $isOutOfStock = !empty($validated['out_of_stock']) || (isset($validated['in_stock']) && $validated['in_stock'] === false);
+
+        // Price sanity check: positive prices and valid discount
+        $hasValidPrice = !empty($validated['discounted_price']) && $validated['discounted_price'] > 0;
+        $hasValidMrp = empty($validated['original_price']) || $validated['original_price'] >= $validated['discounted_price'];
+
         // Strict Deterministic Publishing Gate:
         // 1. Only HOT_DEAL or GOOD_DEAL qualify for instant frontpage publication.
         // 2. Score MUST be >= 50 (NO bypass for poor score even if marked LOWEST_30D/90D).
         // 3. Verdict Code MUST NOT be WAIT or DO_NOT_BUY.
-        $isPublishableDeal = in_array($dealQual, ['HOT_DEAL', 'GOOD_DEAL']) && $dealScore >= 50 && $verdictCode !== 'WAIT' && $verdictCode !== 'DO_NOT_BUY';
+        // 4. Must be in stock and have valid positive pricing.
+        $isPublishableDeal = in_array($dealQual, ['HOT_DEAL', 'GOOD_DEAL']) 
+            && $dealScore >= 50 
+            && $verdictCode !== 'WAIT' 
+            && $verdictCode !== 'DO_NOT_BUY'
+            && !$isOutOfStock
+            && $hasValidPrice
+            && $hasValidMrp;
 
-        $dealStatus = $isPublishableDeal ? 'active' : 'pending';
+        $dealStatus = $isOutOfStock ? 'out_of_stock' : ($isPublishableDeal ? 'active' : 'pending');
         $dealEditorialStatus = $isPublishableDeal ? Deal::STATUS_PUBLISHED : Deal::STATUS_DRAFT;
 
         // Strict Brand Resolution (Never allow marketplace names as brand)

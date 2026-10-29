@@ -111,7 +111,7 @@
             </h1>
             
             <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-xl mx-auto font-medium">
-                Real 90-day price history, verified store benchmarks, and algorithmic discount auditing.
+                Multi-point price history, retailer benchmarks, and algorithmic discount auditing.
             </p>
         </div>
 
@@ -175,15 +175,15 @@
         <div class="flex items-center justify-center gap-6 pt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
             <span class="flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                90-Day Price Audit
+                Recorded Price Trends
             </span>
             <span class="flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                Zero Inflated MRPs
+                MRP Inflation Checks
             </span>
             <span class="flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                Verified Retailer Prices
+                Monitored Store Prices
             </span>
         </div>
 

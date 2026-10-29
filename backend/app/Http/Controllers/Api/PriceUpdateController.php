@@ -42,19 +42,54 @@ class PriceUpdateController extends Controller
                 'Accept-Language' => 'en-US,en;q=0.5'
             ])->timeout(12)->get($deal->url);
 
-            if ($response->status() === 404 || str_contains($response->body(), 'Looking for something?') || str_contains($response->body(), 'not a functioning page')) {
+            $html = $response->body();
+            $isAmazon = str_contains($deal->url, 'amazon.');
+            $isFlipkart = str_contains($deal->url, 'flipkart.');
+
+            if ($response->status() === 404 || str_contains($html, 'Looking for something?') || str_contains($html, 'not a functioning page')) {
                 $deal->status = 'expired';
                 $deal->save();
                 return response()->json([
                     'success' => false,
                     'is_expired' => true,
-                    'message' => 'This product listing has been removed or expired on Amazon.'
+                    'message' => 'This product listing has been removed or expired on the merchant platform.'
                 ]);
             }
 
             if ($response->successful()) {
-                $html = $response->body();
-                [$newPrice, $newOriginalPrice] = $this->parseAmazonPriceAndMrp($html);
+                $inStock = true;
+                if ($isAmazon) {
+                    $isOos = str_contains($html, 'id="outOfStock"') 
+                        || str_contains($html, 'Currently unavailable.') 
+                        || str_contains($html, 'We don\'t know when or if this item will be back in stock.');
+                    if ($isOos) {
+                        $deal->status = 'out_of_stock';
+                        $deal->save();
+                        return response()->json([
+                            'success' => false,
+                            'is_out_of_stock' => true,
+                            'message' => 'This product is currently out of stock on Amazon India.'
+                        ]);
+                    }
+                    [$newPrice, $newOriginalPrice] = $this->parseAmazonPriceAndMrp($html);
+                } elseif ($isFlipkart) {
+                    [$newPrice, $newOriginalPrice, $inStock] = $this->parseFlipkartPriceAndStock($html);
+                    if (!$inStock) {
+                        $deal->status = 'out_of_stock';
+                        $deal->save();
+                        return response()->json([
+                            'success' => false,
+                            'is_out_of_stock' => true,
+                            'message' => 'This product is currently out of stock on Flipkart.'
+                        ]);
+                    }
+                } else {
+                    [$newPrice, $newOriginalPrice] = $this->parseAmazonPriceAndMrp($html);
+                }
+
+                if ($deal->status === 'out_of_stock') {
+                    $deal->status = 'active';
+                }
 
                 $updated = false;
                 if ($newPrice && $newPrice > 0) {
@@ -156,6 +191,49 @@ class PriceUpdateController extends Controller
         }
 
         return [$discountedPrice, $originalPrice];
+    }
+
+    /**
+     * Helper method to parse live price, MRP and stock directly from Flipkart HTML
+     */
+    private function parseFlipkartPriceAndStock(string $html): array
+    {
+        $discountedPrice = null;
+        $originalPrice = null;
+        $inStock = true;
+
+        if (str_contains($html, 'Sold Out') || str_contains($html, 'Currently Out of Stock') || str_contains($html, 'This item is currently out of stock')) {
+            $inStock = false;
+        }
+
+        // 1. JSON PPD block
+        if (preg_match('/"ppd":\{([^}]+)\}/', $html, $m)) {
+            $block = $m[1];
+            if (preg_match('/"(?:finalPrice|fsp)":(\d+)/', $block, $p)) {
+                $discountedPrice = (float)$p[1];
+            }
+            if (preg_match('/"mrp":(\d+)/', $block, $p)) {
+                $originalPrice = (float)$p[1];
+            }
+        }
+
+        // 2. JSON-LD fallback
+        if (!$discountedPrice && preg_match('/<script[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/s', $html, $m)) {
+            $data = json_decode($m[1], true);
+            if (isset($data['offers']['price'])) {
+                $discountedPrice = (float)$data['offers']['price'];
+            }
+        }
+
+        // 3. Regex fallback
+        if (!$discountedPrice && preg_match('/class="[^"]*(?:Nx9bqj|hl05eU|_30jeq3)[^"]*"[^>]*>₹?\s*([\d,]+)/u', $html, $m)) {
+            $discountedPrice = (float)str_replace(',', '', $m[1]);
+        }
+        if (!$originalPrice && preg_match('/class="[^"]*(?:yRaY8j|CxhGGd)[^"]*"[^>]*>₹?\s*([\d,]+)/u', $html, $m)) {
+            $originalPrice = (float)str_replace(',', '', $m[1]);
+        }
+
+        return [$discountedPrice, $originalPrice, $inStock];
     }
 
     /**
