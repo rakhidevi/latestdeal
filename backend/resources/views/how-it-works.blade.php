@@ -27,7 +27,7 @@
                     <div class="flex-1 min-w-0">
                         <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-white mb-1.5">Continuous Autonomous Crawling</h3>
                         <p class="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
-                            Our distributed crawler fleet tracks product feeds across leading marketplaces (Amazon, Flipkart, Croma, Reliance Digital, Myntra) 24 hours a day, monitoring real-time price fluctuations and stock levels.
+                            Our distributed crawler fleet tracks product feeds across leading marketplaces (Amazon, Flipkart, Croma, Reliance Digital, Myntra) 24 hours a day, monitoring price fluctuations and catalog stock levels and stock levels.
                         </p>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-10 mb-4">Why Trust Our Platform?</h2>
             <ul class="list-disc pl-6 space-y-2 mt-4 mb-6 text-base text-gray-600 dark:text-slate-300 leading-relaxed">
                 <li><strong class="text-gray-900 dark:text-white font-semibold">Zero Sponsored Inflations:</strong> Merchants cannot pay to increase deal scores or buy top rankings.</li>
-                <li><strong class="text-gray-900 dark:text-white font-semibold">Real-Time Expiry Detection:</strong> When deals expire, our background checkers automatically archive them within minutes.</li>
+                <li><strong class="text-gray-900 dark:text-white font-semibold">Automated Expiry Detection:</strong> When deals expire, our background checkers automatically archive them within minutes.</li>
                 <li><strong class="text-gray-900 dark:text-white font-semibold">Unbiased Editorial Voice:</strong> If a deal is subpar, we say so plainly with our deterministic &ldquo;WAIT&rdquo; recommendations.</li>
             </ul>
         </div>

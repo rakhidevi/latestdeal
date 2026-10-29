@@ -20,7 +20,7 @@
 
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mt-10 mb-4">Our Mission</h2>
             <p class="text-base text-gray-600 dark:text-slate-300 leading-relaxed mb-6">
-                Online shopping has become a maze of fake discounts, artificially inflated MRPs, and sponsored product placements. Our mission is simple: to combine autonomous data collection, real-time multi-store price verification, and human editorial oversight to highlight only the <strong class="text-gray-900 dark:text-white font-semibold">genuine deals</strong> that are truly worth your hard-earned money.
+                Online shopping has become a maze of fake discounts, artificially inflated MRPs, and sponsored product placements. Our mission is simple: to combine autonomous data collection, automated multi-store price verification, and human editorial oversight to highlight only the <strong class="text-gray-900 dark:text-white font-semibold">genuine deals</strong> that are truly worth your hard-earned money.
             </p>
 
             <!-- Value Pillars -->

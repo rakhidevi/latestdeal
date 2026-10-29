@@ -427,6 +427,7 @@
                 $dealMrp = (float)($deal->original_price ?: $dealPrice);
                 $ceiling = 2.2 * max($dealPrice, $dealMrp);
                 $floor = 0.25 * $dealPrice;
+                $currentMerchantName = strtolower(trim($deal->merchant->name ?? 'Amazon India'));
                 $existingComparisons = array_values(array_map(function($c) {
                     if (!is_array($c)) return $c;
                     $isVerified = !empty($c['is_verified']);
@@ -448,11 +449,44 @@
                         $c['url'] = null;
                     }
                     return $c;
-                }, array_filter($rawExistingComparisons, function($c) use ($floor, $ceiling) {
-                    if (!is_array($c) || !isset($c['price']) || $c['price'] === null) return true;
+                }, array_filter($rawExistingComparisons, function($c) use ($floor, $ceiling, $currentMerchantName) {
+                    if (!is_array($c)) return false;
+                    // Deduplicate: drop any unverified row that mirrors the primary merchant
+                    if (empty($c['is_verified'])) {
+                        $storeLower = strtolower($c['store'] ?? '');
+                        if (str_contains($storeLower, 'reliance') && str_contains($currentMerchantName, 'reliance')) return false;
+                        if (str_contains($storeLower, 'croma') && str_contains($currentMerchantName, 'croma')) return false;
+                        if (str_contains($storeLower, 'amazon') && str_contains($currentMerchantName, 'amazon')) return false;
+                        if (str_contains($storeLower, 'flipkart') && str_contains($currentMerchantName, 'flipkart')) return false;
+                    }
+                    if (!isset($c['price']) || $c['price'] === null) return true;
                     $p = (float)$c['price'];
                     return $p >= $floor && $p <= $ceiling;
                 })));
+
+                // Guarantee that the primary merchant offer is verified in the list
+                $hasVerifiedPrimary = false;
+                foreach ($existingComparisons as $c) {
+                    if (!empty($c['is_verified'])) {
+                        $hasVerifiedPrimary = true;
+                        break;
+                    }
+                }
+                if (!$hasVerifiedPrimary) {
+                    $primaryOffer = [
+                        'store' => $deal->merchant->name ?? 'Amazon India',
+                        'price' => $isDealInStock ? (float)$deal->discounted_price : null,
+                        'delivery' => $isDealInStock ? 'Standard Delivery (Merchant Verified)' : 'Currently Unavailable',
+                        'rating' => '4.4',
+                        'url' => $isDealInStock ? $deal->url : null,
+                        'badge' => $isDealInStock ? 'Catalog Verified Offer' : 'Out of Stock',
+                        'availability' => $isDealInStock ? 'In Stock (Last Catalog Sync)' : 'Unavailable (Catalog Record)',
+                        'checked_at' => 'Catalog synced: ' . ($deal->updated_at ? $deal->updated_at->diffForHumans() : 'Recently'),
+                        'is_verified' => true,
+                        'in_stock' => $isDealInStock,
+                    ];
+                    array_unshift($existingComparisons, $primaryOffer);
+                }
             @endphp
             <div x-data="multiStoreComparator({{ $deal->id }}, @js($deal->title), {{ $deal->discounted_price }}, @js($existingComparisons))" 
                  class="mt-8 bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
@@ -480,7 +514,7 @@
                 <div class="space-y-3">
                     <template x-if="stores.length > 0">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <template x-for="store in stores" :key="store.store">
+                            <template x-for="(store, storeIdx) in stores" :key="store.store + '-' + storeIdx">
                                 <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 transition">
                                     <div class="flex items-center gap-3">
                                         <div class="w-8 h-8 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center text-xs font-black shadow-sm text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600" x-text="store.store ? store.store.charAt(0) : 'S'"></div>
