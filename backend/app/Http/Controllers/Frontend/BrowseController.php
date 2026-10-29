@@ -40,10 +40,15 @@ class BrowseController extends Controller
         $deals = $this->pipeline->search($filters);
 
         if ($request->ajax()) {
+            $totalCount = $deals->total();
             return response()->json([
                 'html' => view('partials.deals_grid', compact('deals'))->render(),
                 'next_page' => $deals->nextPageUrl(),
-                'has_more' => $deals->hasMorePages()
+                'has_more' => $deals->hasMorePages(),
+                'total' => $totalCount,
+                'count_text' => $totalCount > 0 
+                    ? 'Showing ' . number_format($totalCount) . ' catalog-audited deals' 
+                    : 'No active deals found matching your selected criteria'
             ]);
         }
 

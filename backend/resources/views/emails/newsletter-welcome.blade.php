@@ -34,7 +34,7 @@
                 Our autonomous discovery engine scans e-commerce platforms 24/7 so you never miss out on verified discounts, price drops, or limited-time promotional codes.
             </p>
             <div style="background-color: #f8fafc; border-left: 4px solid #ef4444; border-radius: 4px 8px 8px 4px; padding: 16px; margin: 20px 0; font-size: 14px; color: #475569;">
-                <strong style="color: #0f172a;">⚡ What to expect next:</strong> You'll receive real-time notifications whenever high-value deals matching popular categories drop to historical lows.
+                <strong style="color: #0f172a;">⚡ What to expect next:</strong> You'll receive price drop notifications whenever high-value deals matching popular categories drop to historical lows.
             </div>
         </td>
     </tr>

@@ -325,9 +325,15 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
             <h2 class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-                {{ $pageTitle ?? "Today's Verified Deals" }}
+                {{ $pageTitle ?? "Today's Top Deals" }}
             </h2>
-            <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Found {{ number_format($deals->total()) }} matching verified deals</p>
+                        <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5" id="deals-count-text">
+                @if($deals->total() > 0)
+                    Showing {{ number_format($deals->total()) }} catalog-audited deals
+                @else
+                    No active deals found matching your selected criteria
+                @endif
+            </p>
         </div>
         <div class="flex items-center gap-2 self-start sm:self-auto">
             <a href="/assistant" class="btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg flex items-center px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl transition">
@@ -740,8 +746,15 @@
                             <svg x-show="loading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </button>
                     </div>
-                    <p x-show="success" x-transition class="text-emerald-400 text-sm mt-3 font-medium flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Success! You're on the list.</p>
-                    <p x-show="error" x-transition class="text-red-400 text-sm mt-3 font-medium" x-text="error"></p>
+                    <template x-if="success">
+                        <p x-cloak class="text-emerald-400 text-sm mt-3 font-medium flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span>Success! You're on the list.</span>
+                        </p>
+                    </template>
+                    <template x-if="error">
+                        <p x-cloak class="text-red-400 text-sm mt-3 font-medium" x-text="error"></p>
+                    </template>
                 </form>
             </div>
         </div>
@@ -781,6 +794,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 dealsGrid.innerHTML = data.html;
                 dealsGrid.style.opacity = '1';
                 window.history.pushState({}, '', url);
+            }
+
+            const countEl = document.getElementById('deals-count-text');
+            if (countEl && data.count_text && !append) {
+                countEl.textContent = data.count_text;
             }
 
             if (data.has_more && data.next_page) {
