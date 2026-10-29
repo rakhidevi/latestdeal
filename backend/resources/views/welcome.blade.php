@@ -212,8 +212,8 @@
                               🎯 {{ $entityType }} Intelligence Hub
                           </span>
                           <span class="px-3 py-1 rounded-full font-bold bg-slate-900 border border-slate-800 text-emerald-400 flex items-center gap-1.5">
-                              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                              Live Sync Active
+                              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                              Catalog Synced
                           </span>
                           <span class="px-3 py-1 rounded-full font-bold bg-slate-900 border border-slate-800 text-amber-300">
                               🛡️ Verified Price History
