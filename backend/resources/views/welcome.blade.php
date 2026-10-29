@@ -225,9 +225,9 @@
                       </h1>
                       <p class="text-slate-300 text-sm sm:text-base max-w-2xl font-medium">
                           @if($totalDeals > 0)
-                              Tracking {{ number_format($totalDeals) }}+ verified discounts on {{ $entityName }}. Updated continuously.
+                              Tracking {{ number_format($totalDeals) }}+ verified discounts on {{ $entityName }}. Periodically synchronized with retailer feeds.
                           @else
-                              Discover verified discounts and price drops on {{ $entityName }}. Updated continuously.
+                              Discover verified discounts and price drops on {{ $entityName }}. Periodically synchronized with retailer feeds.
                           @endif
                       </p>
                   </div>

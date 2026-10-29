@@ -30,7 +30,7 @@ class LiveComparisonController extends Controller
         // 1. Check Cache (60 min TTL)
         $cachedResult = Cache::get($cacheKey);
         if ($cachedResult && !empty($cachedResult['results'])) {
-            $sanitized = $this->sanitizeCompetitorResults($cachedResult['results'], $dealPrice ?? 1000, $deal ? $deal->original_price : null);
+            $sanitized = $this->sanitizeCompetitorResults($cachedResult['results'], $dealPrice ?? 1000, $deal ? $deal->original_price : null, $deal && $deal->merchant ? $deal->merchant->name : null);
             if (!empty($sanitized)) {
                 $cachedResult['results'] = $sanitized;
                 return response()->json([
@@ -44,7 +44,7 @@ class LiveComparisonController extends Controller
         if ($deal) {
             $pi = is_array($deal->price_intelligence) ? $deal->price_intelligence : (json_decode($deal->price_intelligence ?? '', true) ?? []);
             if (!empty($pi['comparison_results'])) {
-                $sanitized = $this->sanitizeCompetitorResults($pi['comparison_results'], (float)$deal->discounted_price, (float)$deal->original_price);
+                $sanitized = $this->sanitizeCompetitorResults($pi['comparison_results'], (float)$deal->discounted_price, (float)$deal->original_price, $deal && $deal->merchant ? $deal->merchant->name : null);
                 if (!empty($sanitized)) {
                     $payload = [
                         'results' => $sanitized,
@@ -112,13 +112,23 @@ class LiveComparisonController extends Controller
             ]
         ];
 
-        // Competitors: Honest representation without invented prices
-        $isAmazonCurrent = str_contains(strtolower($currentMerchant), 'amazon');
-        $competitors = [
-            ['name' => $isAmazonCurrent ? 'Flipkart' : 'Amazon India', 'rating' => '4.3'],
+        // Competitors: Filter out current merchant dynamically to prevent duplicate/conflicting primary entries
+        $allCompetitorStores = [
+            ['name' => 'Amazon India', 'rating' => '4.4'],
+            ['name' => 'Flipkart', 'rating' => '4.3'],
             ['name' => 'Croma', 'rating' => '4.2'],
             ['name' => 'Reliance Digital', 'rating' => '4.1'],
         ];
+
+        $currentLower = strtolower(trim($currentMerchant));
+        $competitors = array_values(array_filter($allCompetitorStores, function($comp) use ($currentLower) {
+            $nameLower = strtolower($comp['name']);
+            if (str_contains($currentLower, 'amazon') && str_contains($nameLower, 'amazon')) return false;
+            if (str_contains($currentLower, 'flipkart') && str_contains($nameLower, 'flipkart')) return false;
+            if (str_contains($currentLower, 'croma') && str_contains($nameLower, 'croma')) return false;
+            if (str_contains($currentLower, 'reliance') && str_contains($nameLower, 'reliance')) return false;
+            return $nameLower !== $currentLower;
+        }));
 
         foreach ($competitors as $comp) {
             $stores[] = [
@@ -141,7 +151,7 @@ class LiveComparisonController extends Controller
     /**
      * Defensive price bound check: filter out wildly mismatched products (e.g. 15,999 TV on a 49 bulb)
      */
-    protected function sanitizeCompetitorResults(array $results, float $dealPrice, ?float $mrp = null): array
+    protected function sanitizeCompetitorResults(array $results, float $dealPrice, ?float $mrp = null, ?string $currentMerchant = null): array
     {
         if ($dealPrice <= 0) {
             return [];
@@ -149,6 +159,7 @@ class LiveComparisonController extends Controller
 
         $ceiling = 2.2 * max($dealPrice, $mrp ?? $dealPrice);
         $floor = 0.25 * $dealPrice;
+        $currentMerchantLower = strtolower(trim($currentMerchant ?? ''));
 
         $sanitized = [];
         foreach ($results as $item) {
@@ -164,6 +175,15 @@ class LiveComparisonController extends Controller
 
             // Normalize in_stock and verification status
             $isVerified = !empty($item['is_verified']);
+
+            // If an unverified competitor row duplicates the primary merchant, drop it
+            $storeName = strtolower($item['store'] ?? '');
+            if (!$isVerified) {
+                if (str_contains($storeName, 'reliance') && str_contains($currentMerchantLower, 'reliance')) continue;
+                if (str_contains($storeName, 'croma') && str_contains($currentMerchantLower, 'croma')) continue;
+                if (str_contains($storeName, 'amazon') && str_contains($currentMerchantLower, 'amazon')) continue;
+                if (str_contains($storeName, 'flipkart') && str_contains($currentMerchantLower, 'flipkart')) continue;
+            }
             if ($isVerified) {
                 $isOos = in_array(strtolower($item['availability'] ?? ''), ['out of stock', 'currently unavailable']) || empty($item['price']);
                 $item['in_stock'] = !$isOos;

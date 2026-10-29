@@ -87,7 +87,7 @@
                                     </td>
                                     <td class="feature-grid" align="center" width="33%" style="padding: 8px;">
                                         <div style="font-size: 20px; margin-bottom: 4px;">🛡️</div>
-                                        <div style="font-size: 13px; font-weight: 700; color: #0f172a;">100% Verified</div>
+                                        <div style="font-size: 13px; font-weight: 700; color: #0f172a;">Curated & Verified</div>
                                         <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Guaranteed Savings</div>
                                     </td>
                                 </tr>

@@ -521,52 +521,46 @@ document.addEventListener('alpine:init', () => {
             const currentMerchant = deal.merchant || 'Amazon India';
             const isOutOfStock = deal.status === 'out_of_stock';
 
-            this.comparisonResults = [
-                {
-                    store: currentMerchant,
-                    price: isOutOfStock ? null : basePrice,
-                    delivery: isOutOfStock ? 'Currently Unavailable' : 'Standard Delivery',
-                    rating: '4.4',
-                    url: isOutOfStock ? null : (deal.url || '#'),
-                    availability: isOutOfStock ? 'Currently Unavailable' : 'In Stock (Last Catalog Sync)',
-                    checked_at: 'Catalog synced',
-                    is_verified: true,
-                    in_stock: !isOutOfStock
-                },
-                {
-                    store: currentMerchant.toLowerCase().includes('amazon') ? 'Flipkart' : 'Amazon India',
-                    price: null,
-                    delivery: 'Retailer verification pending',
-                    rating: '4.3',
-                    url: null,
-                    availability: 'Unverified for this SKU',
-                    checked_at: null,
-                    is_verified: false,
-                    in_stock: null
-                },
-                {
-                    store: 'Croma',
-                    price: null,
-                    delivery: 'Retailer verification pending',
-                    rating: '4.2',
-                    url: null,
-                    availability: 'Unverified for this SKU',
-                    checked_at: null,
-                    is_verified: false,
-                    in_stock: null
-                },
-                {
-                    store: 'Reliance Digital',
-                    price: null,
-                    delivery: 'Retailer verification pending',
-                    rating: '4.1',
-                    url: null,
-                    availability: 'Unverified for this SKU',
-                    checked_at: null,
-                    is_verified: false,
-                    in_stock: null
-                }
+            const primaryStore = {
+                store: currentMerchant,
+                price: isOutOfStock ? null : basePrice,
+                delivery: isOutOfStock ? 'Currently Unavailable' : 'Standard Delivery',
+                rating: '4.4',
+                url: isOutOfStock ? null : (deal.url || '#'),
+                availability: isOutOfStock ? 'Currently Unavailable' : 'In Stock (Last Catalog Sync)',
+                checked_at: 'Catalog synced',
+                is_verified: true,
+                in_stock: !isOutOfStock
+            };
+
+            const allCompList = [
+                { store: 'Amazon India', rating: '4.4' },
+                { store: 'Flipkart', rating: '4.3' },
+                { store: 'Croma', rating: '4.2' },
+                { store: 'Reliance Digital', rating: '4.1' }
             ];
+
+            const currentLower = currentMerchant.toLowerCase();
+            const filteredComps = allCompList.filter(c => {
+                const s = c.store.toLowerCase();
+                if (currentLower.includes('amazon') && s.includes('amazon')) return false;
+                if (currentLower.includes('flipkart') && s.includes('flipkart')) return false;
+                if (currentLower.includes('croma') && s.includes('croma')) return false;
+                if (currentLower.includes('reliance') && s.includes('reliance')) return false;
+                return s !== currentLower;
+            }).map(c => ({
+                store: c.store,
+                price: null,
+                delivery: 'Retailer verification pending',
+                rating: c.rating,
+                url: null,
+                availability: 'Unverified for this SKU',
+                checked_at: null,
+                is_verified: false,
+                in_stock: null
+            }));
+
+            this.comparisonResults = [primaryStore, ...filteredComps];
             this.aiValueScore = Math.min(88, Math.max(72, 70 + Math.round((deal.discount_pct || 15) * 0.25)));
         },
 
