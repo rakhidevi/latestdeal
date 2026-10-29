@@ -143,8 +143,8 @@
                                     <span x-text="row.title"></span>
                                 </p>
                                 <span class="text-[10px] font-bold px-2 py-0.5 rounded"
-                                      :class="row.recommendation_type === 'best_match' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : (row.recommendation_type === 'best_value' ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300' : 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-gray-300')"
-                                      x-text="row.recommendation_type === 'best_match' ? 'Best Match' : (row.recommendation_type === 'best_value' ? 'Best Value' : (row.recommendation_type === 'lowest_price' ? 'Budget Pick' : 'Verified'))"></span>
+                                      :class="row.recommendation_type === 'best_match' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : (row.recommendation_type === 'best_value' ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300' : (row.recommendation_type === 'value_runner_up' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' : 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-gray-300'))"
+                                      x-text="row.recommendation_type === 'best_match' ? 'Best Match' : (row.recommendation_type === 'best_value' ? 'Best Value' : (row.recommendation_type === 'lowest_price' ? 'Budget Pick' : (row.recommendation_type === 'value_runner_up' ? 'Value Runner-Up' : 'Verified')))"></span>
                             </div>
                             <div class="mt-2 flex items-center justify-between text-xs">
                                 <div class="flex items-baseline gap-1.5">
@@ -278,6 +278,9 @@
                         </template>
                         <template x-if="deal.recommendation_type === 'best_value'">
                             <span class="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">Best Value</span>
+                        </template>
+                        <template x-if="deal.recommendation_type === 'value_runner_up'">
+                            <span class="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">Value Runner-Up</span>
                         </template>
                     </div>
 
@@ -522,8 +525,8 @@ document.addEventListener('alpine:init', () => {
                     delivery: isOutOfStock ? 'Currently Unavailable' : 'Standard Delivery',
                     rating: '4.4',
                     url: isOutOfStock ? null : (deal.url || '#'),
-                    availability: isOutOfStock ? 'Currently Unavailable' : 'In Stock',
-                    checked_at: 'Verified in Catalog',
+                    availability: isOutOfStock ? 'Currently Unavailable' : 'In Stock (Last Catalog Sync)',
+                    checked_at: 'Catalog synced',
                     is_verified: true,
                     in_stock: !isOutOfStock
                 },

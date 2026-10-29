@@ -366,6 +366,9 @@ class SmartSearchController extends Controller
             } elseif ($deal->id === $lowestPriceId) {
                 $recType = 'lowest_price';
                 $recReason = "Budget pick: Lowest entry price at ₹" . number_format($item['price']) . " for a genuine device.";
+            } elseif ($item['discount_pct'] >= 25) {
+                $recType = 'value_runner_up';
+                $recReason = "Value runner-up: Verified {$item['discount_pct']}% discount from {$merchantName}.";
             }
 
             return [
