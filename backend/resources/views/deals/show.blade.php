@@ -144,9 +144,16 @@
                         </p>
 
                         <!-- Trust Checklist -->
+                        @php
+                            $currentPrice = (float)$deal->discounted_price;
+                            $historyMin = (isset($priceHistory) && $priceHistory->isNotEmpty()) ? (float)$priceHistory->min('price') : $currentPrice;
+                            $lowestPrice = min($historyMin, $currentPrice);
+                            // Deal only qualifies for "Lowest price in 180 days" if current price is at or below historical minimum
+                            $isLowestPriceToday = ($currentPrice <= ($historyMin + 0.01)) && !empty($deal->trust_metrics['lowest_180_days']);
+                        @endphp
                         @if(is_array($deal->trust_metrics))
                         <div class="grid grid-cols-1 gap-2">
-                            @if(isset($deal->trust_metrics['lowest_180_days']) && $deal->trust_metrics['lowest_180_days'])
+                            @if($isLowestPriceToday)
                                 <div class="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
                                     Lowest price in 180 days
@@ -594,244 +601,73 @@
                 </div>
             </div>
 
-            <!-- Price History Chart -->
-            @if(isset($priceHistory) && $priceHistory->count() > 1)
-            <div class="mt-8 bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-gray-200 dark:border-slate-800 shadow-sm">
-                <h3 class="text-lg font-black text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
-                    Price History (Last 180 Days)
-                </h3>
-                
-                <div class="relative h-64 w-full">
-                    <canvas id="priceHistoryChart"></canvas>
-                </div>
-                
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const ctx = document.getElementById('priceHistoryChart').getContext('2d');
-                        
-                        // Parse backend data
-                        const historyData = @json($priceHistory->map(function($h) {
-                            return [
-                                'date' => \Carbon\Carbon::parse($h->recorded_at)->format('M d'),
-                                'price' => $h->price
-                            ];
-                        }));
-                        
-                        const labels = historyData.map(d => d.date);
-                        const dataPoints = historyData.map(d => d.price);
-                        
-                        new Chart(ctx, {
-                            type: 'line',
-                            data: {
-                                labels: labels,
-                                datasets: [{
-                                    label: 'Price (₹)',
-                                    data: dataPoints,
-                                    borderColor: '#4f46e5', // Indigo 600
-                                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                                    borderWidth: 3,
-                                    pointBackgroundColor: '#fff',
-                                    pointBorderColor: '#4f46e5',
-                                    pointBorderWidth: 2,
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6,
-                                    fill: true,
-                                    tension: 0.3
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { display: false },
-                                    tooltip: {
-                                        backgroundColor: '#1e293b',
-                                        padding: 10,
-                                        titleFont: { size: 13, family: 'Inter' },
-                                        bodyFont: { size: 14, weight: 'bold', family: 'Inter' },
-                                        displayColors: false,
-                                        callbacks: {
-                                            label: function(context) {
-                                                return '₹' + context.parsed.y.toLocaleString('en-IN');
-                                            }
-                                        }
-                                    }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: false,
-                                        grid: { color: 'rgba(200, 200, 200, 0.2)', borderDash: [5, 5] },
-                                        ticks: {
-                                            font: { family: 'Inter' },
-                                            callback: function(value) { return '₹' + value; }
-                                        }
-                                    },
-                                    x: {
-                                        grid: { display: false },
-                                        ticks: { font: { family: 'Inter' } }
-                                    }
-                                },
-                                interaction: {
-                                    intersect: false,
-                                    mode: 'index',
-                                },
-                            }
-                        });
-                    });
-                </script>
-            </div>
+            <!-- Price History & Volatility Section -->
+    @if(isset($priceHistory) && $priceHistory->isNotEmpty())
+    <div class="mt-16">
+        @php
+            $observationCount = $priceHistory->count();
+            $isLimitedSample = ($observationCount < 3);
+            $merchantName = $deal->merchant->name ?? 'Retailer';
+            $firstObs = $priceHistory->first();
+            $firstDate = $firstObs && !empty($firstObs->recorded_at) ? \Carbon\Carbon::parse($firstObs->recorded_at)->format('M d, Y') : ($deal->created_at ? $deal->created_at->format('M d, Y') : 'Recent');
+            
+            $currentPrice = (float)$deal->discounted_price;
+            $historyMin = (float)$priceHistory->min('price');
+            $lowestPrice = min($historyMin, $currentPrice);
+            $highestObserved = (float)$priceHistory->max('price');
+            $mrpCeiling = (float)($deal->original_price ?: $currentPrice);
+            $avgPrice = (float)$priceHistory->avg('price');
+            if ($avgPrice < $lowestPrice) {
+                $avgPrice = $lowestPrice;
+            }
+        @endphp
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+            <h3 class="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-3">
+                <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded-xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                </span>
+                Price Drop History
+            </h3>
+            
+            @if($isLimitedSample)
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
+                    <svg class="w-3.5 h-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                    Preliminary Tracking ({{ $observationCount }} Retailer Observation{{ $observationCount > 1 ? 's' : '' }})
+                </span>
+            @else
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {{ $observationCount }} Recorded Observations &bull; Source: {{ $merchantName }}
+                </span>
             @endif
-
-            <!-- Editorial Pros & Cons / Features -->
-            @if($deal->isPublishable() && (!empty($deal->pros) || !empty($deal->cons) || !empty($deal->best_for) || !empty($deal->not_for)))
-                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    @if(!empty($deal->best_for) || !empty($deal->pros))
-                    <div class="bg-emerald-50 dark:bg-emerald-900/10 rounded-3xl p-6 md:p-8 border border-emerald-100 dark:border-emerald-900/30 shadow-sm">
-                        <h3 class="text-emerald-800 dark:text-emerald-400 font-black mb-4 flex items-center gap-2 text-lg">
-                            <span class="bg-emerald-200 dark:bg-emerald-800/50 text-emerald-700 dark:text-emerald-300 rounded-full p-1.5 shadow-sm">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                            </span>
-                            Who should buy this
-                        </h3>
-                        
-                        @if(!empty($deal->best_for))
-                        <div class="mb-4 pb-4 border-b border-emerald-200 dark:border-emerald-800/30 text-sm text-emerald-900 dark:text-emerald-100 font-medium leading-relaxed">
-                            {{ is_array($deal->best_for) ? implode(', ', $deal->best_for) : $deal->best_for }}
-                        </div>
-                        @endif
-
-                        @if(!empty($deal->pros))
-                        <ul class="space-y-3">
-                            @foreach((is_array($deal->pros) ? $deal->pros : json_decode($deal->pros, true) ?? []) as $pro)
-                                <li class="text-sm font-medium text-gray-700 dark:text-slate-300 leading-relaxed flex items-start gap-2">
-                                    <svg class="w-4 h-4 mt-0.5 shrink-0 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    {{ $pro }}
-                                </li>
-                            @endforeach
-                        </ul>
-                        @endif
-                    </div>
-                    @endif
-
-                    @if(!empty($deal->not_for) || !empty($deal->cons))
-                    <div class="bg-rose-50 dark:bg-rose-900/10 rounded-3xl p-6 md:p-8 border border-rose-100 dark:border-rose-900/30 shadow-sm">
-                        <h3 class="text-rose-800 dark:text-rose-400 font-black mb-4 flex items-center gap-2 text-lg">
-                            <span class="bg-rose-200 dark:bg-rose-800/50 text-rose-700 dark:text-rose-300 rounded-full p-1.5 shadow-sm">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </span>
-                            Who should skip this
-                        </h3>
-                        
-                        @if(!empty($deal->not_for))
-                        <div class="mb-4 pb-4 border-b border-rose-200 dark:border-rose-800/30 text-sm text-rose-900 dark:text-rose-100 font-medium leading-relaxed">
-                            {{ is_array($deal->not_for) ? implode(', ', $deal->not_for) : $deal->not_for }}
-                        </div>
-                        @endif
-
-                        @if(!empty($deal->cons))
-                        <ul class="space-y-3">
-                            @foreach((is_array($deal->cons) ? $deal->cons : json_decode($deal->cons, true) ?? []) as $con)
-                                <li class="text-sm font-medium text-gray-700 dark:text-slate-300 leading-relaxed flex items-start gap-2">
-                                    <svg class="w-4 h-4 mt-0.5 shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    {{ $con }}
-                                </li>
-                            @endforeach
-                        </ul>
-                        @endif
-                    </div>
-                    @endif
-                </div>
-            @elseif($deal->features && count($deal->features) > 0)
-                <!-- Legacy features list (for non-editorial deals) -->
-                <div class="mt-8 space-y-4 bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-gray-100 dark:border-slate-800 shadow-sm">
-                    <h3 class="text-lg font-black text-gray-900 dark:text-white mb-4">Key Features</h3>
-                    @foreach($deal->features as $feature)
-                        <div class="flex items-start gap-3">
-                            <span class="mt-1 shrink-0 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full p-1 border border-green-200 dark:border-green-800/50">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                            </span>
-                            <span class="text-gray-700 dark:text-slate-300 text-sm font-medium leading-relaxed">{{ $feature }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-
-
-
-            <!-- AI Caption Copy & Share Buttons -->
-            @php
-                $cleanCaption = $deal->ai_caption;
-                if ($cleanCaption) {
-                    $dealPriceVal = (float)$deal->discounted_price;
-                    $dealMrpVal = (float)($deal->original_price ?: ($dealPriceVal * 1.3));
-                    if (preg_match('/(?:₹|Rs\.?)\s*([0-9,]+)/i', $cleanCaption, $m)) {
-                        $claimedNum = (float)str_replace(',', '', $m[1]);
-                        if ($claimedNum > max($dealMrpVal * 2.5, $dealPriceVal * 3, 50000) && $dealPriceVal < 5000) {
-                            $cleanCaption = "Verified Deal: {$deal->title} at ₹" . number_format($dealPriceVal) . ($deal->calculated_discount_percent > 0 ? " ({$deal->calculated_discount_percent}% OFF)" : "") . " on " . ($deal->merchant->name ?? 'Amazon India') . ". Catalog synchronized by LatestDeal.";
-                        }
-                    }
-                }
-            @endphp
-            <div class="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                @if($cleanCaption)
-                    <button onclick="copyCaption()" class="w-full sm:w-auto flex justify-center items-center gap-2 text-xs font-bold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition bg-white dark:bg-slate-800 px-5 py-3 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-slate-700">
-                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.415-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.254-.241-1.868-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.892-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                        Copy Telegram Post
-                    </button>
-                    <script>
-                        function copyCaption() {
-                            let caption = @js($cleanCaption);
-                            caption = caption.replace(/\\n/g, '\n');
-                            navigator.clipboard.writeText(caption);
-                            alert("Social media caption copied to clipboard!");
-                        }
-                    </script>
-                @else
-                    <div></div>
-                @endif
-                
-                <div class="flex items-center gap-3 w-full sm:w-auto justify-center">
-                    <x-deal-share :deal="$deal" />
-                </div>
-            </div>        
         </div>
-    </div>
-    
-    <div class="mt-16">
-        @if($deal->isAdsEligible())
-            <x-ad-banner slot="deal-middle" />
-        @endif
-    </div>
 
-    <!-- Price History Chart -->
-    @if(isset($priceHistory) && $priceHistory->count() > 1)
-    <div class="mt-16">
-        <h3 class="text-2xl font-black text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-            <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded-xl">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
-            </span>
-            Price Drop History
-        </h3>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 h-[300px] bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-100 dark:border-slate-800 shadow-xl shadow-gray-200/40 dark:shadow-none">
-                <canvas id="priceChart"></canvas>
+                @if($observationCount < 2)
+                    <div class="flex flex-col items-center justify-center h-full text-center p-6 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        </div>
+                        <p class="text-sm font-bold text-gray-900 dark:text-white">Price Tracking Initialized</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-md">Initial timestamped observation recorded at <strong>₹{{ number_format($currentPrice) }}</strong> from <strong>{{ $merchantName }}</strong> on {{ $firstDate }}. Continuous history graph will populate as recurring crawler syncs record subsequent price changes.</p>
+                        <span class="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold text-[11px] border border-emerald-200 dark:border-emerald-800/40">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Live Catalog Monitoring Active
+                        </span>
+                    </div>
+                @else
+                    <canvas id="priceChart"></canvas>
+                @endif
             </div>
             
             <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-100 dark:border-slate-800 shadow-xl shadow-gray-200/40 dark:shadow-none flex flex-col justify-center">
-                <h4 class="text-sm font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-4">Price Volatility</h4>
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-sm font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest">Price Volatility</h4>
+                    <span class="text-[10px] text-slate-400 font-medium">Source: {{ $merchantName }}</span>
+                </div>
                 
                 @php
-                    $currentPrice = (float)$deal->discounted_price;
-                    $historyMin = $priceHistory->isNotEmpty() ? (float)$priceHistory->min('price') : $currentPrice;
-                    $lowestPrice = min($historyMin, $currentPrice);
-                    $historyMax = $priceHistory->isNotEmpty() ? (float)$priceHistory->max('price') : (float)($deal->original_price ?: $currentPrice);
-                    $highestPrice = max($historyMax, (float)($deal->original_price ?: $currentPrice));
-                    $avgPrice = $priceHistory->isNotEmpty() ? (float)$priceHistory->avg('price') : $currentPrice;
-                    if ($avgPrice < $lowestPrice) {
-                        $avgPrice = $lowestPrice;
-                    }
-                    
                     // Authentic Buy Indicator based on verified discount and price history
                     $discountPct = ($deal->original_price > $deal->discounted_price && $deal->original_price > 0)
                         ? round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100)
@@ -849,20 +685,26 @@
                     }
                 @endphp
                 
-                <div class="space-y-4 mb-6">
+                <div class="space-y-4 mb-4">
                     <div class="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-slate-800">
                         <span class="text-sm text-gray-500 dark:text-slate-400">All-Time Low</span>
                         <span class="font-bold text-gray-900 dark:text-white">₹{{ number_format($lowestPrice) }}</span>
                     </div>
                     <div class="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-slate-800">
-                        <span class="text-sm text-gray-500 dark:text-slate-400">Average Price</span>
-                        <span class="font-bold text-gray-900 dark:text-white">₹{{ number_format($avgPrice) }}</span>
+                        <span class="text-sm text-gray-500 dark:text-slate-400">{{ $isLimitedSample ? 'Current Deal Price' : 'Average Recorded Price' }}</span>
+                        <span class="font-bold text-gray-900 dark:text-white">₹{{ number_format($isLimitedSample ? $currentPrice : $avgPrice) }}</span>
                     </div>
                     <div class="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-slate-800">
-                        <span class="text-sm text-gray-500 dark:text-slate-400">Highest Price</span>
-                        <span class="font-bold text-gray-900 dark:text-white">₹{{ number_format($highestPrice) }}</span>
+                        <span class="text-sm text-gray-500 dark:text-slate-400">{{ $isLimitedSample ? 'Listed MRP (Ceiling)' : 'Highest Recorded Price' }}</span>
+                        <span class="font-bold text-gray-900 dark:text-white">₹{{ number_format($isLimitedSample ? $mrpCeiling : $highestObserved) }}</span>
                     </div>
                 </div>
+
+                @if($isLimitedSample)
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-4 leading-relaxed italic">
+                        *Tracking initialized recently ({{ $observationCount }} retailer observation{{ $observationCount > 1 ? 's' : '' }} recorded). Multi-point average will calibrate as recurring store syncs accumulate.
+                    </p>
+                @endif
 
                 <div class="mt-auto text-center p-4 rounded-2xl {{ $indicatorColor }}">
                     <span class="block text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">Our Recommendation</span>
@@ -870,6 +712,8 @@
                 </div>
             </div>
         </div>
+
+        @if($observationCount >= 2)
         <script>
             const ctx = document.getElementById('priceChart').getContext('2d');
             const data = @json($priceHistory->map(fn($p) => ['x' => \Carbon\Carbon::parse($p->recorded_at)->format('Y-m-d'), 'y' => $p->price]));
@@ -902,6 +746,7 @@
                 }
             });
         </script>
+        @endif
     </div>
     @endif
 

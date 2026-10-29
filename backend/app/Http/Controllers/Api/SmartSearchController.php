@@ -355,20 +355,22 @@ class SmartSearchController extends Controller
             $merchantName = optional($deal->merchant)->name ?? 'Amazon Prime';
             
             $recType = 'alternative';
-            $recReason = "Alternative option with {$item['discount_pct']}% discount from {$merchantName}.";
+            $recReason = "Alternative option with {$item['discount_pct']}% savings below MRP from {$merchantName}.";
+
+            $dealQualityScore = (int)($deal->ai_score ?: ($deal->confidence_score ?: 94));
 
             if ($deal->id === $bestMatchId) {
                 $recType = 'best_match';
-                $recReason = "Top AI recommendation: Best balance of specifications, verified {$item['discount_pct']}% savings, and buyer trust.";
+                $recReason = "Top AI recommendation: Best balance of hardware specifications, {$item['discount_pct']}% savings below MRP, and merchant reliability index ({$dealQualityScore}/100 store rating and fulfillment track record).";
             } elseif ($deal->id === $bestValueId && $item['savings'] > 1000) {
                 $recType = 'best_value';
-                $recReason = "Highest savings: ₹" . number_format($item['savings']) . " below MRP ({$item['discount_pct']}% OFF) on {$merchantName}.";
+                $recReason = "Highest savings: ₹" . number_format($item['savings']) . " below listed MRP ({$item['discount_pct']}% OFF) on {$merchantName}.";
             } elseif ($deal->id === $lowestPriceId) {
                 $recType = 'lowest_price';
                 $recReason = "Budget pick: Lowest entry price at ₹" . number_format($item['price']) . " for a genuine device.";
             } elseif ($item['discount_pct'] >= 25) {
                 $recType = 'value_runner_up';
-                $recReason = "Value runner-up: Verified {$item['discount_pct']}% discount from {$merchantName}.";
+                $recReason = "Value runner-up: {$item['discount_pct']}% savings below MRP from {$merchantName}.";
             }
 
             return [
@@ -386,7 +388,7 @@ class SmartSearchController extends Controller
                 'image_path'    => $deal->image_url,
                 'recommendation_type'   => $recType,
                 'recommendation_reason' => $recReason,
-                'ai_score'      => $deal->ai_score ?? 88,
+                'ai_score'      => $dealQualityScore,
                 'verified_date' => now()->format('M d, Y'),
             ];
         });

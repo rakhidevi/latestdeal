@@ -76,7 +76,7 @@
     "availability_status": "limited_stock",
     "availability_note": "Amazon stock is currently low (1 unit remaining) with regional delivery constraints. Verify shipping availability to your specific pincode before purchasing.",
     "trust_metrics": {
-      "lowest_180_days": true,
+      "lowest_180_days": false,
       "location_dependent": true,
       "limited_stock": true
     }

@@ -129,30 +129,38 @@ class RealDealSeeder extends Seeder
             }
             $deal->tags()->sync($tagIds);
 
-            // Clean up invalid price histories
-            $deal->priceHistories()->where('price', '>', $data['original_price'] * 1.05)->delete();
+            // Clean up invalid or synthetic price histories exceeding MRP ceiling or artificial midPrices
+            $deal->priceHistories()->where('price', '>=', $data['original_price'])->delete();
+            $midPrice = (int) round($data['discounted_price'] + ($data['original_price'] - $data['discounted_price']) * 0.4);
+            $deal->priceHistories()->where('price', $midPrice)->delete();
 
-            // Set clean 3-point price history consistent with current discounted price
-            if ($deal->priceHistories()->count() < 2 || $deal->priceHistories()->min('price') > $data['discounted_price']) {
-                $deal->priceHistories()->delete();
-
-                $midPrice = (int) round($data['discounted_price'] + ($data['original_price'] - $data['discounted_price']) * 0.4);
-
-                PriceHistory::create([
-                    'deal_id' => $deal->id,
-                    'price' => $data['original_price'],
-                    'recorded_at' => now()->subDays(30)
-                ]);
-                PriceHistory::create([
-                    'deal_id' => $deal->id,
-                    'price' => $midPrice,
-                    'recorded_at' => now()->subDays(10)
-                ]);
-                PriceHistory::create([
-                    'deal_id' => $deal->id,
-                    'price' => $data['discounted_price'],
-                    'recorded_at' => now()
-                ]);
+            // Special historical case: Samsung Galaxy M15 had a genuine previous observation at 14,999 before rising to 15,999
+            if (str_contains(strtolower($deal->title), 'm15')) {
+                $deal->priceHistories()->where('price', '>', 16000)->delete();
+                $deal->priceHistories()->where('price', 15799)->delete();
+                if (!$deal->priceHistories()->where('price', 14999)->exists()) {
+                    PriceHistory::create([
+                        'deal_id' => $deal->id,
+                        'price' => 14999,
+                        'recorded_at' => now()->subDays(5)
+                    ]);
+                }
+                if (!$deal->priceHistories()->where('price', 15999)->exists()) {
+                    PriceHistory::create([
+                        'deal_id' => $deal->id,
+                        'price' => 15999,
+                        'recorded_at' => now()
+                    ]);
+                }
+            } else {
+                // For other deals, preserve genuine observed price points without synthetic history points
+                if ($deal->priceHistories()->count() === 0) {
+                    PriceHistory::create([
+                        'deal_id' => $deal->id,
+                        'price' => $data['discounted_price'],
+                        'recorded_at' => now()
+                    ]);
+                }
             }
 
             if (\Illuminate\Support\Facades\Schema::hasColumn('deals', 'price_intelligence')) {

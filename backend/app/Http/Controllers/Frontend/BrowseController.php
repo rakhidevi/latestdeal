@@ -1,524 +1,1002 @@
-<?php
-
-namespace App\Http\Controllers\Frontend;
-
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Services\SearchPipeline\DealSearchPipeline;
-use App\Models\Deal;
-use App\Models\Category;
-use App\Models\Brand;
-use App\Models\Merchant;
-use App\Services\SeoService;
-use App\Services\BreadcrumbService;
-
-class BrowseController extends Controller
-{
-    protected $pipeline;
-    protected $seoService;
-    protected $breadcrumbService;
-    protected $recommendationService;
-    protected $hubService;
-
-    public function __construct(
-        DealSearchPipeline $pipeline, 
-        SeoService $seoService, 
-        BreadcrumbService $breadcrumbService,
-        \App\Services\RecommendationService $recommendationService,
-        \App\Services\HubDataService $hubService
-    ) {
-        $this->pipeline = $pipeline;
-        $this->seoService = $seoService;
-        $this->breadcrumbService = $breadcrumbService;
-        $this->recommendationService = $recommendationService;
-        $this->hubService = $hubService;
-    }
-
-    public function index(Request $request)
-    {
-        $filters = $request->all();
-        $deals = $this->pipeline->search($filters);
-
-        if ($request->ajax()) {
-            $totalCount = $deals->total();
-            return response()->json([
-                'html' => view('partials.deals_grid', compact('deals'))->render(),
-                'next_page' => $deals->nextPageUrl(),
-                'has_more' => $deals->hasMorePages(),
-                'total' => $totalCount,
-                'count_text' => $totalCount > 0 
-                    ? 'Showing ' . number_format($totalCount) . ' catalog-audited deals' 
-                    : 'No active deals found matching your selected criteria'
-            ]);
-        }
-
-        $pageTitle = 'All Deals';
-        if ($request->filled('q') || $request->filled('search')) {
-            $searchTerm = $request->input('q') ?? $request->input('search');
-            $pageTitle = 'Search: "' . e($searchTerm) . '"';
-        } elseif ($request->filled('max_price')) {
-            $pageTitle = 'Deals Under ₹' . number_format((float)$request->input('max_price'));
-        }
-        
-        $seoMeta = $this->seoService->generateMeta(
-            $pageTitle . ' | LatestDeal',
-            'Find the best deals and discounts across all categories.',
-            url()->current()
-        );
-
-        $trendingDeals = null;
-        $heroDeals = null;
-        if (empty($filters)) {
-            try {
-                $trendingDeals = $this->recommendationService->getTrending(5);
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('Trending deals fetch failed: ' . $e->getMessage());
-                $trendingDeals = collect();
-            }
-
-            try {
-                $heroDeals = \Illuminate\Support\Facades\Cache::remember("hero_deals_10", 300, function () {
-                    return Deal::publishable()
-                        ->with(['merchant', 'category'])
-                        ->where('status', 'active')
-                        ->orderBy('ai_score', 'desc')
-                        ->limit(10)
-                        ->get();
-                });
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('Hero deals fetch failed: ' . $e->getMessage());
-                $heroDeals = collect();
-            }
-        }
-
-        $categories = \Illuminate\Support\Facades\Cache::remember('popular_categories_home', 300, function () {
-            return \App\Models\Category::whereNotIn('slug', ['general', 'uncategorized', 'all-other-categories', 'c.url', 'item.url', 'b.url', 'd.url', 'm.url'])
-                ->where('slug', 'NOT LIKE', '%.url%')
-                ->where('slug', 'NOT LIKE', '%"%')
-                ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
-                ->get()
-                ->filter(fn($c) => preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $c->slug) && (($c->active_deals_count ?? 0) > 0))
-                ->map(function ($cat) {
-                    $icons = [
-                        'mobiles' => '📱',
-                        'mobile-phones' => '📱',
-                        'electronics' => '💻',
-                        'home-kitchen' => '🏡',
-                        'sports-fitness' => '🏋️',
-                        'fashion-accessories' => '👗',
-                        'beauty-personal-care' => '💄',
-                        'software' => '🛡️',
-                    ];
-                    $cat->icon = $icons[$cat->slug] ?? ($cat->icon ?: '📦');
-                    return $cat;
-                })
-                ->sortByDesc('active_deals_count')
-                ->values();
-        });
-
-        $merchants = \Illuminate\Support\Facades\Cache::remember('popular_merchants_home', 300, function () {
-            return \App\Models\Merchant::whereNotNull('name')
-                ->where('name', '!=', '')
-                ->where('name', 'NOT LIKE', '%.url%')
-                ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
-                ->get()
-                ->filter(fn($m) => !empty($m->name) && (($m->active_deals_count ?? 0) > 0))
-                ->sortByDesc('active_deals_count')
-                ->values();
-        });
-
-        $brands = \Illuminate\Support\Facades\Cache::remember('popular_brands_home', 300, function () {
-            return \App\Models\Brand::whereNotNull('name')
-                ->where('name', '!=', '')
-                ->where('name', 'NOT LIKE', '%.url%')
-                ->where('name', 'NOT LIKE', '%"%')
-                ->whereNotIn('slug', ['amazon', 'flipkart', 'myntra', 'croma', 'reliance-digital'])
-                ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
-                ->get()
-                ->filter(fn($b) => !empty($b->name) && (($b->active_deals_count ?? 0) > 0))
-                ->sortByDesc('active_deals_count')
-                ->take(15)
-                ->values();
-        });
-
-        return view('welcome', compact('deals', 'pageTitle', 'filters', 'seoMeta', 'trendingDeals', 'heroDeals', 'categories', 'merchants', 'brands'));
-    }
-
-    public function byCategory(Request $request, $slug)
-    {
-        $slugAliases = [
-            'home' => 'home-kitchen',
-            'kitchen' => 'home-kitchen',
-            'home-and-kitchen' => 'home-kitchen',
-            'fashion' => 'fashion-accessories',
-            'clothing' => 'fashion-accessories',
-            'beauty' => 'beauty-personal-care',
-            'personal-care' => 'beauty-personal-care',
-            'courses' => 'courses-education',
-            'education' => 'courses-education',
-            'baby' => 'baby-products',
-            'grocery' => 'grocery',
-            'food' => 'grocery',
-        ];
-
-        $canonicalSlug = $slugAliases[strtolower($slug)] ?? strtolower($slug);
-
-        // Redirect short/common aliases to canonical category URL
-        if ($canonicalSlug !== strtolower($slug)) {
-            return redirect()->route('deals.category', array_merge($request->query(), ['slug' => $canonicalSlug]), 301);
-        }
-
-        $category = Category::where('slug', $canonicalSlug)->first();
-        if (!$category) {
-            $category = Category::where('slug', 'like', $canonicalSlug . '-%')
-                ->orWhere('slug', 'like', '%-' . $canonicalSlug)
-                ->first();
-        }
-
-        if (!$category) {
-            $name = ucwords(str_replace(['-', '_'], ' ', $canonicalSlug));
-            $category = Category::firstOrCreate(['slug' => $canonicalSlug], ['name' => $name, 'icon' => '📦']);
-        }
-        
-        $filters = array_merge($request->all(), ['category_slug' => $category->slug]);
-        $deals = $this->pipeline->search($filters);
-        
-        $pageTitle = $category->name . ' Deals';
-        $breadcrumbs = $this->breadcrumbService->generate([
-            ['title' => 'Home', 'url' => '/'],
-            ['title' => 'Categories', 'url' => '#'],
-            ['title' => $category->name, 'url' => ''],
-        ]);
-        
-        $seoMeta = $this->seoService->generateMeta(
-            $pageTitle . ' | LatestDeal',
-            'Find the best ' . $category->name . ' deals and discounts.',
-            url('/categories/' . $category->slug)
-        );
-        $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
-
-        // Fetch Editorial SEO Hub Data
-        $hubData = $this->hubService->getHubData('category', $slug);
-        
-        // Track Interaction if logged in
-        if (auth()->check()) {
-            app(\App\Services\User\InteractionService::class)->record('watch_category', 'category_page', null, [
-                'category' => $category->name,
-                'slug' => $category->slug
-            ]);
-        }
-
-        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'category', 'hubData'));
-    }
-
-    public function byBrand(Request $request, $slug)
-    {
-        $brand = Brand::where('slug', $slug)->first();
-        if (!$brand) {
-            $name = ucwords(str_replace(['-', '_'], ' ', $slug));
-            $brand = Brand::firstOrCreate(['slug' => $slug], ['name' => $name]);
-        }
-        
-        $filters = array_merge($request->all(), ['brand_slug' => $slug]);
-        
-        $query = Deal::where('status', 'active');
-
-        // Brand ID filter or string fallback
-        $query->where(function ($q) use ($brand, $slug) {
-            $q->where('brand_id', $brand->id)
-              ->orWhere('brand', 'LIKE', '%' . $slug . '%')
-              ->orWhere('title', 'LIKE', '%' . $slug . '%');
-        });
-
-        // Defensive guard: Exclude generic acoustic noise cancelling/reduction products from Noise brand page
-        if (strtolower($slug) === 'noise') {
-            $query->whereRaw("LOWER(title) NOT LIKE '%noise cancelling%' AND LOWER(title) NOT LIKE '%noise cancellation%' AND LOWER(title) NOT LIKE '%noise reduction%'");
-        }
-
-        $deals = $query->paginate(15);
-
-        // Deduplicate near-identical product entries
-        $uniqueCollection = $deals->getCollection()->unique(function ($deal) {
-            $cleanTitle = mb_strtolower($deal->title ?? '', 'UTF-8');
-            $cleanTitle = preg_replace('/(wireless|bluetooth|headphones|headphone|earphones|earphone|noise|cancelling|cancellation|reduction|new|on-ear|over-ear|in-ear|mic|3-level|adjustable|for|youtube|with|and|brown|midnight|blue|black|white|silver|grey|gold|red|color|1006834|🚨)/i', '', $cleanTitle);
-            $cleanTitle = preg_replace('/[^a-z0-9]/', '', $cleanTitle);
-            return $cleanTitle . '_' . (int)($deal->discounted_price ?? 0);
-        });
-        $deals->setCollection($uniqueCollection->values());
-        
-        $pageTitle = $brand->name . ' Deals';
-        $breadcrumbs = $this->breadcrumbService->generate([
-            ['title' => 'Home', 'url' => '/'],
-            ['title' => 'Brands', 'url' => '#'],
-            ['title' => $brand->name, 'url' => ''],
-        ]);
-        
-        $seoMeta = $this->seoService->generateMeta(
-            $pageTitle . ' | LatestDeal',
-            'Find the best ' . $brand->name . ' deals and discounts.',
-            url('/brands/' . $brand->slug)
-        );
-        $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
-
-        // Fetch Editorial SEO Hub Data
-        $hubData = $this->hubService->getHubData('brand', $slug);
-        
-        // Track Interaction if logged in
-        if (auth()->check()) {
-            app(\App\Services\User\InteractionService::class)->record('watch_brand', 'brand_page', null, [
-                'brand' => $brand->name,
-                'slug' => $brand->slug
-            ]);
-        }
-
-        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'brand', 'hubData'));
-    }
-
-    public function byMerchant(Request $request, $slug)
-    {
-        $normalizedName = str_replace(['-', '_'], ' ', $slug);
-
-        $merchant = Merchant::where('name', 'like', $slug)
-            ->orWhere('name', 'like', $normalizedName)
-            ->orWhere('name', 'like', "%{$normalizedName}%")
-            ->orWhere('domain', 'like', "%{$slug}%")
-            ->orWhere('store_id', 'like', $slug)
-            ->first();
-
-        if (!$merchant && str_contains(strtolower($slug), 'amazon')) {
-            $merchant = Merchant::where('name', 'like', '%Amazon%')->first();
-        }
-
-        if (!$merchant) {
-            $name = ucwords($normalizedName);
-            $merchant = Merchant::firstOrCreate(
-                ['name' => $name],
-                [
-                    'domain' => strtolower($slug) . '.in',
-                    'store_id' => strtolower($slug),
-                    'affiliate_param_key' => 'tag',
-                    'status' => 1
-                ]
-            );
-        }
-        
-        $filters = array_merge($request->all(), ['merchant_slug' => $merchant->name]); 
-        
-        $filters['merchant_id'] = $merchant->id;
-        $deals = $this->pipeline->search($filters);
-        
-        $pageTitle = $merchant->name . ' Deals';
-        $breadcrumbs = $this->breadcrumbService->generate([
-            ['title' => 'Home', 'url' => '/'],
-            ['title' => 'Merchants', 'url' => '#'],
-            ['title' => $merchant->name, 'url' => ''],
-        ]);
-        
-        $seoMeta = $this->seoService->generateMeta(
-            $pageTitle . ' | LatestDeal',
-            'Find the best ' . $merchant->name . ' deals and discounts.',
-            url('/merchants/' . \Illuminate\Support\Str::slug($merchant->name))
-        );
-        $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
-
-        // Fetch Editorial SEO Hub Data
-        $hubData = $this->hubService->getHubData('merchant', $slug);
-        
-        // Track Interaction if logged in
-        if (auth()->check()) {
-            app(\App\Services\User\InteractionService::class)->record('watch_merchant', 'merchant_page', null, [
-                'merchant' => $merchant->name,
-                'slug' => $slug
-            ]);
-        }
-
-        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'merchant', 'hubData'));
-    }
-
-    public function byDiscount(Request $request, $range)
-    {
-        $filters = array_merge($request->all(), []);
-        $cleanRange = strtolower(trim($range));
-        
-        // 1. Handle "all", "latest", "today", "explore"
-        if (in_array($cleanRange, ['all', 'latest', 'today', 'explore', 'popular', 'featured'])) {
-            if ($cleanRange === 'popular') {
-                $filters['sort'] = 'popular';
-            } elseif ($cleanRange === 'featured') {
-                $filters['sort'] = 'featured';
-            }
-            $filters['per_page'] = (int) $request->input('per_page', 24);
-            $deals = $this->pipeline->search($filters);
-            $pageTitle = 'All Deals';
-            $breadcrumbs = $this->breadcrumbService->generate([
-                ['title' => 'Home', 'url' => '/'],
-                ['title' => 'All Deals', 'url' => ''],
-            ]);
-            $seoMeta = $this->seoService->generateMeta(
-                'All Deals | LatestDeal',
-                'Browse our entire curated collection of active deals, discounts, and price drops.',
-                url('/deals/' . $range)
-            );
-            $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
-
-            return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema'));
-        }
-
-        // 2. Range regex: handles 40-to-50-percent, 40-to-50, 40-50-percent, 40-50-off, 40-50
-        if (preg_match('/^(\d+)-(?:to-)?(\d+)(?:-percent|-off)?$/i', $cleanRange, $matches)) {
-            $filters['discount_range'] = $matches[1] . '-' . $matches[2];
-            $pageTitle = $matches[1] . '% - ' . $matches[2] . '% Off Deals';
-        }
-        // 3. Single threshold: handles 50-off, 50-percent, 50-percent-or-more, 50-percent-plus, 50-plus
-        elseif (preg_match('/^(\d+)(?:-percent-or-more|-percent-plus|-percent|-off|-plus)$/i', $cleanRange, $matches)) {
-            $filters['discount_range'] = $matches[1] . '+';
-            $pageTitle = $matches[1] . '%+ Off Deals';
-        }
-        // 4. Budget cap: handles under-500, under-1000, under-50000
-        elseif (preg_match('/^under-(\d+)$/i', $cleanRange, $matches)) {
-            $filters['max_price'] = (float) $matches[1];
-            $pageTitle = 'Deals Under ₹' . number_format($matches[1]);
-        }
-        // 5. Intelligent fallback: check if $range is a category or brand alias
-        else {
-            $category = Category::where('slug', $cleanRange)->first();
-            if ($category) {
-                return redirect()->route('deals.category', array_merge($request->query(), ['slug' => $cleanRange]), 301);
-            }
-            $brand = Brand::where('slug', $cleanRange)->first();
-            if ($brand) {
-                return redirect()->route('deals.brand', array_merge($request->query(), ['slug' => $cleanRange]), 301);
-            }
-
-            // Keyword fallback instead of 404
-            $searchTerm = str_replace('-', ' ', $cleanRange);
-            $filters['q'] = $searchTerm;
-            $pageTitle = 'Deals: "' . ucwords($searchTerm) . '"';
-        }
-
-        $deals = $this->pipeline->search($filters);
-
-        // Fallback: If no deals match exact discount tier, return top discounted deals sorted by discount percentage
-        if ($deals->isEmpty() && isset($filters['discount_range'])) {
-            unset($filters['discount_range'], $filters['discount_min'], $filters['discount_max']);
-            $filters['sort'] = 'discount';
-            $deals = $this->pipeline->search($filters);
-        }
-
-        $breadcrumbs = $this->breadcrumbService->generate([
-            ['title' => 'Home', 'url' => '/'],
-            ['title' => isset($filters['max_price']) ? 'Budget Deals' : 'Discounts', 'url' => '#'],
-            ['title' => $pageTitle, 'url' => ''],
-        ]);
-        
-        $seoMeta = $this->seoService->generateMeta(
-            $pageTitle . ' | LatestDeal',
-            'Browse our collection of ' . $pageTitle . ' from top merchants.',
-            url('/deals/' . $range)
-        );
-        $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
-
-        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema'));
-    }
-
-    public function show(Request $request, $slug)
-    {
-        $deal = Deal::with(['merchant', 'category', 'brandRelation', 'priceHistories', 'tags'])
-            ->where('slug', $slug)
-            ->first();
-
-        if (!$deal && preg_match('/-(\d+)$/', $slug, $matches)) {
-            $deal = Deal::with(['merchant', 'category', 'brandRelation', 'priceHistories', 'tags'])->find($matches[1]);
-            if ($deal) {
-                if (empty($deal->getAttributes()['slug'])) {
-                    $deal->slug = $slug;
-                    $deal->saveQuietly();
-                } elseif ($deal->slug !== $slug) {
-                    return redirect()->route('deals.show', $deal->slug, 301);
-                }
-            }
-        }
-
-        if (!$deal) {
-            abort(404);
-        }
-
-        // 1. Expired Lifecycle Enforcement
-        if (strtolower($deal->status) === 'expired' || $deal->status === \App\Models\Deal::STATUS_EXPIRED) {
-            // If it doesn't have substantial historical value (isIndexable), it's obsolete.
-            if (!$deal->isIndexable()) {
-                abort(410); // 410 Gone
-            }
-            // (Future enhancement: return 301 Redirect if $deal->replacement_id exists)
-        } elseif (!$deal->isPublishable()) {
-            // 2. Direct Access Enforcement: Unpublished deals conceptually do not exist publicly
-            abort(404);
-        }
-
-        // 3. Server-Generated Canonical URL (Strips UTMs and params)
-        $canonicalUrl = route('deals.show', $deal->slug);
-
-        // Price history for the chart section - sanitize outliers exceeding authentic MRP
-        $currentPrice = (float)$deal->discounted_price;
-        $mrpCeiling = ($deal->original_price > 0) ? (float)$deal->original_price : $currentPrice;
-        $rawPriceHistory = $deal->priceHistories()->orderBy('recorded_at', 'asc')->get();
-        
-        $priceHistory = $rawPriceHistory->filter(function($h) use ($mrpCeiling) {
-            return (float)$h->price <= $mrpCeiling * 1.05;
-        })->values();
-
-        // Ensure current price is recorded as lowest/latest point if history is outdated
-        if ($priceHistory->isEmpty() || (float)$priceHistory->min('price') > $currentPrice) {
-            $priceHistory->push((object)[
-                'recorded_at' => now()->toDateTimeString(),
-                'price' => $currentPrice,
-            ]);
-        }
-
-        // If filtered history has fewer than 2 points, synthesize a realistic 3-point progression
-        if ($priceHistory->count() < 2) {
-            $priceHistory = collect([
-                (object)[
-                    'recorded_at' => now()->subDays(30)->toDateTimeString(),
-                    'price' => $mrpCeiling,
-                ],
-                (object)[
-                    'recorded_at' => now()->subDays(10)->toDateTimeString(),
-                    'price' => round(($mrpCeiling + $currentPrice) / 2),
-                ],
-                (object)[
-                    'recorded_at' => now()->toDateTimeString(),
-                    'price' => $currentPrice,
-                ],
-            ]);
-        }
-
-        // Similar deals from the same category, excluding current
-        $similarDeals = Deal::where('status', 'active')
-            ->where('id', '!=', $deal->id)
-            ->where(function ($q) use ($deal) {
-                $q->where('category_id', $deal->category_id)
-                  ->orWhere('brand_id', $deal->brand_id);
-            })
-            ->orderByDesc('ai_score')
-            ->limit(4)
-            ->get();
-
-        $pageTitle = $deal->title;
-        $breadcrumbs = $this->breadcrumbService->generate([
-            ['title' => 'Home', 'url' => '/'],
-            ['title' => 'Deals', 'url' => '/'],
-            ['title' => $deal->title, 'url' => ''],
-        ]);
-        $seoMeta = $this->seoService->generateMeta(
-            $pageTitle . ' | LatestDeal',
-            $deal->title . ' - Best deal price ₹' . number_format($deal->discounted_price),
-            $canonicalUrl
-        );
-        $seoMeta['canonical'] = $canonicalUrl; // Force clean canonical
-        
-        $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
-
-        return view('deals.show', compact('deal', 'pageTitle', 'breadcrumbs', 'seoMeta', 'schema', 'priceHistory', 'similarDeals'));
-    }
-}
+<?php
+
+
+
+namespace App\Http\Controllers\Frontend;
+
+
+
+use App\Http\Controllers\Controller;
+
+use Illuminate\Http\Request;
+
+use App\Services\SearchPipeline\DealSearchPipeline;
+
+use App\Models\Deal;
+
+use App\Models\Category;
+
+use App\Models\Brand;
+
+use App\Models\Merchant;
+
+use App\Services\SeoService;
+
+use App\Services\BreadcrumbService;
+
+
+
+class BrowseController extends Controller
+
+{
+
+    protected $pipeline;
+
+    protected $seoService;
+
+    protected $breadcrumbService;
+
+    protected $recommendationService;
+
+    protected $hubService;
+
+
+
+    public function __construct(
+
+        DealSearchPipeline $pipeline, 
+
+        SeoService $seoService, 
+
+        BreadcrumbService $breadcrumbService,
+
+        \App\Services\RecommendationService $recommendationService,
+
+        \App\Services\HubDataService $hubService
+
+    ) {
+
+        $this->pipeline = $pipeline;
+
+        $this->seoService = $seoService;
+
+        $this->breadcrumbService = $breadcrumbService;
+
+        $this->recommendationService = $recommendationService;
+
+        $this->hubService = $hubService;
+
+    }
+
+
+
+    public function index(Request $request)
+
+    {
+
+        $filters = $request->all();
+
+        $deals = $this->pipeline->search($filters);
+
+
+
+        if ($request->ajax()) {
+
+            $totalCount = $deals->total();
+
+            return response()->json([
+
+                'html' => view('partials.deals_grid', compact('deals'))->render(),
+
+                'next_page' => $deals->nextPageUrl(),
+
+                'has_more' => $deals->hasMorePages(),
+
+                'total' => $totalCount,
+
+                'count_text' => $totalCount > 0 
+
+                    ? 'Showing ' . number_format($totalCount) . ' catalog-audited deals' 
+
+                    : 'No active deals found matching your selected criteria'
+
+            ]);
+
+        }
+
+
+
+        $pageTitle = 'All Deals';
+
+        if ($request->filled('q') || $request->filled('search')) {
+
+            $searchTerm = $request->input('q') ?? $request->input('search');
+
+            $pageTitle = 'Search: "' . e($searchTerm) . '"';
+
+        } elseif ($request->filled('max_price')) {
+
+            $pageTitle = 'Deals Under ₹' . number_format((float)$request->input('max_price'));
+
+        }
+
+        
+
+        $seoMeta = $this->seoService->generateMeta(
+
+            $pageTitle . ' | LatestDeal',
+
+            'Find the best deals and discounts across all categories.',
+
+            url()->current()
+
+        );
+
+
+
+        $trendingDeals = null;
+
+        $heroDeals = null;
+
+        if (empty($filters)) {
+
+            try {
+
+                $trendingDeals = $this->recommendationService->getTrending(5);
+
+            } catch (\Throwable $e) {
+
+                \Illuminate\Support\Facades\Log::warning('Trending deals fetch failed: ' . $e->getMessage());
+
+                $trendingDeals = collect();
+
+            }
+
+
+
+            try {
+
+                $heroDeals = \Illuminate\Support\Facades\Cache::remember("hero_deals_10", 300, function () {
+
+                    return Deal::publishable()
+
+                        ->with(['merchant', 'category'])
+
+                        ->where('status', 'active')
+
+                        ->orderBy('ai_score', 'desc')
+
+                        ->limit(10)
+
+                        ->get();
+
+                });
+
+            } catch (\Throwable $e) {
+
+                \Illuminate\Support\Facades\Log::warning('Hero deals fetch failed: ' . $e->getMessage());
+
+                $heroDeals = collect();
+
+            }
+
+        }
+
+
+
+        $categories = \Illuminate\Support\Facades\Cache::remember('popular_categories_home', 300, function () {
+
+            return \App\Models\Category::whereNotIn('slug', ['general', 'uncategorized', 'all-other-categories', 'c.url', 'item.url', 'b.url', 'd.url', 'm.url'])
+
+                ->where('slug', 'NOT LIKE', '%.url%')
+
+                ->where('slug', 'NOT LIKE', '%"%')
+
+                ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
+
+                ->get()
+
+                ->filter(fn($c) => preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $c->slug) && (($c->active_deals_count ?? 0) > 0))
+
+                ->map(function ($cat) {
+
+                    $icons = [
+
+                        'mobiles' => '📱',
+
+                        'mobile-phones' => '📱',
+
+                        'electronics' => '💻',
+
+                        'home-kitchen' => '🏡',
+
+                        'sports-fitness' => '🏋️',
+
+                        'fashion-accessories' => '👗',
+
+                        'beauty-personal-care' => '💄',
+
+                        'software' => '🛡️',
+
+                    ];
+
+                    $cat->icon = $icons[$cat->slug] ?? ($cat->icon ?: '📦');
+
+                    return $cat;
+
+                })
+
+                ->sortByDesc('active_deals_count')
+
+                ->values();
+
+        });
+
+
+
+        $merchants = \Illuminate\Support\Facades\Cache::remember('popular_merchants_home', 300, function () {
+
+            return \App\Models\Merchant::whereNotNull('name')
+
+                ->where('name', '!=', '')
+
+                ->where('name', 'NOT LIKE', '%.url%')
+
+                ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
+
+                ->get()
+
+                ->filter(fn($m) => !empty($m->name) && (($m->active_deals_count ?? 0) > 0))
+
+                ->sortByDesc('active_deals_count')
+
+                ->values();
+
+        });
+
+
+
+        $brands = \Illuminate\Support\Facades\Cache::remember('popular_brands_home', 300, function () {
+
+            return \App\Models\Brand::whereNotNull('name')
+
+                ->where('name', '!=', '')
+
+                ->where('name', 'NOT LIKE', '%.url%')
+
+                ->where('name', 'NOT LIKE', '%"%')
+
+                ->whereNotIn('slug', ['amazon', 'flipkart', 'myntra', 'croma', 'reliance-digital'])
+
+                ->withCount(['deals as active_deals_count' => fn($q) => $q->where('status', 'active')])
+
+                ->get()
+
+                ->filter(fn($b) => !empty($b->name) && (($b->active_deals_count ?? 0) > 0))
+
+                ->sortByDesc('active_deals_count')
+
+                ->take(15)
+
+                ->values();
+
+        });
+
+
+
+        return view('welcome', compact('deals', 'pageTitle', 'filters', 'seoMeta', 'trendingDeals', 'heroDeals', 'categories', 'merchants', 'brands'));
+
+    }
+
+
+
+    public function byCategory(Request $request, $slug)
+
+    {
+
+        $slugAliases = [
+
+            'home' => 'home-kitchen',
+
+            'kitchen' => 'home-kitchen',
+
+            'home-and-kitchen' => 'home-kitchen',
+
+            'fashion' => 'fashion-accessories',
+
+            'clothing' => 'fashion-accessories',
+
+            'beauty' => 'beauty-personal-care',
+
+            'personal-care' => 'beauty-personal-care',
+
+            'courses' => 'courses-education',
+
+            'education' => 'courses-education',
+
+            'baby' => 'baby-products',
+
+            'grocery' => 'grocery',
+
+            'food' => 'grocery',
+
+        ];
+
+
+
+        $canonicalSlug = $slugAliases[strtolower($slug)] ?? strtolower($slug);
+
+
+
+        // Redirect short/common aliases to canonical category URL
+
+        if ($canonicalSlug !== strtolower($slug)) {
+
+            return redirect()->route('deals.category', array_merge($request->query(), ['slug' => $canonicalSlug]), 301);
+
+        }
+
+
+
+        $category = Category::where('slug', $canonicalSlug)->first();
+
+        if (!$category) {
+
+            $category = Category::where('slug', 'like', $canonicalSlug . '-%')
+
+                ->orWhere('slug', 'like', '%-' . $canonicalSlug)
+
+                ->first();
+
+        }
+
+
+
+        if (!$category) {
+
+            $name = ucwords(str_replace(['-', '_'], ' ', $canonicalSlug));
+
+            $category = Category::firstOrCreate(['slug' => $canonicalSlug], ['name' => $name, 'icon' => '📦']);
+
+        }
+
+        
+
+        $filters = array_merge($request->all(), ['category_slug' => $category->slug]);
+
+        $deals = $this->pipeline->search($filters);
+
+        
+
+        $pageTitle = $category->name . ' Deals';
+
+        $breadcrumbs = $this->breadcrumbService->generate([
+
+            ['title' => 'Home', 'url' => '/'],
+
+            ['title' => 'Categories', 'url' => '#'],
+
+            ['title' => $category->name, 'url' => ''],
+
+        ]);
+
+        
+
+        $seoMeta = $this->seoService->generateMeta(
+
+            $pageTitle . ' | LatestDeal',
+
+            'Find the best ' . $category->name . ' deals and discounts.',
+
+            url('/categories/' . $category->slug)
+
+        );
+
+        $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
+
+
+
+        // Fetch Editorial SEO Hub Data
+
+        $hubData = $this->hubService->getHubData('category', $slug);
+
+        
+
+        // Track Interaction if logged in
+
+        if (auth()->check()) {
+
+            app(\App\Services\User\InteractionService::class)->record('watch_category', 'category_page', null, [
+
+                'category' => $category->name,
+
+                'slug' => $category->slug
+
+            ]);
+
+        }
+
+
+
+        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'category', 'hubData'));
+
+    }
+
+
+
+    public function byBrand(Request $request, $slug)
+
+    {
+
+        $brand = Brand::where('slug', $slug)->first();
+
+        if (!$brand) {
+
+            $name = ucwords(str_replace(['-', '_'], ' ', $slug));
+
+            $brand = Brand::firstOrCreate(['slug' => $slug], ['name' => $name]);
+
+        }
+
+        
+
+        $filters = array_merge($request->all(), ['brand_slug' => $slug]);
+
+        
+
+        $query = Deal::where('status', 'active');
+
+
+
+        // Brand ID filter or string fallback
+
+        $query->where(function ($q) use ($brand, $slug) {
+
+            $q->where('brand_id', $brand->id)
+
+              ->orWhere('brand', 'LIKE', '%' . $slug . '%')
+
+              ->orWhere('title', 'LIKE', '%' . $slug . '%');
+
+        });
+
+
+
+        // Defensive guard: Exclude generic acoustic noise cancelling/reduction products from Noise brand page
+
+        if (strtolower($slug) === 'noise') {
+
+            $query->whereRaw("LOWER(title) NOT LIKE '%noise cancelling%' AND LOWER(title) NOT LIKE '%noise cancellation%' AND LOWER(title) NOT LIKE '%noise reduction%'");
+
+        }
+
+
+
+        $deals = $query->paginate(15);
+
+
+
+        // Deduplicate near-identical product entries
+
+        $uniqueCollection = $deals->getCollection()->unique(function ($deal) {
+
+            $cleanTitle = mb_strtolower($deal->title ?? '', 'UTF-8');
+
+            $cleanTitle = preg_replace('/(wireless|bluetooth|headphones|headphone|earphones|earphone|noise|cancelling|cancellation|reduction|new|on-ear|over-ear|in-ear|mic|3-level|adjustable|for|youtube|with|and|brown|midnight|blue|black|white|silver|grey|gold|red|color|1006834|🚨)/i', '', $cleanTitle);
+
+            $cleanTitle = preg_replace('/[^a-z0-9]/', '', $cleanTitle);
+
+            return $cleanTitle . '_' . (int)($deal->discounted_price ?? 0);
+
+        });
+
+        $deals->setCollection($uniqueCollection->values());
+
+        
+
+        $pageTitle = $brand->name . ' Deals';
+
+        $breadcrumbs = $this->breadcrumbService->generate([
+
+            ['title' => 'Home', 'url' => '/'],
+
+            ['title' => 'Brands', 'url' => '#'],
+
+            ['title' => $brand->name, 'url' => ''],
+
+        ]);
+
+        
+
+        $seoMeta = $this->seoService->generateMeta(
+
+            $pageTitle . ' | LatestDeal',
+
+            'Find the best ' . $brand->name . ' deals and discounts.',
+
+            url('/brands/' . $brand->slug)
+
+        );
+
+        $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
+
+
+
+        // Fetch Editorial SEO Hub Data
+
+        $hubData = $this->hubService->getHubData('brand', $slug);
+
+        
+
+        // Track Interaction if logged in
+
+        if (auth()->check()) {
+
+            app(\App\Services\User\InteractionService::class)->record('watch_brand', 'brand_page', null, [
+
+                'brand' => $brand->name,
+
+                'slug' => $brand->slug
+
+            ]);
+
+        }
+
+
+
+        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'brand', 'hubData'));
+
+    }
+
+
+
+    public function byMerchant(Request $request, $slug)
+
+    {
+
+        $normalizedName = str_replace(['-', '_'], ' ', $slug);
+
+
+
+        $merchant = Merchant::where('name', 'like', $slug)
+
+            ->orWhere('name', 'like', $normalizedName)
+
+            ->orWhere('name', 'like', "%{$normalizedName}%")
+
+            ->orWhere('domain', 'like', "%{$slug}%")
+
+            ->orWhere('store_id', 'like', $slug)
+
+            ->first();
+
+
+
+        if (!$merchant && str_contains(strtolower($slug), 'amazon')) {
+
+            $merchant = Merchant::where('name', 'like', '%Amazon%')->first();
+
+        }
+
+
+
+        if (!$merchant) {
+
+            $name = ucwords($normalizedName);
+
+            $merchant = Merchant::firstOrCreate(
+
+                ['name' => $name],
+
+                [
+
+                    'domain' => strtolower($slug) . '.in',
+
+                    'store_id' => strtolower($slug),
+
+                    'affiliate_param_key' => 'tag',
+
+                    'status' => 1
+
+                ]
+
+            );
+
+        }
+
+        
+
+        $filters = array_merge($request->all(), ['merchant_slug' => $merchant->name]); 
+
+        
+
+        $filters['merchant_id'] = $merchant->id;
+
+        $deals = $this->pipeline->search($filters);
+
+        
+
+        $pageTitle = $merchant->name . ' Deals';
+
+        $breadcrumbs = $this->breadcrumbService->generate([
+
+            ['title' => 'Home', 'url' => '/'],
+
+            ['title' => 'Merchants', 'url' => '#'],
+
+            ['title' => $merchant->name, 'url' => ''],
+
+        ]);
+
+        
+
+        $seoMeta = $this->seoService->generateMeta(
+
+            $pageTitle . ' | LatestDeal',
+
+            'Find the best ' . $merchant->name . ' deals and discounts.',
+
+            url('/merchants/' . \Illuminate\Support\Str::slug($merchant->name))
+
+        );
+
+        $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
+
+
+
+        // Fetch Editorial SEO Hub Data
+
+        $hubData = $this->hubService->getHubData('merchant', $slug);
+
+        
+
+        // Track Interaction if logged in
+
+        if (auth()->check()) {
+
+            app(\App\Services\User\InteractionService::class)->record('watch_merchant', 'merchant_page', null, [
+
+                'merchant' => $merchant->name,
+
+                'slug' => $slug
+
+            ]);
+
+        }
+
+
+
+        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema', 'merchant', 'hubData'));
+
+    }
+
+
+
+    public function byDiscount(Request $request, $range)
+
+    {
+
+        $filters = array_merge($request->all(), []);
+
+        $cleanRange = strtolower(trim($range));
+
+        
+
+        // 1. Handle "all", "latest", "today", "explore"
+
+        if (in_array($cleanRange, ['all', 'latest', 'today', 'explore', 'popular', 'featured'])) {
+
+            if ($cleanRange === 'popular') {
+
+                $filters['sort'] = 'popular';
+
+            } elseif ($cleanRange === 'featured') {
+
+                $filters['sort'] = 'featured';
+
+            }
+
+            $filters['per_page'] = (int) $request->input('per_page', 24);
+
+            $deals = $this->pipeline->search($filters);
+
+            $pageTitle = 'All Deals';
+
+            $breadcrumbs = $this->breadcrumbService->generate([
+
+                ['title' => 'Home', 'url' => '/'],
+
+                ['title' => 'All Deals', 'url' => ''],
+
+            ]);
+
+            $seoMeta = $this->seoService->generateMeta(
+
+                'All Deals | LatestDeal',
+
+                'Browse our entire curated collection of active deals, discounts, and price drops.',
+
+                url('/deals/' . $range)
+
+            );
+
+            $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
+
+
+
+            return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema'));
+
+        }
+
+
+
+        // 2. Range regex: handles 40-to-50-percent, 40-to-50, 40-50-percent, 40-50-off, 40-50
+
+        if (preg_match('/^(\d+)-(?:to-)?(\d+)(?:-percent|-off)?$/i', $cleanRange, $matches)) {
+
+            $filters['discount_range'] = $matches[1] . '-' . $matches[2];
+
+            $pageTitle = $matches[1] . '% - ' . $matches[2] . '% Off Deals';
+
+        }
+
+        // 3. Single threshold: handles 50-off, 50-percent, 50-percent-or-more, 50-percent-plus, 50-plus
+
+        elseif (preg_match('/^(\d+)(?:-percent-or-more|-percent-plus|-percent|-off|-plus)$/i', $cleanRange, $matches)) {
+
+            $filters['discount_range'] = $matches[1] . '+';
+
+            $pageTitle = $matches[1] . '%+ Off Deals';
+
+        }
+
+        // 4. Budget cap: handles under-500, under-1000, under-50000
+
+        elseif (preg_match('/^under-(\d+)$/i', $cleanRange, $matches)) {
+
+            $filters['max_price'] = (float) $matches[1];
+
+            $pageTitle = 'Deals Under ₹' . number_format($matches[1]);
+
+        }
+
+        // 5. Intelligent fallback: check if $range is a category or brand alias
+
+        else {
+
+            $category = Category::where('slug', $cleanRange)->first();
+
+            if ($category) {
+
+                return redirect()->route('deals.category', array_merge($request->query(), ['slug' => $cleanRange]), 301);
+
+            }
+
+            $brand = Brand::where('slug', $cleanRange)->first();
+
+            if ($brand) {
+
+                return redirect()->route('deals.brand', array_merge($request->query(), ['slug' => $cleanRange]), 301);
+
+            }
+
+
+
+            // Keyword fallback instead of 404
+
+            $searchTerm = str_replace('-', ' ', $cleanRange);
+
+            $filters['q'] = $searchTerm;
+
+            $pageTitle = 'Deals: "' . ucwords($searchTerm) . '"';
+
+        }
+
+
+
+        $deals = $this->pipeline->search($filters);
+
+
+
+        // Fallback: If no deals match exact discount tier, return top discounted deals sorted by discount percentage
+
+        if ($deals->isEmpty() && isset($filters['discount_range'])) {
+
+            unset($filters['discount_range'], $filters['discount_min'], $filters['discount_max']);
+
+            $filters['sort'] = 'discount';
+
+            $deals = $this->pipeline->search($filters);
+
+        }
+
+
+
+        $breadcrumbs = $this->breadcrumbService->generate([
+
+            ['title' => 'Home', 'url' => '/'],
+
+            ['title' => isset($filters['max_price']) ? 'Budget Deals' : 'Discounts', 'url' => '#'],
+
+            ['title' => $pageTitle, 'url' => ''],
+
+        ]);
+
+        
+
+        $seoMeta = $this->seoService->generateMeta(
+
+            $pageTitle . ' | LatestDeal',
+
+            'Browse our collection of ' . $pageTitle . ' from top merchants.',
+
+            url('/deals/' . $range)
+
+        );
+
+        $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
+
+
+
+        return view('welcome', compact('deals', 'pageTitle', 'breadcrumbs', 'filters', 'seoMeta', 'schema'));
+
+    }
+
+
+
+    public function show(Request $request, $slug)
+
+    {
+
+        $deal = Deal::with(['merchant', 'category', 'brandRelation', 'priceHistories', 'tags'])
+
+            ->where('slug', $slug)
+
+            ->first();
+
+
+
+        if (!$deal && preg_match('/-(\d+)$/', $slug, $matches)) {
+
+            $deal = Deal::with(['merchant', 'category', 'brandRelation', 'priceHistories', 'tags'])->find($matches[1]);
+
+            if ($deal) {
+
+                if (empty($deal->getAttributes()['slug'])) {
+
+                    $deal->slug = $slug;
+
+                    $deal->saveQuietly();
+
+                } elseif ($deal->slug !== $slug) {
+
+                    return redirect()->route('deals.show', $deal->slug, 301);
+
+                }
+
+            }
+
+        }
+
+
+
+        if (!$deal) {
+
+            abort(404);
+
+        }
+
+
+
+        // 1. Expired Lifecycle Enforcement
+
+        if (strtolower($deal->status) === 'expired' || $deal->status === \App\Models\Deal::STATUS_EXPIRED) {
+
+            // If it doesn't have substantial historical value (isIndexable), it's obsolete.
+
+            if (!$deal->isIndexable()) {
+
+                abort(410); // 410 Gone
+
+            }
+
+            // (Future enhancement: return 301 Redirect if $deal->replacement_id exists)
+
+        } elseif (!$deal->isPublishable()) {
+
+            // 2. Direct Access Enforcement: Unpublished deals conceptually do not exist publicly
+
+            abort(404);
+
+        }
+
+
+
+        // 3. Server-Generated Canonical URL (Strips UTMs and params)
+
+        $canonicalUrl = route('deals.show', $deal->slug);
+
+
+
+        // Price history for the chart section - sanitize outliers exceeding authentic MRP
+
+        $currentPrice = (float)$deal->discounted_price;
+
+        $mrpCeiling = ($deal->original_price > 0) ? (float)$deal->original_price : $currentPrice;
+
+        $rawPriceHistory = $deal->priceHistories()->orderBy('recorded_at', 'asc')->get();
+
+        
+
+        $priceHistory = $rawPriceHistory->filter(function($h) use ($mrpCeiling) {
+
+            return (float)$h->price <= $mrpCeiling * 1.05;
+
+        })->values();
+
+
+
+        // Ensure genuine observed price point is represented if history table is empty
+        if ($priceHistory->isEmpty()) {
+            $priceHistory->push((object)[
+                'recorded_at' => ($deal->updated_at ?: now())->toDateTimeString(),
+                'price' => $currentPrice,
+            ]);
+        }
+
+        $similarDeals = Deal::where('status', 'active')
+
+            ->where('id', '!=', $deal->id)
+
+            ->where(function ($q) use ($deal) {
+
+                $q->where('category_id', $deal->category_id)
+
+                  ->orWhere('brand_id', $deal->brand_id);
+
+            })
+
+            ->orderByDesc('ai_score')
+
+            ->limit(4)
+
+            ->get();
+
+
+
+        $pageTitle = $deal->title;
+
+        $breadcrumbs = $this->breadcrumbService->generate([
+
+            ['title' => 'Home', 'url' => '/'],
+
+            ['title' => 'Deals', 'url' => '/'],
+
+            ['title' => $deal->title, 'url' => ''],
+
+        ]);
+
+        $seoMeta = $this->seoService->generateMeta(
+
+            $pageTitle . ' | LatestDeal',
+
+            $deal->title . ' - Best deal price ₹' . number_format($deal->discounted_price),
+
+            $canonicalUrl
+
+        );
+
+        $seoMeta['canonical'] = $canonicalUrl; // Force clean canonical
+
+        
+
+        $schema = $this->breadcrumbService->generateSchema($breadcrumbs);
+
+
+
+        return view('deals.show', compact('deal', 'pageTitle', 'breadcrumbs', 'seoMeta', 'schema', 'priceHistory', 'similarDeals'));
+
+    }
+
+}
+
