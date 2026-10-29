@@ -354,8 +354,8 @@ class SmartSearchController extends Controller
             $deal = $item['deal'];
             $merchantName = optional($deal->merchant)->name ?? 'Amazon Prime';
             
-            $recType = 'featured';
-            $recReason = "Verified deal with {$item['discount_pct']}% discount from {$merchantName}.";
+            $recType = 'alternative';
+            $recReason = "Alternative option with {$item['discount_pct']}% discount from {$merchantName}.";
 
             if ($deal->id === $bestMatchId) {
                 $recType = 'best_match';
