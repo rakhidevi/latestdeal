@@ -168,17 +168,10 @@ class ShopperAssistantController extends Controller
                 "The following verified deals were found for the user's shopping request in prioritized algorithmic ranking order:\n\n" .
                 $dealsJson . "\n\n" .
                 "STRICT SHOPPING ADVISOR RULES:\n" .
-                "1. ONLY reference and recommend deals present in the JSON list above. NEVER invent products or prices.\n" .
-                "2. The FIRST deal in the list is the primary 'Top Recommendation (AI Best Match)'. Always designate it as your top recommendation to remain 100% consistent with the on-screen UI.\n" .
-                "3. HONEST LABELS BASED STRICTLY ON ACTUAL DATA:\n" .
-                "   - Use the 'ai_computed_badge' specified for each deal in the JSON data.\n" .
-                "   - NEVER label a deal as 'Budget Option (Lowest Entry Price)' unless its 'is_lowest_price' is true.\n" .
-                "   - NEVER label a deal as 'Best Value Pick (Highest Verified Savings)' unless its 'is_highest_savings' is true.\n" .
-                "   - If the Top Recommendation already has both the lowest price and the highest savings, state that clearly, and label subsequent deals as 'Value Runner-Up' or 'Alternative Option'. NEVER call a higher priced deal with lower savings the 'Budget Option'.\n" .
-                "4. If the user specified a maximum budget or price ceiling, strictly obey it.\n" .
-                "5. Distinguish between core products and accessories. Recommend the device itself.\n" .
-                "6. Always mention exact prices in ₹ (INR), verified savings, and merchant name.\n" .
-                "7. Format with clean, structured markdown bullets and bold headers.";
+                "1. Provide a concise 1-2 sentence high-level shopping insight or buying advice for the shopper (e.g. highlighting key trade-offs or why the top pick stands out).\n" .
+                "2. DO NOT output bulleted lists or itemized deal recommendations—the verified recommendations with mathematically computed badges and exact prices are rendered deterministically right below your summary.\n" .
+                "3. If the user specified a maximum budget or price ceiling, acknowledge how these options fit within that budget.\n" .
+                "4. Keep your tone objective, concise, and helpful.";
         }
 
         // 3. Assemble Bounded Multi-Turn History
@@ -237,8 +230,31 @@ class ShopperAssistantController extends Controller
                 ['capabilities' => ['TEXT']]
             );
 
+            if ($noDealsFound) {
+                return response()->json([
+                    'reply'               => $response['content'],
+                    'source'              => $response['provider'],
+                    'recommended_deal_ids'=> [],
+                ]);
+            }
+
+            // Extract high-level opening insight from AI response, avoiding duplicate/hallucinated bullets
+            $aiContent = trim($response['content'] ?? '');
+            $paragraphs = preg_split('/\n{2,}/', $aiContent);
+            $firstPara = trim($paragraphs[0] ?? '');
+
+            // Ensure firstPara does not contain bulleted deal lists or hallucinations
+            if (empty($firstPara) || str_starts_with($firstPara, '-') || str_starts_with($firstPara, '*') || str_starts_with($firstPara, '1.')) {
+                $intro = "Here are the verified recommendations matching your request:";
+            } else {
+                $intro = $firstPara;
+            }
+
+            $deterministicRecommendations = $this->renderDeterministicRecommendations($annotatedDeals);
+            $finalReply = $intro . "\n\n" . $deterministicRecommendations;
+
             return response()->json([
-                'reply'               => $response['content'],
+                'reply'               => $finalReply,
                 'source'              => $response['provider'],
                 'recommended_deal_ids'=> $deals->pluck('id')->values(),
             ]);
@@ -253,20 +269,8 @@ class ShopperAssistantController extends Controller
                     "- Increase your budget threshold slightly to view near-budget offers\n" .
                     "- Browse our live [All Deals Hub](/deals/all) for today's highest percentage discounts!";
             } else {
-                $topDeals = ($annotatedDeals->isNotEmpty() ? $annotatedDeals : $deals)->take(3);
-                $fallbackReply = "Here are the verified recommendations matching your request:\n\n";
-
-                foreach ($topDeals as $d) {
-                    $badge = $d['ai_computed_badge'] ?? '• **Verified Recommendation**';
-                    $origStr = $d['original_price'] > $d['price'] ? " (MRP ~~₹" . number_format($d['original_price']) . "~~)" : "";
-                    $discountBadge = ($d['discount_pct'] ?? 0) > 0 ? " — **{$d['discount_pct']}% OFF**" : "";
-                    $savingsStr = ($d['savings'] ?? 0) > 0 ? " — saves ₹" . number_format($d['savings']) : "";
-                    
-                    $targetLink = !empty($d['slug']) ? route('deals.show', $d['slug']) : ($d['deal_url'] ?? $d['url']);
-                    $fallbackReply .= "{$badge}: **[{$d['title']}]({$targetLink})**\n";
-                    $fallbackReply .= "  ₹" . number_format($d['price']) . "{$origStr}{$discountBadge}{$savingsStr} on *{$d['merchant']}*\n\n";
-                }
-                $fallbackReply .= "👉 *Check retailer stock availability and price history telemetry for each recommendation below!*";
+                $deterministicRecommendations = $this->renderDeterministicRecommendations($annotatedDeals->isNotEmpty() ? $annotatedDeals : $deals);
+                $fallbackReply = "Here are the verified recommendations matching your request:\n\n" . $deterministicRecommendations;
             }
 
             return response()->json([
@@ -275,5 +279,34 @@ class ShopperAssistantController extends Controller
                 'recommended_deal_ids'=> $deals->pluck('id')->values(),
             ], 200);
         }
+    }
+
+    /**
+     * Render recommendations deterministically from verified catalog calculations
+     */
+    private function renderDeterministicRecommendations(\Illuminate\Support\Collection $annotatedDeals): string
+    {
+        $topDeals = $annotatedDeals->take(3);
+        $lines = [];
+
+        foreach ($topDeals as $d) {
+            $badge = $d['ai_computed_badge'] ?? '• **Verified Recommendation**';
+            $origPrice = (float)($d['original_price'] ?? 0);
+            $price = (float)($d['price'] ?? 0);
+            $discountPct = (int)($d['discount_pct'] ?? 0);
+            $savings = (float)($d['savings'] ?? max(0, $origPrice - $price));
+
+            $origStr = $origPrice > $price ? " (MRP ~~₹" . number_format($origPrice) . "~~)" : "";
+            $discountBadge = $discountPct > 0 ? " — **{$discountPct}% OFF**" : "";
+            $savingsStr = $savings > 0 ? " — saves ₹" . number_format($savings) : "";
+
+            $targetLink = !empty($d['slug']) ? route('deals.show', $d['slug']) : ($d['deal_url'] ?? $d['url'] ?? '#');
+
+            $lines[] = "{$badge}: **[{$d['title']}]({$targetLink})**\n  ₹" . number_format($price) . "{$origStr}{$discountBadge}{$savingsStr} on *{$d['merchant']}*";
+        }
+
+        $lines[] = "👉 *Check retailer stock availability and price history telemetry for each recommendation below!*";
+
+        return implode("\n\n", $lines);
     }
 }

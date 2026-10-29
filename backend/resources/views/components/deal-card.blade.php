@@ -134,10 +134,10 @@
         <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-0.5">
             <div class="flex items-center gap-1.5 font-medium truncate">
                 <span class="w-1.5 h-1.5 rounded-full {{ $deal->status === 'out_of_stock' ? 'bg-amber-500' : 'bg-emerald-500' }}"></span>
-                <span class="truncate font-semibold text-slate-700 dark:text-slate-300">{{ $merchantName }}</span>
+                <span class="truncate font-semibold text-slate-700 dark:text-slate-300">Listed on {{ $merchantName }}</span>
             </div>
             <span class="text-[11px] {{ $deal->status === 'out_of_stock' ? 'text-amber-500 font-bold' : 'text-slate-400 dark:text-slate-500' }} whitespace-nowrap">
-                {{ $deal->status === 'out_of_stock' ? 'Currently Unavailable' : 'Checked ' . $timeChecked }}
+                {{ $deal->status === 'out_of_stock' ? 'Currently Unavailable' : 'Catalog synced ' . $timeChecked }}
             </span>
         </div>
 

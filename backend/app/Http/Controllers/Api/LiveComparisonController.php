@@ -170,6 +170,9 @@ class LiveComparisonController extends Controller
                 if ($isOos) {
                     $item['price'] = null;
                     $item['url'] = null;
+                    $item['availability'] = 'Unavailable (Catalog Record)';
+                } else {
+                    $item['availability'] = 'In Stock (Last Catalog Sync)';
                 }
             } else {
                 $item['is_verified'] = false;
