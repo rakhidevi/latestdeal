@@ -143,8 +143,8 @@
                                     <span x-text="row.title"></span>
                                 </p>
                                 <span class="text-[10px] font-bold px-2 py-0.5 rounded"
-                                      :class="row.recommendation_type === 'best_match' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : (row.recommendation_type === 'best_value' ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300' : (row.recommendation_type === 'value_runner_up' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' : 'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-gray-300'))"
-                                      x-text="row.recommendation_type === 'best_match' ? 'Best Match' : (row.recommendation_type === 'best_value' ? 'Best Value' : (row.recommendation_type === 'lowest_price' ? 'Budget Pick' : (row.recommendation_type === 'value_runner_up' ? 'Value Runner-Up' : 'Verified')))"></span>
+                                      :class="row.recommendation_type === 'best_match' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : (row.recommendation_type === 'best_value' ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300' : (row.recommendation_type === 'value_runner_up' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' : (row.recommendation_type === 'lowest_price' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300')))"
+                                      x-text="row.recommendation_type === 'best_match' ? 'Best Match' : (row.recommendation_type === 'best_value' ? 'Best Value' : (row.recommendation_type === 'lowest_price' ? 'Budget Pick' : (row.recommendation_type === 'value_runner_up' ? 'Value Runner-Up' : 'Alternative Option')))"></span>
                             </div>
                             <div class="mt-2 flex items-center justify-between text-xs">
                                 <div class="flex items-baseline gap-1.5">
@@ -165,7 +165,7 @@
                         <div class="flex items-center justify-between mb-2">
                             <span class="font-bold text-emerald-800 dark:text-emerald-300 text-xs flex items-center tracking-wide uppercase">
                                 <svg class="w-4 h-4 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span x-text="bestDeal.recommendation_type === 'best_match' ? 'AI Recommended Pick (Best Match)' : (bestDeal.recommendation_type === 'best_value' ? 'Best Value Pick (Highest Savings)' : (bestDeal.recommendation_type === 'lowest_price' ? 'Budget Pick (Lowest Price)' : 'Selected Product'))"></span>
+                                <span x-text="bestDeal.recommendation_type === 'best_match' ? 'AI Recommended Pick (Best Match)' : (bestDeal.recommendation_type === 'best_value' ? 'Best Value Pick (Highest Savings)' : (bestDeal.recommendation_type === 'lowest_price' ? 'Budget Pick (Lowest Price)' : (bestDeal.recommendation_type === 'value_runner_up' ? 'Value Runner-Up (Strong Discount)' : 'Alternative Option')))"></span>
                             </span>
                             <span class="text-[10px] font-semibold" :class="bestDeal.status === 'out_of_stock' ? 'text-amber-500' : 'text-emerald-700 dark:text-emerald-400'" x-text="bestDeal.status === 'out_of_stock' ? 'Out of Stock' : 'Catalog Tracked'"></span>
                         </div>
@@ -200,8 +200,8 @@
                         <!-- Live Comparison Results -->
                         <div x-show="comparisonResults" class="mt-4 border-t border-emerald-200/50 dark:border-emerald-800/50 pt-3" x-transition>
                             <div class="flex items-center justify-between mb-2">
-                                <h4 class="text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-widest">Retailer Availability Check</h4>
-                                <span class="text-[10px] text-gray-500">Catalog sync & SKU matching</span>
+                                <h4 class="text-[11px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-widest">Retailer Availability Status</h4>
+                                <span class="text-[10px] text-gray-500">Catalog record & SKU verification status</span>
                             </div>
                             <div class="space-y-2">
                                 <template x-for="comp in comparisonResults" :key="comp.store">
@@ -281,6 +281,9 @@
                         </template>
                         <template x-if="deal.recommendation_type === 'value_runner_up'">
                             <span class="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">Value Runner-Up</span>
+                        </template>
+                        <template x-if="deal.recommendation_type === 'alternative' || deal.recommendation_type === 'featured'">
+                            <span class="rounded-full bg-slate-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">Alternative Option</span>
                         </template>
                     </div>
 

@@ -415,7 +415,7 @@
                 </p>
                 <p class="mt-2 text-center text-[11px] text-gray-400 dark:text-slate-500 flex items-center justify-center gap-1.5">
                     <svg class="w-3.5 h-3.5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>Price and stock status reflect the latest verified catalog sync. Real-time availability is confirmed on the merchant site.</span>
+                    <span>Price and stock status reflect our latest catalog synchronization. Live availability and final pricing are determined on the retailer's store page upon checkout.</span>
                 </p>
             </div>
 
@@ -462,9 +462,9 @@
                             <span class="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
                             </span>
-                            <h3 class="text-lg font-black text-slate-900 dark:text-white">Multi-Store Retailer Availability Check</h3>
+                            <h3 class="text-lg font-black text-slate-900 dark:text-white">Multi-Store Pricing & Availability</h3>
                         </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Verified primary offer with SKU availability check across Flipkart, Croma & Reliance Digital</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Verified offer from primary retailer. Alternate stores remain unverified until an exact SKU match is confirmed.</p>
                     </div>
 
                     <button @click="compareStores" 
