@@ -90,8 +90,12 @@
                         </div>
                     </div>
 
-                    <p x-show="success" x-transition class="text-green-600 text-sm font-medium text-center">Alert set successfully!</p>
-                    <p x-show="error" x-transition class="text-red-600 text-sm font-medium text-center" x-text="error"></p>
+                    <template x-if="success">
+                        <p x-cloak class="text-green-600 text-sm font-medium text-center">Alert set successfully!</p>
+                    </template>
+                    <template x-if="error">
+                        <p x-cloak class="text-red-600 text-sm font-medium text-center" x-text="error"></p>
+                    </template>
 
                     <div class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
                         <button type="submit" :disabled="loading" class="inline-flex w-full justify-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:col-start-2 disabled:opacity-50">

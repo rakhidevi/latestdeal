@@ -1,7 +1,7 @@
 @props(['deal'])
 
 @php
-    $imageUrl = $deal->image_url ?: ($deal->image_path ? asset($deal->image_path) : 'https://picsum.photos/seed/deal-'.$deal->id.'/320/220');
+    $imageUrl = $deal->image_url ?: ($deal->image_path ? asset($deal->image_path) : asset('images/product-placeholder.svg'));
     $dealUrl = route('deals.show', $deal->slug);
     
     // Calculate discount percent and rupee savings
@@ -63,7 +63,7 @@
                  alt="{{ Str::limit($deal->title, 40) }}" 
                  class="max-h-full max-w-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-300" 
                  loading="lazy" 
-                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop';" />
+                 onerror="this.onerror=null;this.src='{{ asset('images/product-placeholder.svg') }}';" />
         </a>
 
         @if($deal->status === 'expired')

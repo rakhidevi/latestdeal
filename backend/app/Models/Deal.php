@@ -293,7 +293,7 @@ class Deal extends Model
     {
         $path = $this->attributes['image_path'] ?? '';
         if (empty($path)) {
-            return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop';
+            return asset('images/product-placeholder.svg');
         }
 
         // Already a full HTTP/HTTPS URL — upgrade to https and return as-is
@@ -327,7 +327,7 @@ class Deal extends Model
         }
 
         // Realistic product placeholder rather than brand text logo
-        return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop';
+        return asset('images/product-placeholder.svg');
     }
 
     /**

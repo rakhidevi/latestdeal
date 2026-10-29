@@ -941,7 +941,7 @@
                     }
                 };
 
-                // Request real-time verification with fallback
+                // Request catalog sync check with fallback
                 fetch(`/api/deals/${this.dealId}/refresh-price`, {
                     method: 'POST',
                     headers: { 
