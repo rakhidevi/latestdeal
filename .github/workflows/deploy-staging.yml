@@ -10,12 +10,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Deploy to Staging (FTP)
+  pre-deploy-checks:
+    name: Run Pre-Deployment Validation & Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Install Dependencies & Run Tests
+        run: |
+          cd backend
+          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+          cp .env.example .env
+          php artisan key:generate
+          touch database/database.sqlite
+          php artisan migrate --force
+          php artisan test
+
+  deploy:
+    name: Deploy to Staging (FTP)
+    needs: [pre-deploy-checks]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Generate Deployed Version Metadata & Ephemeral Token
+        id: prep
+        run: |
+          mkdir -p backend/public
+          echo "{\"git_sha\": \"${{ github.sha }}\", \"timestamp\": \"$(date -u +'%Y-%m-%dT%H:%M:%SZ')\"}" > backend/public/version.json
+          
+          # Generate ephemeral cryptographically secure deployment token
+          RUN_TOKEN=$(openssl rand -hex 32)
+          echo "deploy_token=$RUN_TOKEN" >> $GITHUB_OUTPUT
+          echo "$RUN_TOKEN" > backend/.deploy_token
+          echo "Generated version metadata and ephemeral deployment credentials."
 
       - name: Zip Application (no vendor, no sqlite, no .env)
         run: |
@@ -31,8 +68,10 @@ jobs:
           cd ..
           echo "deploy.zip size: $(du -sh deploy.zip | cut -f1)"
 
-      - name: Upload critical files directly via FTP (bypass zip timeout)
+      - name: Upload critical files directly via FTP (strict fail-on-error)
         run: |
+          set -euo pipefail
+
           FTP_USER="${{ secrets.FTP_STAGING_USERNAME }}"
           FTP_PASS="${{ secrets.FTP_STAGING_PASSWORD }}"
           FTP_SERVER="${{ secrets.FTP_SERVER }}"
@@ -41,10 +80,15 @@ jobs:
             local src="$1"
             local dest="$2"
             echo "Uploading $src -> ftp://$FTP_SERVER/$dest"
-            curl -s --retry 5 --max-time 60 --ftp-create-dirs -T "$src" \
+            curl -s --fail --retry 5 --max-time 60 --ftp-create-dirs -T "$src" \
               "ftp://$FTP_SERVER/$dest" \
-              --user "$FTP_USER:$FTP_PASS" && echo "OK" || echo "FAILED"
+              --user "$FTP_USER:$FTP_PASS"
+            echo "OK: $dest"
           }
+
+          # Ephemeral Deployment Token & Versioning
+          upload_file backend/.deploy_token              .deploy_token
+          upload_file backend/public/version.json         public/version.json
 
           # Critical entry points
           upload_file backend/public/unzip.php           public/unzip.php
@@ -98,18 +142,21 @@ jobs:
           upload_file backend/app/Services/Editorial/ProductionGuidesContent.php app/Services/Editorial/ProductionGuidesContent.php
           upload_file backend/app/Console/Commands/GenerateGuideArticleCommand.php app/Console/Commands/GenerateGuideArticleCommand.php
           upload_file backend/app/Models/Article.php app/Models/Article.php
+
+          # Migrations & Seeders
           upload_file backend/database/migrations/2026_10_26_000001_add_deal_id_to_articles_table.php database/migrations/2026_10_26_000001_add_deal_id_to_articles_table.php
           upload_file backend/database/migrations/2026_10_26_000002_upgrade_guide_articles_to_google_compliance.php database/migrations/2026_10_26_000002_upgrade_guide_articles_to_google_compliance.php
           upload_file backend/database/migrations/2026_10_26_000003_update_guide_articles_to_2026.php database/migrations/2026_10_26_000003_update_guide_articles_to_2026.php
           upload_file backend/database/migrations/2026_10_27_000001_fix_guide_article_button_visibility.php database/migrations/2026_10_27_000001_fix_guide_article_button_visibility.php
           upload_file backend/database/migrations/2026_10_27_000002_localize_guides_for_india.php database/migrations/2026_10_27_000002_localize_guides_for_india.php
           upload_file backend/database/migrations/2026_10_27_000003_update_guide_featured_image_to_animation.php database/migrations/2026_10_27_000003_update_guide_featured_image_to_animation.php
+          upload_file backend/database/migrations/2026_10_29_000001_update_deal_destination_urls.php database/migrations/2026_10_29_000001_update_deal_destination_urls.php
           upload_file backend/app/Http/Controllers/ArticleController.php app/Http/Controllers/ArticleController.php
           upload_file backend/database/seeders/ArticleSeeder.php database/seeders/ArticleSeeder.php
           upload_file backend/database/seeders/RealDealSeeder.php database/seeders/RealDealSeeder.php
           upload_file backend/resources/views/articles/show.blade.php resources/views/articles/show.blade.php
 
-          # Public & Compliance Views
+          # Layouts & Public Pages
           upload_file backend/resources/views/welcome.blade.php resources/views/welcome.blade.php
           upload_file backend/resources/views/components/deal-card.blade.php resources/views/components/deal-card.blade.php
           upload_file backend/resources/views/partials/deals_grid.blade.php resources/views/partials/deals_grid.blade.php
@@ -126,11 +173,11 @@ jobs:
           upload_file backend/resources/views/privacy.blade.php resources/views/privacy.blade.php
           upload_file backend/resources/views/terms.blade.php resources/views/terms.blade.php
           upload_file backend/resources/views/contact.blade.php resources/views/contact.blade.php
-          upload_file backend/resources/views/pages/about.blade.php resources/views/pages/about.blade.php
-          upload_file backend/resources/views/pages/contact.blade.php resources/views/pages/contact.blade.php
-          upload_file backend/resources/views/pages/privacy.blade.php resources/views/pages/privacy.blade.php
-          upload_file backend/resources/views/pages/terms.blade.php resources/views/pages/terms.blade.php
-          upload_file backend/resources/views/pages/disclosure.blade.php resources/views/pages/disclosure.blade.php
+          upload_file backend/resources/views/pages/about.blade.php       resources/views/pages/about.blade.php
+          upload_file backend/resources/views/pages/contact.blade.php     resources/views/pages/contact.blade.php
+          upload_file backend/resources/views/pages/privacy.blade.php     resources/views/pages/privacy.blade.php
+          upload_file backend/resources/views/pages/terms.blade.php       resources/views/pages/terms.blade.php
+          upload_file backend/resources/views/pages/disclosure.blade.php  resources/views/pages/disclosure.blade.php
           upload_file backend/resources/views/auth/shopper-login.blade.php resources/views/auth/shopper-login.blade.php
           upload_file backend/resources/views/auth/forgot-password.blade.php resources/views/auth/forgot-password.blade.php
 
@@ -154,41 +201,59 @@ jobs:
 
           echo "Direct file uploads complete."
 
-      - name: Upload full deploy.zip via FTP
+      - name: Upload full deploy.zip via FTP (strict fail-on-error)
         run: |
+          set -euo pipefail
           echo "Uploading deploy.zip..."
-          curl -s --retry 3 --max-time 300 -T deploy.zip \
+          curl -s --fail --retry 3 --max-time 300 -T deploy.zip \
             "ftp://${{ secrets.FTP_SERVER }}/deploy.zip" \
-            --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}" \
-            && echo "deploy.zip uploaded OK" || echo "deploy.zip upload FAILED (non-fatal)"
+            --user "${{ secrets.FTP_STAGING_USERNAME }}:${{ secrets.FTP_STAGING_PASSWORD }}"
+          echo "deploy.zip uploaded successfully."
 
-      - name: Trigger Extraction + Repair on Staging
+      - name: Trigger Extraction + DB Repair on Staging
         run: |
+          set -euo pipefail
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-          DEPLOY_TOKEN="${{ secrets.DEPLOY_KEY || secrets.WORKER_API_KEY || 'ld_deploy_8f29c018a4d74996b72f10b24083a65c92df83021948ad72' }}"
+          DEPLOY_TOKEN="${{ steps.prep.outputs.deploy_token }}"
 
           echo "--- Fixing artisan permissions + clearing bootstrap cache + OPcache reset ---"
-          curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?fix_perms=1&token=$DEPLOY_TOKEN"
+          curl -s --fail -A "$UA" -X POST -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?fix_perms=1"
 
-          echo "--- Extracting deploy.zip (if upload succeeded) ---"
-          curl -s --max-time 120 -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?token=$DEPLOY_TOKEN" || echo "unzip skipped (zip not uploaded)"
+          echo "--- Extracting deploy.zip ---"
+          curl -s --fail --max-time 120 -A "$UA" -X POST -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php"
 
           echo "--- Running migrations ---"
-          curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?migrate=1&token=$DEPLOY_TOKEN"
+          curl -s --fail -A "$UA" -X POST -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?migrate=1"
 
           echo "--- Seeding default admin user ---"
-          curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?seed_admin=1&token=$DEPLOY_TOKEN"
+          curl -s --fail -A "$UA" -X POST -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?seed_admin=1"
 
           echo "--- Patching APP_URL + storage symlink ---"
-          curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?fix_url=1&token=$DEPLOY_TOKEN"
+          curl -s --fail -A "$UA" -X POST -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?fix_url=1"
 
           echo "--- Refreshing OPcache and permissions ---"
-          curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?fix_perms=1&token=$DEPLOY_TOKEN"
+          curl -s --fail -A "$UA" -X POST -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?fix_perms=1"
 
           echo "--- Reclassifying catalog and cleaning bogus categories ---"
-          curl -s -A "$UA" -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?reclassify_catalog=1&token=$DEPLOY_TOKEN"
+          curl -s --fail -A "$UA" -X POST -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?reclassify_catalog=1"
 
-          echo "--- Done ---"
+          echo "--- Cleaning ephemeral deployment credentials ---"
+          curl -s --fail -A "$UA" -X POST -H "X-Deploy-Token: $DEPLOY_TOKEN" "https://staging.latestdeal.in/unzip.php?cleanup_token=1"
 
+          echo "--- Remote extraction and maintenance routines finished ---"
 
-
+      - name: Verify Deployed Release Revision against git HEAD
+        run: |
+          set -euo pipefail
+          echo "--- Checking deployed git commit on Staging ---"
+          DEPLOYED_RAW=$(curl -s --fail "https://staging.latestdeal.in/version.json")
+          echo "Server response: $DEPLOYED_RAW"
+          DEPLOYED_SHA=$(echo "$DEPLOYED_RAW" | grep -o '"git_sha": *"[^"]*"' | cut -d'"' -f4)
+          EXPECTED_SHA="${{ github.sha }}"
+          echo "Expected git SHA: $EXPECTED_SHA"
+          echo "Deployed git SHA: $DEPLOYED_SHA"
+          if [ "$DEPLOYED_SHA" != "$EXPECTED_SHA" ]; then
+            echo "FATAL: Deployed revision mismatch! Expected $EXPECTED_SHA but got $DEPLOYED_SHA"
+            exit 1
+          fi
+          echo "Release verification confirmed! Staging is actively serving commit $EXPECTED_SHA."

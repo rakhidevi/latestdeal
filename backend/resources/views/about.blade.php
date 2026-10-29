@@ -29,8 +29,8 @@
                     <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center mb-4">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <h3 class="font-bold text-base text-gray-900 dark:text-white mb-2">Zero Fake Discounts</h3>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">Every price is verified against 90-day historical retailer data to filter out synthetic drops.</p>
+                    <h3 class="font-bold text-base text-gray-900 dark:text-white mb-2">Rigorous Price Auditing</h3>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">Every price is audited against 90-day historical retailer data to flag artificial markups and misleading reference prices.</p>
                 </div>
 
                 <div class="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">
@@ -38,7 +38,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
                     <h3 class="font-bold text-base text-gray-900 dark:text-white mb-2">Multi-Store Intelligence</h3>
-                    <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">Live cross-store price comparisons across Amazon, Flipkart, Croma, and Reliance Digital.</p>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">Cross-store catalog benchmarks across major Indian retailers including Amazon, Flipkart, Croma, and Reliance Digital.</p>
                 </div>
 
                 <div class="p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/60 border border-gray-100 dark:border-slate-800">

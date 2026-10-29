@@ -123,7 +123,7 @@
                                 Our Assessment
                             </h3>
                             <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4">
-                                <div class="flex items-center gap-1.5">
+                                <div class="flex items-center gap-1.5" title="Algorithmic score based on 90-day price stability and discount depth">
                                     <span class="text-xs font-semibold text-gray-500 dark:text-slate-400">Deal Quality</span>
                                     <span class="bg-indigo-600 text-white font-black px-2.5 py-1 rounded-lg text-sm shadow-md">
                                         {{ $deal->ai_score ?? 85 }}/100
@@ -139,6 +139,9 @@
                                 @endif
                             </div>
                         </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 -mt-2">
+                            <span class="font-bold">Deal Quality Score Methodology:</span> Computed algorithmically out of 100 based on verified discount depth against 90-day median pricing, seller reliability, and catalog price stability.
+                        </p>
 
                         <!-- Trust Checklist -->
                         @if(is_array($deal->trust_metrics))

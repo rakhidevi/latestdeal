@@ -111,7 +111,7 @@
             </h1>
             
             <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-xl mx-auto font-medium">
-                Real 90-day price history, verified store benchmarks, and zero fake discounts.
+                Real 90-day price history, verified store benchmarks, and algorithmic discount auditing.
             </p>
         </div>
 

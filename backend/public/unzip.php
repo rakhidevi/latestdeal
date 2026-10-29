@@ -2,27 +2,61 @@
 
 // ============================================================
 // SECURITY AUTHENTICATION BARRIER
-// Requires valid deployment token to prevent unauthorized access
+// Strictly requires valid deployment token via X-Deploy-Token or POST payload.
+// Tokens in query strings are rejected to prevent access log leakage.
 // ============================================================
-$DEFAULT_DEPLOY_TOKEN = 'ld_deploy_8f29c018a4d74996b72f10b24083a65c92df83021948ad72';
-$envFile = dirname(__DIR__) . '/.env';
-$allowedTokens = [$DEFAULT_DEPLOY_TOKEN, 'test-worker-token-123'];
+if (isset($_GET['token'])) {
+    http_response_code(400);
+    header('Content-Type: text/plain');
+    echo "Bad Request: Deployment tokens cannot be transmitted via URL query string. Provide X-Deploy-Token HTTP header or POST payload.\n";
+    exit;
+}
 
+$allowedTokens = [];
+
+// 1. Check ephemeral token file written by deployment runner
+$tokenFiles = [
+    dirname(__DIR__) . '/.deploy_token',
+    __DIR__ . '/../.deploy_token'
+];
+foreach ($tokenFiles as $tf) {
+    if (file_exists($tf)) {
+        $tok = trim(file_get_contents($tf));
+        if (!empty($tok)) {
+            $allowedTokens[] = $tok;
+        }
+    }
+}
+
+// 2. Check server environment
+if (!empty($_SERVER['DEPLOY_KEY'])) $allowedTokens[] = trim($_SERVER['DEPLOY_KEY']);
+if (!empty($_SERVER['DEPLOY_TOKEN'])) $allowedTokens[] = trim($_SERVER['DEPLOY_TOKEN']);
+
+// 3. Check application .env configuration
+$envFile = dirname(__DIR__) . '/.env';
 if (file_exists($envFile)) {
     $envContent = file_get_contents($envFile);
     if (preg_match('/^DEPLOY_KEY=(.*)$/m', $envContent, $m)) {
         $allowedTokens[] = trim($m[1], " \t\n\r\0\x0B\"'");
     }
+    if (preg_match('/^DEPLOY_TOKEN=(.*)$/m', $envContent, $m)) {
+        $allowedTokens[] = trim($m[1], " \t\n\r\0\x0B\"'");
+    }
     if (preg_match('/^WORKER_API_KEY=(.*)$/m', $envContent, $m)) {
         $allowedTokens[] = trim($m[1], " \t\n\r\0\x0B\"'");
     }
-    if (preg_match('/^API_KEY=(.*)$/m', $envContent, $m)) {
-        $allowedTokens[] = trim($m[1], " \t\n\r\0\x0B\"'");
-    }
 }
-$allowedTokens = array_values(array_filter($allowedTokens));
 
-$providedToken = $_GET['token'] ?? $_SERVER['HTTP_X_DEPLOY_TOKEN'] ?? null;
+// Filter out empty or exposed legacy tokens
+$invalidExposedTokens = [
+    'ld_deploy_8f29c018a4d74996b72f10b24083a65c92df83021948ad72',
+    'test-worker-token-123'
+];
+$allowedTokens = array_values(array_filter($allowedTokens, function ($t) use ($invalidExposedTokens) {
+    return !empty($t) && !in_array($t, $invalidExposedTokens, true);
+}));
+
+$providedToken = $_SERVER['HTTP_X_DEPLOY_TOKEN'] ?? $_POST['token'] ?? null;
 $authorized = false;
 if (!empty($providedToken) && !empty($allowedTokens)) {
     foreach ($allowedTokens as $token) {
@@ -36,7 +70,7 @@ if (!empty($providedToken) && !empty($allowedTokens)) {
 if (!$authorized) {
     http_response_code(403);
     header('Content-Type: text/plain');
-    echo "Forbidden: Invalid or missing deployment token.\n";
+    echo "Forbidden: Invalid or missing deployment credentials.\n";
     exit;
 }
 
@@ -128,12 +162,22 @@ function ensureWorkerEnv(): void {
     if (!file_exists($envFile)) return;
     $envContent = file_get_contents($envFile);
     $changed = false;
-    if (!preg_match('/^WORKER_API_KEY=/m', $envContent)) {
-        $envContent .= "\nWORKER_API_KEY=test-worker-token-123\n";
+    if (!preg_match('/^WORKER_API_KEY=/m', $envContent) || str_contains($envContent, 'test-worker-token-123')) {
+        $randomToken = bin2hex(random_bytes(24));
+        if (str_contains($envContent, 'WORKER_API_KEY=test-worker-token-123')) {
+            $envContent = str_replace('WORKER_API_KEY=test-worker-token-123', 'WORKER_API_KEY=' . $randomToken, $envContent);
+        } else {
+            $envContent .= "\nWORKER_API_KEY=" . $randomToken . "\n";
+        }
         $changed = true;
     }
-    if (!preg_match('/^API_KEY=/m', $envContent)) {
-        $envContent .= "\nAPI_KEY=test-worker-token-123\n";
+    if (!preg_match('/^API_KEY=/m', $envContent) || str_contains($envContent, 'test-worker-token-123')) {
+        $randomToken = bin2hex(random_bytes(24));
+        if (str_contains($envContent, 'API_KEY=test-worker-token-123')) {
+            $envContent = str_replace('API_KEY=test-worker-token-123', 'API_KEY=' . $randomToken, $envContent);
+        } else {
+            $envContent .= "\nAPI_KEY=" . $randomToken . "\n";
+        }
         $changed = true;
     }
     if ($changed) {
@@ -308,6 +352,19 @@ if (isset($_GET['composer'])) {
 
     echo implode("\n", $results) . "\n";
     echo ($exitCode === 0) ? "\n=== VENDOR RESTORED SUCCESSFULLY ===\n" : "\n=== COMPOSER INSTALL FAILED ===\n";
+    exit;
+}
+
+if (isset($_GET['cleanup_token']) || isset($_POST['cleanup_token'])) {
+    $cleaned = false;
+    foreach ($tokenFiles as $tf) {
+        if (file_exists($tf)) {
+            @unlink($tf);
+            $cleaned = true;
+        }
+    }
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'done', 'token_cleaned' => $cleaned]);
     exit;
 }
 
