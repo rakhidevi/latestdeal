@@ -67,6 +67,14 @@ class RealDealSeeder extends Seeder
         foreach ($dealsData as $data) {
             $tags = $data['tags'] ?? [];
             unset($data['tags']);
+            unset($data['availability_status'], $data['availability_note']);
+
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('deals', 'ai_score')) {
+                unset($data['ai_score']);
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('deals', 'confidence_score')) {
+                unset($data['confidence_score']);
+            }
 
             $catSlug = $data['category_slug'] ?? 'electronics';
             unset($data['category_slug']);
@@ -124,8 +132,8 @@ class RealDealSeeder extends Seeder
             // Clean up invalid price histories
             $deal->priceHistories()->where('price', '>', $data['original_price'] * 1.05)->delete();
 
-            // Set clean 3-point price history
-            if ($deal->priceHistories()->count() < 2) {
+            // Set clean 3-point price history consistent with current discounted price
+            if ($deal->priceHistories()->count() < 2 || $deal->priceHistories()->min('price') > $data['discounted_price']) {
                 $deal->priceHistories()->delete();
 
                 $midPrice = (int) round($data['discounted_price'] + ($data['original_price'] - $data['discounted_price']) * 0.4);
@@ -133,12 +141,12 @@ class RealDealSeeder extends Seeder
                 PriceHistory::create([
                     'deal_id' => $deal->id,
                     'price' => $data['original_price'],
-                    'recorded_at' => now()->subDays(15)
+                    'recorded_at' => now()->subDays(30)
                 ]);
                 PriceHistory::create([
                     'deal_id' => $deal->id,
                     'price' => $midPrice,
-                    'recorded_at' => now()->subDays(5)
+                    'recorded_at' => now()->subDays(10)
                 ]);
                 PriceHistory::create([
                     'deal_id' => $deal->id,

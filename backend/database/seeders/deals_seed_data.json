@@ -34,12 +34,13 @@
     ],
     "not_for": [
       "Hardcore mobile gamers wanting sustained 90fps in demanding competitive titles."
-    ]
+    ],
+    "ai_score": 94
   },
   {
     "title": "Samsung Galaxy M15 5G (4GB RAM, 128GB Storage, Stone Grey)",
     "original_price": 16999,
-    "discounted_price": 14999,
+    "discounted_price": 15999,
     "category_slug": "mobiles",
     "merchant_name": "Amazon India",
     "url": "https://www.amazon.in/dp/B0D1VLMPXD",
@@ -51,8 +52,8 @@
       "Samsung",
       "Amazon"
     ],
-    "editorial_summary": "Samsung's Galaxy M15 5G dominates the affordable 5G segment by combining a massive 6,000mAh battery with a vibrant 6.5-inch 90Hz FHD+ Super AMOLED display. Powered by MediaTek's Dimensity 6100+ 6nm chipset, it guarantees stellar 2-day battery endurance for heavy users. Samsung uniquely commits to 4 generations of Android OS upgrades and 5 years of security updates in this price bracket, ensuring unmatched long-term device longevity.",
-    "editorial_verdict": "The gold standard for battery longevity and multi-year software support in the budget 5G phone segment under ₹15,000.",
+    "editorial_summary": "Samsung's Galaxy M15 5G delivers strong value in the affordable 5G segment by combining a massive 6,000mAh battery with a vibrant 6.5-inch 90Hz FHD+ Super AMOLED display. Powered by MediaTek's Dimensity 6100+ 6nm chipset, it guarantees stellar 2-day battery endurance for heavy users. Samsung uniquely commits to 4 generations of Android OS upgrades and 5 years of security updates in this price bracket, ensuring unmatched long-term device longevity. Note: Retailer inventory is currently low (1 unit) with delivery availability subject to destination pincode.",
+    "editorial_verdict": "A dependable budget 5G phone for battery endurance seekers with guaranteed multi-year software updates under ₹16,000.",
     "pros": [
       "Enormous 6,000mAh battery delivers up to 2 full days of moderate-to-heavy usage",
       "Vivid 90Hz Super AMOLED display delivers rich contrast and deep blacks",
@@ -62,14 +63,23 @@
     ],
     "cons": [
       "Charging brick is sold separately (supports 25W charging)",
-      "Teardrop notch front camera styling looks slightly dated"
+      "Teardrop notch front camera styling looks slightly dated",
+      "Limited inventory with location-dependent shipping on Amazon India"
     ],
     "best_for": [
       "Students, field workers, and battery endurance seekers demanding guaranteed software support."
     ],
     "not_for": [
       "Mobile users who frequently play heavy 3D games."
-    ]
+    ],
+    "ai_score": 88,
+    "availability_status": "limited_stock",
+    "availability_note": "Amazon stock is currently low (1 unit remaining) with regional delivery constraints. Verify shipping availability to your specific pincode before purchasing.",
+    "trust_metrics": {
+      "lowest_180_days": true,
+      "location_dependent": true,
+      "limited_stock": true
+    }
   },
   {
     "title": "Nothing Phone (2a) 5G (8GB RAM, 128GB Storage, Black)",
