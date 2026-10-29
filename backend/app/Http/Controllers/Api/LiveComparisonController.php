@@ -103,11 +103,12 @@ class LiveComparisonController extends Controller
                 'price' => $isOutOfStock ? null : $basePrice,
                 'delivery' => $isOutOfStock ? 'Currently Unavailable' : 'Standard Delivery',
                 'rating' => '4.4',
-                'url' => $deal ? $deal->url : 'https://latestdeal.in',
+                'url' => $isOutOfStock ? null : ($deal ? $deal->url : 'https://latestdeal.in'),
                 'badge' => $isOutOfStock ? 'Out of Stock' : 'Verified Offer',
                 'availability' => $isOutOfStock ? 'Currently Unavailable' : 'In Stock',
                 'checked_at' => $checkedAt,
                 'is_verified' => true,
+                'in_stock' => !$isOutOfStock,
             ]
         ];
 
@@ -130,6 +131,7 @@ class LiveComparisonController extends Controller
                 'availability' => 'Unverified for this SKU',
                 'checked_at' => null,
                 'is_verified' => false,
+                'in_stock' => null,
             ];
         }
 
@@ -153,12 +155,30 @@ class LiveComparisonController extends Controller
             if (!is_array($item)) {
                 continue;
             }
-            if (isset($item['price'])) {
+            if (isset($item['price']) && $item['price'] !== null) {
                 $price = (float)$item['price'];
                 if ($price > $ceiling || $price < $floor) {
                     continue; // Skip out-of-range mismatched competitor product
                 }
             }
+
+            // Normalize in_stock and verification status
+            $isVerified = !empty($item['is_verified']);
+            if ($isVerified) {
+                $isOos = in_array(strtolower($item['availability'] ?? ''), ['out of stock', 'currently unavailable']) || empty($item['price']);
+                $item['in_stock'] = !$isOos;
+                if ($isOos) {
+                    $item['price'] = null;
+                    $item['url'] = null;
+                }
+            } else {
+                $item['is_verified'] = false;
+                $item['in_stock'] = null;
+                $item['availability'] = 'Unverified for this SKU';
+                $item['price'] = null;
+                $item['url'] = null;
+            }
+
             $sanitized[] = $item;
         }
 

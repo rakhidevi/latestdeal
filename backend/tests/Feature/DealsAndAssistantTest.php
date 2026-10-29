@@ -136,11 +136,28 @@ class DealsAndAssistantTest extends TestCase
         $response->assertJsonStructure([
             'data' => [
                 'results' => [
-                    '*' => ['store', 'delivery', 'rating']
+                    '*' => ['store', 'delivery', 'rating', 'is_verified', 'in_stock']
                 ],
                 'ai_score'
             ]
         ]);
+
+        $results = $response->json('data.results');
+        $this->assertNotEmpty($results);
+
+        // Store 1: Primary verified merchant
+        $primary = $results[0];
+        $this->assertTrue($primary['is_verified']);
+        $this->assertTrue($primary['in_stock']);
+        $this->assertNotNull($primary['price']);
+
+        // Stores 2+: Unverified competitors
+        for ($i = 1; $i < count($results); $i++) {
+            $this->assertFalse($results[$i]['is_verified']);
+            $this->assertNull($results[$i]['in_stock']);
+            $this->assertNull($results[$i]['price']);
+            $this->assertEquals('Unverified for this SKU', $results[$i]['availability']);
+        }
     }
 
     public function test_storage_deals_default_png_fallback_returns_image()

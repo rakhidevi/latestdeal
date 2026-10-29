@@ -216,16 +216,22 @@
                                                 <span class="text-[10px] text-amber-500 font-bold" x-show="comp.rating" x-text="'⭐ ' + comp.rating"></span>
                                             </div>
                                         </div>
-                                        <template x-if="comp.price">
+                                        <template x-if="comp.is_verified && comp.in_stock && comp.price">
                                             <div class="flex flex-col items-end">
                                                 <span class="font-extrabold text-emerald-600 dark:text-emerald-400">₹<span x-text="Math.round(comp.price).toLocaleString('en-IN')"></span></span>
                                                 <a :href="comp.url || '#'" target="_blank" class="text-[10px] text-blue-500 hover:underline">Check Store</a>
                                             </div>
                                         </template>
-                                        <template x-if="!comp.price">
+                                        <template x-if="comp.is_verified && !comp.in_stock">
                                             <div class="flex flex-col items-end text-right">
-                                                <span class="text-[10px] text-slate-400 italic" x-text="comp.availability || 'Unverified'"></span>
-                                                <span class="text-[9px] text-slate-500">No confirmed SKU match</span>
+                                                <span class="text-[10px] text-amber-500 font-semibold">Out of Stock</span>
+                                                <span class="text-[9px] text-slate-500">Currently unavailable</span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!comp.is_verified">
+                                            <div class="flex flex-col items-end text-right">
+                                                <span class="text-[10px] text-slate-400 italic">Unverified</span>
+                                                <span class="text-[9px] text-slate-500">SKU match pending</span>
                                             </div>
                                         </template>
                                     </div>
@@ -515,10 +521,11 @@ document.addEventListener('alpine:init', () => {
                     price: isOutOfStock ? null : basePrice,
                     delivery: isOutOfStock ? 'Currently Unavailable' : 'Standard Delivery',
                     rating: '4.4',
-                    url: deal.url || '#',
+                    url: isOutOfStock ? null : (deal.url || '#'),
                     availability: isOutOfStock ? 'Currently Unavailable' : 'In Stock',
                     checked_at: 'Verified in Catalog',
-                    is_verified: true
+                    is_verified: true,
+                    in_stock: !isOutOfStock
                 },
                 {
                     store: currentMerchant.toLowerCase().includes('amazon') ? 'Flipkart' : 'Amazon India',
@@ -528,7 +535,8 @@ document.addEventListener('alpine:init', () => {
                     url: null,
                     availability: 'Unverified for this SKU',
                     checked_at: null,
-                    is_verified: false
+                    is_verified: false,
+                    in_stock: null
                 },
                 {
                     store: 'Croma',
@@ -538,7 +546,8 @@ document.addEventListener('alpine:init', () => {
                     url: null,
                     availability: 'Unverified for this SKU',
                     checked_at: null,
-                    is_verified: false
+                    is_verified: false,
+                    in_stock: null
                 },
                 {
                     store: 'Reliance Digital',
@@ -548,7 +557,8 @@ document.addEventListener('alpine:init', () => {
                     url: null,
                     availability: 'Unverified for this SKU',
                     checked_at: null,
-                    is_verified: false
+                    is_verified: false,
+                    in_stock: null
                 }
             ];
             this.aiValueScore = Math.min(88, Math.max(72, 70 + Math.round((deal.discount_pct || 15) * 0.25)));
