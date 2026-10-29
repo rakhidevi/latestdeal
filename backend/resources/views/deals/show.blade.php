@@ -41,7 +41,7 @@
         "priceCurrency": "INR",
         "price": "{{ $deal->discounted_price }}",
         "itemCondition": "https://schema.org/NewCondition",
-        "availability": "https://schema.org/InStock"
+        "availability": "{{ $deal->status === 'active' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}"
       },
       @php
         $trustMetrics = is_array($deal->trust_metrics) ? $deal->trust_metrics : (json_decode($deal->trust_metrics ?? '', true) ?? []);
@@ -225,10 +225,17 @@
                         🏷️ Brand: {{ $brandName }}
                     </span>
                 @endif
-                <span class="inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800/60 shadow-sm">
-                    <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Price Checked: {{ $deal->updated_at ? $deal->updated_at->diffForHumans() : 'Today' }} • Live on {{ $deal->merchant->name ?? 'Amazon India' }}
-                </span>
+                @if($deal->status === 'out_of_stock')
+                    <span class="inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-200 dark:border-amber-800/60 shadow-sm">
+                        <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        Stock Status: Currently Unavailable on {{ $deal->merchant->name ?? 'Amazon India' }}
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800/60 shadow-sm">
+                        <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Price Checked: {{ $deal->updated_at ? $deal->updated_at->diffForHumans() : 'Today' }} • Live on {{ $deal->merchant->name ?? 'Amazon India' }}
+                    </span>
+                @endif
             </div>
 
             <div class="flex justify-between items-start gap-4">
@@ -333,7 +340,7 @@
 
                 <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 relative z-10">
                     <div>
-                        <p class="text-[11px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-2">Deal Price</p>
+                        <p class="text-[11px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-2">{{ $deal->status === 'out_of_stock' ? 'Last Verified Historical Price' : 'Deal Price' }}</p>
                         <div class="flex flex-wrap items-baseline gap-3">
                             <span class="text-4xl sm:text-5xl font-black text-red-600 dark:text-red-500 tracking-tighter" id="deal-price-display" x-text="'₹' + Number(currentPrice).toLocaleString('en-IN')">
                                 ₹{{ number_format($deal->discounted_price) }}
@@ -415,11 +422,29 @@
                 $dealMrp = (float)($deal->original_price ?: $dealPrice);
                 $ceiling = 2.2 * max($dealPrice, $dealMrp);
                 $floor = 0.25 * $dealPrice;
-                $existingComparisons = array_values(array_filter($rawExistingComparisons, function($c) use ($floor, $ceiling) {
-                    if (!is_array($c) || !isset($c['price'])) return true;
+                $existingComparisons = array_values(array_map(function($c) {
+                    if (!is_array($c)) return $c;
+                    $isVerified = !empty($c['is_verified']);
+                    if ($isVerified) {
+                        $isOos = in_array(strtolower($c['availability'] ?? ''), ['out of stock', 'currently unavailable']) || empty($c['price']);
+                        $c['in_stock'] = !$isOos;
+                        if ($isOos) {
+                            $c['price'] = null;
+                            $c['url'] = null;
+                        }
+                    } else {
+                        $c['is_verified'] = false;
+                        $c['in_stock'] = null;
+                        $c['availability'] = 'Unverified for this SKU';
+                        $c['price'] = null;
+                        $c['url'] = null;
+                    }
+                    return $c;
+                }, array_filter($rawExistingComparisons, function($c) use ($floor, $ceiling) {
+                    if (!is_array($c) || !isset($c['price']) || $c['price'] === null) return true;
                     $p = (float)$c['price'];
                     return $p >= $floor && $p <= $ceiling;
-                }));
+                })));
             @endphp
             <div x-data="multiStoreComparator({{ $deal->id }}, @js($deal->title), {{ $deal->discounted_price }}, @js($existingComparisons))" 
                  class="mt-8 bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
@@ -429,9 +454,9 @@
                             <span class="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
                             </span>
-                            <h3 class="text-lg font-black text-slate-900 dark:text-white">Multi-Store Price Comparison</h3>
+                            <h3 class="text-lg font-black text-slate-900 dark:text-white">Multi-Store Retail Benchmarks</h3>
                         </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Live market comparison across Amazon, Flipkart, Croma & Reliance Digital</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Verified primary retailer offer with multi-store SKU matching for Amazon, Flipkart, Croma & Reliance Digital</p>
                     </div>
 
                     <button @click="compareStores" 
@@ -453,13 +478,39 @@
                                         <div class="w-8 h-8 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center text-xs font-black shadow-sm text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600" x-text="store.store ? store.store.charAt(0) : 'S'"></div>
                                         <div>
                                             <div class="text-xs font-bold text-slate-900 dark:text-white" x-text="store.store"></div>
-                                            <div class="text-[10px] text-slate-400" x-text="store.in_stock ? 'In Stock' : 'Out of Stock'"></div>
+                                            <!-- 3 Distinct Availability States -->
+                                            <template x-if="store.is_verified && store.in_stock === true">
+                                                <div class="flex items-center gap-1.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                    <span>In Stock</span>
+                                                </div>
+                                            </template>
+                                            <template x-if="store.is_verified && store.in_stock === false">
+                                                <div class="flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                    <span>Out of Stock</span>
+                                                </div>
+                                            </template>
+                                            <template x-if="!store.is_verified || store.in_stock === null">
+                                                <div class="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                                    <span>Unverified for this SKU</span>
+                                                </div>
+                                            </template>
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-sm font-black text-slate-900 dark:text-white" x-text="store.price ? '₹' + Number(store.price).toLocaleString('en-IN') : 'Check Store'"></div>
-                                        <template x-if="store.url">
-                                            <a href="#" :href="store.url" target="_blank" rel="noopener noreferrer nofollow" class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline">View Deal →</a>
+                                        <template x-if="store.is_verified && store.in_stock === true && store.price">
+                                            <div class="text-sm font-black text-slate-900 dark:text-white" x-text="'₹' + Number(store.price).toLocaleString('en-IN')"></div>
+                                        </template>
+                                        <template x-if="store.is_verified && store.in_stock === false">
+                                            <div class="text-xs font-semibold text-amber-600 dark:text-amber-400">Unavailable</div>
+                                        </template>
+                                        <template x-if="!store.is_verified">
+                                            <div class="text-[11px] font-medium text-slate-400 dark:text-slate-500">Unverified</div>
+                                        </template>
+                                        <template x-if="store.url && store.in_stock === true">
+                                            <a :href="store.url" target="_blank" rel="noopener noreferrer nofollow" class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline">View Deal →</a>
                                         </template>
                                     </div>
                                 </div>
@@ -942,7 +993,7 @@
                     
                     const data = await res.json();
                     
-                    if (data.status === 'cache_hit') {
+                    if (data.status === 'cache_hit' || data.status === 'verified_primary_store') {
                         this.stores = this.filterStores(data.data.results || []);
                         this.isComparing = false;
                         return;
