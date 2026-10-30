@@ -690,7 +690,7 @@
     </div>
 
     <!-- Deals Grid (Visible Immediately on First Screen) -->
-    <div class="grid items-stretch gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" id="deals-grid">
+    <div class="grid items-stretch gap-2 sm:gap-2.5 md:gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" id="deals-grid">
       @include('partials.deals_grid')
     </div>
     

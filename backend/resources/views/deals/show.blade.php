@@ -759,7 +759,7 @@
             </span>
             Compare Similar Deals
         </h3>
-        <div class="grid gap-6 grid-cols-2 md:grid-cols-4">
+        <div class="grid gap-2 sm:gap-2.5 md:gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
             @foreach($similarDeals as $similarDeal)
                 <x-deal-card :deal="$similarDeal" />
             @endforeach

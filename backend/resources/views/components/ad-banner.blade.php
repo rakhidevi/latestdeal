@@ -18,9 +18,12 @@
         $adFormat = "fluid";
         $layoutKey = "-7b+dy+4s-33-8p";
     }
+
+    // Keep the in-feed slot compact so an unfilled ad does not look like a blank row.
+    $containerSpacing = $slot === 'in-feed' ? 'my-1' : ($format === 'vertical' ? 'my-0' : 'my-6');
 @endphp
 
-<div class="w-full overflow-hidden flex justify-center items-center {{ $format == 'vertical' ? 'my-0' : 'my-6' }}">
+<div class="w-full overflow-hidden flex justify-center items-center {{ $containerSpacing }}">
     @if(config('services.google.adsense_id') && $slot)
         <!-- Google AdSense ({{ $slot }}) -->
         <ins class="adsbygoogle"
