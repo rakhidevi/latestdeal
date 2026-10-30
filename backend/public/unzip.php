@@ -742,7 +742,19 @@ if (isset($_GET['fix_perms'])) {
 
 
 
-    $artisan = __DIR__ . '/../artisan';
+        // Native purge of compiled Blade views and cache
+    $viewsCache = __DIR__ . '/../storage/framework/views';
+    if (is_dir($viewsCache)) {
+        foreach (glob($viewsCache . '/*.php') as $f) {
+            @unlink($f);
+        }
+    }
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+    }
+    @touch(__DIR__ . '/.lsphp_restart.txt');
+
+$artisan = __DIR__ . '/../artisan';
 
     $bootstrapCache = __DIR__ . '/../bootstrap/cache';
 
@@ -816,6 +828,17 @@ if (isset($_GET['fix_perms'])) {
 
         $results[] = 'bootstrap/cache cleared OK';
 
+    }
+
+    // Direct native purge of compiled Blade views
+    $viewsCache = __DIR__ . '/../storage/framework/views';
+    if (is_dir($viewsCache)) {
+        $viewCount = 0;
+        foreach (glob($viewsCache . '/*.php') as $f) {
+            @unlink($f);
+            $viewCount++;
+        }
+        $results[] = 'storage/framework/views purged ' . $viewCount . ' files OK';
     }
 
     
@@ -1772,7 +1795,19 @@ if (isset($_GET['fix_url'])) {
 
     // Run storage:link and cache clear
 
-    $artisan = __DIR__ . '/../artisan';
+        // Native purge of compiled Blade views and cache
+    $viewsCache = __DIR__ . '/../storage/framework/views';
+    if (is_dir($viewsCache)) {
+        foreach (glob($viewsCache . '/*.php') as $f) {
+            @unlink($f);
+        }
+    }
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+    }
+    @touch(__DIR__ . '/.lsphp_restart.txt');
+
+$artisan = __DIR__ . '/../artisan';
 
     $phpBin = getPhpBinary();
 
@@ -1972,7 +2007,19 @@ if ($return_var === 0) {
 
     // Run Laravel commands
 
-    $artisan = __DIR__ . '/../artisan';
+        // Native purge of compiled Blade views and cache
+    $viewsCache = __DIR__ . '/../storage/framework/views';
+    if (is_dir($viewsCache)) {
+        foreach (glob($viewsCache . '/*.php') as $f) {
+            @unlink($f);
+        }
+    }
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+    }
+    @touch(__DIR__ . '/.lsphp_restart.txt');
+
+$artisan = __DIR__ . '/../artisan';
 
     if (file_exists($artisan)) {
 
@@ -2036,7 +2083,19 @@ if ($return_var === 0) {
 
         // Run Laravel commands using the correct PHP binary
 
-        $artisan = __DIR__ . '/../artisan';
+            // Native purge of compiled Blade views and cache
+    $viewsCache = __DIR__ . '/../storage/framework/views';
+    if (is_dir($viewsCache)) {
+        foreach (glob($viewsCache . '/*.php') as $f) {
+            @unlink($f);
+        }
+    }
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+    }
+    @touch(__DIR__ . '/.lsphp_restart.txt');
+
+$artisan = __DIR__ . '/../artisan';
 
         if (file_exists($artisan)) {
 
