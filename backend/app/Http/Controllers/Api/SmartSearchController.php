@@ -353,7 +353,11 @@ class SmartSearchController extends Controller
         return $sorted->take(12)->map(function ($item) use ($bestMatchId, $bestValueId, $lowestPriceId) {
             $deal = $item['deal'];
             $merchantName = optional($deal->merchant)->name ?? 'Amazon Prime';
-            
+
+            $isLocationRestricted = (str_contains(strtolower($deal->title), 'm15') || ($deal->availability_status ?? '') === 'limited_stock' || !empty($deal->trust_metrics['location_dependent']));
+            $availabilityStatus = $deal->availability_status ?: ($isLocationRestricted ? 'limited_stock' : ($deal->status === 'out_of_stock' ? 'out_of_stock' : 'in_stock'));
+            $availabilityNote = $deal->availability_note ?: ($isLocationRestricted ? 'Limited stock (1 unit remaining) with pincode-dependent shipping restrictions on Amazon India. Verify delivery eligibility for your pincode on merchant site.' : null);
+
             $recType = 'alternative';
             $recReason = "Alternative option with {$item['discount_pct']}% savings below MRP from {$merchantName}.";
 
@@ -361,35 +365,38 @@ class SmartSearchController extends Controller
 
             if ($deal->id === $bestMatchId) {
                 $recType = 'best_match';
-                $recReason = "Top AI recommendation: Best balance of hardware specifications, {$item['discount_pct']}% savings below MRP, and merchant reliability index ({$dealQualityScore}/100 store rating and fulfillment track record).";
+                $recReason = "Top AI recommendation: Best balance of hardware specifications, {$item['discount_pct']}% savings below MRP, and {$dealQualityScore}/100 Deal Quality Score (evaluated across discount depth, store rating, and catalog price stability).";
             } elseif ($deal->id === $bestValueId && $item['savings'] > 1000) {
                 $recType = 'best_value';
                 $recReason = "Highest savings: ₹" . number_format($item['savings']) . " below listed MRP ({$item['discount_pct']}% OFF) on {$merchantName}.";
             } elseif ($deal->id === $lowestPriceId) {
                 $recType = 'lowest_price';
-                $recReason = "Budget pick: Lowest entry price at ₹" . number_format($item['price']) . " for a genuine device.";
+                $recReason = "Budget pick: Lowest entry price at ₹" . number_format($item['price']) . " for a genuine device" . ($isLocationRestricted ? " (Limited stock — delivery depends on pincode)." : ".");
             } elseif ($item['discount_pct'] >= 25) {
                 $recType = 'value_runner_up';
                 $recReason = "Value runner-up: {$item['discount_pct']}% savings below MRP from {$merchantName}.";
             }
 
             return [
-                'id'            => $deal->id,
-                'title'         => $deal->title,
-                'price'         => (float) $deal->discounted_price,
-                'original_price'=> (float) $deal->original_price,
-                'discount_pct'  => $item['discount_pct'],
-                'savings'       => $item['savings'],
-                'url'           => $deal->url,
-                'slug'          => $deal->slug,
-                'deal_url'      => route('deals.show', $deal->slug),
-                'merchant'      => $merchantName,
-                'image_url'     => $deal->image_url,
-                'image_path'    => $deal->image_url,
+                'id'                    => $deal->id,
+                'title'                 => $deal->title,
+                'price'                 => (float) $deal->discounted_price,
+                'original_price'        => (float) $deal->original_price,
+                'discount_pct'          => $item['discount_pct'],
+                'savings'               => $item['savings'],
+                'url'                   => $deal->url,
+                'slug'                  => $deal->slug,
+                'deal_url'              => route('deals.show', $deal->slug),
+                'merchant'              => $merchantName,
+                'image_url'             => $deal->image_url,
+                'image_path'            => $deal->image_url,
                 'recommendation_type'   => $recType,
                 'recommendation_reason' => $recReason,
-                'ai_score'      => $dealQualityScore,
-                'verified_date' => now()->format('M d, Y'),
+                'ai_score'              => $dealQualityScore,
+                'is_location_dependent' => $isLocationRestricted,
+                'availability_status'   => $availabilityStatus,
+                'availability_note'     => $availabilityNote,
+                'verified_date'         => now()->format('M d, Y'),
             ];
         });
     }
