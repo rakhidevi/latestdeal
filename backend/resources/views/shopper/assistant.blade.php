@@ -155,6 +155,12 @@
                                 </div>
                                 <span class="text-gray-500 dark:text-slate-400 font-medium px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded text-[11px]" x-text="row.merchant"></span>
                             </div>
+                            <template x-if="row.is_location_dependent || row.availability_status === 'limited_stock' || (row.title && row.title.toLowerCase().includes('m15'))">
+                                <div class="mt-2 flex items-center gap-1.5 text-[10px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-1 rounded-lg border border-amber-200/80 dark:border-amber-800/40">
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                    <span x-text="row.availability_note || 'Limited stock (1 unit remaining) • Delivery depends on pincode'"></span>
+                                </div>
+                            </template>
                         </div>
                     </template>
                 </div>
@@ -180,6 +186,14 @@
                                 <div class="flex items-start gap-1.5">
                                     <span class="text-emerald-600 font-bold">•</span>
                                     <span>Exact Savings: <strong class="text-emerald-700 dark:text-emerald-400">₹<span x-text="Math.round(bestDeal.savings).toLocaleString('en-IN')"></span></strong> below listed MRP (<span x-text="bestDeal.discount_pct + '% OFF'"></span>).</span>
+                                </div>
+                            </template>
+                            <template x-if="bestDeal && (bestDeal.is_location_dependent || bestDeal.availability_status === 'limited_stock' || (bestDeal.title && bestDeal.title.toLowerCase().includes('m15')))">
+                                <div class="mt-2.5 flex items-start gap-1.5 p-2 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300">
+                                    <svg class="w-4 h-4 flex-shrink-0 text-amber-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                    <div>
+                                        <strong class="font-bold">Regional Delivery & Inventory Notice:</strong> <span x-text="bestDeal.availability_note || 'Merchant reports limited regional stock (1 unit remaining) with pincode-dependent shipping restrictions. Please verify shipping eligibility for your specific delivery location directly on the retailer site.'"></span>
+                                    </div>
                                 </div>
                             </template>
                         </div>
@@ -254,7 +268,7 @@
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-900 dark:text-white">Catalog Matches</h2>
-                <p class="text-xs text-slate-500 mt-0.5">Ranked by relevance, price drop against MRP, and merchant reliability score</p>
+                <p class="text-xs text-slate-500 mt-0.5">Ranked by relevance, price drop against MRP, and Deal Quality Score</p>
             </div>
             <p class="text-sm text-slate-500"><span x-text="filteredDeals.length"></span> genuine deals</p>
         </div>
@@ -301,6 +315,12 @@
                         </div>
 
                         <h3 class="mb-2 line-clamp-2 text-xs font-semibold leading-snug text-slate-800 dark:text-slate-200 group-hover:text-red-600 transition-colors" x-text="deal.title"></h3>
+                        <template x-if="deal.is_location_dependent || deal.availability_status === 'limited_stock' || (deal.title && deal.title.toLowerCase().includes('m15'))">
+                            <div class="mb-2 text-[10px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2 py-1 rounded-lg border border-amber-200/60 dark:border-amber-800/40 flex items-center gap-1.5">
+                                <svg class="w-3 h-3 text-amber-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                <span>Limited stock &bull; Delivery depends on pincode</span>
+                            </div>
+                        </template>
 
                         <div class="mt-auto pt-2">
                             <div class="flex items-baseline gap-2">
