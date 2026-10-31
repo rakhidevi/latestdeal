@@ -1071,6 +1071,12 @@ if (isset($_GET['reclassify_catalog'])) {
 
         ]);
 
+        \App\Models\Deal::where('title', 'like', '%Noise ColorFit Pulse 2 Max%')->update([
+            'original_price' => 5999.00,
+            'discounted_price' => 1299.00,
+            'status' => 'active'
+        ]);
+
         \App\Models\Deal::where('title', 'like', '%Fitkit%')->update(['original_price' => 19990.00, 'discounted_price' => 8499.00]);
 
         \App\Models\Deal::where('title', 'like', '%ECOFLOW%')->update(['original_price' => 105000.00, 'discounted_price' => 65990.00, 'status' => 'out_of_stock']);

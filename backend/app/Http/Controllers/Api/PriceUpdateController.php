@@ -1,312 +1,336 @@
-<?php
-
-namespace App\Http\Controllers\Api;
-
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Deal;
-use App\Models\PriceHistory;
-use App\Events\DealScrapeRequested;
-use App\Events\DealUpdated;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
-
-class PriceUpdateController extends Controller
-{
-    /**
-     * Triggered by the frontend to request a real-time price check
-     */
-    public function refreshPrice(Request $request, $id)
-    {
-        $deal = Deal::findOrFail($id);
-
-        if (!$deal->url) {
-            return response()->json(['success' => false, 'message' => 'No URL found for this deal.'], 400);
-        }
-
-        // Fire the WebSocket event for desktop worker if active
-        event(new DealScrapeRequested($deal->url, 'price_update'));
-
-        // Direct live fetch fallback on server (works 100% on shared hosting / production)
-        try {
-            $userAgents = [
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0'
-            ];
-            $ua = $userAgents[array_rand($userAgents)];
-
-            $response = Http::withHeaders([
-                'User-Agent' => $ua,
-                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language' => 'en-US,en;q=0.5'
-            ])->timeout(12)->get($deal->url);
-
-            $html = $response->body();
-            $isAmazon = str_contains($deal->url, 'amazon.');
-            $isFlipkart = str_contains($deal->url, 'flipkart.');
-
-            if ($response->status() === 404 || str_contains($html, 'Looking for something?') || str_contains($html, 'not a functioning page')) {
-                $deal->status = 'expired';
-                $deal->save();
-                return response()->json([
-                    'success' => false,
-                    'is_expired' => true,
-                    'message' => 'This product listing has been removed or expired on the merchant platform.'
-                ]);
-            }
-
-            if ($response->successful()) {
-                $inStock = true;
-                if ($isAmazon) {
-                    $isOos = str_contains($html, 'id="outOfStock"') 
-                        || str_contains($html, 'Currently unavailable.') 
-                        || str_contains($html, 'We don\'t know when or if this item will be back in stock.');
-                    if ($isOos) {
-                        $deal->status = 'out_of_stock';
-                        $deal->save();
-                        return response()->json([
-                            'success' => false,
-                            'is_out_of_stock' => true,
-                            'message' => 'This product is currently out of stock on Amazon India.'
-                        ]);
-                    }
-
-                    // Check for location-specific shipping restrictions or single-unit inventory
-                    $isLocationRestricted = str_contains($html, 'cannot be shipped to your selected delivery location')
-                        || str_contains($html, 'undeliverable')
-                        || str_contains($html, 'Only 1 left in stock');
-                    if ($isLocationRestricted) {
-                        $metrics = is_array($deal->trust_metrics) ? $deal->trust_metrics : [];
-                        $metrics['location_dependent'] = true;
-                        $metrics['limited_stock'] = true;
-                        $deal->trust_metrics = $metrics;
-                    }
-
-                    [$newPrice, $newOriginalPrice] = $this->parseAmazonPriceAndMrp($html);
-                } elseif ($isFlipkart) {
-                    [$newPrice, $newOriginalPrice, $inStock] = $this->parseFlipkartPriceAndStock($html);
-                    if (!$inStock) {
-                        $deal->status = 'out_of_stock';
-                        $deal->save();
-                        return response()->json([
-                            'success' => false,
-                            'is_out_of_stock' => true,
-                            'message' => 'This product is currently out of stock on Flipkart.'
-                        ]);
-                    }
-                } else {
-                    [$newPrice, $newOriginalPrice] = $this->parseAmazonPriceAndMrp($html);
-                }
-
-                if ($deal->status === 'out_of_stock') {
-                    $deal->status = 'active';
-                }
-
-                $updated = false;
-                if ($newPrice && $newPrice > 0) {
-                    if ($deal->discounted_price != $newPrice) {
-                        PriceHistory::create([
-                            'deal_id' => $deal->id,
-                            'price' => $newPrice,
-                            'recorded_at' => now()
-                        ]);
-                        $deal->discounted_price = $newPrice;
-                    }
-                    $updated = true;
-                }
-
-                if ($newOriginalPrice && $newOriginalPrice > 0) {
-                    $deal->original_price = $newOriginalPrice;
-                    $updated = true;
-                }
-
-                // Guard against corrupted MRP (e.g. 100x unit-price/paise multiplier bug)
-                if ($deal->original_price && $deal->discounted_price > 0 && ($deal->original_price / $deal->discounted_price) > 15) {
-                    if ($newOriginalPrice && ($newOriginalPrice / $deal->discounted_price) <= 15) {
-                        $deal->original_price = $newOriginalPrice;
-                    } elseif (abs(($deal->original_price / 100) - $deal->discounted_price) < 5) {
-                        $deal->original_price = round($deal->original_price / 100, 2);
-                    } else {
-                        $deal->original_price = $deal->discounted_price;
-                    }
-                    $updated = true;
-                }
-
-                if ($updated) {
-                    $deal->save();
-                    event(new DealUpdated($deal));
-                }
-            }
-        } catch (\Throwable $e) {
-            Log::warning("Direct live price fetch failed for deal {$deal->id}: " . $e->getMessage());
-        }
-
-        $discountPct = 0;
-        if ($deal->original_price > 0 && $deal->original_price > $deal->discounted_price) {
-            $discountPct = round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100);
-        }
-
-        return response()->json([
-            'success' => true,
-            'deal_id' => $deal->id,
-            'discounted_price' => (float)$deal->discounted_price,
-            'original_price' => (float)$deal->original_price,
-            'discount_pct' => $discountPct,
-            'message' => 'Price verified successfully.'
-        ]);
-    }
-
-    /**
-     * Helper method to parse live price and MRP directly from Amazon HTML
-     */
-    private function parseAmazonPriceAndMrp(string $html): array
-    {
-        $discountedPrice = null;
-        $originalPrice = null;
-
-        // 1. Extract Discounted Price
-        if (preg_match('/class="[^"]*priceToPay[^"]*"[^>]*>.*?class="a-price-whole"[^>]*>([\d,]+)/s', $html, $m)) {
-            $discountedPrice = (float)str_replace(',', '', $m[1]);
-        } elseif (preg_match('/id="priceblock_dealprice"[^>]*>.*?₹?\s*([\d,.]+)/s', $html, $m)) {
-            $discountedPrice = (float)str_replace(',', '', $m[1]);
-        } elseif (preg_match('/class="a-price-whole"[^>]*>([\d,]+)/s', $html, $m)) {
-            $discountedPrice = (float)str_replace(',', '', $m[1]);
-        }
-
-        // 2. Extract Original Price (MRP) - Rule 6 (AGENTS.md)
-        // Clean out unit price expressions like (₹70,99,000 / 100 g) before extracting numbers
-        $cleanHtml = preg_replace('/\([^)]*?(?:per|\/|100\s*g|100\s*ml|kg|count)[^)]*?\)/i', '', $html);
-        $cleanHtml = preg_replace('/₹?\s*[\d,.]+\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b/i', '', $cleanHtml);
-        // Additional aggressive cleaning for unit prices often appended directly like </span> /100 g
-        $cleanHtml = preg_replace('/<span[^>]*>[^<]*<\/span>\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b/i', '', $cleanHtml);
-
-        // Check explicit M.R.P.: tag first
-        if (preg_match('/M\.R\.P\.?:?\s*(?:(?:<\/?[^>]+>)|&nbsp;|\s)*₹?\s*([\d,]+)/i', $cleanHtml, $m)) {
-            $candidate = (float)str_replace(',', '', $m[1]);
-            if ($candidate > 0 && (!$discountedPrice || ($candidate / $discountedPrice) < 15)) { // Increase max allowed MRP multiplier just in case (e.g. 95% off)
-                $originalPrice = $candidate;
-            }
-        }
-
-        if (!$originalPrice) {
-            if (preg_match_all('/class="a-text-price[^"]*"[^>]*>.*?class="a-offscreen"[^>]*>\s*₹?\s*([\d,.]+)/s', $cleanHtml, $matches)) {
-                foreach ($matches[1] as $priceStr) {
-                    $candidate = (float)str_replace(',', '', $priceStr);
-                    // Filter out per-unit prices (e.g. max 15x multiplier)
-                    if ($discountedPrice && $candidate > $discountedPrice && ($candidate / $discountedPrice) < 15) {
-                        $originalPrice = $candidate;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return [$discountedPrice, $originalPrice];
-    }
-
-    /**
-     * Helper method to parse live price, MRP and stock directly from Flipkart HTML
-     */
-    private function parseFlipkartPriceAndStock(string $html): array
-    {
-        $discountedPrice = null;
-        $originalPrice = null;
-        $inStock = true;
-
-        if (str_contains($html, 'Sold Out') || str_contains($html, 'Currently Out of Stock') || str_contains($html, 'This item is currently out of stock')) {
-            $inStock = false;
-        }
-
-        // 1. JSON PPD block
-        if (preg_match('/"ppd":\{([^}]+)\}/', $html, $m)) {
-            $block = $m[1];
-            if (preg_match('/"(?:finalPrice|fsp)":(\d+)/', $block, $p)) {
-                $discountedPrice = (float)$p[1];
-            }
-            if (preg_match('/"mrp":(\d+)/', $block, $p)) {
-                $originalPrice = (float)$p[1];
-            }
-        }
-
-        // 2. JSON-LD fallback
-        if (!$discountedPrice && preg_match('/<script[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/s', $html, $m)) {
-            $data = json_decode($m[1], true);
-            if (isset($data['offers']['price'])) {
-                $discountedPrice = (float)$data['offers']['price'];
-            }
-        }
-
-        // 3. Regex fallback
-        if (!$discountedPrice && preg_match('/class="[^"]*(?:Nx9bqj|hl05eU|_30jeq3)[^"]*"[^>]*>₹?\s*([\d,]+)/u', $html, $m)) {
-            $discountedPrice = (float)str_replace(',', '', $m[1]);
-        }
-        if (!$originalPrice && preg_match('/class="[^"]*(?:yRaY8j|CxhGGd)[^"]*"[^>]*>₹?\s*([\d,]+)/u', $html, $m)) {
-            $originalPrice = (float)str_replace(',', '', $m[1]);
-        }
-
-        return [$discountedPrice, $originalPrice, $inStock];
-    }
-
-    /**
-     * Triggered by the Python daemon once it has fetched the new price
-     */
-    public function updatePrice(Request $request)
-    {
-        $request->validate([
-            'url' => 'required|url',
-            'price' => 'required|numeric',
-            'original_price' => 'nullable|numeric'
-        ]);
-
-        $inputUrl = $request->url;
-        
-        // Find deal by canonical url, affiliate url, or clean prefix match
-        $deal = Deal::where('url', $inputUrl)
-            ->orWhere('affiliate_url', $inputUrl)
-            ->first();
-
-        if (!$deal) {
-            $cleanInput = strtok($inputUrl, '?');
-            $deal = Deal::where('url', 'LIKE', $cleanInput . '%')->first();
-        }
-
-        if ($deal) {
-            $oldPrice = $deal->discounted_price;
-            $newPrice = (float)$request->price;
-            $newOriginalPrice = $request->original_price ? (float)$request->original_price : null;
-
-            // Log history if price actually changed
-            if ($oldPrice != $newPrice) {
-                PriceHistory::create([
-                    'deal_id' => $deal->id,
-                    'price' => $newPrice,
-                    'recorded_at' => now()
-                ]);
-                $deal->discounted_price = $newPrice;
-            }
-
-            if ($newOriginalPrice && $newOriginalPrice > 0) {
-                $deal->original_price = $newOriginalPrice;
-            }
-
-            $deal->save();
-
-            // ALWAYS broadcast DealUpdated event to notify frontend that verification complete
-            event(new DealUpdated($deal));
-            
-            Log::info("Deal {$deal->id} price verified/updated. Discounted: {$newPrice}, MRP: {$deal->original_price}");
-
-            return response()->json([
-                'success' => true, 
-                'deal_id' => $deal->id,
-                'discounted_price' => $deal->discounted_price,
-                'original_price' => $deal->original_price
-            ]);
-        }
-
-        return response()->json(['success' => false, 'message' => 'Deal not found.'], 404);
-    }
-}
-
-
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Deal;
+use App\Models\PriceHistory;
+use App\Events\DealScrapeRequested;
+use App\Events\DealUpdated;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+
+class PriceUpdateController extends Controller
+{
+    /**
+     * Triggered by the frontend to request a real-time price check
+     */
+    public function refreshPrice(Request $request, $id)
+    {
+        $deal = Deal::findOrFail($id);
+
+        if (!$deal->url) {
+            return response()->json(['success' => false, 'message' => 'No URL found for this deal.'], 400);
+        }
+
+        // Fire the WebSocket event for desktop worker if active
+        event(new DealScrapeRequested($deal->url, 'price_update'));
+
+        // Direct live fetch fallback on server (works 100% on shared hosting / production)
+        try {
+            $userAgents = [
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0'
+            ];
+            $ua = $userAgents[array_rand($userAgents)];
+
+            $response = Http::withHeaders([
+                'User-Agent' => $ua,
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language' => 'en-US,en;q=0.5'
+            ])->timeout(12)->get($deal->url);
+
+            $html = $response->body();
+            $isAmazon = str_contains($deal->url, 'amazon.');
+            $isFlipkart = str_contains($deal->url, 'flipkart.');
+
+            if ($response->status() === 404 || str_contains($html, 'Looking for something?') || str_contains($html, 'not a functioning page')) {
+                $deal->status = 'expired';
+                $deal->save();
+                return response()->json([
+                    'success' => false,
+                    'is_expired' => true,
+                    'message' => 'This product listing has been removed or expired on the merchant platform.'
+                ]);
+            }
+
+            if ($response->successful()) {
+                $inStock = true;
+                if ($isAmazon) {
+                    // Strip scripts and styles to prevent false positive matching on client JavaScript configs (e.g. twister JSON)
+                    $domHtml = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $html);
+                    $domHtml = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $domHtml);
+
+                    // Extract availability section
+                    $availabilitySection = '';
+                    if (preg_match('/<div[^>]*id="availability"[^>]*>(.*?)<\/div>/is', $domHtml, $avMatch)) {
+                        $availabilitySection = $avMatch[1];
+                    }
+
+                    // Positive in-stock signals
+                    $hasInStockSignal = (bool)preg_match('/(?<!back\s)(?<!not\s)(?<!out of\s)\b(?:In stock|available to ship|Order within)\b/i', $availabilitySection)
+                        || (bool)preg_match('/class="[^"]*a-color-success[^"]*"[^>]*>\s*In stock\s*</i', $domHtml)
+                        || str_contains($domHtml, 'id="add-to-cart-button"')
+                        || str_contains($domHtml, 'name="submit.add-to-cart"');
+
+                    $isOos = false;
+                    if (!$hasInStockSignal) {
+                        if (preg_match('/id=["\']outOfStock["\']/i', $domHtml)
+                            || str_contains($availabilitySection, 'Currently unavailable')
+                            || str_contains($domHtml, "We don't know when or if this item will be back in stock.")
+                        ) {
+                            $isOos = true;
+                        }
+                    }
+
+                    if ($isOos) {
+                        $deal->status = 'out_of_stock';
+                        $deal->save();
+                        return response()->json([
+                            'success' => false,
+                            'is_out_of_stock' => true,
+                            'message' => 'This product is currently out of stock on Amazon India.'
+                        ]);
+                    }
+
+                    // Check for location-specific shipping restrictions or single-unit inventory
+                    $isLocationRestricted = str_contains($domHtml, 'cannot be shipped to your selected delivery location')
+                        || str_contains($domHtml, 'undeliverable')
+                        || str_contains($domHtml, 'Only 1 left in stock');
+                    if ($isLocationRestricted) {
+                        $metrics = is_array($deal->trust_metrics) ? $deal->trust_metrics : [];
+                        $metrics['location_dependent'] = true;
+                        $metrics['limited_stock'] = true;
+                        $deal->trust_metrics = $metrics;
+                    }
+
+                    [$newPrice, $newOriginalPrice] = $this->parseAmazonPriceAndMrp($domHtml);
+                } elseif ($isFlipkart) {
+                    [$newPrice, $newOriginalPrice, $inStock] = $this->parseFlipkartPriceAndStock($html);
+                    if (!$inStock) {
+                        $deal->status = 'out_of_stock';
+                        $deal->save();
+                        return response()->json([
+                            'success' => false,
+                            'is_out_of_stock' => true,
+                            'message' => 'This product is currently out of stock on Flipkart.'
+                        ]);
+                    }
+                } else {
+                    [$newPrice, $newOriginalPrice] = $this->parseAmazonPriceAndMrp($html);
+                }
+
+                if ($deal->status === 'out_of_stock') {
+                    $deal->status = 'active';
+                    $deal->save();
+                }
+
+                $updated = false;
+                if ($newPrice && $newPrice > 0) {
+                    if ($deal->discounted_price != $newPrice) {
+                        PriceHistory::create([
+                            'deal_id' => $deal->id,
+                            'price' => $newPrice,
+                            'recorded_at' => now()
+                        ]);
+                        $deal->discounted_price = $newPrice;
+                    }
+                    $updated = true;
+                }
+
+                if ($newOriginalPrice && $newOriginalPrice > 0) {
+                    $deal->original_price = $newOriginalPrice;
+                    $updated = true;
+                }
+
+                // Guard against corrupted MRP (e.g. 100x unit-price/paise multiplier bug)
+                if ($deal->original_price && $deal->discounted_price > 0 && ($deal->original_price / $deal->discounted_price) > 15) {
+                    if ($newOriginalPrice && ($newOriginalPrice / $deal->discounted_price) <= 15) {
+                        $deal->original_price = $newOriginalPrice;
+                    } elseif (abs(($deal->original_price / 100) - $deal->discounted_price) < 5) {
+                        $deal->original_price = round($deal->original_price / 100, 2);
+                    } else {
+                        $deal->original_price = $deal->discounted_price;
+                    }
+                    $updated = true;
+                }
+
+                if ($updated) {
+                    $deal->save();
+                    event(new DealUpdated($deal));
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Direct live price fetch failed for deal {$deal->id}: " . $e->getMessage());
+        }
+
+        $discountPct = 0;
+        if ($deal->original_price > 0 && $deal->original_price > $deal->discounted_price) {
+            $discountPct = round((($deal->original_price - $deal->discounted_price) / $deal->original_price) * 100);
+        }
+
+        return response()->json([
+            'success' => true,
+            'deal_id' => $deal->id,
+            'discounted_price' => (float)$deal->discounted_price,
+            'original_price' => (float)$deal->original_price,
+            'discount_pct' => $discountPct,
+            'message' => 'Price verified successfully.'
+        ]);
+    }
+
+    /**
+     * Helper method to parse live price and MRP directly from Amazon HTML
+     */
+    private function parseAmazonPriceAndMrp(string $html): array
+    {
+        $discountedPrice = null;
+        $originalPrice = null;
+
+        // 1. Extract Discounted Price
+        if (preg_match('/class="[^"]*priceToPay[^"]*"[^>]*>.*?class="a-price-whole"[^>]*>([\d,]+)/s', $html, $m)) {
+            $discountedPrice = (float)str_replace(',', '', $m[1]);
+        } elseif (preg_match('/id="priceblock_dealprice"[^>]*>.*?₹?\s*([\d,.]+)/s', $html, $m)) {
+            $discountedPrice = (float)str_replace(',', '', $m[1]);
+        } elseif (preg_match('/class="a-price-whole"[^>]*>([\d,]+)/s', $html, $m)) {
+            $discountedPrice = (float)str_replace(',', '', $m[1]);
+        }
+
+        // 2. Extract Original Price (MRP) - Rule 6 (AGENTS.md)
+        // Clean out unit price expressions like (₹70,99,000 / 100 g) before extracting numbers
+        $cleanHtml = preg_replace('/\([^)]*?(?:per|\/|100\s*g|100\s*ml|kg|count)[^)]*?\)/i', '', $html);
+        $cleanHtml = preg_replace('/₹?\s*[\d,.]+\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b/i', '', $cleanHtml);
+        // Additional aggressive cleaning for unit prices often appended directly like </span> /100 g
+        $cleanHtml = preg_replace('/<span[^>]*>[^<]*<\/span>\s*(?:\/|\bper\b)\s*\d*\s*(?:g|kg|ml|l|count|unit|100\s*g|100\s*ml)\b/i', '', $cleanHtml);
+
+        // Check explicit M.R.P.: tag first
+        if (preg_match('/M\.R\.P\.?:?\s*(?:(?:<\/?[^>]+>)|&nbsp;|\s)*₹?\s*([\d,]+)/i', $cleanHtml, $m)) {
+            $candidate = (float)str_replace(',', '', $m[1]);
+            if ($candidate > 0 && (!$discountedPrice || ($candidate / $discountedPrice) < 15)) { // Increase max allowed MRP multiplier just in case (e.g. 95% off)
+                $originalPrice = $candidate;
+            }
+        }
+
+        if (!$originalPrice) {
+            if (preg_match_all('/class="a-text-price[^"]*"[^>]*>.*?class="a-offscreen"[^>]*>\s*₹?\s*([\d,.]+)/s', $cleanHtml, $matches)) {
+                foreach ($matches[1] as $priceStr) {
+                    $candidate = (float)str_replace(',', '', $priceStr);
+                    // Filter out per-unit prices (e.g. max 15x multiplier)
+                    if ($discountedPrice && $candidate > $discountedPrice && ($candidate / $discountedPrice) < 15) {
+                        $originalPrice = $candidate;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return [$discountedPrice, $originalPrice];
+    }
+
+    /**
+     * Helper method to parse live price, MRP and stock directly from Flipkart HTML
+     */
+    private function parseFlipkartPriceAndStock(string $html): array
+    {
+        $discountedPrice = null;
+        $originalPrice = null;
+        $inStock = true;
+
+        if (str_contains($html, 'Sold Out') || str_contains($html, 'Currently Out of Stock') || str_contains($html, 'This item is currently out of stock')) {
+            $inStock = false;
+        }
+
+        // 1. JSON PPD block
+        if (preg_match('/"ppd":\{([^}]+)\}/', $html, $m)) {
+            $block = $m[1];
+            if (preg_match('/"(?:finalPrice|fsp)":(\d+)/', $block, $p)) {
+                $discountedPrice = (float)$p[1];
+            }
+            if (preg_match('/"mrp":(\d+)/', $block, $p)) {
+                $originalPrice = (float)$p[1];
+            }
+        }
+
+        // 2. JSON-LD fallback
+        if (!$discountedPrice && preg_match('/<script[^>]*type="application\/ld\+json"[^>]*>(.*?)<\/script>/s', $html, $m)) {
+            $data = json_decode($m[1], true);
+            if (isset($data['offers']['price'])) {
+                $discountedPrice = (float)$data['offers']['price'];
+            }
+        }
+
+        // 3. Regex fallback
+        if (!$discountedPrice && preg_match('/class="[^"]*(?:Nx9bqj|hl05eU|_30jeq3)[^"]*"[^>]*>₹?\s*([\d,]+)/u', $html, $m)) {
+            $discountedPrice = (float)str_replace(',', '', $m[1]);
+        }
+        if (!$originalPrice && preg_match('/class="[^"]*(?:yRaY8j|CxhGGd)[^"]*"[^>]*>₹?\s*([\d,]+)/u', $html, $m)) {
+            $originalPrice = (float)str_replace(',', '', $m[1]);
+        }
+
+        return [$discountedPrice, $originalPrice, $inStock];
+    }
+
+    /**
+     * Triggered by the Python daemon once it has fetched the new price
+     */
+    public function updatePrice(Request $request)
+    {
+        $request->validate([
+            'url' => 'required|url',
+            'price' => 'required|numeric',
+            'original_price' => 'nullable|numeric'
+        ]);
+
+        $inputUrl = $request->url;
+        
+        // Find deal by canonical url, affiliate url, or clean prefix match
+        $deal = Deal::where('url', $inputUrl)
+            ->orWhere('affiliate_url', $inputUrl)
+            ->first();
+
+        if (!$deal) {
+            $cleanInput = strtok($inputUrl, '?');
+            $deal = Deal::where('url', 'LIKE', $cleanInput . '%')->first();
+        }
+
+        if ($deal) {
+            $oldPrice = $deal->discounted_price;
+            $newPrice = (float)$request->price;
+            $newOriginalPrice = $request->original_price ? (float)$request->original_price : null;
+
+            // Log history if price actually changed
+            if ($oldPrice != $newPrice) {
+                PriceHistory::create([
+                    'deal_id' => $deal->id,
+                    'price' => $newPrice,
+                    'recorded_at' => now()
+                ]);
+                $deal->discounted_price = $newPrice;
+            }
+
+            if ($newOriginalPrice && $newOriginalPrice > 0) {
+                $deal->original_price = $newOriginalPrice;
+            }
+
+            $deal->save();
+
+            // ALWAYS broadcast DealUpdated event to notify frontend that verification complete
+            event(new DealUpdated($deal));
+            
+            Log::info("Deal {$deal->id} price verified/updated. Discounted: {$newPrice}, MRP: {$deal->original_price}");
+
+            return response()->json([
+                'success' => true, 
+                'deal_id' => $deal->id,
+                'discounted_price' => $deal->discounted_price,
+                'original_price' => $deal->original_price
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Deal not found.'], 404);
+    }
+}
+
+
