@@ -372,13 +372,26 @@
                     </div>
 
                     <!-- Verify Live Price Button -->
-                    <button @click="verifyPrice" 
-                            :disabled="isChecking"
-                            class="shrink-0 text-sm font-bold text-gray-700 dark:text-slate-200 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-5 py-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto shadow-sm">
-                        <svg x-show="isChecking" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <svg x-show="!isChecking" class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span x-text="isChecking ? 'Checking...' : (justVerified ? '✓ Price Confirmed' : 'Re-check Catalog Status')"></span>
-                    </button>
+                    <div class="flex flex-col items-start sm:items-end">
+                        <button @click="verifyPrice" 
+                                :disabled="isChecking"
+                                class="shrink-0 text-sm font-bold text-gray-700 dark:text-slate-200 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-5 py-2.5 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto shadow-sm">
+                            <svg x-show="isChecking" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <svg x-show="!isChecking" class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span x-text="isChecking ? 'Checking...' : (justVerified ? '✓ Price Confirmed' : 'Re-check Catalog Status')"></span>
+                        </button>
+                        <template x-if="feedbackMsg">
+                            <div class="mt-2 text-xs font-semibold px-3 py-1.5 rounded-lg border shadow-sm transition-all"
+                                 :class="{
+                                     'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800': feedbackType === 'success',
+                                     'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800': feedbackType === 'warning',
+                                     'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800': feedbackType === 'error',
+                                     'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700': feedbackType === 'info'
+                                 }"
+                                 x-text="feedbackMsg">
+                            </div>
+                        </template>
+                    </div>
                 </div>
 
 
@@ -784,9 +797,12 @@
             discountPct: (initialOriginalPrice > initialPrice) ? Math.round(((initialOriginalPrice - initialPrice) / initialOriginalPrice) * 100) : 0,
             isChecking: false,
             justVerified: false,
+            feedbackMsg: '',
+            feedbackType: 'success',
             verifyPrice() {
                 this.isChecking = true;
                 this.justVerified = false;
+                this.feedbackMsg = '';
                 
                 const handleSuccess = (data) => {
                     this.isChecking = false;
@@ -803,12 +819,22 @@
                             this.discountPct = Math.round(((this.originalPrice - this.currentPrice) / this.originalPrice) * 100);
                         }
                         this.justVerified = true;
-                        setTimeout(() => { this.justVerified = false; }, 4000);
+                        this.feedbackType = 'success';
+                        this.feedbackMsg = '✓ Catalog price verified with merchant.';
+                        setTimeout(() => { 
+                            this.justVerified = false; 
+                            this.feedbackMsg = '';
+                        }, 5000);
                     } else if (data && data.is_expired) {
-                        alert('⚠️ This deal has expired or the product listing was removed on Amazon.');
-                        window.location.reload();
+                        this.feedbackType = 'error';
+                        this.feedbackMsg = '⚠️ Product listing has expired or was removed on merchant store.';
+                    } else if (data && data.is_out_of_stock) {
+                        this.feedbackType = 'warning';
+                        this.feedbackMsg = (data && data.message) || '⚠️ Product is currently out of stock on merchant store.';
                     } else {
-                        alert((data && data.message) || 'Price check completed.');
+                        this.feedbackType = 'info';
+                        this.feedbackMsg = (data && data.message) || 'Catalog check completed.';
+                        setTimeout(() => { this.feedbackMsg = ''; }, 4000);
                     }
                 };
 
@@ -842,7 +868,9 @@
                     .then(handleSuccess)
                     .catch(() => {
                         this.isChecking = false;
-                        alert('Network error while requesting price check.');
+                        this.feedbackType = 'info';
+                        this.feedbackMsg = 'Unable to refresh live status. Showing last audited catalog price.';
+                        setTimeout(() => { this.feedbackMsg = ''; }, 5000);
                     });
                 });
             },
