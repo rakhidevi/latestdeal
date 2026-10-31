@@ -85,6 +85,18 @@ class PriceUpdateController extends Controller
                         }
                     }
 
+                    if (request()->has('debug')) {
+                        return response()->json([
+                            'status_code' => $response->status(),
+                            'html_len' => strlen($html),
+                            'title' => preg_match('/<title[^>]*>(.*?)<\/title>/i', $html, $tm) ? $tm[1] : 'No Title',
+                            'is_captcha' => str_contains($html, 'Robot Check') || str_contains($html, 'api-services-support'),
+                            'has_in_stock_signal' => $hasInStockSignal,
+                            'availability_section' => $availabilitySection,
+                            'is_oos' => $isOos,
+                        ]);
+                    }
+
                     if ($isOos) {
                         $deal->status = 'out_of_stock';
                         $deal->save();
