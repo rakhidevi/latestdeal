@@ -135,8 +135,8 @@
         </div>
 
         <!-- Evidence Pill & Store Status in Compact Line -->
-        <div class="flex items-center justify-between gap-1 text-[11px]">
-            <span class="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-semibold px-2 py-0.5 rounded-md truncate max-w-[65%]">
+        <div class="flex items-center justify-between gap-1.5 text-[11px]">
+            <span class="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-semibold px-2 py-0.5 rounded-md min-w-0">
                 <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                 <span class="truncate">{{ $dealEvidence }}</span>
             </span>

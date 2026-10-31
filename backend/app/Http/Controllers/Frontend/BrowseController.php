@@ -945,23 +945,9 @@ class BrowseController extends Controller
             ]);
         }
 
-        $similarDeals = Deal::where('status', 'active')
-
-            ->where('id', '!=', $deal->id)
-
-            ->where(function ($q) use ($deal) {
-
-                $q->where('category_id', $deal->category_id)
-
-                  ->orWhere('brand_id', $deal->brand_id);
-
-            })
-
-            ->orderByDesc('ai_score')
-
-            ->limit(4)
-
-            ->get();
+        $similarResult = $this->recommendationService->getSimilarDeals($deal, 4);
+        $similarDeals = $similarResult['deals'];
+        $similarDealsHeading = $similarResult['heading'];
 
 
 
@@ -995,7 +981,7 @@ class BrowseController extends Controller
 
 
 
-        return view('deals.show', compact('deal', 'pageTitle', 'breadcrumbs', 'seoMeta', 'schema', 'priceHistory', 'similarDeals'));
+        return view('deals.show', compact('deal', 'pageTitle', 'breadcrumbs', 'seoMeta', 'schema', 'priceHistory', 'similarDeals', 'similarDealsHeading'));
 
     }
 

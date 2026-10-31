@@ -613,10 +613,12 @@
                     </template>
                 </div>
             </div>
+        </div> <!-- Close Right Column: lg:col-span-7 -->
+    </div> <!-- Close Hero Section: lg:grid-cols-12 -->
 
-            <!-- Price History & Volatility Section -->
+    <!-- Price History & Volatility Section -->
     @if(isset($priceHistory) && $priceHistory->isNotEmpty())
-    <div class="mt-16">
+    <div id="price-history" class="mt-16">
         @php
             $observationCount = $priceHistory->count();
             $isLimitedSample = ($observationCount < 3);
@@ -770,9 +772,9 @@
             <span class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 p-2 rounded-xl">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
             </span>
-            Compare Similar Deals
+            {{ $similarDealsHeading ?? 'Compare Similar Deals' }}
         </h3>
-        <div class="grid gap-2 sm:gap-2.5 md:gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+        <div class="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
             @foreach($similarDeals as $similarDeal)
                 <x-deal-card :deal="$similarDeal" />
             @endforeach
