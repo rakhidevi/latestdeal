@@ -63,6 +63,24 @@ class PriceUpdateController extends Controller
                     $domHtml = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $html);
                     $domHtml = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $domHtml);
 
+                    // Bot-block / CAPTCHA detection: Amazon serves a challenge page when rate-limited.
+                    // Only flag when explicit challenge markers are present — genuine OOS pages may also be thin
+                    // and lack productTitle, so size/title heuristics cause false positives on real OOS pages.
+                    $isBotBlocked = str_contains($domHtml, 'id="captchacharacters"')
+                        || str_contains($domHtml, 'Type the characters you see in this image')
+                        || str_contains($domHtml, 'Enter the characters you see below')
+                        || str_contains($domHtml, 'ap_captcha')
+                        || str_contains($domHtml, 'Sorry, we just need to make sure you');
+
+                    if ($isBotBlocked) {
+                        Log::info("Deal {$deal->id} stock check returned bot-challenge page - skipping status update.");
+                        return response()->json([
+                            'success' => false,
+                            'is_inconclusive' => true,
+                            'message' => 'Live check inconclusive - showing last verified catalog status.',
+                        ]);
+                    }
+
                     // Extract availability section
                     $availabilitySection = '';
                     if (preg_match('/<div[^>]*id="availability"[^>]*>(.*?)<\/div>/is', $domHtml, $avMatch)) {
@@ -75,15 +93,13 @@ class PriceUpdateController extends Controller
                         || str_contains($domHtml, 'id="add-to-cart-button"')
                         || str_contains($domHtml, 'name="submit.add-to-cart"');
 
-                    $isOos = false;
-                    if (!$hasInStockSignal) {
-                        if (preg_match('/id=["\']outOfStock["\']/i', $domHtml)
-                            || str_contains($availabilitySection, 'Currently unavailable')
-                            || str_contains($domHtml, "We don't know when or if this item will be back in stock.")
-                        ) {
-                            $isOos = true;
-                        }
-                    }
+                    // Require an *explicit* OOS marker - never infer OOS from absence of in-stock signals alone.
+                    // Absence can mean a partial-load or structural DOM change, not an actual stock-out.
+                    $hasExplicitOosSignal = (bool)preg_match('/id=["\']outOfStock["\']/i', $domHtml)
+                        || str_contains($availabilitySection, 'Currently unavailable')
+                        || str_contains($domHtml, "We don't know when or if this item will be back in stock.");
+
+                    $isOos = $hasExplicitOosSignal && !$hasInStockSignal;
 
                     if ($isOos) {
                         $deal->status = 'out_of_stock';
@@ -91,8 +107,14 @@ class PriceUpdateController extends Controller
                         return response()->json([
                             'success' => false,
                             'is_out_of_stock' => true,
-                            'message' => 'This product is currently out of stock on Amazon India.'
+                            'message' => 'This product is currently out of stock on Amazon India.',
                         ]);
+                    }
+
+                    // If a positive in-stock signal was found and the DB status was stale-OOS, restore it.
+                    if ($hasInStockSignal && $deal->status === 'out_of_stock') {
+                        $deal->status = 'active';
+                        // save() deferred - will be called after price update below
                     }
 
                     // Check for location-specific shipping restrictions or single-unit inventory

@@ -39,6 +39,11 @@ class DealIngestionController
             'image_base64' => 'nullable|string',
             'image_url' => 'nullable|url',
             'promo_code' => 'nullable|string',
+            'coupon_code' => 'nullable|string',
+            'bank_offer' => 'nullable|string',
+            'structured_offers' => 'nullable|array',
+            'idempotency_key' => 'nullable|string',
+            'offer_fingerprint' => 'nullable|string',
             'brand' => 'nullable|string',
             'tags' => 'nullable|array',
             'tags.*' => 'string',
@@ -59,41 +64,80 @@ class DealIngestionController
             'secondary_category_ids.*' => 'integer'
         ]);
 
-        // 1.1 Resolve Category from Name or Apply Keyword Rules
-        if (empty($validated['category_id'])) {
-            $catName = !empty($validated['category_name']) ? $validated['category_name'] : null;
-            
-            // Keyword Rule Engine (if no category name provided, or if we want to fallback from AI)
-            if (empty($catName) && !empty($validated['title'])) {
-                $titleLower = strtolower($validated['title']);
-                if (preg_match('/\b(cookie|biscuit|chocolate|chips|snack|grocery|food|tea|coffee)\b/', $titleLower)) {
-                    $catName = 'Food & Grocery';
-                } elseif (preg_match('/\b(phone|mobile|iphone|smartphone|poco|samsung|oneplus|realme)\b/', $titleLower)) {
-                    $catName = 'Mobiles';
-                } elseif (preg_match('/\b(tv|laptop|earbuds|headphones|electronics|smartwatch|speaker|charger)\b/', $titleLower)) {
-                    $catName = 'Electronics';
-                } elseif (preg_match('/\b(shoe|shirt|t-shirt|jeans|fashion|wear|dress|kurta|saree|sneaker)\b/', $titleLower)) {
-                    $catName = 'Fashion';
-                } elseif (preg_match('/\b(home|kitchen|faucet|tap|bedsheet|mattress|curtain|pillow|cookware|bottle|holder|furniture|mop|cleaner|towel|blanket|cushion)\b/', $titleLower)) {
-                    $catName = 'Home & Kitchen';
-                } elseif (preg_match('/\b(face wash|cream|beauty|makeup|perfume|serum|shampoo|lotion|skincare)\b/', $titleLower)) {
-                    $catName = 'Beauty & Personal Care';
-                } elseif (preg_match('/\b(course|udemy|certification|tutorial)\b/', $titleLower)) {
-                    $catName = 'Education';
+        // 0. Idempotency Gate (Phase 4): Return existing deal if idempotency_key was processed recently
+        if (!empty($validated['idempotency_key'])) {
+            $existingDeal = \App\Models\Deal::where('idempotency_key', $validated['idempotency_key'])->first();
+            if ($existingDeal) {
+                return response()->json([
+                    'success' => true,
+                    'deal_id' => $existingDeal->id,
+                    'idempotent' => true,
+                    'message' => 'Deal already ingested with this idempotency key.'
+                ], 200);
+            }
+        }
+
+        // 1.1 Deterministic Multi-Tier Category Resolution (Phase 2)
+        $resolvedCategoryId = null;
+        $resolvedCategoryName = null;
+
+        // Precedence 1: Exact / Case-insensitive match on Category Name from ingestion payload
+        $rawCatName = !empty($validated['category_name']) ? trim($validated['category_name']) : null;
+        if (!empty($rawCatName) && strtolower($rawCatName) !== 'uncategorized') {
+            $matchedCategory = \App\Models\Category::whereRaw('LOWER(name) = ?', [strtolower($rawCatName)])->first();
+            if ($matchedCategory) {
+                $resolvedCategoryId = $matchedCategory->id;
+                $resolvedCategoryName = $matchedCategory->name;
+            }
+        }
+
+        // Precedence 2: Confidence-Scored Domain Classifier on Title & Features
+        if (!$resolvedCategoryId && !empty($validated['title'])) {
+            $textToAnalyze = strtolower($validated['title'] . ' ' . implode(' ', $validated['features'] ?? []));
+            $classificationRules = [
+                'Mobiles' => '/\b(phone|mobile|iphone|smartphone|poco|samsung galaxy|oneplus|realme|redmi|iqoo|motorola edge)\b/i',
+                'Electronics' => '/\b(laptop|tv|television|earbuds|earphone|headphone|smartwatch|soundbar|speaker|charger|tablet|ipad|monitor|keyboard|mouse|power bank)\b/i',
+                'Fashion' => '/\b(shoe|sneaker|shirt|t-shirt|jeans|trousers|kurta|saree|dress|jacket|hoodie|sandals|running shoes|wallet|handbag|backpack)\b/i',
+                'Home & Kitchen' => '/\b(faucet|tap|bedsheet|mattress|curtain|pillow|cookware|bottle|furniture|wardrobe|mop|cleaner|towel|blanket|cushion|bulb|led bulb|water purifier|vacuum)\b/i',
+                'Beauty & Personal Care' => '/\b(face wash|cream|serum|shampoo|lotion|skincare|moisturizer|perfume|deodorant|sunscreen|conditioner)\b/i',
+                'Food & Grocery' => '/\b(cookie|biscuit|chocolate|chips|snack|grocery|tea|coffee|almonds|cashews|oats|noodles|spices)\b/i',
+                'Education' => '/\b(course|udemy|certification|tutorial|book|novel)\b/i',
+            ];
+
+            foreach ($classificationRules as $categoryName => $pattern) {
+                if (preg_match($pattern, $textToAnalyze)) {
+                    $cat = \App\Models\Category::firstOrCreate(
+                        ['slug' => \Illuminate\Support\Str::slug($categoryName)],
+                        ['name' => $categoryName]
+                    );
+                    $resolvedCategoryId = $cat->id;
+                    $resolvedCategoryName = $cat->name;
+                    break;
                 }
             }
-            
-            // Ultimate fallback so we never drop a deal
-            if (empty($catName)) {
-                $catName = 'Uncategorized';
-            }
-            
-            $cat = \App\Models\Category::firstOrCreate(
-                ['slug' => \Illuminate\Support\Str::slug($catName)],
-                ['name' => $catName]
-            );
-            $validated['category_id'] = $cat->id;
         }
+
+        // Precedence 3: Check supplied category_id if valid in DB (and not hardcoded ID 1)
+        if (!$resolvedCategoryId && !empty($validated['category_id']) && $validated['category_id'] > 1) {
+            $existingCat = \App\Models\Category::find($validated['category_id']);
+            if ($existingCat) {
+                $resolvedCategoryId = $existingCat->id;
+                $resolvedCategoryName = $existingCat->name;
+            }
+        }
+
+        // Precedence 4: Fallback to 'Uncategorized' (NEVER default to arbitrary ID 1)
+        if (!$resolvedCategoryId) {
+            $uncategorized = \App\Models\Category::firstOrCreate(
+                ['slug' => 'uncategorized'],
+                ['name' => 'Uncategorized']
+            );
+            $resolvedCategoryId = $uncategorized->id;
+            $resolvedCategoryName = $uncategorized->name;
+        }
+
+        $validated['category_id'] = $resolvedCategoryId;
+        $validated['category_name'] = $resolvedCategoryName;
 
         // 1.2 Resolve Merchant from URL Domain
         $host = parse_url($validated['url'], PHP_URL_HOST);
@@ -304,7 +348,12 @@ class DealIngestionController
             'discounted_price' => $validated['discounted_price'],
             'calculated_discount_percent' => $validated['calculated_discount'] ?? null,
             'price_intelligence' => $priceIntel,
-            'coupon_code' => $validated['promo_code'] ?? null,
+            'coupon_code' => $validated['coupon_code'] ?? $validated['promo_code'] ?? null,
+            'promo_code' => $validated['coupon_code'] ?? $validated['promo_code'] ?? null,
+            'bank_offer' => $validated['bank_offer'] ?? null,
+            'structured_offers' => $validated['structured_offers'] ?? null,
+            'idempotency_key' => $validated['idempotency_key'] ?? null,
+            'offer_fingerprint' => $validated['offer_fingerprint'] ?? null,
             'brand' => $cleanBrand,
             'features' => isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : null,
             'verdict' => $validated['verdict'] ?? null,
@@ -349,6 +398,7 @@ class DealIngestionController
             'status' => 'created',
             'message' => 'Deal ingested and queued successfully',
             'deal_id' => $deal->id,
+            'idempotent' => false,
             'correlation_id' => $correlationId
         ], 200);
     }

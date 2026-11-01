@@ -17,8 +17,22 @@ def init_db():
             type TEXT DEFAULT 'ingestion',
             data TEXT,
             retry_count INTEGER DEFAULT 0,
+            offer_fingerprint TEXT,
+            is_shadow INTEGER DEFAULT 0,
             added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Dead-letter queue table for auditable failed jobs
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS dead_letter_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_id INTEGER,
+            url TEXT,
+            error_reason TEXT,
+            payload TEXT,
+            failed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     

@@ -20,16 +20,20 @@ from image_composer import compose_image
 
 load_dotenv()
 
-# We can store these in .env later, but using the provided keys for now
-API_ID = '32985684'
-API_HASH = '2b3f3db5b0f54fa1e65633266d48bff8'
-SESSION_NAME = 'latestdeal_telegram'
+# Secure environment configuration for Telegram API
+API_ID = os.getenv("TELEGRAM_API_ID")
+API_HASH = os.getenv("TELEGRAM_API_HASH")
+SESSION_NAME = os.getenv("TELEGRAM_SESSION_NAME", "latestdeal_telegram")
 
 # The channels we want to listen to. Use empty list to listen to ALL joined channels, or specify valid @usernames.
 from config_manager import config
 TARGET_CHANNELS = config.get("telegram", {}).get("target_channels", [])
 
-client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
+if not API_ID or not API_HASH:
+    print("[TelegramScraper] Notice: TELEGRAM_API_ID and TELEGRAM_API_HASH not set in .env. Listener disabled.")
+    client = None
+else:
+    client = TelegramClient(SESSION_NAME, int(API_ID), API_HASH)
 
 # Lock to ensure only one headed Playwright instance opens at a time
 sitestripe_lock = asyncio.Lock()
