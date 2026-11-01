@@ -28,7 +28,7 @@ class Deal extends Model
     protected $fillable = [
         'category_id', 'merchant_id', 'brand_id', 'title', 'original_price', 
         'discounted_price', 'discount_percentage', 'amount_saved', 'price_drop', 'effective_price',
-        'needs_brand_review', 'coupon_code', 'promo_code', 'url', 'short_url', 'image_path', 'status', 'brand',
+        'needs_brand_review', 'coupon_code', 'promo_code', 'bank_offer', 'structured_offers', 'idempotency_key', 'offer_fingerprint', 'url', 'short_url', 'image_path', 'status', 'brand',
         'features', 'verdict', 'trust_metrics', 'ai_caption', 'ai_score', 'slug', 'hash_id',
         'editorial_status', 'editorial_summary', 'editorial_verdict', 'pros', 'cons', 
         'best_for', 'not_for', 'editor_id', 'reviewed_at', 'is_editor_pick', 'typical_price',
@@ -133,7 +133,8 @@ class Deal extends Model
         'not_for' => 'array',
         'reviewed_at' => 'datetime',
         'is_editor_pick' => 'boolean',
-        'price_intelligence' => 'array'
+        'price_intelligence' => 'array',
+        'structured_offers' => 'array'
     ];
 
     public function getDealQualificationAttribute()

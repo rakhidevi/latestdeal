@@ -111,8 +111,8 @@ async def process_queue():
             if telegram_meta:
                 if not getattr(deal, 'coupon', None) and telegram_meta.get('promo_code'):
                     deal.coupon = telegram_meta['promo_code']
-                if telegram_meta.get('bank_offer') and not (deal.title or "").startswith("[Bank Offer"):
-                    deal.title = f"[Bank Offer: {telegram_meta['bank_offer']}] " + (deal.title or "")
+                if telegram_meta.get('bank_offer'):
+                    deal.bank_offer = telegram_meta['bank_offer']
                 
             if publishing_context:
                 publishing_context.affiliate_url = deal.affiliate_url
@@ -183,33 +183,40 @@ async def process_queue():
             curr_price = deal.price or 0.0
             orig_price = deal.original_price or 0.0
 
-            if (orig_price <= curr_price or orig_price <= 0) and curr_price > 0:
-                pi = getattr(deal, 'price_intelligence', None)
-                hist_high = None
-                if pi:
-                    hist_high = pi.history_90d_high or pi.history_365d_high or pi.history_30d_high
-                elif getattr(deal, 'price_history_raw', None):
-                    raw = deal.price_history_raw
-                    hist_high = raw.get("history_90d_high") or raw.get("history_365d_high") or raw.get("history_30d_high")
-                
-                if hist_high and hist_high > curr_price:
-                    orig_price = float(hist_high)
-                    deal.original_price = orig_price
-
             if curr_price <= 0:
                 add_log(f"Deal skipped: Invalid or zero price (Rs.{curr_price}).")
                 mark_status(item_id, 'skipped')
                 update_job(job_id, status="failure", logs=job_logs + [f"Skipped: Invalid zero price Rs.{curr_price}"])
                 continue
 
-            if orig_price <= curr_price:
-                add_log(f"Deal skipped: No genuine discount (Price Rs.{curr_price} >= Original Rs.{orig_price}).")
+            has_coupon_or_offer = bool(getattr(deal, 'coupon', None) or getattr(deal, 'bank_offer', None) or (telegram_meta and (telegram_meta.get('promo_code') or telegram_meta.get('bank_offer'))))
+            if orig_price <= curr_price and not has_coupon_or_offer:
+                add_log(f"Deal skipped: No genuine discount or coupon (Price Rs.{curr_price} >= Original Rs.{orig_price}).")
                 mark_status(item_id, 'skipped')
-                update_job(job_id, status="failure", logs=job_logs + [f"Skipped: No genuine discount (Price Rs.{curr_price} >= Original Rs.{orig_price})"])
+                update_job(job_id, status="failure", logs=job_logs + [f"Skipped: No genuine discount or coupon (Price Rs.{curr_price} >= Original Rs.{orig_price})"])
                 continue
 
+            import hashlib
+            asin_val = extract_asin(deal.canonical_url) or "UNKNOWN"
+            promo_val = getattr(deal, 'coupon', None) or (telegram_meta.get('promo_code') if telegram_meta else None)
+            bank_val = getattr(deal, 'bank_offer', None) or (telegram_meta.get('bank_offer') if telegram_meta else None)
+            
+            # Deterministic offer fingerprint & stable idempotency key
+            fingerprint_raw = f"{deal.merchant}:{asin_val}:{deal.price}:{promo_val}:{bank_val}"
+            offer_fingerprint = hashlib.sha256(fingerprint_raw.encode('utf-8')).hexdigest()[:32]
+            idempotency_key = hashlib.sha256(f"offer:{offer_fingerprint}".encode('utf-8')).hexdigest()[:40]
+
+            # Evidence-based score calculation (never synthetic 85 fallback)
+            computed_score = deal.ai_score
+            if computed_score is None:
+                if deal.original_price and deal.price and deal.original_price > deal.price:
+                    disc_pct = ((deal.original_price - deal.price) / deal.original_price) * 100
+                    computed_score = min(95, max(50, int(50 + (disc_pct * 0.5))))
+                else:
+                    computed_score = None
+
             payload = {
-                "asin": extract_asin(deal.canonical_url),
+                "asin": asin_val,
                 "trace_id": str(uuid.uuid4()),
                 "pipeline_run_id": str(uuid.uuid4()),
                 "observation_id": str(uuid.uuid4()),
@@ -217,14 +224,20 @@ async def process_queue():
                 "original_price": deal.original_price or 0,
                 "discounted_price": deal.price or 0,
                 "url": deal.affiliate_url or deal.canonical_url,
-                "category_id": deal.category.id if (deal.category and hasattr(deal.category, 'id')) else 1, # Hardcoded fallback for production API
-                "category_name": deal.category.name if deal.category else "Electronics",
+                "category_id": deal.category.id if (deal.category and hasattr(deal.category, 'id') and deal.category.id) else None,
+                "category_name": deal.category.name if deal.category else None,
+                "promo_code": promo_val,
+                "coupon_code": promo_val,
+                "bank_offer": bank_val,
+                "structured_offers": getattr(deal, 'structured_offers', []) or [],
+                "offer_fingerprint": offer_fingerprint,
+                "idempotency_key": idempotency_key,
                 "ai_caption": caption_text,
                 "features": getattr(deal, 'features', []) or [],
                 "brand": resolved_brand,
                 "image_base64": base64_image,
-                "ai_score": deal.ai_score if deal.ai_score is not None else 85,
-                "opportunity_score": deal.ai_score if deal.ai_score is not None else 85,
+                "ai_score": computed_score,
+                "opportunity_score": computed_score,
                 "deal_type": job_type if job_type in ['deal', 'mega_loot'] else 'deal',
                 "trust_metrics": json.dumps(deal.trust_metrics) if deal.trust_metrics else None,
                 "verdict": deal.verdict,
@@ -234,8 +247,20 @@ async def process_queue():
                 "verdict_code": getattr(deal, 'verdict_code', None),
                 "price_intelligence": deal.price_intelligence.model_dump() if getattr(deal, 'price_intelligence', None) else None
             }
+
+            # Phase 4 Publish Gate: Default-Deny Barrier
+            is_shadow = getattr(deal, 'is_shadow', False) or (getattr(discovery_job, 'is_shadow', False) if discovery_job else False)
+            allow_production = os.getenv("ALLOW_PRODUCTION_PUBLISH", "false").lower() in ("true", "1")
             
-            # 5. Push to Laravel
+            if is_shadow or not allow_production:
+                add_log(f"Publish Gate: Dry-run/Shadow active (allow_prod={allow_production}, is_shadow={is_shadow}). Recorded to shadow telemetry.")
+                with open("shadow_runs.jsonl", "a", encoding="utf-8") as sf:
+                    sf.write(json.dumps({"timestamp": time.time(), "job_id": job_id, "payload": payload}) + "\n")
+                mark_status(item_id, 'completed')
+                update_job(job_id, status="success", logs=job_logs + ["Shadow / Dry-Run verification passed. Production emission blocked by default-deny gate."])
+                continue
+            
+            # 5. Push to Laravel with Resilient Retry Client
             add_log("Pushing final payload to Laravel...")
             from api_client import push_to_production
             success = push_to_production(payload)

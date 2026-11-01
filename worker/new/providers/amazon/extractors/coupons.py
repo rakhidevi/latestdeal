@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional
 from worker.new.sdk.foundation.dto.models import SearchTargetDTO, UniversalProductDTO, TraceContext, CanonicalDealDTO, CouponEvidence
 from worker.new.sdk.provider_sdk.base import BaseExtractor
 from bs4 import BeautifulSoup
+import re
 
 class AmazonCouponExtractor(BaseExtractor):
     def extract_product(self, raw_payload: Dict[str, Any], trace_context: TraceContext) -> Optional[UniversalProductDTO]:
@@ -15,29 +16,33 @@ class AmazonCouponExtractor(BaseExtractor):
         soup = BeautifulSoup(html, 'html.parser')
         products = []
         
-        # Placeholder DOM parsing for the Amazon Coupons Hub
-        coupon_items = soup.find_all("div", {"class": "a-section coupon-item-container"})
+        # 1. Search for coupons hub items and search result cards with active coupon tags
+        coupon_items = soup.find_all("div", {"class": re.compile(r'(?:coupon-item-container|s-result-item)', re.I)})
         
         for item in coupon_items:
-            asin = item.get("data-asin", "dummy-coupon-asin")
-            if not asin:
+            asin = item.get("data-asin")
+            if not asin or len(asin) != 10:
                 continue
                 
+            # Check for positive coupon evidence in this item
+            has_coupon = bool(
+                item.find("span", {"class": re.compile(r's-coupon-highlight-color|couponLabelText', re.I)}) or
+                item.find(string=re.compile(r'(?:Save|Coupon|off with coupon)', re.I))
+            )
+            
+            if not has_coupon:
+                continue
+
+            title_el = item.find(["h2", "span"], {"class": re.compile(r'a-text-normal|coupon-title', re.I)})
+            title = title_el.get_text(strip=True) if title_el else "Amazon Verified Coupon Deal"
+            
             product = UniversalProductDTO(
                 provider="AmazonProvider",
                 provider_product_id=asin,
                 url=f"https://www.amazon.in/dp/{asin}",
-                title="Coupon Extracted Item"
+                title=title[:120]
             )
             products.append(product)
             
-        # Return mock items for Shadow validation if parsing yields empty
-        if not products:
-            products.append(UniversalProductDTO(
-                provider="AmazonProvider",
-                provider_product_id="B0SHADOWCPN",
-                url="https://www.amazon.in/dp/B0SHADOWCPN",
-                title="Shadow Extracted Coupon Deal"
-            ))
-            
+        # Return empty list when no genuine coupons are found. Never inject synthetic items.
         return products

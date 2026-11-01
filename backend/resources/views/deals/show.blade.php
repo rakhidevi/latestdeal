@@ -415,10 +415,10 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                             </button>
                         </div>
+                        <div id="copy-toast" style="display:none;margin-top:8px;text-align:center;font-size:12px;font-weight:600;color:#059669;" aria-live="polite">✓ Code copied!</div>
                         <script>
                             function copyAndGo() {
-                                navigator.clipboard.writeText("{{ $deal->promo_code ?? $deal->coupon_code }}");
-                                alert("Code copied!");
+                                navigator.clipboard.writeText("{{ $deal->promo_code ?? $deal->coupon_code }}").then(function(){ var t=document.getElementById('copy-toast'); if(t){t.style.display='block'; setTimeout(function(){t.style.display='none';},2500);} });
                                 window.open("{{ route('deal.redirect', $deal->hash_id) }}", "_blank");
                             }
                         </script>
@@ -830,6 +830,10 @@
                     } else if (data && data.is_expired) {
                         this.feedbackType = 'error';
                         this.feedbackMsg = '⚠️ Product listing has expired or was removed on merchant store.';
+                    } else if (data && data.is_inconclusive) {
+                        this.feedbackType = 'info';
+                        this.feedbackMsg = (data && data.message) || 'Stock status could not be verified right now - showing last catalog status.';
+                        setTimeout(() => { this.feedbackMsg = ''; }, 5000);
                     } else if (data && data.is_out_of_stock) {
                         this.feedbackType = 'warning';
                         this.feedbackMsg = (data && data.message) || '⚠️ Product is currently out of stock on merchant store.';
