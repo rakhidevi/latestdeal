@@ -180,110 +180,110 @@ class AmazonPublisher(BasePublisher):
             try:
                 with lock:
                     with sync_playwright() as p:
-                context = None
-                for attempt in range(2):
-                    try:
-                        context = p.chromium.launch_persistent_context(
-                            user_data_dir=user_data_dir,
-                            headless=False,
-                            executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-                            permissions=["clipboard-read", "clipboard-write"],
-                            args=["--disable-blink-features=AutomationControlled"]
-                        )
-                        break
-                    except Exception as e:
-                        if attempt == 0:
-                            import subprocess, sys
-                            subprocess.run([sys.executable, os.path.join(project_root, "worker", "kill_zombie_chrome.py")])
-                            time.sleep(2)
-                        else:
-                            raise e
-                
-                try:
-                    page = context.pages[0] if context.pages else context.new_page()
-                    Stealth().use_sync(page)
-                    
-                    # Navigate to the raw ASIN
-                    asin = deal.universal_product_uuid
-                    raw_url = f"https://www.amazon.in/dp/{asin}"
-                    page.goto(raw_url, wait_until="domcontentloaded", timeout=60000)
-                    
-                    try:
-                        # New SiteStripe design (2025+):
-                        # A gold "Get Link." button opens a popover with Short Link / Full Link radio
-                        # Step 1: Wait for the SiteStripe bar to load
-                        page.wait_for_selector("#amzn-ss-wrap", timeout=15000)
-                        time.sleep(1.5)
-                        
-                        import pyperclip
-                        pyperclip.copy("") # Clear clipboard first
-                        
-                        # Step 2: Click the "Get Link." button to open the popover
-                        # Try multiple possible selectors for the Get Link button
-                        get_link_selectors = [
-                            "#amzn-ss-getlink-btn",
-                            ".amzn-ss-getlink-btn",
-                            "button.amzn-ss-get-link-btn",
-                            "[data-action='amzn-ss-get-link']",
-                        ]
-                        clicked = False
-                        for sel in get_link_selectors:
+                        context = None
+                        for attempt in range(2):
                             try:
-                                btn = page.locator(sel).first
-                                if btn.count() > 0:
-                                    btn.click(force=True)
-                                    clicked = True
-                                    break
-                            except:
-                                continue
-                        
-                        if not clicked:
-                            # Fallback: find any button/link with "Get Link" text in the SiteStripe bar
-                            page.evaluate("""() => {
-                                let wrap = document.getElementById('amzn-ss-wrap');
-                                if (wrap) {
-                                    let btns = wrap.querySelectorAll('button, a, [role="button"]');
-                                    for (let b of btns) {
-                                        if (b.innerText && b.innerText.toLowerCase().includes('get link')) {
-                                            b.click(); return true;
-                                        }
-                                    }
-                                }
-                                return false;
-                            }""")
-                        
-                        time.sleep(1.5)  # Wait for popover to animate open
-                        
-                        # Step 3: The "Short Link" radio is selected by default.
-                        # Click the "Copy affiliate link" button
-                        page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce", timeout=8000)
-                        copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce").first
-                        copy_btn.click(force=True)
-                        
-                        # Step 4: Wait for "Copied to clipboard" toast to confirm success
+                                context = p.chromium.launch_persistent_context(
+                                    user_data_dir=user_data_dir,
+                                    headless=False,
+                                    executable_path=r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                                    permissions=["clipboard-read", "clipboard-write"],
+                                    args=["--disable-blink-features=AutomationControlled"]
+                                )
+                                break
+                            except Exception as e:
+                                if attempt == 0:
+                                    import subprocess, sys
+                                    subprocess.run([sys.executable, os.path.join(project_root, "worker", "kill_zombie_chrome.py")])
+                                    time.sleep(2)
+                                else:
+                                    raise e
+                    
                         try:
-                            page.wait_for_selector(
-                                "#amzn-ss-copy-toast:not([style*='display: none'])", 
-                                timeout=5000
-                            )
-                        except:
-                            pass
+                            page = context.pages[0] if context.pages else context.new_page()
+                            Stealth().use_sync(page)
                         
-                        time.sleep(1.0)
+                            # Navigate to the raw ASIN
+                            asin = deal.universal_product_uuid
+                            raw_url = f"https://www.amazon.in/dp/{asin}"
+                            page.goto(raw_url, wait_until="domcontentloaded", timeout=60000)
                         
-                        try:
-                            short_url = page.evaluate("navigator.clipboard.readText()")
-                        except:
-                            short_url = ""
+                            try:
+                                # New SiteStripe design (2025+):
+                                # A gold "Get Link." button opens a popover with Short Link / Full Link radio
+                                # Step 1: Wait for the SiteStripe bar to load
+                                page.wait_for_selector("#amzn-ss-wrap", timeout=15000)
+                                time.sleep(1.5)
                             
-                        if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
-                            short_url = pyperclip.paste()
-                        
-                    except Exception as e:
-                        print(f"SiteStripe automation failed: {e}")
-                finally:
-                    if context:
-                        context.close()
+                                import pyperclip
+                                pyperclip.copy("") # Clear clipboard first
+                            
+                                # Step 2: Click the "Get Link." button to open the popover
+                                # Try multiple possible selectors for the Get Link button
+                                get_link_selectors = [
+                                    "#amzn-ss-getlink-btn",
+                                    ".amzn-ss-getlink-btn",
+                                    "button.amzn-ss-get-link-btn",
+                                    "[data-action='amzn-ss-get-link']",
+                                ]
+                                clicked = False
+                                for sel in get_link_selectors:
+                                    try:
+                                        btn = page.locator(sel).first
+                                        if btn.count() > 0:
+                                            btn.click(force=True)
+                                            clicked = True
+                                            break
+                                    except:
+                                        continue
+                            
+                                if not clicked:
+                                    # Fallback: find any button/link with "Get Link" text in the SiteStripe bar
+                                    page.evaluate("""() => {
+                                        let wrap = document.getElementById('amzn-ss-wrap');
+                                        if (wrap) {
+                                            let btns = wrap.querySelectorAll('button, a, [role="button"]');
+                                            for (let b of btns) {
+                                                if (b.innerText && b.innerText.toLowerCase().includes('get link')) {
+                                                    b.click(); return true;
+                                                }
+                                            }
+                                        }
+                                        return false;
+                                    }""")
+                            
+                                time.sleep(1.5)  # Wait for popover to animate open
+                            
+                                # Step 3: The "Short Link" radio is selected by default.
+                                # Click the "Copy affiliate link" button
+                                page.wait_for_selector("#amzn-ss-copy-affiliate-link-btn-announce", timeout=8000)
+                                copy_btn = page.locator("#amzn-ss-copy-affiliate-link-btn-announce").first
+                                copy_btn.click(force=True)
+                            
+                                # Step 4: Wait for "Copied to clipboard" toast to confirm success
+                                try:
+                                    page.wait_for_selector(
+                                        "#amzn-ss-copy-toast:not([style*='display: none'])", 
+                                        timeout=5000
+                                    )
+                                except:
+                                    pass
+                            
+                                time.sleep(1.0)
+                            
+                                try:
+                                    short_url = page.evaluate("navigator.clipboard.readText()")
+                                except:
+                                    short_url = ""
+                                
+                                if not short_url or ("amzn.to" not in short_url and "link.amazon" not in short_url):
+                                    short_url = pyperclip.paste()
+                            
+                            except Exception as e:
+                                print(f"SiteStripe automation failed: {e}")
+                        finally:
+                            if context:
+                                context.close()
             except Timeout:
                 print("Provider: Timed out waiting for browser lock.")
                         

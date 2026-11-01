@@ -19,7 +19,13 @@ return new class extends Migration
                 $table->json('structured_offers')->nullable()->after('bank_offer');
             }
             if (!Schema::hasColumn('deals', 'idempotency_key')) {
-                $table->string('idempotency_key', 64)->nullable()->index()->after('structured_offers');
+                $table->string('idempotency_key', 64)->nullable()->unique()->after('structured_offers');
+            } else {
+                try {
+                    $table->unique('idempotency_key');
+                } catch (\Throwable $e) {
+                    // Unique constraint may already exist
+                }
             }
             if (!Schema::hasColumn('deals', 'offer_fingerprint')) {
                 $table->string('offer_fingerprint', 64)->nullable()->after('idempotency_key');
@@ -41,6 +47,11 @@ return new class extends Migration
                 $columns[] = 'structured_offers';
             }
             if (Schema::hasColumn('deals', 'idempotency_key')) {
+                try {
+                    $table->dropUnique(['idempotency_key']);
+                } catch (\Throwable $e) {
+                    // Ignore if unique index was already dropped
+                }
                 $columns[] = 'idempotency_key';
             }
             if (Schema::hasColumn('deals', 'offer_fingerprint')) {

@@ -194,7 +194,33 @@ def update_job_data(item_id: int, data_json: str, status: str):
     conn.commit()
     conn.close()
 
-def mark_status(item_id: int, status: str):
+def move_to_dead_letter_queue(item_id: int, error_reason: str = None, payload: str = None):
+    """Inserts a failed job into the dead_letter_queue for audit and troubleshooting, then updates queue status."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT url, data FROM deals_queue WHERE id = ?", (item_id,))
+        row = cursor.fetchone()
+        url = row[0] if row else None
+        job_payload = payload or (row[1] if row else None)
+        
+        cursor.execute("""
+            INSERT INTO dead_letter_queue (job_id, url, error_reason, payload)
+            VALUES (?, ?, ?, ?)
+        """, (item_id, url, error_reason or 'Unknown processing error', job_payload))
+        
+        cursor.execute("UPDATE deals_queue SET status = 'failed', updated_at = CURRENT_TIMESTAMP WHERE id = ?", (item_id,))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error moving item {item_id} to dead-letter queue: {e}")
+    finally:
+        conn.close()
+
+def mark_status(item_id: int, status: str, error_reason: str = None):
+    if status == 'failed':
+        move_to_dead_letter_queue(item_id, error_reason=error_reason)
+        return
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("UPDATE deals_queue SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (status, item_id))

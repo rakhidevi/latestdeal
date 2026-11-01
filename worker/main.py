@@ -271,7 +271,7 @@ async def process_queue():
                 update_job(job_id, status="success")
                 emit_event("Published")
             else:
-                mark_status(item_id, 'failed')
+                mark_status(item_id, 'failed', error_reason="Failed to push to Laravel API after retries")
                 add_log("Failed to push to Laravel API.")
                 update_job(job_id, status="failure")
                 
@@ -282,7 +282,7 @@ async def process_queue():
                 update_job(job_id, logs=job_logs + ["Delegated to Desktop Worker"])
             else:
                 add_log(f"Fatal error processing {url}: {e}")
-                mark_status(item_id, 'failed')
+                mark_status(item_id, 'failed', error_reason=f"Fatal error: {e}")
                 update_job(job_id, status="failure")
             
         # Delay before next item to protect home IP

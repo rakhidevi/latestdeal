@@ -51,23 +51,28 @@ if exist .env (
         if /i "%%A"=="ALLOW_PRODUCTION_PUBLISH" set ALLOW_PUB=%%B
     )
 )
-if /i "%ALLOW_PUB%"=="true" (
-    echo ==============================================================
-    echo [WARNING] PRODUCTION PUBLISHING IS ACTIVE!
-    echo ALLOW_PRODUCTION_PUBLISH=true in worker\.env
-    echo Ingested deals will be POSTED LIVE to production API!
-    echo ==============================================================
-    set /p confirm_prod="Are you SURE you want to run with LIVE publishing? (y/N): "
-    if /i not "!confirm_prod!"=="y" if /i not "%confirm_prod%"=="y" (
-        echo Startup cancelled by user safety check.
-        pause
-        goto menu
-    )
-) else (
-    echo [MODE] SAFE / SHADOW MODE ACTIVE.
-    echo ALLOW_PRODUCTION_PUBLISH is not 'true'. Jobs will be processed safely
-    echo into shadow_runs.jsonl without live production publishing.
+if /i not "%ALLOW_PUB%"=="true" goto safe_mode_all
+
+echo ==============================================================
+echo [WARNING] PRODUCTION PUBLISHING IS ACTIVE!
+echo ALLOW_PRODUCTION_PUBLISH=true in worker\.env
+echo Ingested deals will be POSTED LIVE to production API!
+echo ==============================================================
+set "confirm_prod=N"
+set /p confirm_prod="Are you SURE you want to run with LIVE publishing? (y/N): "
+if /i not "%confirm_prod%"=="y" (
+    echo Startup cancelled by user safety check.
+    pause
+    goto menu
 )
+goto proceed_start_all
+
+:safe_mode_all
+echo [MODE] SAFE / SHADOW MODE ACTIVE.
+echo ALLOW_PRODUCTION_PUBLISH is not 'true'. Jobs will be processed safely
+echo into shadow_runs.jsonl without live production publishing.
+
+:proceed_start_all
 echo.
 echo Stopping any running LatestDeal worker instances...
 venv\Scripts\python.exe cleanup_workers.py
@@ -133,30 +138,34 @@ pause
 goto menu
 
 :start_main
+echo.
 set ALLOW_PUB=false
 if exist .env (
     for /f "usebackq tokens=1,2 delims==" %%A in (".env") do (
         if /i "%%A"=="ALLOW_PRODUCTION_PUBLISH" set ALLOW_PUB=%%B
     )
 )
-if /i "%ALLOW_PUB%"=="true" (
-    echo.
-    echo ==============================================================
-    echo [WARNING] PRODUCTION PUBLISHING IS ACTIVE!
-    echo ALLOW_PRODUCTION_PUBLISH=true in worker\.env
-    echo Queue processor will publish live deals to production!
-    echo ==============================================================
-    set /p confirm_prod="Are you SURE you want to launch with LIVE publishing? (y/N): "
-    if /i not "!confirm_prod!"=="y" if /i not "%confirm_prod%"=="y" (
-        echo Cancelled by user.
-        pause
-        goto menu
-    )
-) else (
-    echo.
-    echo [MODE] SAFE / SHADOW MODE ACTIVE (ALLOW_PRODUCTION_PUBLISH is false).
-    echo.
+if /i not "%ALLOW_PUB%"=="true" goto safe_mode_main
+
+echo ==============================================================
+echo [WARNING] PRODUCTION PUBLISHING IS ACTIVE!
+echo ALLOW_PRODUCTION_PUBLISH=true in worker\.env
+echo Queue processor will publish live deals to production!
+echo ==============================================================
+set "confirm_prod=N"
+set /p confirm_prod="Are you SURE you want to launch with LIVE publishing? (y/N): "
+if /i not "%confirm_prod%"=="y" (
+    echo Cancelled by user.
+    pause
+    goto menu
 )
+goto proceed_start_main
+
+:safe_mode_main
+echo [MODE] SAFE / SHADOW MODE ACTIVE (ALLOW_PRODUCTION_PUBLISH is false).
+
+:proceed_start_main
+echo.
 echo Starting the Core Daemon (Port 8001)...
 start "LatestDeal Daemon" /MIN cmd /c "venv\Scripts\python.exe daemon.py"
 echo Starting the Main Worker (Queue Processor)...
