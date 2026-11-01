@@ -91,7 +91,16 @@ class DealIngestionController
             }
         }
 
-        // Precedence 2: Confidence-Scored Domain Classifier on Title & Features
+        // Precedence 2: Check explicitly supplied category_id if valid in DB (and not legacy fallback ID 1)
+        if (!$resolvedCategoryId && !empty($validated['category_id']) && (int)$validated['category_id'] > 1) {
+            $existingCat = \App\Models\Category::find($validated['category_id']);
+            if ($existingCat) {
+                $resolvedCategoryId = $existingCat->id;
+                $resolvedCategoryName = $existingCat->name;
+            }
+        }
+
+        // Precedence 3: Confidence-Scored Domain Classifier on Title & Features (when category_id is missing or ID 1)
         if (!$resolvedCategoryId && !empty($validated['title'])) {
             $textToAnalyze = strtolower($validated['title'] . ' ' . implode(' ', $validated['features'] ?? []));
             $classificationRules = [
@@ -114,15 +123,6 @@ class DealIngestionController
                     $resolvedCategoryName = $cat->name;
                     break;
                 }
-            }
-        }
-
-        // Precedence 3: Check supplied category_id if valid in DB (and not hardcoded ID 1)
-        if (!$resolvedCategoryId && !empty($validated['category_id']) && $validated['category_id'] > 1) {
-            $existingCat = \App\Models\Category::find($validated['category_id']);
-            if ($existingCat) {
-                $resolvedCategoryId = $existingCat->id;
-                $resolvedCategoryName = $existingCat->name;
             }
         }
 
@@ -282,8 +282,18 @@ class DealIngestionController
                 || is_null($existingUrlDeal->editorial_summary) 
                 || is_null($existingUrlDeal->pros);
                 
-            // If price changed or needs editorial update
-            if ($existingUrlDeal->discounted_price != $validated['discounted_price'] || $needsEditorialUpdate) {
+            // Check if coupon or bank offer details changed on re-ingestion
+            $incomingCouponCode = $validated['coupon_code'] ?? $validated['promo_code'] ?? null;
+            $incomingBankOffer = $validated['bank_offer'] ?? null;
+            $incomingStructuredOffers = $validated['structured_offers'] ?? null;
+            $hasOfferChange = (
+                ($incomingCouponCode !== null && $incomingCouponCode !== $existingUrlDeal->coupon_code) ||
+                ($incomingBankOffer !== null && $incomingBankOffer !== $existingUrlDeal->bank_offer) ||
+                ($incomingStructuredOffers !== null && $incomingStructuredOffers != $existingUrlDeal->structured_offers)
+            );
+
+            // If price changed, offer changed, or needs editorial update
+            if ($existingUrlDeal->discounted_price != $validated['discounted_price'] || $hasOfferChange || $needsEditorialUpdate) {
                 if ($existingUrlDeal->discounted_price != $validated['discounted_price']) {
                     \App\Models\PriceHistory::create([
                         'deal_id' => $existingUrlDeal->id,
@@ -298,8 +308,17 @@ class DealIngestionController
                     'status' => $dealStatus,
                     'editorial_status' => $dealEditorialStatus,
                     'price_intelligence' => $priceIntel,
-                    'ai_score' => $dealScore
+                    'ai_score' => $dealScore,
+                    'coupon_code' => $incomingCouponCode ?? $existingUrlDeal->coupon_code,
+                    'promo_code' => $incomingCouponCode ?? $existingUrlDeal->promo_code,
+                    'bank_offer' => $incomingBankOffer ?? $existingUrlDeal->bank_offer,
+                    'structured_offers' => $incomingStructuredOffers ?? $existingUrlDeal->structured_offers,
+                    'offer_fingerprint' => $validated['offer_fingerprint'] ?? $existingUrlDeal->offer_fingerprint,
                 ];
+
+                if (!empty($validated['idempotency_key'])) {
+                    $updateData['idempotency_key'] = $validated['idempotency_key'];
+                }
 
                 if ($cleanBrand) {
                     $updateData['brand'] = $cleanBrand;
@@ -335,44 +354,61 @@ class DealIngestionController
             ], 200);
         }
 
-        // 3. Persist Raw Payload
-        $deal = Deal::create([
-            'asin' => $validated['asin'] ?? null,
-            'url' => $validated['url'],
-            'image_path' => $imagePath,
-            'category_id' => $validated['category_id'],
-            'merchant_id' => $validated['merchant_id'],
-            'brand_id' => $brandId,
-            'title' => Str::limit($validated['title'], 250, ''),
-            'original_price' => $validated['original_price'],
-            'discounted_price' => $validated['discounted_price'],
-            'calculated_discount_percent' => $validated['calculated_discount'] ?? null,
-            'price_intelligence' => $priceIntel,
-            'coupon_code' => $validated['coupon_code'] ?? $validated['promo_code'] ?? null,
-            'promo_code' => $validated['coupon_code'] ?? $validated['promo_code'] ?? null,
-            'bank_offer' => $validated['bank_offer'] ?? null,
-            'structured_offers' => $validated['structured_offers'] ?? null,
-            'idempotency_key' => $validated['idempotency_key'] ?? null,
-            'offer_fingerprint' => $validated['offer_fingerprint'] ?? null,
-            'brand' => $cleanBrand,
-            'features' => isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : null,
-            'verdict' => $validated['verdict'] ?? null,
-            'trust_metrics' => isset($validated['trust_metrics']) ? (is_string($validated['trust_metrics']) ? json_decode($validated['trust_metrics'], true) : $validated['trust_metrics']) : null,
-            'confidence_score' => $validated['confidence_score'] ?? null,
-            'confidence_reasons' => isset($validated['confidence_reasons']) ? (is_string($validated['confidence_reasons']) ? json_decode($validated['confidence_reasons'], true) : $validated['confidence_reasons']) : null,
-            'ai_caption' => $validated['ai_caption'] ?? null,
-            'ai_score' => $dealScore,
-            'status' => $dealStatus,
-            'editorial_status' => $dealEditorialStatus,
-            'editorial_summary' => preg_replace('/(?m)^.*?(?:Buy Now|Grab it here):\s*https?:\/\/[^\s]+.*$/iu', '', $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.'),
-            'editorial_verdict' => $validated['verdict'] ?? 'Recommended buy based on price drop.',
-            'pros' => isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : ['Great value', 'Verified by AI'],
-            'cons' => ['Price subject to change based on merchant availability'],
-            'observation_id' => $validated['observation_id'],
-            'trace_id' => $validated['trace_id'] ?? null,
-            'pipeline_run_id' => $validated['pipeline_run_id'] ?? null,
-            'short_url' => $validated['short_url'] ?? null,
-        ]);
+        // 3. Persist Raw Payload (with concurrent idempotency race-condition protection)
+        try {
+            $deal = Deal::create([
+                'asin' => $validated['asin'] ?? null,
+                'url' => $validated['url'],
+                'image_path' => $imagePath,
+                'category_id' => $validated['category_id'],
+                'merchant_id' => $validated['merchant_id'],
+                'brand_id' => $brandId,
+                'title' => Str::limit($validated['title'], 250, ''),
+                'original_price' => $validated['original_price'],
+                'discounted_price' => $validated['discounted_price'],
+                'calculated_discount_percent' => $validated['calculated_discount'] ?? null,
+                'price_intelligence' => $priceIntel,
+                'coupon_code' => $validated['coupon_code'] ?? $validated['promo_code'] ?? null,
+                'promo_code' => $validated['coupon_code'] ?? $validated['promo_code'] ?? null,
+                'bank_offer' => $validated['bank_offer'] ?? null,
+                'structured_offers' => $validated['structured_offers'] ?? null,
+                'idempotency_key' => $validated['idempotency_key'] ?? null,
+                'offer_fingerprint' => $validated['offer_fingerprint'] ?? null,
+                'brand' => $cleanBrand,
+                'features' => isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : null,
+                'verdict' => $validated['verdict'] ?? null,
+                'trust_metrics' => isset($validated['trust_metrics']) ? (is_string($validated['trust_metrics']) ? json_decode($validated['trust_metrics'], true) : $validated['trust_metrics']) : null,
+                'confidence_score' => $validated['confidence_score'] ?? null,
+                'confidence_reasons' => isset($validated['confidence_reasons']) ? (is_string($validated['confidence_reasons']) ? json_decode($validated['confidence_reasons'], true) : $validated['confidence_reasons']) : null,
+                'ai_caption' => $validated['ai_caption'] ?? null,
+                'ai_score' => $dealScore,
+                'status' => $dealStatus,
+                'editorial_status' => $dealEditorialStatus,
+                'editorial_summary' => preg_replace('/(?m)^.*?(?:Buy Now|Grab it here):\s*https?:\/\/[^\s]+.*$/iu', '', $validated['ai_caption'] ?? 'Great deal found by LatestDeal AI.'),
+                'editorial_verdict' => $validated['verdict'] ?? 'Recommended buy based on price drop.',
+                'pros' => isset($validated['features']) ? (is_string($validated['features']) ? json_decode($validated['features'], true) : $validated['features']) : ['Great value', 'Verified by AI'],
+                'cons' => ['Price subject to change based on merchant availability'],
+                'observation_id' => $validated['observation_id'],
+                'trace_id' => $validated['trace_id'] ?? null,
+                'pipeline_run_id' => $validated['pipeline_run_id'] ?? null,
+                'short_url' => $validated['short_url'] ?? null,
+            ]);
+        } catch (\Illuminate\Database\QueryException $qe) {
+            // Concurrent race condition on unique idempotency_key or url
+            if (!empty($validated['idempotency_key'])) {
+                $existing = Deal::where('idempotency_key', $validated['idempotency_key'])->first();
+                if ($existing) {
+                    return response()->json([
+                        'status' => 'duplicate',
+                        'message' => 'Deal ingestion skipped: idempotency_key already processed concurrently.',
+                        'deal_id' => $existing->id,
+                        'idempotent' => true,
+                        'correlation_id' => null
+                    ], 200);
+                }
+            }
+            throw $qe;
+        }
 
         // 4. Queue Processing (Dispatch Event only if publishable)
         $correlationId = Str::uuid()->toString();

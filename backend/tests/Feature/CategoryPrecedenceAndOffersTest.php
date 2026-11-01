@@ -235,4 +235,67 @@ class CategoryPrecedenceAndOffersTest extends TestCase
         $count = Deal::where('asin', 'B0ANKER123')->count();
         $this->assertEquals(1, $count);
     }
+
+    public function test_reingestion_updates_existing_deal_coupon_and_bank_offer(): void
+    {
+        $initialPayload = [
+            'title' => 'Logitech MX Master 3S Wireless Mouse',
+            'original_price' => 9995,
+            'discounted_price' => 7995,
+            'url' => 'https://amazon.in/dp/B0MXMASTER3S',
+            'asin' => 'B0MXMASTER3S',
+            'trace_id' => 'trace_mx_1',
+            'pipeline_run_id' => 'run_mx_1',
+            'observation_id' => 'obs-mx-1',
+        ];
+
+        // 1. Initial Ingestion without coupon or bank offer
+        $res1 = $this->postJson('/api/worker/ingest', $initialPayload, [
+            'Authorization' => 'Bearer test-secret-key'
+        ]);
+        $res1->assertStatus(200);
+
+        $deal = Deal::where('asin', 'B0MXMASTER3S')->first();
+        $this->assertNotNull($deal);
+        $this->assertNull($deal->coupon_code);
+        $this->assertNull($deal->bank_offer);
+
+        // 2. Re-ingestion of existing deal with newly discovered coupon & bank offer
+        $reingestPayload = [
+            'title' => 'Logitech MX Master 3S Wireless Mouse',
+            'original_price' => 9995,
+            'discounted_price' => 7995, // Same price, but offers updated!
+            'url' => 'https://amazon.in/dp/B0MXMASTER3S',
+            'asin' => 'B0MXMASTER3S',
+            'trace_id' => 'trace_mx_2',
+            'pipeline_run_id' => 'run_mx_2',
+            'observation_id' => 'obs-mx-2',
+            'coupon_code' => 'LOGI500',
+            'bank_offer' => 'Instant ₹500 off on ICICI Cards',
+            'structured_offers' => [
+                [
+                    'offer_type' => 'coupon_clip',
+                    'discount_type' => 'fixed',
+                    'discount_value' => 500.0,
+                    'coupon_code' => 'LOGI500',
+                ]
+            ],
+            'offer_fingerprint' => 'fp_logi_mx_500'
+        ];
+
+        $res2 = $this->postJson('/api/worker/ingest', $reingestPayload, [
+            'Authorization' => 'Bearer test-secret-key'
+        ]);
+        $res2->assertStatus(200);
+        $this->assertEquals('updated', $res2->json('status'));
+
+        // 3. Verify deal in database has refreshed offer data
+        $deal->refresh();
+        $this->assertEquals('LOGI500', $deal->coupon_code);
+        $this->assertEquals('LOGI500', $deal->promo_code);
+        $this->assertEquals('Instant ₹500 off on ICICI Cards', $deal->bank_offer);
+        $this->assertIsArray($deal->structured_offers);
+        $this->assertEquals('coupon_clip', $deal->structured_offers[0]['offer_type']);
+        $this->assertEquals('fp_logi_mx_500', $deal->offer_fingerprint);
+    }
 }
